@@ -1,0 +1,83 @@
+unit UCLCargo;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
+  System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
+  Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.ToolWin, Data.DB, Vcl.DBCtrls,
+  Vcl.Grids, Vcl.DBGrids, FireDAC.Stan.Intf, FireDAC.Stan.Option,
+  FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf,
+  FireDAC.DApt.Intf, FireDAC.Stan.Async, FireDAC.DApt, FireDAC.Comp.DataSet,
+  FireDAC.Comp.Client;
+
+type
+  TfrmCLCargo = class(TForm)
+    ToolBar1: TToolBar;
+    ToolButton2: TToolButton;
+    ToolButton1: TToolButton;
+    ToolButton3: TToolButton;
+    ToolButton4: TToolButton;
+    ToolButton5: TToolButton;
+    Panel1: TPanel;
+    edtfind: TEdit;
+    StatusBar1: TStatusBar;
+    gCargos: TDBGrid;
+    dbnCargos: TDBNavigator;
+    fQ: TFDQuery;
+    DListacod: TDataSource;
+    procedure ToolButton1Click(Sender: TObject);
+    procedure ToolButton4Click(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+    campot, campoi: string;
+    filtrado: boolean;
+    dst: Tdataset;
+  end;
+
+var
+  frmCLCargo: TfrmCLCargo;
+  s: string;
+  nombrecampo, nombrecampoSel, opt: string;
+  papa: Boolean;
+  SQLOrig: WideString;
+ // FListaCod: TFListaCod;
+
+implementation
+
+uses
+  UCapaDatos;
+
+{$R *.dfm}
+
+procedure TfrmCLCargo.ToolButton1Click(Sender: TObject);
+begin
+  Close;
+end;
+
+procedure TfrmCLCargo.ToolButton4Click(Sender: TObject);
+begin
+  if opt = 'ASC' then
+    opt := 'DESC'
+  else
+    opt := 'ASC';
+  if opt = '' then
+    opt := 'ASC';
+  fq.Active := false;
+  fq.sql.clear;
+  if filtrado then
+  begin
+    FQ.SQL.Add('select ' + campoi + ' , ' + campot + ' from bdreferativa.' + dst.name + ' order by ' + nombrecampoSel + ' ' + opt)
+  end
+  else
+  begin
+    FQ.SQL.Add('select ' + campoi + ' , ' + campot + ' from bdreferativa.' + dst.name + ' order by ' + nombrecampoSel + ' ' + opt)
+  end;
+  fq.Active := true;
+  filtrado := not filtrado;
+end;
+
+end.
+

@@ -1,0 +1,219 @@
+unit UCL_Cargo;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
+  System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, cxGraphics,
+  cxControls, cxLookAndFeels, cxLookAndFeelPainters, dxSkinsCore,
+  dxSkinsDefaultPainters, Vcl.ExtCtrls, AdvSplitter, Vcl.DBCtrls, cxNavigator,
+  cxDBNavigator, Vcl.ComCtrls, Vcl.ToolWin, cxContainer, cxEdit, cxMaskEdit,
+  cxDropDownEdit, cxLookupEdit, cxDBLookupEdit, cxDBLookupComboBox, cxTextEdit,
+  cxDBEdit, Vcl.StdCtrls, AdvGroupBox, cxStyles, cxCustomData, cxFilter, cxData,
+  cxDataStorage, dxDateRanges, Data.DB, cxDBData, cxGridLevel,
+  cxGridCustomTableView, cxGridTableView, cxGridDBTableView, cxClasses,
+  cxGridCustomView, cxGrid, cxBlobEdit, Vcl.Buttons, Vcl.Menus, AdvMenus,
+  JvExControls, JvButton, JvTransparentButton;
+
+type
+  TfrmCLCargo = class(TForm)
+    ToolBar1: TToolBar;
+    btnClose: TToolButton;
+    ToolButton3: TToolButton;
+    btnhlp: TToolButton;
+    StatusBar1: TStatusBar;
+    Panel1: TPanel;
+    Panel6: TPanel;
+    cxDBNavigator3: TcxDBNavigator;
+    DBNavigator3: TDBNavigator;
+    Panel8: TPanel;
+    gbCargo: TAdvGroupBox;
+    lcbidcargo: TLabel;
+    edtIdcargo: TcxDBTextEdit;
+    Label1: TLabel;
+    edtnombre: TcxDBTextEdit;
+    lcbidcategoria: TcxDBLookupComboBox;
+    lcbCategoria: TLabel;
+    PMFunciones: TAdvPopupMenu;
+    agregarfun: TMenuItem;
+    eliminarfun: TMenuItem;
+    modificarfun: TMenuItem;
+    N4: TMenuItem;
+    PMFacultades: TAdvPopupMenu;
+    agregarfac: TMenuItem;
+    eliminarfac: TMenuItem;
+    editarfac: TMenuItem;
+    MenuItem7: TMenuItem;
+    btnFacultades: TJvTransparentButton;
+    btnFunciones: TJvTransparentButton;
+    dscl_cargo: TDataSource;
+    procedure btnCloseClick(Sender: TObject);
+    procedure agregarfunClick(Sender: TObject);
+    procedure btnFuncionesClick(Sender: TObject);
+    procedure dscl_cargoDataChange(Sender: TObject; Field: TField);
+    procedure eliminarfunClick(Sender: TObject);
+    procedure eliminarfacClick(Sender: TObject);
+    procedure modificarfunClick(Sender: TObject);
+    procedure agregarfacClick(Sender: TObject);
+    procedure editarfacClick(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  frmCLCargo: TfrmCLCargo;
+
+implementation
+
+uses
+  UCapaDatos, UVeditor, UCLFacultades, UCLFunciones;
+
+{$R *.dfm}
+
+procedure TfrmCLCargo.agregarfacClick(Sender: TObject);
+begin
+  with TfrmCLFacultades.Create(nil) do
+  try
+    UDM.cl_facultadesgen.Append;
+    UDM.cl_facultadesgen.FieldByName('idfacultades').AsString := inttostr(UDM.GetLastFacult);
+    DBNavigator3.VisibleButtons:=[nbPost,nbCancel];
+    ShowModal;
+  finally
+    DBNavigator3.VisibleButtons:=[nbPrior,nbNext,nbInsert,nbDelete,nbEdit,nbPost,nbCancel];
+    Free;
+  end;
+end;
+
+procedure TfrmCLCargo.agregarfunClick(Sender: TObject);
+begin
+  with TfrmCLFunciones.Create(nil) do
+  try
+    UDM.cl_funcionesgen.Append;
+    UDM.cl_funcionesgen.FieldByName('idfunciones').AsString := inttostr(UDM.GetLastFunct);
+    DBNavigator3.VisibleButtons:=[nbPost,nbCancel];
+    ShowModal;
+  finally
+    DBNavigator3.VisibleButtons:=[nbPrior,nbNext,nbInsert,nbDelete,nbEdit,nbPost,nbCancel];
+    Free;
+  end;
+
+  {
+  if udm.cl_funcionesgen.RecordCount = 0 then
+  begin
+
+  end
+  else
+  begin
+    MessageDlg('Ya ha agregado funciones generales al cargo actual.', mtInformation, [mbOK], 0);
+    exit;
+  end;
+  }
+end;
+
+procedure TfrmCLCargo.btnCloseClick(Sender: TObject);
+begin
+  Close;
+end;
+
+procedure TfrmCLCargo.btnFuncionesClick(Sender: TObject);
+var
+  cad: string;
+begin
+  UDM.cl_funcionesgen.Active := False;
+  UDM.cl_funcionesgen.SQL.Clear;
+  UDM.cl_funcionesgen.SQL.Add('select idfunciones, funciones from cl_funcionesgen where( idcargo is null)and(ltrim(rtrim(idcargo))='')');
+  if UDM.cl_funcionesgen.RecordCount = 0 then
+
+end;
+
+procedure TfrmCLCargo.dscl_cargoDataChange(Sender: TObject; Field: TField);
+var
+  Tienefunciones, TieneFacultades: integer;
+begin
+  if (UDM.cl_cargo.State=dsInsert)or (UDM.cl_cargo.State=dsEdit) then
+    Exit;
+  Tienefunciones := 0;
+  TieneFacultades := 0;
+  Tienefunciones := UDM.Conn.ExecSQLScalar('select count(idfunciones)as funciones_cant from cl_funcionesgen where idcargo=' + UDM.cl_cargo.FieldByName('idcargo').AsString);
+  TieneFacultades := UDM.Conn.ExecSQLScalar('select count(idfacultades)as facultad from cl_facultadesgen where idcargo=' + UDM.cl_cargo.FieldByName('idcargo').AsString);
+  agregarfun.Enabled := true;
+  agregarfac.Enabled := True;
+  if Tienefunciones > 0 then
+    agregarfun.Enabled := False;
+  if TieneFacultades > 0 then
+    agregarfac.Enabled := False;
+ { with UDM.cl_funcionesgen do
+  begin
+    Active := False;
+    SQL.Clear;
+    SQL.Add('select idfunciones, funciones from cl_funcionesgen where idcargo=' + UDM.cl_cargo.FieldByName('idcargo').AsString);
+    try
+      Active := True;
+    except
+    end;
+  end; }
+end;
+
+procedure TfrmCLCargo.editarfacClick(Sender: TObject);
+begin
+  with UDM.cl_facultadesgen do begin
+    Active:=False;
+    SQL.Clear;
+    SQL.Add('select * from cl_facultadesgen where Idcargo=' + UDM.cl_cargo.FieldByName('idCargo').AsString);
+    try
+      Active:=True;
+    except
+
+    end;
+  end;
+  with TfrmCLFacultades.Create(nil) do
+  try
+    DBNavigator3.VisibleButtons:=[nbPost,nbCancel];
+    ShowModal;
+  finally
+    DBNavigator3.VisibleButtons:=[nbPrior,nbNext,nbInsert,nbDelete,nbEdit,nbPost,nbCancel];
+    Free;
+  end;
+end;
+
+procedure TfrmCLCargo.eliminarfacClick(Sender: TObject);
+begin
+  if MessageDlg('¿Está seguro que quiere eliminar las facultades del cargo actual?', mtConfirmation, [mbYes, mbNo], 0) = mrYes then
+    UDM.Conn.ExecSQL('delete from cl_facultadesgen where Idcargo=' + UDM.cl_cargo.FieldByName('idCargo').AsString);
+end;
+
+procedure TfrmCLCargo.eliminarfunClick(Sender: TObject);
+begin
+  if MessageDlg('¿Está seguro que quiere eliminar las funciones del cargo actual?', mtConfirmation, [mbYes, mbNo], 0) = mrYes then
+    UDM.Conn.ExecSQL('delete from cl_funcionesgen where Idcargo=' + UDM.cl_cargo.FieldByName('idCargo').AsString);
+end;
+
+procedure TfrmCLCargo.modificarfunClick(Sender: TObject);
+var
+  cad:string;
+begin
+  with UDM.cl_funcionesgen do begin
+    Active:=False;
+    SQL.Clear;
+    cad:='select * from cl_funcionesgen where Idcargo=' + UDM.cl_cargo.FieldByName('idCargo').AsString;
+    SQL.Add(cad);
+    try
+      Active:=True;
+    except
+
+    end;
+  end;
+  with TfrmCLFunciones.Create(nil) do
+  try
+    DBNavigator3.VisibleButtons:=[nbPost,nbCancel];
+    ShowModal;
+  finally
+    DBNavigator3.VisibleButtons:=[nbPrior,nbNext,nbInsert,nbDelete,nbEdit,nbPost,nbCancel];
+    Free;
+  end;
+end;
+
+end.
+

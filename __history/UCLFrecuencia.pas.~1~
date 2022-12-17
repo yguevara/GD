@@ -1,0 +1,24 @@
+unit UCLFrecuencia;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs;
+
+type
+  TfrmCLFrecuencia = class(TForm)
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  frmCLFrecuencia: TfrmCLFrecuencia;
+
+implementation
+
+{$R *.dfm}
+
+end.

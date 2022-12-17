@@ -1,0 +1,36 @@
+unit UCLCargo;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls,
+  Vcl.ComCtrls, Vcl.ToolWin;
+
+type
+  TForm1 = class(TForm)
+    ToolBar1: TToolBar;
+    ToolButton2: TToolButton;
+    ToolButton1: TToolButton;
+    ToolButton3: TToolButton;
+    ToolButton4: TToolButton;
+    ToolButton5: TToolButton;
+    Panel1: TPanel;
+    edtfind: TEdit;
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+uses
+  UCapaDatos;
+
+{$R *.dfm}
+
+end.

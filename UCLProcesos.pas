@@ -1,0 +1,116 @@
+unit UCLProcesos;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
+  System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
+  Vcl.ComCtrls, Vcl.ToolWin, cxGraphics, cxControls, cxLookAndFeels,
+  cxLookAndFeelPainters, cxStyles, cxEdit, dxSkinsCore, dxSkinsDefaultPainters,
+  cxVGrid, cxDBVGrid, cxInplaceContainer, Vcl.ExtCtrls, AdvSplitter,
+  cxDropDownEdit, Vcl.DBCtrls, cxBlobEdit, cxNavigator, cxDBNavigator,
+  cxCustomData, cxFilter, cxData, cxDataStorage, dxDateRanges, Data.DB, cxDBData,
+  cxGridCustomTableView, cxGridTableView, cxGridDBTableView, cxGridLevel,
+  cxClasses, cxGridCustomView, cxGrid, cxDBLookupComboBox, FireDAC.Stan.Intf,
+  FireDAC.Stan.Option, FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS,
+  FireDAC.Phys.Intf, FireDAC.DApt.Intf, FireDAC.Stan.Async, FireDAC.DApt,
+  FireDAC.Comp.DataSet, FireDAC.Comp.Client, cxImage, cxMRUEdit, cxButtonEdit,
+  dxOfficeSearchBox, cxHyperLinkEdit, cxMemo;
+
+type
+  TfrmCLprocesos = class(TForm)
+    ToolBar1: TToolBar;
+    btnClose: TToolButton;
+    ToolButton3: TToolButton;
+    btnhlp: TToolButton;
+    StatusBar1: TStatusBar;
+    pProceso: TPanel;
+    AdvSplitter1: TAdvSplitter;
+    pSubProcesos: TPanel;
+    Panel1: TPanel;
+    cxDBNavigator1: TcxDBNavigator;
+    DBNavigator1: TDBNavigator;
+    Panel2: TPanel;
+    cxDBNavigator2: TcxDBNavigator;
+    DBNavigator2: TDBNavigator;
+    Panel3: TPanel;
+    Panel4: TPanel;
+    Panel5: TPanel;
+    cxGrid1: TcxGrid;
+    cxGrid1DBTableView1: TcxGridDBTableView;
+    cxGrid1Level1: TcxGridLevel;
+    pGrupo: TPanel;
+    Panel6: TPanel;
+    cxDBNavigator3: TcxDBNavigator;
+    DBNavigator3: TDBNavigator;
+    Panel7: TPanel;
+    cxGrid2: TcxGrid;
+    cxGridDBTableView1: TcxGridDBTableView;
+    cxGridLevel1: TcxGridLevel;
+    tcl_procesosGrupos: TFDQuery;
+    tcl_Procesos: TFDQuery;
+    tcl_ProcesoSubproceso: TFDQuery;
+    Dtcl_procesosGrupos: TDataSource;
+    Dtcl_Procesos: TDataSource;
+    Dtcl_ProcesoSubproceso: TDataSource;
+    cxGrid3DBTableView1: TcxGridDBTableView;
+    cxGrid3Level1: TcxGridLevel;
+    cxGrid3: TcxGrid;
+    cxGridDBTableView1IdGrupo: TcxGridDBColumn;
+    cxGridDBTableView1Nombregrupo: TcxGridDBColumn;
+    cxGrid1DBTableView1IdGrupo: TcxGridDBColumn;
+    cxGrid1DBTableView1IdProceso: TcxGridDBColumn;
+    cxGrid1DBTableView1NombreProceso: TcxGridDBColumn;
+    tcl_procesosGruposIdGrupo: TSmallintField;
+    tcl_procesosGruposNombreGrupo: TWideStringField;
+    tcl_ProcesosIdGrupo: TSmallintField;
+    tcl_ProcesosIdProceso: TSmallintField;
+    tcl_ProcesosNombreProceso: TWideStringField;
+    cxGrid3DBTableView1IdGrupo: TcxGridDBColumn;
+    cxGrid3DBTableView1IdProceso: TcxGridDBColumn;
+    cxGrid3DBTableView1IdSubproceso: TcxGridDBColumn;
+    cxGrid3DBTableView1Nombresubproceso: TcxGridDBColumn;
+    cxGrid3DBTableView1PDFSubproceso: TcxGridDBColumn;
+    cxGrid3DBTableView1IDSistemaCalidad: TcxGridDBColumn;
+    procedure btnCloseClick(Sender: TObject);
+    procedure cxGrid3DBTableView1PDFSubprocesoPropertiesButtonClick(Sender: TObject; AButtonIndex: Integer);
+    procedure FormActivate(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  frmCLprocesos: TfrmCLprocesos;
+  s: string;
+
+implementation
+
+uses
+  UCapaDatos, UManagementPDFFile;
+
+{$R *.dfm}
+
+procedure TfrmCLprocesos.btnCloseClick(Sender: TObject);
+begin
+  Close;
+end;
+
+procedure TfrmCLprocesos.cxGrid3DBTableView1PDFSubprocesoPropertiesButtonClick(Sender: TObject; AButtonIndex: Integer);
+var
+  NombreProc:string;
+begin
+  NombreProc:= tcl_ProcesoSubproceso.FieldByName('Nombresubproceso').AsString +' ID SGIC Calidad ('+ tcl_ProcesoSubproceso.FieldByName('IDSistemaCalidad').AsString+')';
+  ManagementPDF(@tcl_ProcesoSubproceso,'PDFSubproceso', NombreProc);
+end;
+
+procedure TfrmCLprocesos.FormActivate(Sender: TObject);
+begin
+  tcl_procesosGrupos.Active:=True;
+  tcl_Procesos.Active:=True;
+  tcl_ProcesoSubproceso.Active:=True;
+end;
+
+end.
+

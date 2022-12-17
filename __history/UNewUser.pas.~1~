@@ -1,0 +1,244 @@
+unit UNewUser;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
+  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.DBCtrls,
+  Vcl.ExtCtrls, System.UITypes, Vcl.ComCtrls, JvExComCtrls, JvDateTimePicker,
+  Data.DB, Data.Win.ADODB, FireDAC.Stan.Error, cxGraphics, cxControls,
+  cxLookAndFeels, cxLookAndFeelPainters, cxContainer, cxEdit, dxSkinsCore,
+  dxSkinBlack, dxSkinBlue, dxSkinBlueprint, dxSkinCaramel, dxSkinCoffee,
+  dxSkinDarkRoom, dxSkinDarkSide, dxSkinDevExpressDarkStyle,
+  dxSkinDevExpressStyle, dxSkinFoggy, dxSkinGlassOceans, dxSkinHighContrast,
+  dxSkiniMaginary, dxSkinLilian, dxSkinLiquidSky, dxSkinLondonLiquidSky,
+  dxSkinMcSkin, dxSkinMetropolis, dxSkinMetropolisDark, dxSkinMoneyTwins,
+  dxSkinOffice2007Black, dxSkinOffice2007Blue, dxSkinOffice2007Green,
+  dxSkinOffice2007Pink, dxSkinOffice2007Silver, dxSkinOffice2010Black,
+  dxSkinOffice2010Blue, dxSkinOffice2010Silver, dxSkinOffice2013DarkGray,
+  dxSkinOffice2013LightGray, dxSkinOffice2013White, dxSkinOffice2016Colorful,
+  dxSkinOffice2016Dark, dxSkinPumpkin, dxSkinSeven, dxSkinSevenClassic,
+  dxSkinSharp, dxSkinSharpPlus, dxSkinSilver, dxSkinSpringTime, dxSkinStardust,
+  dxSkinSummer2008, dxSkinTheAsphaltWorld, dxSkinTheBezier,
+  dxSkinsDefaultPainters, dxSkinValentine, dxSkinVisualStudio2013Blue,
+  dxSkinVisualStudio2013Dark, dxSkinVisualStudio2013Light, dxSkinVS2010,
+  dxSkinWhiteprint, dxSkinXmas2008Blue, cxTextEdit, cxMaskEdit, cxDropDownEdit,
+  cxLookupEdit, cxDBLookupEdit, cxDBLookupComboBox;
+
+type
+  TfrmNewUser = class(TForm)
+    lblNameUser: TLabel;
+    edtUser: TEdit;
+    edtCompleteName: TEdit;
+    Label1: TLabel;
+    cbEnable: TComboBox;
+    Label2: TLabel;
+    lblPass: TLabel;
+    edtpass: TEdit;
+    Panel2: TPanel;
+    edtconfirmpass: TEdit;
+    Label3: TLabel;
+    Panel3: TPanel;
+    lblGrupo: TLabel;
+    Panel4: TPanel;
+    btnClose: TButton;
+    btnCreateUser: TButton;
+    btnHelp: TButton;
+    Label5: TLabel;
+    Label6: TLabel;
+    edtEmpresa: TEdit;
+    edtMinisterio: TEdit;
+    lcbrol: TDBLookupComboBox;
+    procedure btnCloseClick(Sender: TObject);
+    procedure btnCreateUserClick(Sender: TObject);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure FormCreate(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  frmNewUser: TfrmNewUser;
+
+implementation
+
+{$R *.dfm}
+
+uses
+  md5, DMBDRU, UDMOilFile;
+
+procedure TfrmNewUser.btnCloseClick(Sender: TObject);
+begin
+  if AppSelect = 'BDR' then
+  begin
+    if (DMBDR.Tb_User.State <> dsInsert) or (DMBDR.Tb_User.State <> dsEdit) then
+      DMBDR.Tb_User.Cancel;
+  end
+  else
+  begin
+    if (DMOilFile.Tb_User.State <> dsInsert) or (DMOilFile.Tb_User.State <> dsEdit) then
+      DMOilFile.Tb_User.Cancel;
+  end;
+  Close;
+end;
+
+procedure TfrmNewUser.btnCreateUserClick(Sender: TObject);
+
+  function GetLastId: Integer;
+  var
+    V: Variant;
+  begin
+    if AppSelect = 'BDR' then
+      V := DMBDR.FDConn.ExecSQLScalar('SELECT Max(bdreferativa.des_registrador.codregistrador) FROM bdreferativa.des_registrador')
+    else
+      V := DMBDR.FDConn.ExecSQLScalar('SELECT Max(bdreferativa.des_registrador.codregistrador) FROM bdreferativa.des_registrador');
+    result := StrToInt(VarToStr(V)) + 1;
+  end;
+
+begin
+  if (LowerCase(edtUser.Text) = 'administrador') or (LowerCase(edtUser.Text) = 'administrator') then
+  begin
+    MessageDlg('El nombre de usuario especificado está restringido por el sistema.', mtError, [mbOK], 0);
+    Exit;
+  end;
+  if (edtUser.Text = '') or (Length(edtUser.Text) <= 3) or (edtUser.Text = ' ') or (Length(edtpass.Text) <= 6) then
+  begin
+    MessageDlg('Por favor debe verificar lo siguiente:' + #13 + '1- No se especificó el "Usuario".' + #13 + '2- La longitud del nombre especificado debe ser de al menos tres caracteres.' + #13 + '3- El nombre de usuario está formado por caracteres no admitidos.' + #13 + '4- La longitud de la contraseña debe ser mayor de seis caracteres.' + #13, mtError, [mbOK], 0);
+    edtUser.SetFocus;
+    edtUser.Focused;
+    Exit;
+  end;
+  if edtpass.Text = edtconfirmpass.Text then
+  begin
+    if AppSelect = 'BDR' then
+    begin
+      if (DMBDR.Tb_User.State <> dsInsert) or (DMBDR.Tb_User.State <> dsEdit) then
+        DMBDR.Tb_User.Append;
+      with DMBDR.Tb_User do
+      begin
+        FieldByName('NombreUser').AsString := AnsiLowerCase(trim(edtUser.Text));
+        FieldByName('NombreLUser').AsString := edtCompleteName.Text;
+        FieldByName('Pass').AsString := MD5Print(MD5String(edtpass.Text));
+        FieldByName('Empresa').AsString := edtEmpresa.Text;
+        FieldByName('Ministerio').AsString := edtMinisterio.Text;
+        FieldByName('Habilitado').AsString := cbEnable.Text;
+        FieldByName('Rol').AsInteger := lcbrol.KeyValue;
+        try
+          Post;
+          if (FieldByName('Rol').AsInteger = 2) or (FieldByName('Rol').AsInteger = 3) then
+          begin
+            if not DMBDR.DES_REGISTRADOR.Locate('desregistrador', FieldByName('nombreluser').AsString, []) then
+            begin
+              DMBDR.DES_REGISTRADOR.Append;
+              DMBDR.DES_REGISTRADOR.FieldByName('codregistrador').AsInteger := GetLastId;
+              DMBDR.DES_REGISTRADOR.FieldByName('desregistrador').AsString := FieldByName('nombreluser').AsString;
+              try
+                DMBDR.DES_REGISTRADOR.Post;
+              except
+                on E: EFDException do
+                begin
+                  DMBDR.DES_REGISTRADOR.Cancel;
+                  MessageDlg(e.Message, mtError, [mbOK], 0);
+                  Exit;
+                end;
+              end;
+            end;
+          end;
+          edtUser.Text := '';
+          edtCompleteName.Text := '';
+          edtpass.Text := '';
+          edtconfirmpass.Text := '';
+          cbEnable.Text := '';
+          lcbrol.KeyValue := Null;
+          edtEmpresa.Text := '';
+          edtMinisterio.Text := '';
+          MessageDlg('¡El usuario se ha creado satisfactoriamente!', mtInformation, [mbOK], 0);
+          Append;
+        except
+          on E: EDatabaseError do
+          begin
+            MessageDlg('No se pudo agregar el usuario especificado.' + #13 + '1- Verifique que el usuario no exista.' + #13 + '2- Verifique que el nombre de usuario no contenga caráteres especiales.' + #13 + 'Motivo: ' + e.Message, mtError, [mbOK], 0);
+            Exit;
+          end;
+        end;
+      end;
+    end
+    else
+    begin
+      if (DMOilFile.Tb_User.State <> dsInsert) or (DMOilFile.Tb_User.State <> dsEdit) then
+        DMOilFile.Tb_User.Append;
+      with DMOilFile.Tb_User do
+      begin
+        FieldByName('NombreUser').AsString := AnsiLowerCase(trim(edtUser.Text));
+        FieldByName('NombreLUser').AsString := edtCompleteName.Text;
+        FieldByName('Pass').AsString := MD5Print(MD5String(edtpass.Text));
+        FieldByName('Empresa').AsString := edtEmpresa.Text;
+        FieldByName('Ministerio').AsString := edtMinisterio.Text;
+        FieldByName('Habilitado').AsString := cbEnable.Text;
+        FieldByName('Rol').AsInteger := lcbrol.KeyValue;
+        try
+          Post;
+          edtUser.Text := '';
+          edtCompleteName.Text := '';
+          edtpass.Text := '';
+          edtconfirmpass.Text := '';
+          cbEnable.Text := '';
+          lcbrol.KeyValue := Null;
+          edtEmpresa.Text := '';
+          edtMinisterio.Text := '';
+          MessageDlg('¡El usuario se ha creado satisfactoriamente!', mtInformation, [mbOK], 0);
+          Append;
+        except
+          on E: EDatabaseError do
+          begin
+            MessageDlg('No se pudo agregar el usuario especificado.' + #13 + '1- Verifique que el usuario no exista.' + #13 + '2- Verifique que el nombre de usuario no contenga caráteres especiales.' + #13 + 'Motivo: ' + e.Message, mtError, [mbOK], 0);
+            Exit;
+          end;
+        end;
+      end;
+    end;
+  end
+  else
+  begin
+    MessageDlg('Por favor debe tener en cuenta que la contraseña y su confirmación deben ser iguales. Por favor intentelo de nuevo.', mtError, [mbOK], 0);
+    edtpass.Clear;
+    edtconfirmpass.Clear;
+    Exit;
+  end;
+end;
+
+procedure TfrmNewUser.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+begin
+  if AppSelect = 'BDR' then
+  begin
+    if (DMBDR.Tb_User.State <> dsInsert) or (DMBDR.Tb_User.State <> dsEdit) then
+      DMBDR.Tb_User.Cancel;
+  end
+  else
+  begin
+    if (DMOilFile.Tb_User.State <> dsInsert) or (DMOilFile.Tb_User.State <> dsEdit) then
+      DMOilFile.Tb_User.Cancel;
+  end;
+  CanClose := True;
+end;
+
+procedure TfrmNewUser.FormCreate(Sender: TObject);
+begin
+  if AppSelect = 'BDR' then
+  begin
+    lcbrol.ListSource := DMBDR.DSTb_Rol;
+    lcbrol.ListField := 'Rol';
+    lcbrol.KeyField := 'IdRol';
+  end
+  else
+  begin
+    lcbrol.ListSource := DMOilFile.DSTb_Rol;
+    lcbrol.ListField := 'Rol';
+    lcbrol.KeyField := 'IdRol';
+  end;
+end;
+
+end.
+

@@ -1,0 +1,149 @@
+object frmGestUser: TfrmGestUser
+  Left = 0
+  Top = 0
+  Caption = 'Administraci'#243'n de Usuarios'
+  ClientHeight = 523
+  ClientWidth = 1037
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  Position = poScreenCenter
+  OnActivate = FormActivate
+  PixelsPerInch = 96
+  TextHeight = 13
+  object StatusBar1: TStatusBar
+    Left = 0
+    Top = 504
+    Width = 1037
+    Height = 19
+    Panels = <>
+  end
+  object PageControl1: TPageControl
+    Left = 0
+    Top = 0
+    Width = 1037
+    Height = 463
+    ActivePage = tsGeneralProperties
+    Align = alClient
+    TabOrder = 1
+    object tsGeneralProperties: TTabSheet
+      Caption = 'Usuarios'
+      ImageIndex = 1
+      object lbUser: TJvListView
+        Left = 0
+        Top = 0
+        Width = 1029
+        Height = 435
+        Align = alClient
+        Columns = <
+          item
+            AutoSize = True
+            Caption = 'Nombre de Usuario'
+          end
+          item
+            AutoSize = True
+            Caption = 'Nombre completo'
+          end
+          item
+            Caption = 'Rol'
+            Width = 150
+          end
+          item
+            Caption = 'Ministerio'
+            Width = 150
+          end
+          item
+            Caption = 'Empresa'
+            Width = 150
+          end>
+        ReadOnly = True
+        PopupMenu = PMUsuarios
+        SmallImages = DMBDR.ILEdith
+        SortType = stBoth
+        TabOrder = 0
+        ViewStyle = vsReport
+        ColumnsOrder = '0=288,1=287,2=150,3=150,4=150'
+        SortMethod = smAlphabetic
+        ExtendedColumns = <
+          item
+            SortMethod = smAlphabetic
+          end
+          item
+            SortMethod = smAlphabetic
+          end
+          item
+            SortMethod = smAlphabetic
+          end
+          item
+            SortMethod = smAlphabetic
+          end
+          item
+            SortMethod = smAlphabetic
+          end>
+        ExplicitWidth = 296
+        ExplicitHeight = 113
+      end
+    end
+  end
+  object Panel1: TPanel
+    Left = 0
+    Top = 463
+    Width = 1037
+    Height = 41
+    Align = alBottom
+    BorderStyle = bsSingle
+    TabOrder = 2
+    object Button2: TButton
+      Left = 868
+      Top = 6
+      Width = 75
+      Height = 25
+      Caption = 'Aceptar'
+      ModalResult = 1
+      TabOrder = 0
+    end
+    object Button1: TButton
+      Left = 949
+      Top = 6
+      Width = 75
+      Height = 25
+      Caption = 'Cerrar'
+      ModalResult = 2
+      TabOrder = 1
+    end
+  end
+  object PMUsuarios: TPopupMenu
+    Left = 384
+    Top = 194
+    object Establecercontrasea1: TMenuItem
+      Caption = 'Modificar Contrase'#241'a'
+      OnClick = Establecercontrasea1Click
+    end
+    object N5: TMenuItem
+      Caption = '-'
+    end
+    object Agregar1: TMenuItem
+      Caption = 'Nuevo Usuario...'
+      OnClick = Agregar1Click
+    end
+    object N1: TMenuItem
+      Caption = '-'
+    end
+    object EliminarUsuario1: TMenuItem
+      Caption = 'Eliminar'
+      OnClick = EliminarUsuario1Click
+    end
+    object N4: TMenuItem
+      Caption = '-'
+      Visible = False
+    end
+    object Propiedades1: TMenuItem
+      Caption = 'Propiedades'
+      OnClick = Propiedades1Click
+    end
+  end
+end

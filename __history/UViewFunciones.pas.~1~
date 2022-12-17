@@ -1,0 +1,45 @@
+unit UViewFunciones;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, cxGraphics, cxControls, cxLookAndFeels,
+  cxLookAndFeelPainters, dxSkinsCore, dxSkinsDefaultPainters, cxStyles,
+  cxCustomData, cxFilter, cxData, cxDataStorage, cxEdit, cxNavigator,
+  dxDateRanges, Data.DB, cxDBData, cxRichEdit, Vcl.ComCtrls, Vcl.ToolWin,
+  cxGridLevel, cxGridCustomTableView, cxGridTableView, cxGridDBTableView,
+  cxClasses, cxGridCustomView, cxGrid, Vcl.DBCtrls, cxDBNavigator, Vcl.ExtCtrls;
+
+type
+  TfrmSelectFuncionG = class(TForm)
+    Panel6: TPanel;
+    cxDBNavigator3: TcxDBNavigator;
+    DBNavigator3: TDBNavigator;
+    cxGrid1: TcxGrid;
+    cxGrid1DBTableView1: TcxGridDBTableView;
+    cxGrid1DBTableView1idfacultades: TcxGridDBColumn;
+    cxGrid1DBTableView1facultades: TcxGridDBColumn;
+    cxGrid1DBTableView1IdCargo: TcxGridDBColumn;
+    cxGrid1Level1: TcxGridLevel;
+    ToolBar1: TToolBar;
+    btnClose: TToolButton;
+    ToolButton3: TToolButton;
+    btnhlp: TToolButton;
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  frmSelectFuncionG: TfrmSelectFuncionG;
+
+implementation
+
+uses
+  UCapaDatos;
+
+{$R *.dfm}
+
+end.

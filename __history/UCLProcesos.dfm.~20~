@@ -1,0 +1,539 @@
+object frmCLprocesos: TfrmCLprocesos
+  Left = 0
+  Top = 0
+  Caption = 'Clalsificador de Series y Subseries documentales'
+  ClientHeight = 589
+  ClientWidth = 1060
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  Position = poScreenCenter
+  OnActivate = FormActivate
+  PixelsPerInch = 96
+  TextHeight = 13
+  object AdvSplitter1: TAdvSplitter
+    Left = 0
+    Top = 37
+    Height = 533
+    Appearance.BorderColor = clNone
+    Appearance.BorderColorHot = clNone
+    Appearance.Color = clWhite
+    Appearance.ColorTo = clSilver
+    Appearance.ColorHot = clWhite
+    Appearance.ColorHotTo = clGray
+    GripStyle = sgDots
+    ExplicitLeft = 657
+    ExplicitTop = 56
+    ExplicitHeight = 569
+  end
+  object ToolBar1: TToolBar
+    Left = 0
+    Top = 0
+    Width = 1060
+    Height = 37
+    ButtonHeight = 30
+    ButtonWidth = 31
+    Caption = 'ToolBar1'
+    Images = UDM.ILv1
+    TabOrder = 0
+    object btnClose: TToolButton
+      Left = 0
+      Top = 0
+      Hint = 'Regresar a la ventana principal'
+      Caption = 'btnClose'
+      ImageIndex = 0
+      OnClick = btnCloseClick
+    end
+    object ToolButton3: TToolButton
+      Left = 31
+      Top = 0
+      Width = 994
+      Caption = 'ToolButton3'
+      ImageIndex = 136
+      Style = tbsSeparator
+    end
+    object btnhlp: TToolButton
+      Left = 1025
+      Top = 0
+      Hint = 'Ayuda para manipular la interface actual'
+      Caption = 'btnhlp'
+      ImageIndex = 1
+      ParentShowHint = False
+      ShowHint = True
+    end
+  end
+  object StatusBar1: TStatusBar
+    Left = 0
+    Top = 570
+    Width = 1060
+    Height = 19
+    AutoHint = True
+    Panels = <>
+  end
+  object pProceso: TPanel
+    Left = 290
+    Top = 37
+    Width = 287
+    Height = 533
+    Align = alLeft
+    TabOrder = 2
+    object Panel2: TPanel
+      Left = 1
+      Top = 25
+      Width = 285
+      Height = 41
+      Align = alTop
+      TabOrder = 0
+      object cxDBNavigator2: TcxDBNavigator
+        Left = 242
+        Top = 1
+        Width = 42
+        Height = 39
+        Buttons.CustomButtons = <>
+        Buttons.First.Visible = False
+        Buttons.PriorPage.Visible = False
+        Buttons.Prior.Visible = False
+        Buttons.Next.Visible = False
+        Buttons.NextPage.Visible = False
+        Buttons.Last.Visible = False
+        Buttons.Insert.Visible = False
+        Buttons.Delete.Visible = False
+        Buttons.Edit.Visible = False
+        Buttons.Post.Visible = False
+        Buttons.Cancel.Visible = False
+        Buttons.Refresh.Visible = False
+        Buttons.SaveBookmark.Visible = False
+        Buttons.GotoBookmark.Visible = False
+        Buttons.Filter.Visible = False
+        DataSource = Dtcl_Procesos
+        InfoPanel.DisplayMask = '[RecordIndex] de [RecordCount]'
+        InfoPanel.Visible = True
+        Align = alRight
+        TabOrder = 0
+      end
+      object DBNavigator2: TDBNavigator
+        Left = 1
+        Top = 1
+        Width = 241
+        Height = 39
+        DataSource = Dtcl_Procesos
+        VisibleButtons = [nbPrior, nbNext, nbInsert, nbDelete, nbEdit, nbPost, nbCancel]
+        Align = alClient
+        Hints.Strings = (
+          'Primero'
+          'Anterior'
+          'Pr'#243'ximo'
+          'Ultimo'
+          'Insertar'
+          'Borrar'
+          'Editar'
+          'Aceptar'
+          'Cancelar'
+          'Refrescar')
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 1
+      end
+    end
+    object Panel4: TPanel
+      Left = 1
+      Top = 1
+      Width = 285
+      Height = 24
+      Align = alTop
+      Caption = 'Procesos'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = 10789888
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      TabOrder = 1
+    end
+    object cxGrid1: TcxGrid
+      Left = 1
+      Top = 66
+      Width = 285
+      Height = 466
+      Align = alClient
+      TabOrder = 2
+      object cxGrid1DBTableView1: TcxGridDBTableView
+        Navigator.Buttons.ConfirmDelete = True
+        Navigator.Buttons.CustomButtons = <>
+        Navigator.Buttons.PriorPage.Visible = False
+        Navigator.Buttons.NextPage.Visible = False
+        Navigator.Buttons.SaveBookmark.Visible = False
+        Navigator.Buttons.GotoBookmark.Visible = False
+        Navigator.Buttons.Filter.Visible = False
+        Navigator.InfoPanel.DisplayMask = '[RecordIndex] de [RecordCount]'
+        DataController.DataSource = Dtcl_Procesos
+        DataController.Summary.DefaultGroupSummaryItems = <>
+        DataController.Summary.FooterSummaryItems = <>
+        DataController.Summary.SummaryGroups = <>
+        OptionsBehavior.GoToNextCellOnEnter = True
+        OptionsView.GroupByBox = False
+        OptionsView.Indicator = True
+        Styles.StyleSheet = UDM.GridTableViewStyleSheetEggplant
+        object cxGrid1DBTableView1IdGrupo: TcxGridDBColumn
+          DataBinding.FieldName = 'IdGrupo'
+          Visible = False
+        end
+        object cxGrid1DBTableView1IdProceso: TcxGridDBColumn
+          Caption = 'IDProceso'
+          DataBinding.FieldName = 'IdProceso'
+        end
+        object cxGrid1DBTableView1NombreProceso: TcxGridDBColumn
+          Caption = 'Nombre Proceso'
+          DataBinding.FieldName = 'NombreProceso'
+        end
+      end
+      object cxGrid1Level1: TcxGridLevel
+        GridView = cxGrid1DBTableView1
+      end
+    end
+  end
+  object pSubProcesos: TPanel
+    Left = 577
+    Top = 37
+    Width = 473
+    Height = 533
+    Align = alClient
+    TabOrder = 3
+    object Panel1: TPanel
+      Left = 1
+      Top = 25
+      Width = 471
+      Height = 41
+      Align = alTop
+      TabOrder = 0
+      object cxDBNavigator1: TcxDBNavigator
+        Left = 428
+        Top = 1
+        Width = 42
+        Height = 39
+        Buttons.CustomButtons = <>
+        Buttons.First.Visible = False
+        Buttons.PriorPage.Visible = False
+        Buttons.Prior.Visible = False
+        Buttons.Next.Visible = False
+        Buttons.NextPage.Visible = False
+        Buttons.Last.Visible = False
+        Buttons.Insert.Visible = False
+        Buttons.Delete.Visible = False
+        Buttons.Edit.Visible = False
+        Buttons.Post.Visible = False
+        Buttons.Cancel.Visible = False
+        Buttons.Refresh.Visible = False
+        Buttons.SaveBookmark.Visible = False
+        Buttons.GotoBookmark.Visible = False
+        Buttons.Filter.Visible = False
+        DataSource = Dtcl_ProcesoSubproceso
+        InfoPanel.DisplayMask = '[RecordIndex] de [RecordCount]'
+        InfoPanel.Visible = True
+        Align = alRight
+        TabOrder = 0
+      end
+      object DBNavigator1: TDBNavigator
+        Left = 1
+        Top = 1
+        Width = 427
+        Height = 39
+        DataSource = Dtcl_ProcesoSubproceso
+        VisibleButtons = [nbFirst, nbPrior, nbNext, nbLast, nbInsert, nbDelete, nbEdit, nbPost, nbCancel]
+        Align = alClient
+        Hints.Strings = (
+          'Primero'
+          'Anterior'
+          'Pr'#243'ximo'
+          'Ultimo'
+          'Insertar'
+          'Borrar'
+          'Editar'
+          'Aceptar'
+          'Cancelar'
+          'Refrescar')
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 1
+      end
+    end
+    object Panel3: TPanel
+      Left = 1
+      Top = 1
+      Width = 471
+      Height = 24
+      Align = alTop
+      Caption = 'Su-Procesos'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = 10789888
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      TabOrder = 1
+    end
+    object cxGrid3: TcxGrid
+      Left = 1
+      Top = 66
+      Width = 471
+      Height = 466
+      Align = alClient
+      TabOrder = 2
+      object cxGrid3DBTableView1: TcxGridDBTableView
+        Navigator.Buttons.CustomButtons = <>
+        DataController.DataSource = Dtcl_ProcesoSubproceso
+        DataController.Summary.DefaultGroupSummaryItems = <>
+        DataController.Summary.FooterSummaryItems = <>
+        DataController.Summary.SummaryGroups = <>
+        OptionsView.GroupByBox = False
+        OptionsView.Indicator = True
+        Styles.StyleSheet = UDM.GridTableViewStyleSheetEggplant
+        object cxGrid3DBTableView1IdGrupo: TcxGridDBColumn
+          DataBinding.FieldName = 'IdGrupo'
+          Visible = False
+        end
+        object cxGrid3DBTableView1IdProceso: TcxGridDBColumn
+          DataBinding.FieldName = 'IdProceso'
+          Visible = False
+        end
+        object cxGrid3DBTableView1IdSubproceso: TcxGridDBColumn
+          Caption = 'ID'
+          DataBinding.FieldName = 'IdSubproceso'
+        end
+        object cxGrid3DBTableView1Nombresubproceso: TcxGridDBColumn
+          Caption = 'Nombre Subproceso'
+          DataBinding.FieldName = 'Nombresubproceso'
+        end
+        object cxGrid3DBTableView1PDFSubproceso: TcxGridDBColumn
+          Caption = 'Documento(PDF)'
+          DataBinding.FieldName = 'PDFSubproceso'
+          PropertiesClassName = 'TcxBlobEditProperties'
+          Properties.BlobEditKind = bekBlob
+          Properties.OnButtonClick = cxGrid3DBTableView1PDFSubprocesoPropertiesButtonClick
+          VisibleForEditForm = bTrue
+        end
+        object cxGrid3DBTableView1IDSistemaCalidad: TcxGridDBColumn
+          Caption = 'ID Calidad'
+          DataBinding.FieldName = 'IDSistemaCalidad'
+        end
+      end
+      object cxGrid3Level1: TcxGridLevel
+        GridView = cxGrid3DBTableView1
+      end
+    end
+  end
+  object Panel5: TPanel
+    Left = 1050
+    Top = 37
+    Width = 10
+    Height = 533
+    Align = alRight
+    BevelInner = bvLowered
+    BorderStyle = bsSingle
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = 10789888
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentBackground = False
+    ParentFont = False
+    TabOrder = 4
+  end
+  object pGrupo: TPanel
+    Left = 3
+    Top = 37
+    Width = 287
+    Height = 533
+    Align = alLeft
+    TabOrder = 5
+    object Panel6: TPanel
+      Left = 1
+      Top = 25
+      Width = 285
+      Height = 41
+      Align = alTop
+      TabOrder = 0
+      object cxDBNavigator3: TcxDBNavigator
+        Left = 242
+        Top = 1
+        Width = 42
+        Height = 39
+        Buttons.CustomButtons = <>
+        Buttons.First.Visible = False
+        Buttons.PriorPage.Visible = False
+        Buttons.Prior.Visible = False
+        Buttons.Next.Visible = False
+        Buttons.NextPage.Visible = False
+        Buttons.Last.Visible = False
+        Buttons.Insert.Visible = False
+        Buttons.Delete.Visible = False
+        Buttons.Edit.Visible = False
+        Buttons.Post.Visible = False
+        Buttons.Cancel.Visible = False
+        Buttons.Refresh.Visible = False
+        Buttons.SaveBookmark.Visible = False
+        Buttons.GotoBookmark.Visible = False
+        Buttons.Filter.Visible = False
+        DataSource = Dtcl_procesosGrupos
+        InfoPanel.DisplayMask = '[RecordIndex] de [RecordCount]'
+        InfoPanel.Visible = True
+        Align = alRight
+        TabOrder = 0
+      end
+      object DBNavigator3: TDBNavigator
+        Left = 1
+        Top = 1
+        Width = 241
+        Height = 39
+        DataSource = Dtcl_procesosGrupos
+        VisibleButtons = [nbPrior, nbNext, nbInsert, nbDelete, nbEdit, nbPost, nbCancel]
+        Align = alClient
+        Hints.Strings = (
+          'Primero'
+          'Anterior'
+          'Pr'#243'ximo'
+          'Ultimo'
+          'Insertar'
+          'Borrar'
+          'Editar'
+          'Aceptar'
+          'Cancelar'
+          'Refrescar')
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 1
+      end
+    end
+    object Panel7: TPanel
+      Left = 1
+      Top = 1
+      Width = 285
+      Height = 24
+      Align = alTop
+      Caption = 'Grupos de Procesos'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = 10789888
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentBackground = False
+      ParentFont = False
+      TabOrder = 1
+    end
+    object cxGrid2: TcxGrid
+      Left = 1
+      Top = 66
+      Width = 285
+      Height = 466
+      Align = alClient
+      TabOrder = 2
+      object cxGridDBTableView1: TcxGridDBTableView
+        Navigator.Buttons.ConfirmDelete = True
+        Navigator.Buttons.CustomButtons = <>
+        Navigator.Buttons.PriorPage.Visible = False
+        Navigator.Buttons.NextPage.Visible = False
+        Navigator.Buttons.SaveBookmark.Visible = False
+        Navigator.Buttons.GotoBookmark.Visible = False
+        Navigator.Buttons.Filter.Visible = False
+        Navigator.InfoPanel.DisplayMask = '[RecordIndex] de [RecordCount]'
+        DataController.DataSource = Dtcl_procesosGrupos
+        DataController.Summary.DefaultGroupSummaryItems = <>
+        DataController.Summary.FooterSummaryItems = <>
+        DataController.Summary.SummaryGroups = <>
+        OptionsView.GroupByBox = False
+        OptionsView.Indicator = True
+        Styles.StyleSheet = UDM.GridTableViewStyleSheetEggplant
+        object cxGridDBTableView1IdGrupo: TcxGridDBColumn
+          Caption = 'IDGrupo'
+          DataBinding.FieldName = 'IdGrupo'
+        end
+        object cxGridDBTableView1Nombregrupo: TcxGridDBColumn
+          DataBinding.FieldName = 'NombreGrupo'
+        end
+      end
+      object cxGridLevel1: TcxGridLevel
+        GridView = cxGridDBTableView1
+      end
+    end
+  end
+  object tcl_procesosGrupos: TFDQuery
+    Active = True
+    IndexFieldNames = 'IdGrupo'
+    Connection = UDM.Conn
+    SQL.Strings = (
+      'select *'
+      'from cl_ProcesosGrupos')
+    Left = 123
+    Top = 269
+    object tcl_procesosGruposIdGrupo: TSmallintField
+      FieldName = 'IdGrupo'
+      Origin = 'IdGrupo'
+      ProviderFlags = [pfInUpdate, pfInWhere, pfInKey]
+    end
+    object tcl_procesosGruposNombreGrupo: TWideStringField
+      FieldName = 'NombreGrupo'
+      Origin = 'NombreGrupo'
+      Size = 30
+    end
+  end
+  object tcl_Procesos: TFDQuery
+    Active = True
+    IndexFieldNames = 'IdGrupo;IdProceso'
+    MasterSource = Dtcl_procesosGrupos
+    MasterFields = 'IdGrupo'
+    Connection = UDM.Conn
+    SQL.Strings = (
+      'select *'
+      'from cl_Procesos')
+    Left = 338
+    Top = 293
+    object tcl_ProcesosIdGrupo: TSmallintField
+      FieldName = 'IdGrupo'
+      Origin = 'IdGrupo'
+      ProviderFlags = [pfInUpdate, pfInWhere, pfInKey]
+    end
+    object tcl_ProcesosIdProceso: TSmallintField
+      FieldName = 'IdProceso'
+      Origin = 'IdProceso'
+      ProviderFlags = [pfInUpdate, pfInWhere, pfInKey]
+    end
+    object tcl_ProcesosNombreProceso: TWideStringField
+      FieldName = 'NombreProceso'
+      Origin = 'NombreProceso'
+      Size = 30
+    end
+  end
+  object tcl_ProcesoSubproceso: TFDQuery
+    Active = True
+    IndexFieldNames = 'IdGrupo;IdProceso;IDSistemaCalidad'
+    MasterSource = Dtcl_Procesos
+    MasterFields = 'IdGrupo;IdProceso'
+    Connection = UDM.Conn
+    SQL.Strings = (
+      'select *'
+      'from cl_ProcesoSubproceso')
+    Left = 630
+    Top = 309
+  end
+  object Dtcl_procesosGrupos: TDataSource
+    DataSet = tcl_procesosGrupos
+    Left = 123
+    Top = 325
+  end
+  object Dtcl_Procesos: TDataSource
+    DataSet = tcl_Procesos
+    Left = 338
+    Top = 349
+  end
+  object Dtcl_ProcesoSubproceso: TDataSource
+    DataSet = tcl_ProcesoSubproceso
+    Left = 766
+    Top = 309
+  end
+end

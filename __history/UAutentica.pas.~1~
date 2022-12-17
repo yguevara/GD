@@ -1,0 +1,203 @@
+unit UAutentica;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, ExtCtrls, jpeg;
+
+type
+  TfrmAutentica = class(TForm)
+    Image1: TImage;
+    lbluser: TLabel;
+    lblpass: TLabel;
+    edtuser: TEdit;
+    edtpass: TEdit;
+    btnAcept: TButton;
+    btnCancel: TButton;
+    procedure FormActivate(Sender: TObject);
+    procedure btnaceptClick(Sender: TObject);
+    procedure btncancelClick(Sender: TObject);
+    procedure edtpassKeyPress(Sender: TObject; var Key: Char);
+    procedure edtuserKeyPress(Sender: TObject; var Key: Char);
+    procedure btnAceptKeyPress(Sender: TObject; var Key: Char);
+    procedure btnCancelKeyPress(Sender: TObject; var Key: Char);
+    procedure FormKeyPress(Sender: TObject; var Key: Char);
+    procedure edtuserKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  frmAutentica: TfrmAutentica;
+
+implementation
+
+uses
+  UCapaNegocio, md5, DBClient;
+
+
+{$R *.dfm}
+
+procedure TfrmAutentica.FormActivate(Sender: TObject);
+begin
+  edtuser.SetFocus;
+  edtuser.Focused;
+end;
+
+procedure TfrmAutentica.btnaceptClick(Sender: TObject);
+
+  function nombreuser(NU: string): Boolean;
+  begin
+    Result := False;
+    UCL.CDSUser.First;
+    while not UCL.CDSUser.Eof do
+    begin
+      if AnsiLowerCase(UCL.CDSUser.FieldByName('NombreUser').AsString) = AnsiLowerCase(NU) then
+      begin
+        if (ucl.cdsrol.Locate('idrol', UCL.CDSUser.FieldByName('rol').AsString, [])) then
+        begin
+          ROL := UCL.CDSrol.FieldByName('rol').AsString;
+          Result := True;
+          Exit;
+        end;
+      end;
+      UCL.CDSUser.Next;
+    end;
+  end;
+
+  function buscaUser(IdUser, IdPass: string): boolean;
+  begin
+    try
+      UCL.CDSUser.ApplyUpdates(0);
+    except
+    end;
+    nombreuser(IdUser);
+    UCL.CDSUser.First;
+    result := False;
+    if UCL.CDSUser.Locate('NombreUser', ansilowercase(IdUser), []) then
+    begin
+      Result := IdPass = UCL.CDSUser.FieldByName('pass').AsString;
+      if not Result then
+      begin
+        MessageDlg('La contraseña especificada para el usuario actual es incorrecta.', mtError, [mbOK], 0);
+        edtpass.Focused;
+        edtpass.SetFocus;
+      end;
+    end
+    else
+    begin
+      MessageDlg('No se encontró el usuario especificado.', mtError, [mbOK], 0);
+      edtuser.Focused;
+      edtuser.SetFocus;
+      Exit;
+    end;
+
+  end;
+
+var
+  Pass: string;
+begin
+  if edtuser.Text = '' then
+  begin
+    MessageDlg('Debe especificar un nombre válido de usuario.', mtWarning, [mbOK], 0);
+    edtuser.Focused;
+    edtuser.SetFocus;
+    Exit;
+  end;
+  if not UCL.estaconectado then
+  begin
+    MessageDlg('Debe conectarse a una base de datos válida para poder autenticarse.', mtWarning, [mbOK], 0);
+    Exit;
+  end;
+  Pass := MD5Print(MD5String(edtpass.Text));
+  if not nombreuser(edtuser.Text) then
+  begin
+    MessageDlg('ERROR. El usuario especificado no esta registrado en el sistema.', mtError, [mbOK], 0);
+    edtuser.Focused;
+    edtuser.SetFocus;
+    Exit;
+  end;
+  if UCL.CDSUser.FieldByName('pass').AsString <> Pass then
+  begin
+    MessageDlg('Por favor verifique la contraseña. Puede estar presionado el bloqueo de mayúscula.', mtError, [mbOK], 0);
+    edtpass.Focused;
+    edtpass.SetFocus;
+    Exit;
+  end;
+  if buscaUser(edtuser.Text, Pass) then
+  begin
+    if UCL.CDSRol.Locate('IdRol', UCL.CDSUser.FieldByName('Rol').AsInteger, []) then
+    begin
+      UserROL := ROL;
+      if ViewComplement then
+        Complemento.Visible:=True;
+      if UCL.CDSUser.FieldByName('NombreLUser').AsString <> '' then
+      begin
+        UserName := UCL.CDSUser.FieldByName('NombreLUser').AsString;
+        LogeUser := UCL.CDSUser.FieldByName('NombreLUser').AsString;
+      end
+      else
+      begin
+        UserName := UCL.CDSUser.FieldByName('NombreUser').AsString;
+        LogeUser := UCL.CDSUser.FieldByName('NombreUser').AsString;
+      end;
+      MessageDlg('Ud ha iniciado sesión con nombre de usuario ' + UCL.CDSUser.FieldByName('NombreUser').AsString + '/' + UserROL + '.', mtInformation, [mbOK], 0);
+      Close;
+    end;
+  end;
+end;
+
+procedure TfrmAutentica.btncancelClick(Sender: TObject);
+begin
+  UserROL := 'Visor';
+  Close;
+end;
+
+procedure TfrmAutentica.edtpassKeyPress(Sender: TObject; var Key: Char);
+begin
+  if Key = #13 then { BackSpace Key }
+    btnaceptClick(Sender);
+  if Key = #27 then
+    btncancelClick(Sender);
+end;
+
+procedure TfrmAutentica.edtuserKeyPress(Sender: TObject; var Key: Char);
+begin
+  if Key = #13 then
+  begin
+    edtpass.SetFocus;
+    edtpass.Focused;
+  end;
+  if Key = #27 then
+    btncancelClick(Sender);
+end;
+
+procedure TfrmAutentica.btnAceptKeyPress(Sender: TObject; var Key: Char);
+begin
+  if Key = #27 then
+    btncancelClick(Sender);
+end;
+
+procedure TfrmAutentica.btnCancelKeyPress(Sender: TObject; var Key: Char);
+begin
+  if Key = #27 then
+    btncancelClick(Sender);
+end;
+
+procedure TfrmAutentica.FormKeyPress(Sender: TObject; var Key: Char);
+begin
+  if Key = #27 then
+    btncancelClick(Sender);
+end;
+
+procedure TfrmAutentica.edtuserKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if Key = 112 then
+    Application.HelpContext(51);
+end;
+
+end.
+

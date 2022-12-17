@@ -1,0 +1,217 @@
+unit UUserGest;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
+  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ComCtrls, JvExComCtrls,
+  JvListView, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.Menus, UCapaDatos;
+
+type
+  TfrmGestUser = class(TForm)
+    StatusBar1: TStatusBar;
+    PageControl1: TPageControl;
+    tsGeneralProperties: TTabSheet;
+    Panel1: TPanel;
+    Button2: TButton;
+    Button1: TButton;
+    lbUser: TJvListView;
+    PMUsuarios: TPopupMenu;
+    Establecercontrasea1: TMenuItem;
+    N5: TMenuItem;
+    Agregar1: TMenuItem;
+    N1: TMenuItem;
+    EliminarUsuario1: TMenuItem;
+    N4: TMenuItem;
+    Propiedades1: TMenuItem;
+    procedure FormActivate(Sender: TObject);
+    procedure Establecercontrasea1Click(Sender: TObject);
+    procedure Agregar1Click(Sender: TObject);
+    procedure EliminarUsuario1Click(Sender: TObject);
+    procedure Propiedades1Click(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+    procedure UpdateUserList;
+  end;
+
+var
+  frmGestUser: TfrmGestUser;
+
+implementation
+
+{$R *.dfm}
+
+uses
+  UChangePass, UNewUser, UUserProperties;
+
+procedure TfrmGestUser.Agregar1Click(Sender: TObject);
+var
+  ListItem: TListItem;
+begin
+  with TfrmNewUser.Create(nil) do
+  try
+    if AppSelect = 'BDR' then
+      DMBDR.Tb_User.Append
+    else
+      DMOilFile.Tb_User.Append;
+    ShowModal;
+  finally
+    Free;
+    //FormActivate(Sender);
+  end;
+  UpdateUserList;
+end;
+
+procedure TfrmGestUser.EliminarUsuario1Click(Sender: TObject);
+begin
+  if lbUser.ItemIndex <> -1 then
+  begin
+    if (lbUser.Items[lbUser.ItemIndex].Caption <> DMBDR.UserName) and (AnsiLowerCase(lbUser.Items[lbUser.ItemIndex].Caption) <> 'administrador') then
+    begin
+      if AppSelect = 'BDR' then
+      begin
+        if DMBDR.Tb_User.Locate('nombreuser', lbUser.Items[lbUser.ItemIndex].Caption, []) then
+        begin
+          if MessageDlg('¿Está seguro de querer borrar el usuario especificado?', mtConfirmation, [mbYes, mbNo], 0) = mrYes then
+            DMBDR.Tb_User.Delete;
+        end;
+      end
+      else
+      begin
+        if DMOilFile.Tb_User.Locate('nombreuser', lbUser.Items[lbUser.ItemIndex].Caption, []) then
+        begin
+          if MessageDlg('¿Está seguro de querer borrar el usuario especificado?', mtConfirmation, [mbYes, mbNo], 0) = mrYes then
+            DMOilFile.Tb_User.Delete;
+        end;
+      end;
+    end
+    else
+    begin
+      MessageDlg('No puede eliminar el usuario especificado. Verifique: ' + #13 + '1- Que el usuario especificado no sea el administrador del sistema.' + #13 + '2- Que el usuario especificado no sea el mismo con el que se encuentra autenticado en el sistema.', mtWarning, [mbOK], 0);
+      Exit;
+    end;
+  end
+  else
+    MessageDlg('Debe seleccionar un usuario válido.', mtInformation, [mbOK], 0);
+  UpdateUserList;
+end;
+
+procedure TfrmGestUser.Establecercontrasea1Click(Sender: TObject);
+var
+  nombreu: string;
+begin
+  nombreu := '';
+  if lbUser.ItemIndex <> -1 then
+  begin
+    if AppSelect = 'BDR' then
+    begin
+      if DMBDR.Tb_User.Locate('nombreuser', lbUser.Items[lbUser.ItemIndex].Caption, []) then
+        nombreu := DMBDR.Tb_User.FieldByName('nombreuser').AsString;
+    end
+    else
+    begin
+      if DMOilFile.Tb_User.Locate('nombreuser', lbUser.Items[lbUser.ItemIndex].Caption, []) then
+        nombreu := DMOilFile.Tb_User.FieldByName('nombreuser').AsString;
+    end;
+    with TfrmChangePass.Create(nil) do
+    try
+      Caption := 'Establecer contraseña para ' + nombreu;
+      ShowModal;
+    finally
+      Free;
+    end;
+  end
+  else
+    MessageDlg('Debe seleccionar un usuario válido.', mtInformation, [mbOK], 0);
+end;
+
+procedure TfrmGestUser.FormActivate(Sender: TObject);
+begin
+  UpdateUserList;
+end;
+
+procedure TfrmGestUser.Propiedades1Click(Sender: TObject);
+begin
+  if lbUser.ItemIndex <> -1 then
+  begin
+    if AppSelect = 'BDR' then
+    begin
+      if DMBDR.Tb_User.Locate('nombreuser', lbUser.Items[lbUser.ItemIndex].Caption, []) then
+      begin
+        with TfrmProperties.Create(nil) do
+        try
+          ShowModal;
+        finally
+          Free;
+        end;
+        UpdateUserList;
+      end;
+    end
+    else
+    begin
+      if DMOilFile.Tb_User.Locate('nombreuser', lbUser.Items[lbUser.ItemIndex].Caption, []) then
+      begin
+        with TfrmProperties.Create(nil) do
+        try
+          ShowModal;
+        finally
+          Free;
+        end;
+        UpdateUserList;
+      end;
+    end;
+  end;
+end;
+
+procedure TfrmGestUser.UpdateUserList;
+var
+  ListItem: TListItem;
+begin
+  if AppSelect = 'BDR' then
+  begin
+    lbUser.Items.Clear;
+    DMBDR.cmdUser.Active := False;
+    DMBDR.cmdUser.Active := True;
+    DMBDR.cmdUser.First;
+    while not DMBDR.cmdUser.Eof do
+    begin
+      lbUser.Items.BeginUpdate;
+      ListItem := lbUser.Items.Add;
+      ListItem.Caption := DMBDR.cmdUser.FieldByName('nombreuser').AsString;
+      ListItem.SubItems.Add(DMBDR.cmdUser.FieldByName('nombreluser').AsString);
+      ListItem.SubItems.Add(DMBDR.cmdUser.FieldByName('rol').AsString);
+      ListItem.SubItems.Add(DMBDR.cmdUser.FieldByName('ministerio').AsString);
+      ListItem.SubItems.Add(DMBDR.cmdUser.FieldByName('empresa').AsString);
+      ListItem.ImageIndex := 133;
+      ListItem.StateIndex := 133;
+      lbUser.Items.EndUpdate;
+      DMBDR.cmdUser.Next;
+    end;
+  end
+  else
+  begin
+    lbUser.Items.Clear;
+    DMOilFile.cmdUser.Active := False;
+    DMOilFile.cmdUser.Active := True;
+    DMOilFile.cmdUser.First;
+    while not DMOilFile.cmdUser.Eof do
+    begin
+      lbUser.Items.BeginUpdate;
+      ListItem := lbUser.Items.Add;
+      ListItem.Caption := DMOilFile.cmdUser.FieldByName('nombreuser').AsString;
+      ListItem.SubItems.Add(DMOilFile.cmdUser.FieldByName('nombreluser').AsString);
+      ListItem.SubItems.Add(DMOilFile.cmdUser.FieldByName('rol').AsString);
+      ListItem.SubItems.Add(DMOilFile.cmdUser.FieldByName('ministerio').AsString);
+      ListItem.SubItems.Add(DMOilFile.cmdUser.FieldByName('empresa').AsString);
+      ListItem.ImageIndex := 133;
+      ListItem.StateIndex := 133;
+      lbUser.Items.EndUpdate;
+      DMOilFile.cmdUser.Next;
+    end;
+  end;
+end;
+
+end.
+

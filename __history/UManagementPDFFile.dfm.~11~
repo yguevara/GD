@@ -1,0 +1,143 @@
+object frmManagementProc: TfrmManagementProc
+  Left = 0
+  Top = 0
+  Caption = 
+    'Gestiona procedimientos de calidad asociados al procedimiento ac' +
+    'tual'
+  ClientHeight = 134
+  ClientWidth = 556
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  Position = poScreenCenter
+  PixelsPerInch = 96
+  TextHeight = 13
+  object btnFindInforme: TSpeedButton
+    Left = 506
+    Top = 59
+    Width = 24
+    Height = 25
+    Hint = 'Abrir ficheros existentes'
+    Caption = '...'
+    ParentShowHint = False
+    ShowHint = True
+    OnClick = btnFindInformeClick
+  end
+  object lbl1: TLabel
+    Left = 24
+    Top = 40
+    Width = 133
+    Height = 13
+    Caption = 'Camino o estado del fichero'
+  end
+  object tlbObject: TToolBar
+    Left = 0
+    Top = 0
+    Width = 556
+    Height = 29
+    ButtonHeight = 25
+    Caption = 'tlbObject'
+    Images = UDM.ILEdith
+    TabOrder = 0
+    ExplicitTop = 5
+    object btntbtncerrar: TToolButton
+      Left = 0
+      Top = 0
+      Hint = 'Cerrar'
+      Caption = '&Cerrar'
+      ImageIndex = 36
+      ParentShowHint = False
+      ShowHint = True
+      OnClick = btntbtncerrarClick
+    end
+    object btn1: TToolButton
+      Left = 23
+      Top = 0
+      Width = 8
+      Caption = 'btn1'
+      ImageIndex = 112
+      Style = tbsSeparator
+    end
+    object btn3: TToolButton
+      Left = 31
+      Top = 0
+      Hint = 'Limpiar Campo'
+      Caption = 'btn3'
+      ImageIndex = 53
+      ParentShowHint = False
+      ShowHint = True
+      OnClick = btn3Click
+    end
+    object btnViewInforme: TToolButton
+      Left = 54
+      Top = 0
+      Hint = 'Ver informe'
+      Caption = 'btnViewInforme'
+      ImageIndex = 100
+      ParentShowHint = False
+      ShowHint = True
+      OnClick = btnViewInformeClick
+    end
+    object btn5: TToolButton
+      Left = 77
+      Top = 0
+      Width = 8
+      Caption = 'btn5'
+      ImageIndex = 90
+      Style = tbsSeparator
+    end
+    object btn2: TToolButton
+      Left = 85
+      Top = 0
+      Width = 412
+      Caption = 'btn2'
+      ImageIndex = 9
+      Style = tbsSeparator
+    end
+    object btnhelp: TToolButton
+      Left = 497
+      Top = 0
+      Hint = 'Ayuda'
+      ImageIndex = 91
+    end
+  end
+  object statInformesGeo: TStatusBar
+    Left = 0
+    Top = 115
+    Width = 556
+    Height = 19
+    AutoHint = True
+    Panels = <>
+    ParentShowHint = False
+    ShowHint = True
+    ExplicitTop = 128
+    ExplicitWidth = 536
+  end
+  object edt1: TEdit
+    Left = 24
+    Top = 60
+    Width = 481
+    Height = 24
+    ReadOnly = True
+    TabOrder = 2
+  end
+  object dlgOpenOD: TOpenDialog
+    Left = 352
+    Top = 24
+  end
+  object LMDPDF: TLMDStarter
+    AutoStart = True
+    Left = 220
+    Top = 26
+  end
+  object Timer1: TTimer
+    Interval = 500
+    OnTimer = Timer1Timer
+    Left = 272
+    Top = 80
+  end
+end

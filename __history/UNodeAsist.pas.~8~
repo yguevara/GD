@@ -1,0 +1,60 @@
+unit UNodeAsist;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, dxSkinsCore, dxSkinsDefaultPainters,
+  dxBarBuiltInMenu, cxGraphics, cxControls, cxLookAndFeels,
+  cxLookAndFeelPainters, Vcl.ExtCtrls, AdvSplitter, cxPC, Vcl.ComCtrls,
+  Vcl.StdCtrls, LMDCustomButton, LMDButton, CnButtons;
+
+type
+  TfrmGestionarNodos = class(TForm)
+    Panel1: TPanel;
+    Panel2: TPanel;
+    StatusBar1: TStatusBar;
+    Panel4: TPanel;
+    Panel3: TPanel;
+    pcNodeAssist: TcxPageControl;
+    TS1: TcxTabSheet;
+    AdvSplitter1: TAdvSplitter;
+    Image1: TImage;
+    TS2: TcxTabSheet;
+    TS3: TcxTabSheet;
+    btnBack: TCnButton;
+    btnNext: TCnButton;
+    btnFin: TCnButton;
+    btnCancell: TCnButton;
+    procedure btnPriorClick(Sender: TObject);
+    procedure FormActivate(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  frmGestionarNodos: TfrmGestionarNodos;
+
+implementation
+
+uses
+  UCapaDatos;
+
+{$R *.dfm}
+
+procedure TfrmGestionarNodos.btnPriorClick(Sender: TObject);
+begin
+  btnNext.Enabled := true;
+  btnBack.Enabled := False;
+end;
+
+procedure TfrmGestionarNodos.FormActivate(Sender: TObject);
+begin
+  pcNodeAssist.ActivePageIndex:=0;
+  btnBack.Enabled:=False;
+  btnNext.Enabled:=True;
+end;
+
+end.

@@ -1,0 +1,91 @@
+unit UChangePass;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
+  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Data.DB,
+  Data.Win.ADODB, System.UITypes;
+
+type
+  TfrmChangePass = class(TForm)
+    lblPass: TLabel;
+    Label3: TLabel;
+    edtconfirmpass: TEdit;
+    edtpass: TEdit;
+    btnCreateUser: TButton;
+    btnClose: TButton;
+    procedure btnCreateUserClick(Sender: TObject);
+    procedure btnCloseClick(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  frmChangePass: TfrmChangePass;
+
+implementation
+
+{$R *.dfm}
+
+uses
+  md5, DMBDRU, UDMOilFile;
+
+procedure TfrmChangePass.btnCloseClick(Sender: TObject);
+begin
+  Close;
+end;
+
+procedure TfrmChangePass.btnCreateUserClick(Sender: TObject);
+begin
+  if Length(edtpass.Text) <= 4 then
+  begin
+    MessageDlg('La longitud de la contraseña debe ser mayor de cuatro carácteres.', mtError, [mbOK], 0);
+    Exit;
+  end;
+  if (edtpass.Text = edtconfirmpass.Text) and (edtpass.text <> '') then
+  begin
+    if AppSelect = 'BDR' then
+    begin
+      DMBDR.Tb_User.Edit;
+      DMBDR.Tb_User.FieldByName('Pass').AsString := MD5Print(MD5String(edtpass.Text));
+      try
+        DMBDR.Tb_User.Post;
+        MessageDlg('¡La contraseña se ha cambiado satisfactoriamente!', mtInformation, [mbOK], 0);
+        Close;
+      except
+        on E: EDataBaseError do
+        begin
+          MessageDlg(E.Message, mtError, [mbOK], 0);
+          Exit;
+        end;
+      end;
+    end
+    else
+    begin
+      DMOilFile.Tb_User.Edit;
+      DMOilFile.Tb_User.FieldByName('Pass').AsString := MD5Print(MD5String(edtpass.Text));
+      try
+        DMOilFile.Tb_User.Post;
+        MessageDlg('¡La contraseña se ha cambiado satisfactoriamente!', mtInformation, [mbOK], 0);
+        Close;
+      except
+        on E: EDataBaseError do
+        begin
+          MessageDlg(E.Message, mtError, [mbOK], 0);
+          Exit;
+        end;
+      end;
+    end;
+  end
+  else
+  begin
+    MessageDlg('Por favor verifique la contraseña. Deben coincidir la contraseña y su confirmación para continuar.', mtError, [mbOK], 0);
+    Exit;
+  end;
+end;
+
+end.
+

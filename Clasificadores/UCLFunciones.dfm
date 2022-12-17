@@ -1,0 +1,143 @@
+object frmCLFunciones: TfrmCLFunciones
+  Left = 0
+  Top = 0
+  Caption = 'Clasificador de funciones'
+  ClientHeight = 341
+  ClientWidth = 684
+  Color = clBtnFace
+  ParentFont = True
+  OldCreateOrder = False
+  Position = poScreenCenter
+  PixelsPerInch = 96
+  TextHeight = 13
+  object cxGrid1: TcxGrid
+    Left = 0
+    Top = 78
+    Width = 684
+    Height = 263
+    Align = alClient
+    TabOrder = 0
+    ExplicitLeft = 1
+    ExplicitTop = 83
+    object cxGrid1DBTableView1: TcxGridDBTableView
+      Navigator.Buttons.CustomButtons = <>
+      DataController.DataSource = UDM.dscl_funcionesgen
+      DataController.Summary.DefaultGroupSummaryItems = <>
+      DataController.Summary.FooterSummaryItems = <>
+      DataController.Summary.SummaryGroups = <>
+      OptionsView.GroupByBox = False
+      Styles.StyleSheet = UDM.GridTableViewStyleSheetRedWhiteandBlueVGA
+      object cxGrid1DBTableView1id: TcxGridDBColumn
+        DataBinding.FieldName = 'id'
+        Visible = False
+      end
+      object cxGrid1DBTableView1cargo: TcxGridDBColumn
+        DataBinding.FieldName = 'cargo'
+        Visible = False
+        Width = 100
+      end
+      object cxGrid1DBTableView1funciones: TcxGridDBColumn
+        Caption = 'Funciones'
+        DataBinding.FieldName = 'funciones'
+        PropertiesClassName = 'TcxRichEditProperties'
+        Properties.ScrollBars = ssVertical
+        Properties.VisibleLineCount = 10
+        HeaderAlignmentHorz = taCenter
+        HeaderGlyphAlignmentHorz = taCenter
+        Width = 674
+      end
+    end
+    object cxGrid1Level1: TcxGridLevel
+      GridView = cxGrid1DBTableView1
+    end
+  end
+  object Panel6: TPanel
+    Left = 0
+    Top = 37
+    Width = 684
+    Height = 41
+    Align = alTop
+    TabOrder = 1
+    ExplicitWidth = 393
+    object cxDBNavigator3: TcxDBNavigator
+      Left = 641
+      Top = 1
+      Width = 42
+      Height = 39
+      Buttons.CustomButtons = <>
+      Buttons.First.Visible = False
+      Buttons.PriorPage.Visible = False
+      Buttons.Prior.Visible = False
+      Buttons.Next.Visible = False
+      Buttons.NextPage.Visible = False
+      Buttons.Last.Visible = False
+      Buttons.Insert.Visible = False
+      Buttons.Delete.Visible = False
+      Buttons.Edit.Visible = False
+      Buttons.Post.Visible = False
+      Buttons.Cancel.Visible = False
+      Buttons.Refresh.Visible = False
+      Buttons.SaveBookmark.Visible = False
+      Buttons.GotoBookmark.Visible = False
+      Buttons.Filter.Visible = False
+      DataSource = UDM.dscl_funcionesgen
+      InfoPanel.DisplayMask = '[RecordIndex] de [RecordCount]'
+      InfoPanel.Visible = True
+      Align = alRight
+      TabOrder = 0
+      ExplicitLeft = 463
+      ExplicitTop = -4
+    end
+    object DBNavigator3: TDBNavigator
+      Left = 1
+      Top = 1
+      Width = 640
+      Height = 39
+      DataSource = UDM.dscl_funcionesgen
+      VisibleButtons = [nbPrior, nbNext, nbInsert, nbDelete, nbEdit, nbPost, nbCancel]
+      Align = alClient
+      TabOrder = 1
+      ExplicitLeft = -5
+      ExplicitTop = 6
+      ExplicitWidth = 461
+    end
+  end
+  object ToolBar1: TToolBar
+    Left = 0
+    Top = 0
+    Width = 684
+    Height = 37
+    ButtonHeight = 34
+    ButtonWidth = 31
+    Caption = 'ToolBar1'
+    Images = UDM.ILv1
+    TabOrder = 2
+    ExplicitLeft = -8
+    ExplicitWidth = 505
+    object btnClose: TToolButton
+      Left = 0
+      Top = 0
+      Hint = 'Regresar a la ventana principal'
+      Caption = 'btnClose'
+      ImageIndex = 0
+      OnClick = btnCloseClick
+    end
+    object ToolButton3: TToolButton
+      Left = 31
+      Top = 0
+      Width = 610
+      Caption = 'ToolButton3'
+      ImageIndex = 136
+      Style = tbsSeparator
+    end
+    object btnhlp: TToolButton
+      Left = 641
+      Top = 0
+      Hint = 'Ayuda para manipular la interface actual'
+      Caption = 'btnhlp'
+      ImageIndex = 1
+      ParentShowHint = False
+      ShowHint = True
+    end
+  end
+end

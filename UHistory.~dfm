@@ -1,0 +1,99 @@
+object frmHistory: TfrmHistory
+  Left = 341
+  Top = 84
+  Width = 673
+  Height = 560
+  Caption = 'Historial de versionado'
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  Font.Style = []
+  OldCreateOrder = False
+  Position = poScreenCenter
+  OnActivate = FormActivate
+  PixelsPerInch = 96
+  TextHeight = 13
+  object ToolBar2: TToolBar
+    Left = 0
+    Top = 0
+    Width = 657
+    Height = 30
+    BorderWidth = 1
+    Color = clBtnFace
+    Flat = True
+    Images = UCL.ILEdith
+    Indent = 5
+    ParentColor = False
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 0
+    Wrapable = False
+    object btnclose: TToolButton
+      Left = 5
+      Top = 0
+      Hint = 'Cerrar'
+      ImageIndex = 35
+      OnClick = btncloseClick
+    end
+    object ToolButton1: TToolButton
+      Left = 28
+      Top = 0
+      Width = 8
+      Caption = 'ToolButton1'
+      ImageIndex = 112
+      Style = tbsSeparator
+      Visible = False
+    end
+    object ToolButton4: TToolButton
+      Left = 36
+      Top = 0
+      Caption = 'ToolButton4'
+      ImageIndex = 29
+      Visible = False
+      OnClick = ToolButton4Click
+    end
+    object ToolButton2: TToolButton
+      Left = 59
+      Top = 0
+      Width = 8
+      Caption = 'ToolButton2'
+      ImageIndex = 90
+      Style = tbsSeparator
+      Visible = False
+    end
+  end
+  object StatusBar1: TStatusBar
+    Left = 0
+    Top = 502
+    Width = 657
+    Height = 19
+    Panels = <>
+    SimplePanel = False
+  end
+  object mhistory: TRichEdit
+    Left = 0
+    Top = 30
+    Width = 657
+    Height = 472
+    Align = alClient
+    Color = clInfoBk
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'MS Sans Serif'
+    Font.Style = []
+    ParentFont = False
+    ScrollBars = ssVertical
+    TabOrder = 2
+  end
+  object JvSelectDirectory1: TJvSelectDirectory
+    Left = 152
+    Top = 96
+  end
+  object SaveDialog1: TSaveDialog
+    Left = 128
+    Top = 24
+  end
+end

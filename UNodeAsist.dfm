@@ -1,0 +1,263 @@
+object frmGestionarNodos: TfrmGestionarNodos
+  Left = 0
+  Top = 0
+  Caption = 'Interface para la gesti'#243'n de Nodos'
+  ClientHeight = 396
+  ClientWidth = 709
+  Color = clBtnFace
+  Constraints.MaxHeight = 435
+  Constraints.MaxWidth = 725
+  Constraints.MinHeight = 435
+  Constraints.MinWidth = 725
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  Position = poScreenCenter
+  OnActivate = FormActivate
+  OnCloseQuery = FormCloseQuery
+  PixelsPerInch = 96
+  TextHeight = 13
+  object AdvSplitter1: TAdvSplitter
+    Left = 185
+    Top = 57
+    Height = 320
+    Appearance.BorderColor = clNone
+    Appearance.BorderColorHot = clNone
+    Appearance.Color = clWhite
+    Appearance.ColorTo = clSilver
+    Appearance.ColorHot = clWhite
+    Appearance.ColorHotTo = clGray
+    GripStyle = sgDots
+    ExplicitLeft = 280
+    ExplicitTop = 128
+    ExplicitHeight = 100
+  end
+  object Panel1: TPanel
+    Left = 0
+    Top = 57
+    Width = 185
+    Height = 320
+    Align = alLeft
+    TabOrder = 0
+    object Image1: TImage
+      Left = 1
+      Top = 1
+      Width = 183
+      Height = 318
+      Align = alClient
+      ExplicitLeft = 0
+      ExplicitTop = -4
+    end
+  end
+  object Panel2: TPanel
+    Left = 0
+    Top = 0
+    Width = 709
+    Height = 57
+    Align = alTop
+    Alignment = taLeftJustify
+    Caption = 
+      '                          Interface para la gesti'#243'n de la estruc' +
+      'tura empresarial'
+    Color = 14597449
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWhite
+    Font.Height = -16
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentBackground = False
+    ParentFont = False
+    TabOrder = 1
+  end
+  object StatusBar1: TStatusBar
+    Left = 0
+    Top = 377
+    Width = 709
+    Height = 19
+    AutoHint = True
+    Panels = <>
+  end
+  object Panel4: TPanel
+    Left = 188
+    Top = 57
+    Width = 521
+    Height = 320
+    Align = alClient
+    TabOrder = 3
+    object Panel3: TPanel
+      Left = 1
+      Top = 274
+      Width = 519
+      Height = 45
+      Align = alBottom
+      Color = 14597449
+      ParentBackground = False
+      TabOrder = 0
+      object btnBack: TCnButton
+        Left = 80
+        Top = 10
+        Width = 99
+        Height = 25
+        Caption = '<<Anterior'
+        Color = 14597449
+        DownColor = 15786154
+        DownBold = False
+        FlatBorder = True
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWhite
+        Font.Height = -13
+        Font.Name = 'Tahoma'
+        Font.Style = [fsBold]
+        HotTrackBold = False
+        HotTrackColor = 15786154
+        LightColor = 15786154
+        ModernBtnStyle = bsFlat
+        ParentColor = False
+        ParentFont = False
+        ShadowColor = 9730075
+        TabOrder = 0
+        TabStop = True
+        OnClick = btnBackClick
+      end
+      object btnNext: TCnButton
+        Left = 189
+        Top = 10
+        Width = 99
+        Height = 25
+        Caption = 'Siguiente>>'
+        Color = 14597449
+        DownColor = 15786154
+        DownBold = False
+        FlatBorder = True
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWhite
+        Font.Height = -13
+        Font.Name = 'Tahoma'
+        Font.Style = [fsBold]
+        HotTrackBold = False
+        HotTrackColor = 15786154
+        LightColor = 15786154
+        ModernBtnStyle = bsFlat
+        ParentColor = False
+        ParentFont = False
+        ShadowColor = 9730075
+        TabOrder = 1
+        TabStop = True
+        OnClick = btnNextClick
+      end
+      object btnFin: TCnButton
+        Left = 297
+        Top = 10
+        Width = 99
+        Height = 25
+        Caption = 'Finalizar >|'
+        Color = 14597449
+        DownColor = 15786154
+        DownBold = False
+        Enabled = False
+        FlatBorder = True
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWhite
+        Font.Height = -13
+        Font.Name = 'Tahoma'
+        Font.Style = [fsBold]
+        HotTrackBold = False
+        HotTrackColor = 15786154
+        LightColor = 15786154
+        ModernBtnStyle = bsFlat
+        ParentColor = False
+        ParentFont = False
+        ShadowColor = 9730075
+        TabOrder = 2
+        TabStop = True
+      end
+      object btnCancell: TCnButton
+        Left = 406
+        Top = 10
+        Width = 99
+        Height = 25
+        Caption = 'Cancelar X'
+        Color = 14597449
+        DownColor = 15786154
+        DownBold = False
+        FlatBorder = True
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWhite
+        Font.Height = -13
+        Font.Name = 'Tahoma'
+        Font.Style = [fsBold]
+        HotTrackBold = False
+        HotTrackColor = 15786154
+        LightColor = 15786154
+        ModernBtnStyle = bsFlat
+        ParentColor = False
+        ParentFont = False
+        ShadowColor = 9730075
+        TabOrder = 3
+        TabStop = True
+        OnClick = btnCancellClick
+      end
+    end
+    object pcNodeAssist: TcxPageControl
+      Left = 1
+      Top = 1
+      Width = 519
+      Height = 273
+      Align = alClient
+      TabOrder = 1
+      Properties.ActivePage = TS1
+      Properties.CustomButtons.Buttons = <>
+      ClientRectBottom = 269
+      ClientRectLeft = 4
+      ClientRectRight = 515
+      ClientRectTop = 24
+      object TS1: TcxTabSheet
+        Caption = '1'
+        ImageIndex = 0
+        object cxMemo1: TcxMemo
+          Left = 0
+          Top = 0
+          Align = alTop
+          Properties.Alignment = taLeftJustify
+          Properties.ReadOnly = True
+          TabOrder = 0
+          Height = 57
+          Width = 511
+        end
+        object Panel5: TPanel
+          Left = 0
+          Top = 57
+          Width = 511
+          Height = 41
+          Align = alTop
+          Alignment = taLeftJustify
+          Caption = 
+            'Bienvenido al asistente para la gesti'#243'n de su estructura organiz' +
+            'acional. Este asistente lo guiar'#225' a '#13#10'trav'#233's de una serie de pas' +
+            'os sencillos en los que Ud '#13#10'especificar'#225' los datos necesarios p' +
+            'ara la inscripci'#243'n de cada Nodo.'
+          TabOrder = 1
+        end
+      end
+      object TS2: TcxTabSheet
+        Caption = '2'
+        ImageIndex = 1
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
+      end
+      object TS3: TcxTabSheet
+        Caption = '3'
+        ImageIndex = 2
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
+      end
+    end
+  end
+end

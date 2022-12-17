@@ -1,0 +1,45 @@
+unit UCLCargo;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls,
+  Vcl.ComCtrls, Vcl.ToolWin, Data.DB, Vcl.DBCtrls, Vcl.Grids, Vcl.DBGrids;
+
+type
+  TForm1 = class(TForm)
+    ToolBar1: TToolBar;
+    ToolButton2: TToolButton;
+    ToolButton1: TToolButton;
+    ToolButton3: TToolButton;
+    ToolButton4: TToolButton;
+    ToolButton5: TToolButton;
+    Panel1: TPanel;
+    edtfind: TEdit;
+    StatusBar1: TStatusBar;
+    gCargos: TDBGrid;
+    dbnCargos: TDBNavigator;
+    procedure ToolButton1Click(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+uses
+  UCapaDatos;
+
+{$R *.dfm}
+
+procedure TForm1.ToolButton1Click(Sender: TObject);
+begin
+  Close;
+end;
+
+end.

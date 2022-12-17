@@ -1,0 +1,51 @@
+unit UCLVariables;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ComCtrls, Vcl.ToolWin, cxGraphics,
+  cxControls, cxLookAndFeels, cxLookAndFeelPainters, dxSkinsCore,
+  dxSkinsDefaultPainters, Vcl.DBCtrls, cxNavigator, cxDBNavigator, Vcl.ExtCtrls,
+  cxStyles, cxCustomData, cxFilter, cxData, cxDataStorage, cxEdit, dxDateRanges,
+  Data.DB, cxDBData, cxGridLevel, cxGridCustomTableView, cxGridTableView,
+  cxGridDBTableView, cxClasses, cxGridCustomView, cxGrid;
+
+type
+  TfrmVariables = class(TForm)
+    ToolBar1: TToolBar;
+    btnClose: TToolButton;
+    ToolButton3: TToolButton;
+    btnhlp: TToolButton;
+    Panel6: TPanel;
+    cxDBNavigator3: TcxDBNavigator;
+    DBNavigator3: TDBNavigator;
+    StatusBar1: TStatusBar;
+    cxGrid1: TcxGrid;
+    cxGrid1DBTableView1: TcxGridDBTableView;
+    cxGrid1DBTableView1Idacceso: TcxGridDBColumn;
+    cxGrid1DBTableView1NombreAcceso: TcxGridDBColumn;
+    cxGrid1Level1: TcxGridLevel;
+    procedure btnCloseClick(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  frmVariables: TfrmVariables;
+
+implementation
+
+uses
+  UCapaDatos;
+
+{$R *.dfm}
+
+procedure TfrmVariables.btnCloseClick(Sender: TObject);
+begin
+  Close;
+end;
+
+end.

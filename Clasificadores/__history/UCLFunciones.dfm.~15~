@@ -1,0 +1,131 @@
+object frmCLFunciones: TfrmCLFunciones
+  Left = 0
+  Top = 0
+  Caption = 'Clasificador de funciones'
+  ClientHeight = 341
+  ClientWidth = 505
+  Color = clBtnFace
+  ParentFont = True
+  OldCreateOrder = False
+  Position = poScreenCenter
+  PixelsPerInch = 96
+  TextHeight = 13
+  object ToolBar1: TToolBar
+    Left = 0
+    Top = 0
+    Width = 505
+    Height = 29
+    ButtonHeight = 30
+    ButtonWidth = 32
+    Caption = 'ToolBar1'
+    Images = UDM.ILEdith
+    TabOrder = 0
+    object ToolButton2: TToolButton
+      Left = 0
+      Top = 0
+      Width = 8
+      Caption = 'ToolButton2'
+      ImageIndex = 1
+      Style = tbsSeparator
+    end
+    object ToolButton1: TToolButton
+      Left = 8
+      Top = 0
+      Hint = 'Regresar'
+      Caption = 'ToolButton1'
+      ImageIndex = 36
+      ParentShowHint = False
+      ShowHint = True
+      OnClick = ToolButton1Click
+    end
+  end
+  object cxGrid1: TcxGrid
+    Left = 0
+    Top = 70
+    Width = 505
+    Height = 271
+    Align = alClient
+    TabOrder = 1
+    ExplicitTop = 75
+    object cxGrid1DBTableView1: TcxGridDBTableView
+      Navigator.Buttons.CustomButtons = <>
+      DataController.DataSource = UDM.dscl_funcionesgen
+      DataController.Summary.DefaultGroupSummaryItems = <>
+      DataController.Summary.FooterSummaryItems = <>
+      DataController.Summary.SummaryGroups = <>
+      OptionsView.GroupByBox = False
+      object cxGrid1DBTableView1id: TcxGridDBColumn
+        DataBinding.FieldName = 'id'
+        Visible = False
+      end
+      object cxGrid1DBTableView1cargo: TcxGridDBColumn
+        DataBinding.FieldName = 'cargo'
+        Visible = False
+        Width = 100
+      end
+      object cxGrid1DBTableView1funciones: TcxGridDBColumn
+        Caption = 'Funciones'
+        DataBinding.FieldName = 'funciones'
+        PropertiesClassName = 'TcxRichEditProperties'
+        Properties.VisibleLineCount = 8
+        HeaderAlignmentHorz = taCenter
+        HeaderGlyphAlignmentHorz = taCenter
+        Width = 471
+      end
+    end
+    object cxGrid1Level1: TcxGridLevel
+      GridView = cxGrid1DBTableView1
+    end
+  end
+  object Panel6: TPanel
+    Left = 0
+    Top = 29
+    Width = 505
+    Height = 41
+    Align = alTop
+    TabOrder = 2
+    ExplicitTop = 37
+    ExplicitWidth = 393
+    object cxDBNavigator3: TcxDBNavigator
+      Left = 462
+      Top = 1
+      Width = 42
+      Height = 39
+      Buttons.CustomButtons = <>
+      Buttons.First.Visible = False
+      Buttons.PriorPage.Visible = False
+      Buttons.Prior.Visible = False
+      Buttons.Next.Visible = False
+      Buttons.NextPage.Visible = False
+      Buttons.Last.Visible = False
+      Buttons.Insert.Visible = False
+      Buttons.Delete.Visible = False
+      Buttons.Edit.Visible = False
+      Buttons.Post.Visible = False
+      Buttons.Cancel.Visible = False
+      Buttons.Refresh.Visible = False
+      Buttons.SaveBookmark.Visible = False
+      Buttons.GotoBookmark.Visible = False
+      Buttons.Filter.Visible = False
+      DataSource = UDM.dscl_funcionesgen
+      InfoPanel.DisplayMask = '[RecordIndex] de [RecordCount]'
+      InfoPanel.Visible = True
+      Align = alRight
+      TabOrder = 0
+      ExplicitLeft = 468
+      ExplicitTop = -4
+    end
+    object DBNavigator3: TDBNavigator
+      Left = 1
+      Top = 1
+      Width = 461
+      Height = 39
+      DataSource = UDM.dscl_funcionesgen
+      VisibleButtons = [nbPrior, nbNext, nbInsert, nbDelete, nbEdit, nbPost, nbCancel]
+      Align = alClient
+      TabOrder = 1
+      ExplicitLeft = -5
+      ExplicitTop = -4
+    end
+  end
+end
