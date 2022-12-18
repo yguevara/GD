@@ -1,3 +1,5 @@
  *.~pas
  .exe
  Documentacion/
+ __history/
+ __recovery/
