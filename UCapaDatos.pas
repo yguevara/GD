@@ -776,11 +776,10 @@ type
     StorageJSON: TFDStanStorageJSONLink;
     cl_ArchivosGestion: TFDQuery;
     dscl_ArchivosGestion: TDataSource;
-    Tb_SeriesDispo: TFDQuery;
-    SmallintField1: TSmallintField;
-    SmallintField2: TSmallintField;
-    WideStringField1: TWideStringField;
     dsTb_SeriesDispo: TDataSource;
+    Tb_SeriesDispo: TFDQuery;
+    dscl_especialista: TDataSource;
+    cl_especialista: TFDQuery;
     procedure DataModuleCreate(Sender: TObject);
     procedure tb_treeAfterPost(DataSet: TDataSet);
   private
@@ -1066,6 +1065,7 @@ begin
   cl_acceso.Active := True;
   cl_ArchivosGestion.Active:=True;
   cl_tipodoc.Active := True;
+  cl_especialista.Active:=True;
   cl_destino.Active := True;
   cl_frecuencia.Active := True;
   cl_facultadesgen.Active := True;

@@ -22,7 +22,8 @@ uses
   FireDAC.Phys.Intf, FireDAC.DApt.Intf, FireDAC.Stan.Async, FireDAC.DApt,
   FireDAC.Comp.DataSet, FireDAC.Comp.Client, AdvRichEditorPopupToolBar, cxLabel,
   AdvDBLookupComboBox, cxDBLookupComboBox, cxBlobEdit, cxRichEdit, cxDBNavigator,
-  dxBarBuiltInMenu, cxPC, cxGroupBox, cxLocalization, dxtree, dxdbtree;
+  dxBarBuiltInMenu, cxPC, cxGroupBox, cxLocalization, dxtree, dxdbtree,
+  cxDropDownEdit, cxCalendar, cxLookupEdit, cxDBLookupEdit;
 
 type
   TNODOSD = record
@@ -503,6 +504,13 @@ type
     N1: TMenuItem;
     PContainer: TPanel;
     V1: TMenuItem;
+    Panel3: TPanel;
+    A1: TMenuItem;
+    E1: TMenuItem;
+    cxPageControl1: TcxPageControl;
+    tsSeriesDef: TcxTabSheet;
+    tsInputSeriesData: TcxTabSheet;
+    pContainerDefSeries: TPanel;
     cxGrid1: TcxGrid;
     cxGrid1DBTableView1: TcxGridDBTableView;
     cxGrid1DBTableView1Id: TcxGridDBColumn;
@@ -519,11 +527,46 @@ type
     cxGrid1DBTableView1servidor: TcxGridDBColumn;
     cxGrid1DBTableView1carpeta: TcxGridDBColumn;
     cxGrid1Level1: TcxGridLevel;
+    Panel6: TPanel;
+    cxDBNavigator3: TcxDBNavigator;
+    DBNavigator3: TDBNavigator;
     ToolBar1: TToolBar;
     ToolButton2: TToolButton;
     ToolButton1: TToolButton;
-    Panel3: TPanel;
-    A1: TMenuItem;
+    ToolButton3: TToolButton;
+    ToolButton6: TToolButton;
+    ToolBar2: TToolBar;
+    ToolButton4: TToolButton;
+    btnCloseTABDatos: TToolButton;
+    ToolButton7: TToolButton;
+    ToolButton5: TToolButton;
+    pGeneralData: TPanel;
+    cxGroupBox1: TcxGroupBox;
+    edtFechOper: TcxDBDateEdit;
+    lblFechaOper: TLabel;
+    edtVersion: TcxDBTextEdit;
+    Label1: TLabel;
+    Panel1: TPanel;
+    clbSerie: TcxDBLookupComboBox;
+    Label2: TLabel;
+    Panel2: TPanel;
+    cxDBNavigator1: TcxDBNavigator;
+    DBNavigator1: TDBNavigator;
+    cxGrid2: TcxGrid;
+    cxGridDBTableView1: TcxGridDBTableView;
+    cxGridLevel1: TcxGridLevel;
+    cxGridDBTableView1Id: TcxGridDBColumn;
+    cxGridDBTableView1codsubs: TcxGridDBColumn;
+    cxGridDBTableView1Fecha: TcxGridDBColumn;
+    cxGridDBTableView1Version: TcxGridDBColumn;
+    cxGridDBTableView1IdVar: TcxGridDBColumn;
+    cxGridDBTableView1ValorNum: TcxGridDBColumn;
+    cxGridDBTableView1ValorFecha: TcxGridDBColumn;
+    cxGridDBTableView1Valorcadena: TcxGridDBColumn;
+    Panel4: TPanel;
+    cxDBNavigator2: TcxDBNavigator;
+    DBNavigator2: TDBNavigator;
+    AdvSplitter2: TAdvSplitter;
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure btn2Click(Sender: TObject);
     procedure Acercade1Click(Sender: TObject);
@@ -555,6 +598,9 @@ type
     procedure A1Click(Sender: TObject);
     procedure TvTreeMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure ToolButton1Click(Sender: TObject);
+    procedure E1Click(Sender: TObject);
+    procedure btnCloseTABDatosClick(Sender: TObject);
+    procedure ToolButton6Click(Sender: TObject);
   private
     procedure CargoState(aState: boolean);
     procedure MDSeriesSubSeriesDMDR;
@@ -581,7 +627,7 @@ uses
   UHistory, UAbout, UAutentica, UCapaDatos, UUserGest, UDocManagement,
   UCLSeriesDocumentales, UCLDestino, UCLAcceso, UCLSoporte, UCLFrecuencia,
   UCLTipoDoc, UNodeAsist, UCLFtpServer, UCLProcesos, UCLRepActArchiv,
-  UGestEstruct, UCategoria_Ocupa, UCL_Cargo, UCLVariables, UMangementArch;
+  UGestEstruct, UCategoria_Ocupa, UCL_Cargo, UCLVariables, UMangementArch, USeriesDisp, UCL_Especialistas;
 
 procedure TMAINFORM.A1Click(Sender: TObject);
 begin
@@ -614,6 +660,15 @@ var
   Rolactivo: string;
 begin
   Rolactivo := autenticar(UDM.Connuser);
+end;
+
+procedure TMAINFORM.btnCloseTABDatosClick(Sender: TObject);
+begin
+  tsInputSeriesData.TabVisible:=False;
+  tsSeriesDef.TabVisible:=True;
+  tsSeriesDef.Visible:=True;
+  pContainerDefSeries.Visible:=True;
+  cxPageControl1.ActivePage:=tsSeriesDef;
 end;
 
 procedure TMAINFORM.btnusercontrolClick(Sender: TObject);
@@ -1029,6 +1084,16 @@ begin
   TvTree.DataSource := nil;
 end;
 
+procedure TMAINFORM.E1Click(Sender: TObject);
+begin
+  with TfrmListEspec.Create(NIL)do
+  try
+    ShowModal;
+  finally
+    Free;
+  end;
+end;
+
 procedure TMAINFORM.eliminarClick(Sender: TObject);
 begin
   if (UDM.tb_tree.FieldByName('Id').AsInteger < 1) then
@@ -1069,7 +1134,7 @@ begin
   TvTree.DataController.ImageIndexField:='icono';
   TvTree.DataController.KeyField:='id';
   TvTree.DataController.ParentField:='padre';
-  TvTree.DataController.StateIndexField:='icono'; }
+  TvTree.DataControll  er.StateIndexField:='icono'; }
 end;
 
 procedure TMAINFORM.F1Click(Sender: TObject);
@@ -1284,6 +1349,19 @@ begin
   UDM.Tb_SeriesDispo.Active:=False;
   UDM.Tb_SeriesDispo.Active:=True;
   UDM.Tb_SeriesDispo.FetchAll;
+  with  TfrmSeriesDisp.Create(nil)do
+  try
+    ShowModal;
+  finally
+    Free;
+  end;
+end;
+
+procedure TMAINFORM.ToolButton6Click(Sender: TObject);
+begin
+  tsInputSeriesData.TabVisible:=True;
+  tsSeriesDef.TabVisible:=False;
+  cxPageControl1.ActivePage:=tsInputSeriesData;
 end;
 
 end.

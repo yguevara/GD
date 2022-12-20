@@ -213,6 +213,14 @@
             <Form>frmManagemetArch</Form>
             <FormType>dfm</FormType>
         </DCCReference>
+        <DCCReference Include="USeriesDisp.pas">
+            <Form>frmSeriesDisp</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="UCL_Especialistas.pas">
+            <Form>frmListEspec</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

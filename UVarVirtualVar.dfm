@@ -231,8 +231,8 @@ object frmVarVirtualVar: TfrmVarVirtualVar
       ParentShowHint = False
       ShowHint = True
       OnClick = btnAddVarClick
-      ExplicitLeft = -5
-      ExplicitTop = 6
+      ExplicitLeft = 0
+      ExplicitTop = 2
     end
     object cxDBNavigator3: TcxDBNavigator
       Left = 449

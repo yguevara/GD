@@ -112,6 +112,7 @@ object frmVariables: TfrmVariables
       ParentShowHint = False
       ShowHint = True
       TabOrder = 1
+      ExplicitLeft = -5
       ExplicitTop = -4
     end
   end

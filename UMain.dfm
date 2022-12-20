@@ -2,8 +2,8 @@ object MAINFORM: TMAINFORM
   Left = 0
   Top = 0
   Caption = 'M'#243'dulo de Gesti'#243'n de Series documentales'
-  ClientHeight = 493
-  ClientWidth = 1297
+  ClientHeight = 495
+  ClientWidth = 1250
   Color = 15780526
   Constraints.MinHeight = 466
   Constraints.MinWidth = 945
@@ -159,7 +159,7 @@ object MAINFORM: TMAINFORM
   object AdvSplitter1: TAdvSplitter
     Left = 385
     Top = 97
-    Height = 377
+    Height = 379
     Appearance.BorderColor = clNone
     Appearance.BorderColorHot = clNone
     Appearance.Color = clWhite
@@ -167,22 +167,23 @@ object MAINFORM: TMAINFORM
     Appearance.ColorHot = clWhite
     Appearance.ColorHotTo = clGray
     GripStyle = sgDots
-    ExplicitLeft = 428
-    ExplicitTop = 103
-    ExplicitHeight = 323
+    ExplicitLeft = 387
+    ExplicitTop = 98
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 474
-    Width = 1297
+    Top = 476
+    Width = 1250
     Height = 19
     AutoHint = True
     Panels = <>
+    ExplicitTop = 474
+    ExplicitWidth = 1297
   end
   object pHeaderApp: TPanel
     Left = 0
     Top = 0
-    Width = 1297
+    Width = 1250
     Height = 49
     Align = alTop
     Caption = 'Gesti'#243'n documental (YONI)'
@@ -195,17 +196,19 @@ object MAINFORM: TMAINFORM
     ParentBackground = False
     ParentFont = False
     TabOrder = 1
+    ExplicitWidth = 1297
   end
   object pMainContainer: TPanel
     Left = 0
     Top = 49
-    Width = 1297
+    Width = 1250
     Height = 48
     Align = alTop
     Color = 15780526
     ParentBackground = False
     TabOrder = 2
     ExplicitTop = 47
+    ExplicitWidth = 1338
     object lblProgressTitle: TLabel
       Left = 582
       Top = 21
@@ -1364,7 +1367,7 @@ object MAINFORM: TMAINFORM
     Left = 0
     Top = 97
     Width = 385
-    Height = 377
+    Height = 379
     ParentCustomHint = False
     Align = alLeft
     BorderStyle = bsSingle
@@ -1388,6 +1391,7 @@ object MAINFORM: TMAINFORM
     OptionsView.NavigationPane.ShowOverflowPanel = False
     ExplicitLeft = 1
     ExplicitTop = 98
+    ExplicitHeight = 377
     object bgBD: TdxNavBarGroup
       Caption = 'ORGANIGRAMA'
       LargeImageIndex = 8
@@ -1413,7 +1417,7 @@ object MAINFORM: TMAINFORM
       Left = 1
       Top = 26
       Width = 379
-      Height = 283
+      Height = 285
       Caption = 'bgBDControl'
       TabOrder = 0
       GroupIndex = 0
@@ -1422,7 +1426,7 @@ object MAINFORM: TMAINFORM
         Left = 0
         Top = 0
         Width = 379
-        Height = 283
+        Height = 285
         ShowNodeHint = True
         DataSource = UDM.dstb_tree
         DisplayField = 'etiqueta'
@@ -1446,6 +1450,7 @@ object MAINFORM: TMAINFORM
         OnMouseUp = TvTreeMouseUp
         PopupMenu = PMNodeTree
         Images = UDM.ILDigital
+        ExplicitHeight = 283
       end
     end
     object SGICControl: TdxNavBarGroupControl
@@ -1488,8 +1493,8 @@ object MAINFORM: TMAINFORM
   object PContainer: TPanel
     Left = 388
     Top = 97
-    Width = 909
-    Height = 377
+    Width = 862
+    Height = 379
     Align = alClient
     BevelInner = bvLowered
     BevelKind = bkSoft
@@ -1497,160 +1502,12 @@ object MAINFORM: TMAINFORM
     ParentBackground = False
     TabOrder = 4
     ExplicitTop = 98
-    object cxGrid1: TcxGrid
-      Left = 2
-      Top = 63
-      Width = 901
-      Height = 308
-      Align = alClient
-      TabOrder = 0
-      ExplicitLeft = 1
-      ExplicitTop = 61
-      object cxGrid1DBTableView1: TcxGridDBTableView
-        Navigator.Buttons.CustomButtons = <>
-        DataController.DataSource = UDM.dstb_Serietree
-        DataController.Summary.DefaultGroupSummaryItems = <>
-        DataController.Summary.FooterSummaryItems = <>
-        DataController.Summary.SummaryGroups = <>
-        OptionsView.GroupByBox = False
-        Styles.StyleSheet = GridTableViewStyleSheetDevExpress
-        object cxGrid1DBTableView1Id: TcxGridDBColumn
-          Caption = 'Estructura'
-          DataBinding.FieldName = 'Id'
-          Visible = False
-        end
-        object cxGrid1DBTableView1codsubs: TcxGridDBColumn
-          Caption = 'Serie'
-          DataBinding.FieldName = 'codsubs'
-          PropertiesClassName = 'TcxLookupComboBoxProperties'
-          Properties.KeyFieldNames = 'codsubs'
-          Properties.ListColumns = <
-            item
-              Caption = 'Listado de Series Documentales'
-              HeaderAlignment = taCenter
-              FieldName = 'etiqueta'
-            end>
-          Properties.ListSource = UDM.dscl_subseries
-          HeaderAlignmentHorz = taCenter
-          HeaderGlyphAlignmentHorz = taCenter
-          Width = 68
-        end
-        object cxGrid1DBTableView1Ubicacion: TcxGridDBColumn
-          Caption = 'Ubicaci'#243'n'
-          DataBinding.FieldName = 'Ubicacion'
-          PropertiesClassName = 'TcxLookupComboBoxProperties'
-          Properties.ListColumns = <>
-          HeaderAlignmentHorz = taCenter
-          HeaderGlyphAlignmentHorz = taCenter
-          Width = 86
-        end
-        object cxGrid1DBTableView1deposito: TcxGridDBColumn
-          Caption = 'Dep'#243'sito'
-          DataBinding.FieldName = 'deposito'
-          HeaderAlignmentHorz = taCenter
-          HeaderGlyphAlignmentHorz = taCenter
-          Width = 90
-        end
-        object cxGrid1DBTableView1gaveta: TcxGridDBColumn
-          Caption = 'Gaveta'
-          DataBinding.FieldName = 'gaveta'
-          HeaderAlignmentHorz = taCenter
-          HeaderGlyphAlignmentHorz = taCenter
-          Width = 77
-        end
-        object cxGrid1DBTableView1especialista: TcxGridDBColumn
-          Caption = 'Especialista'
-          DataBinding.FieldName = 'especialista'
-          HeaderAlignmentHorz = taCenter
-          HeaderGlyphAlignmentHorz = taCenter
-          Width = 119
-        end
-        object cxGrid1DBTableView1correo: TcxGridDBColumn
-          Caption = 'Correo'
-          DataBinding.FieldName = 'correo'
-          HeaderAlignmentHorz = taCenter
-          HeaderGlyphAlignmentHorz = taCenter
-          Width = 75
-        end
-        object cxGrid1DBTableView1usuario: TcxGridDBColumn
-          Caption = 'Usuario'
-          DataBinding.FieldName = 'usuario'
-          HeaderAlignmentHorz = taCenter
-          HeaderGlyphAlignmentHorz = taCenter
-          Width = 73
-        end
-        object cxGrid1DBTableView1frecuencia: TcxGridDBColumn
-          Caption = 'Frecuencia'
-          DataBinding.FieldName = 'frecuencia'
-          HeaderAlignmentHorz = taCenter
-          HeaderGlyphAlignmentHorz = taCenter
-          Width = 85
-        end
-        object cxGrid1DBTableView1tiempo: TcxGridDBColumn
-          Caption = 'Tiempo'
-          DataBinding.FieldName = 'tiempo'
-          HeaderAlignmentHorz = taCenter
-          HeaderGlyphAlignmentHorz = taCenter
-          Width = 73
-        end
-        object cxGrid1DBTableView1observacion: TcxGridDBColumn
-          Caption = 'Observaci'#243'n'
-          DataBinding.FieldName = 'observacion'
-          HeaderAlignmentHorz = taCenter
-          HeaderGlyphAlignmentHorz = taCenter
-          Width = 109
-        end
-        object cxGrid1DBTableView1servidor: TcxGridDBColumn
-          Caption = 'Servidor'
-          DataBinding.FieldName = 'servidor'
-          HeaderAlignmentHorz = taCenter
-          HeaderGlyphAlignmentHorz = taCenter
-          Width = 100
-        end
-        object cxGrid1DBTableView1carpeta: TcxGridDBColumn
-          Caption = 'Carpeta'
-          DataBinding.FieldName = 'carpeta'
-          HeaderAlignmentHorz = taCenter
-          HeaderGlyphAlignmentHorz = taCenter
-          Width = 100
-        end
-      end
-      object cxGrid1Level1: TcxGridLevel
-        GridView = cxGrid1DBTableView1
-      end
-    end
-    object ToolBar1: TToolBar
-      Left = 2
-      Top = 26
-      Width = 901
-      Height = 37
-      ButtonHeight = 34
-      ButtonWidth = 31
-      Caption = 'ToolBar1'
-      Color = clBtnFace
-      Images = UDM.ILDigital
-      ParentColor = False
-      TabOrder = 1
-      object ToolButton2: TToolButton
-        Left = 0
-        Top = 0
-        Width = 8
-        Caption = 'ToolButton2'
-        ImageIndex = 24
-        Style = tbsSeparator
-      end
-      object ToolButton1: TToolButton
-        Left = 8
-        Top = 0
-        Hint = 'Asignar series documentales'
-        ImageIndex = 23
-        OnClick = ToolButton1Click
-      end
-    end
+    ExplicitWidth = 909
+    ExplicitHeight = 377
     object Panel3: TPanel
       Left = 2
       Top = 2
-      Width = 901
+      Width = 854
       Height = 24
       Align = alTop
       Caption = 'Series Documentales'
@@ -1662,9 +1519,697 @@ object MAINFORM: TMAINFORM
       Font.Style = [fsBold]
       ParentBackground = False
       ParentFont = False
-      TabOrder = 2
+      TabOrder = 0
       ExplicitLeft = 1
       ExplicitTop = 4
+      ExplicitWidth = 901
+    end
+    object cxPageControl1: TcxPageControl
+      Left = 2
+      Top = 26
+      Width = 854
+      Height = 347
+      Align = alClient
+      TabOrder = 1
+      Properties.ActivePage = tsInputSeriesData
+      Properties.CustomButtons.Buttons = <>
+      ExplicitLeft = 4
+      ExplicitTop = 24
+      ClientRectBottom = 343
+      ClientRectLeft = 4
+      ClientRectRight = 850
+      ClientRectTop = 24
+      object tsSeriesDef: TcxTabSheet
+        Caption = 'Definici'#243'n de Series'
+        ImageIndex = 0
+        ExplicitLeft = 5
+        ExplicitTop = 25
+        ExplicitWidth = 934
+        ExplicitHeight = 280
+        object pContainerDefSeries: TPanel
+          Left = 0
+          Top = 0
+          Width = 846
+          Height = 319
+          Align = alClient
+          TabOrder = 0
+          ExplicitLeft = 424
+          ExplicitTop = 120
+          ExplicitWidth = 185
+          ExplicitHeight = 41
+          object cxGrid1: TcxGrid
+            Left = 1
+            Top = 70
+            Width = 844
+            Height = 248
+            Align = alClient
+            TabOrder = 0
+            ExplicitLeft = -2
+            ExplicitTop = 79
+            ExplicitWidth = 576
+            ExplicitHeight = 230
+            object cxGrid1DBTableView1: TcxGridDBTableView
+              Navigator.Buttons.CustomButtons = <>
+              DataController.DataSource = UDM.dstb_Serietree
+              DataController.Summary.DefaultGroupSummaryItems = <>
+              DataController.Summary.FooterSummaryItems = <>
+              DataController.Summary.SummaryGroups = <>
+              OptionsView.GroupByBox = False
+              Styles.StyleSheet = GridTableViewStyleSheetDevExpress
+              object cxGrid1DBTableView1Id: TcxGridDBColumn
+                Caption = 'Estructura'
+                DataBinding.FieldName = 'Id'
+                Visible = False
+              end
+              object cxGrid1DBTableView1codsubs: TcxGridDBColumn
+                Caption = 'Serie'
+                DataBinding.FieldName = 'codsubs'
+                PropertiesClassName = 'TcxLookupComboBoxProperties'
+                Properties.KeyFieldNames = 'codsubs'
+                Properties.ListColumns = <
+                  item
+                    Caption = 'Listado de Series Documentales'
+                    HeaderAlignment = taCenter
+                    FieldName = 'etiqueta'
+                  end>
+                Properties.ListSource = UDM.dscl_subseries
+                HeaderAlignmentHorz = taCenter
+                HeaderGlyphAlignmentHorz = taCenter
+                Width = 68
+              end
+              object cxGrid1DBTableView1Ubicacion: TcxGridDBColumn
+                Caption = 'Ubicaci'#243'n'
+                DataBinding.FieldName = 'Ubicacion'
+                PropertiesClassName = 'TcxLookupComboBoxProperties'
+                Properties.KeyFieldNames = 'Idarchivo'
+                Properties.ListColumns = <
+                  item
+                    Caption = 'Ubicaci'#243'n'
+                    HeaderAlignment = taCenter
+                    Width = 100
+                    FieldName = 'nombreArchivo'
+                  end>
+                Properties.ListSource = UDM.dscl_ArchivosGestion
+                HeaderAlignmentHorz = taCenter
+                HeaderGlyphAlignmentHorz = taCenter
+                Width = 86
+              end
+              object cxGrid1DBTableView1deposito: TcxGridDBColumn
+                Caption = 'Dep'#243'sito'
+                DataBinding.FieldName = 'deposito'
+                PropertiesClassName = 'TcxBlobEditProperties'
+                Properties.BlobEditKind = bekMemo
+                Properties.BlobPaintStyle = bpsText
+                Properties.MemoMaxLength = 255
+                Properties.PopupHeight = 300
+                Properties.PopupWidth = 350
+                HeaderAlignmentHorz = taCenter
+                HeaderGlyphAlignmentHorz = taCenter
+                Width = 90
+              end
+              object cxGrid1DBTableView1gaveta: TcxGridDBColumn
+                Caption = 'Gaveta'
+                DataBinding.FieldName = 'gaveta'
+                PropertiesClassName = 'TcxBlobEditProperties'
+                Properties.BlobEditKind = bekMemo
+                Properties.BlobPaintStyle = bpsText
+                Properties.MemoMaxLength = 255
+                Properties.PopupHeight = 300
+                Properties.PopupWidth = 350
+                HeaderAlignmentHorz = taCenter
+                HeaderGlyphAlignmentHorz = taCenter
+                Width = 77
+              end
+              object cxGrid1DBTableView1especialista: TcxGridDBColumn
+                Caption = 'Especialista'
+                DataBinding.FieldName = 'especialista'
+                PropertiesClassName = 'TcxLookupComboBoxProperties'
+                Properties.KeyFieldNames = 'Idespecialista'
+                Properties.ListColumns = <
+                  item
+                    FieldName = 'Nombespecialista'
+                  end>
+                Properties.ListSource = UDM.dscl_especialista
+                HeaderAlignmentHorz = taCenter
+                HeaderGlyphAlignmentHorz = taCenter
+                Width = 119
+              end
+              object cxGrid1DBTableView1correo: TcxGridDBColumn
+                Caption = 'Correo'
+                DataBinding.FieldName = 'correo'
+                Visible = False
+                HeaderAlignmentHorz = taCenter
+                HeaderGlyphAlignmentHorz = taCenter
+                Width = 144
+              end
+              object cxGrid1DBTableView1usuario: TcxGridDBColumn
+                Caption = 'Usuario'
+                DataBinding.FieldName = 'usuario'
+                Visible = False
+                HeaderAlignmentHorz = taCenter
+                HeaderGlyphAlignmentHorz = taCenter
+                Width = 73
+              end
+              object cxGrid1DBTableView1frecuencia: TcxGridDBColumn
+                Caption = 'Frecuencia'
+                DataBinding.FieldName = 'frecuencia'
+                PropertiesClassName = 'TcxLookupComboBoxProperties'
+                Properties.KeyFieldNames = 'Idfrecuencia'
+                Properties.ListColumns = <
+                  item
+                    Caption = 'Frecuencia'
+                    HeaderAlignment = taCenter
+                    Width = 100
+                    FieldName = 'NombreFrecuencia'
+                  end>
+                Properties.ListSource = UDM.dscl_frecuencia
+                HeaderAlignmentHorz = taCenter
+                HeaderGlyphAlignmentHorz = taCenter
+                Width = 85
+              end
+              object cxGrid1DBTableView1tiempo: TcxGridDBColumn
+                Caption = 'Tiempo'
+                DataBinding.FieldName = 'tiempo'
+                HeaderAlignmentHorz = taCenter
+                HeaderGlyphAlignmentHorz = taCenter
+                Width = 73
+              end
+              object cxGrid1DBTableView1observacion: TcxGridDBColumn
+                Caption = 'Observaci'#243'n'
+                DataBinding.FieldName = 'observacion'
+                PropertiesClassName = 'TcxBlobEditProperties'
+                Properties.BlobEditKind = bekMemo
+                Properties.BlobPaintStyle = bpsText
+                Properties.PopupHeight = 300
+                Properties.PopupWidth = 350
+                HeaderAlignmentHorz = taCenter
+                HeaderGlyphAlignmentHorz = taCenter
+                Width = 109
+              end
+              object cxGrid1DBTableView1servidor: TcxGridDBColumn
+                Caption = 'Servidor'
+                DataBinding.FieldName = 'servidor'
+                HeaderAlignmentHorz = taCenter
+                HeaderGlyphAlignmentHorz = taCenter
+                Width = 100
+              end
+              object cxGrid1DBTableView1carpeta: TcxGridDBColumn
+                Caption = 'Carpeta'
+                DataBinding.FieldName = 'carpeta'
+                HeaderAlignmentHorz = taCenter
+                HeaderGlyphAlignmentHorz = taCenter
+                Width = 100
+              end
+            end
+            object cxGrid1Level1: TcxGridLevel
+              GridView = cxGrid1DBTableView1
+            end
+          end
+          object Panel6: TPanel
+            Left = 1
+            Top = 35
+            Width = 844
+            Height = 35
+            Align = alTop
+            TabOrder = 1
+            object cxDBNavigator3: TcxDBNavigator
+              Left = 801
+              Top = 1
+              Width = 42
+              Height = 33
+              Buttons.CustomButtons = <>
+              Buttons.First.Visible = False
+              Buttons.PriorPage.Visible = False
+              Buttons.Prior.Visible = False
+              Buttons.Next.Visible = False
+              Buttons.NextPage.Visible = False
+              Buttons.Last.Visible = False
+              Buttons.Insert.Visible = False
+              Buttons.Delete.Visible = False
+              Buttons.Edit.Visible = False
+              Buttons.Post.Visible = False
+              Buttons.Cancel.Visible = False
+              Buttons.Refresh.Visible = False
+              Buttons.SaveBookmark.Visible = False
+              Buttons.GotoBookmark.Visible = False
+              Buttons.Filter.Visible = False
+              DataSource = UDM.dstb_Serietree
+              InfoPanel.DisplayMask = '[RecordIndex] de [RecordCount]'
+              InfoPanel.Visible = True
+              Align = alRight
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 0
+              ExplicitLeft = 889
+              ExplicitHeight = 39
+            end
+            object DBNavigator3: TDBNavigator
+              Left = 1
+              Top = 1
+              Width = 800
+              Height = 33
+              DataSource = UDM.dstb_Serietree
+              VisibleButtons = [nbPrior, nbNext, nbDelete, nbPost, nbCancel]
+              Align = alClient
+              Hints.Strings = (
+                'Primero'
+                'Anterior'
+                'Pr'#243'ximo'
+                'Ultimo'
+                'Insertar'
+                'Borrar'
+                'Editar'
+                'Aceptar'
+                'Cancelar'
+                'Refrescar')
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 1
+              ExplicitLeft = -3
+              ExplicitTop = -4
+              ExplicitHeight = 39
+            end
+          end
+          object ToolBar1: TToolBar
+            Left = 1
+            Top = 1
+            Width = 844
+            Height = 34
+            ButtonHeight = 34
+            ButtonWidth = 31
+            Caption = 'ToolBar1'
+            Color = clBtnFace
+            Images = UDM.ILDigital
+            ParentColor = False
+            TabOrder = 2
+            ExplicitLeft = -2
+            ExplicitTop = -4
+            ExplicitWidth = 932
+            object ToolButton2: TToolButton
+              Left = 0
+              Top = 0
+              Width = 8
+              Caption = 'ToolButton2'
+              ImageIndex = 24
+              Style = tbsSeparator
+            end
+            object ToolButton1: TToolButton
+              Left = 8
+              Top = 0
+              Hint = 'Asignar series documentales'
+              ImageIndex = 23
+              OnClick = ToolButton1Click
+            end
+            object ToolButton3: TToolButton
+              Left = 39
+              Top = 0
+              Width = 8
+              Caption = 'ToolButton3'
+              ImageIndex = 24
+              Style = tbsSeparator
+            end
+            object ToolButton6: TToolButton
+              Left = 47
+              Top = 0
+              Caption = 'ToolButton6'
+              ImageIndex = 25
+              OnClick = ToolButton6Click
+            end
+          end
+        end
+      end
+      object tsInputSeriesData: TcxTabSheet
+        Caption = 'Entrada de Datos'
+        ImageIndex = 1
+        ExplicitLeft = 5
+        ExplicitTop = 25
+        ExplicitHeight = 307
+        DesignSize = (
+          846
+          319)
+        object AdvSplitter2: TAdvSplitter
+          Left = 0
+          Top = 213
+          Width = 846
+          Height = 3
+          Cursor = crVSplit
+          Align = alBottom
+          AutoSnap = False
+          Appearance.BorderColor = clNone
+          Appearance.BorderColorHot = clNone
+          Appearance.Color = clWhite
+          Appearance.ColorTo = clSilver
+          Appearance.ColorHot = clWhite
+          Appearance.ColorHotTo = clGray
+          GripStyle = sgDots
+          ExplicitTop = 34
+        end
+        object ToolBar2: TToolBar
+          Left = 0
+          Top = 0
+          Width = 846
+          Height = 34
+          ButtonHeight = 34
+          ButtonWidth = 31
+          Caption = 'ToolBar1'
+          Color = clBtnFace
+          Images = UDM.ILv1
+          ParentColor = False
+          TabOrder = 0
+          ExplicitLeft = -2
+          ExplicitTop = 1
+          ExplicitWidth = 934
+          object ToolButton4: TToolButton
+            Left = 0
+            Top = 0
+            Width = 8
+            Caption = 'ToolButton2'
+            ImageIndex = 24
+            Style = tbsSeparator
+          end
+          object btnCloseTABDatos: TToolButton
+            Left = 8
+            Top = 0
+            Hint = 'Regresar a la interfase anterior'
+            ImageIndex = 0
+            OnClick = btnCloseTABDatosClick
+          end
+          object ToolButton7: TToolButton
+            Left = 39
+            Top = 0
+            Width = 8
+            Caption = 'ToolButton3'
+            ImageIndex = 24
+            Style = tbsSeparator
+          end
+          object ToolButton5: TToolButton
+            Left = 47
+            Top = 0
+            Hint = 'Listado de Variables en la fecha actual'
+            Caption = 'ToolButton5'
+            ImageIndex = 14
+          end
+        end
+        object pGeneralData: TPanel
+          Left = 106
+          Top = 57
+          Width = 633
+          Height = 136
+          Anchors = [akTop]
+          TabOrder = 1
+          object cxGroupBox1: TcxGroupBox
+            Left = 1
+            Top = 1
+            Align = alClient
+            Caption = 'Datos generales'
+            TabOrder = 0
+            ExplicitLeft = 0
+            Height = 134
+            Width = 631
+            object lblFechaOper: TLabel
+              Left = 202
+              Top = 69
+              Width = 105
+              Height = 13
+              Caption = 'Fecha de operaciones'
+            end
+            object Label1: TLabel
+              Left = 459
+              Top = 69
+              Width = 119
+              Height = 13
+              Caption = 'Version de la serie actual'
+            end
+            object Label2: TLabel
+              Left = 26
+              Top = 69
+              Width = 24
+              Height = 13
+              Caption = 'Serie'
+            end
+            object edtFechOper: TcxDBDateEdit
+              Left = 202
+              Top = 88
+              DataBinding.DataField = 'Fecha'
+              DataBinding.DataSource = UDM.dstb_SeriesDatos
+              ParentFont = False
+              Properties.AutoSelect = False
+              Style.Font.Charset = DEFAULT_CHARSET
+              Style.Font.Color = clWindowText
+              Style.Font.Height = -11
+              Style.Font.Name = 'Tahoma'
+              Style.Font.Style = []
+              Style.IsFontAssigned = True
+              TabOrder = 0
+              Width = 225
+            end
+            object edtVersion: TcxDBTextEdit
+              Left = 459
+              Top = 88
+              DataBinding.DataField = 'Version'
+              DataBinding.DataSource = UDM.dstb_SeriesDatos
+              TabOrder = 1
+              Width = 137
+            end
+            object clbSerie: TcxDBLookupComboBox
+              Left = 26
+              Top = 88
+              DataBinding.DataField = 'codsubs'
+              DataBinding.DataSource = UDM.dstb_SeriesDatos
+              Properties.KeyFieldNames = 'codsubs'
+              Properties.ListColumns = <
+                item
+                  Caption = 'Etiqueta'
+                  Width = 100
+                  FieldName = 'etiqueta'
+                end>
+              Properties.ListSource = UDM.dscl_subseries
+              TabOrder = 2
+              Width = 145
+            end
+            object Panel2: TPanel
+              Left = 2
+              Top = 18
+              Width = 627
+              Height = 31
+              Align = alTop
+              TabOrder = 3
+              object cxDBNavigator1: TcxDBNavigator
+                Left = 584
+                Top = 1
+                Width = 42
+                Height = 29
+                Buttons.CustomButtons = <>
+                Buttons.First.Visible = False
+                Buttons.PriorPage.Visible = False
+                Buttons.Prior.Visible = False
+                Buttons.Next.Visible = False
+                Buttons.NextPage.Visible = False
+                Buttons.Last.Visible = False
+                Buttons.Insert.Visible = False
+                Buttons.Delete.Visible = False
+                Buttons.Edit.Visible = False
+                Buttons.Post.Visible = False
+                Buttons.Cancel.Visible = False
+                Buttons.Refresh.Visible = False
+                Buttons.SaveBookmark.Visible = False
+                Buttons.GotoBookmark.Visible = False
+                Buttons.Filter.Visible = False
+                DataSource = UDM.dstb_Serietree
+                InfoPanel.DisplayMask = '[RecordIndex] de [RecordCount]'
+                InfoPanel.Visible = True
+                Align = alRight
+                ParentShowHint = False
+                ShowHint = True
+                TabOrder = 0
+                ExplicitHeight = 39
+              end
+              object DBNavigator1: TDBNavigator
+                Left = 1
+                Top = 1
+                Width = 583
+                Height = 29
+                DataSource = UDM.dstb_SeriesDatos
+                VisibleButtons = [nbFirst, nbPrior, nbNext, nbLast, nbInsert, nbDelete, nbPost, nbCancel]
+                Align = alClient
+                Hints.Strings = (
+                  'Primero'
+                  'Anterior'
+                  'Pr'#243'ximo'
+                  'Ultimo'
+                  'Insertar'
+                  'Borrar'
+                  'Editar'
+                  'Aceptar'
+                  'Cancelar'
+                  'Refrescar')
+                ParentShowHint = False
+                ShowHint = True
+                TabOrder = 1
+                ExplicitLeft = -5
+              end
+            end
+          end
+        end
+        object Panel1: TPanel
+          Left = 0
+          Top = 216
+          Width = 846
+          Height = 103
+          Align = alBottom
+          TabOrder = 2
+          object cxGrid2: TcxGrid
+            Left = 1
+            Top = 32
+            Width = 844
+            Height = 70
+            Align = alClient
+            TabOrder = 0
+            ExplicitLeft = -2
+            ExplicitTop = 4
+            ExplicitHeight = 97
+            object cxGridDBTableView1: TcxGridDBTableView
+              Navigator.Buttons.CustomButtons = <>
+              DataController.DataSource = UDM.dstb_SerieDatosVar
+              DataController.Summary.DefaultGroupSummaryItems = <>
+              DataController.Summary.FooterSummaryItems = <>
+              DataController.Summary.SummaryGroups = <>
+              OptionsView.GroupByBox = False
+              Styles.StyleSheet = GridTableViewStyleSheetDevExpress
+              object cxGridDBTableView1Id: TcxGridDBColumn
+                DataBinding.FieldName = 'Id'
+                Visible = False
+                HeaderAlignmentHorz = taCenter
+                HeaderGlyphAlignmentHorz = taCenter
+                Width = 100
+              end
+              object cxGridDBTableView1codsubs: TcxGridDBColumn
+                DataBinding.FieldName = 'codsubs'
+                Visible = False
+                HeaderAlignmentHorz = taCenter
+                HeaderGlyphAlignmentHorz = taCenter
+                Width = 100
+              end
+              object cxGridDBTableView1Fecha: TcxGridDBColumn
+                DataBinding.FieldName = 'Fecha'
+                Visible = False
+                HeaderAlignmentHorz = taCenter
+                HeaderGlyphAlignmentHorz = taCenter
+                Width = 100
+              end
+              object cxGridDBTableView1Version: TcxGridDBColumn
+                DataBinding.FieldName = 'Version'
+                Visible = False
+                HeaderAlignmentHorz = taCenter
+                HeaderGlyphAlignmentHorz = taCenter
+                Width = 100
+              end
+              object cxGridDBTableView1IdVar: TcxGridDBColumn
+                Caption = 'Variable'
+                DataBinding.FieldName = 'IdVar'
+                PropertiesClassName = 'TcxLookupComboBoxProperties'
+                Properties.KeyFieldNames = 'IdVar'
+                Properties.ListColumns = <
+                  item
+                    FieldName = 'NomVariable'
+                  end>
+                Properties.ListSource = UDM.dscl_variables
+                HeaderAlignmentHorz = taCenter
+                HeaderGlyphAlignmentHorz = taCenter
+                Width = 173
+              end
+              object cxGridDBTableView1ValorNum: TcxGridDBColumn
+                Caption = 'N'#250'meros'
+                DataBinding.FieldName = 'ValorNum'
+                HeaderAlignmentHorz = taCenter
+                HeaderGlyphAlignmentHorz = taCenter
+                Width = 219
+              end
+              object cxGridDBTableView1ValorFecha: TcxGridDBColumn
+                Caption = 'Fecha'
+                DataBinding.FieldName = 'ValorFecha'
+                HeaderAlignmentHorz = taCenter
+                HeaderGlyphAlignmentHorz = taCenter
+                Width = 208
+              end
+              object cxGridDBTableView1Valorcadena: TcxGridDBColumn
+                Caption = 'Cadena'
+                DataBinding.FieldName = 'Valorcadena'
+                HeaderAlignmentHorz = taCenter
+                HeaderGlyphAlignmentHorz = taCenter
+                Width = 210
+              end
+            end
+            object cxGridLevel1: TcxGridLevel
+              GridView = cxGridDBTableView1
+            end
+          end
+          object Panel4: TPanel
+            Left = 1
+            Top = 1
+            Width = 844
+            Height = 31
+            Align = alTop
+            TabOrder = 1
+            ExplicitLeft = 2
+            ExplicitTop = 9
+            object cxDBNavigator2: TcxDBNavigator
+              Left = 801
+              Top = 1
+              Width = 42
+              Height = 29
+              Buttons.CustomButtons = <>
+              Buttons.First.Visible = False
+              Buttons.PriorPage.Visible = False
+              Buttons.Prior.Visible = False
+              Buttons.Next.Visible = False
+              Buttons.NextPage.Visible = False
+              Buttons.Last.Visible = False
+              Buttons.Insert.Visible = False
+              Buttons.Delete.Visible = False
+              Buttons.Edit.Visible = False
+              Buttons.Post.Visible = False
+              Buttons.Cancel.Visible = False
+              Buttons.Refresh.Visible = False
+              Buttons.SaveBookmark.Visible = False
+              Buttons.GotoBookmark.Visible = False
+              Buttons.Filter.Visible = False
+              DataSource = UDM.dstb_SerieDatosVar
+              InfoPanel.DisplayMask = '[RecordIndex] de [RecordCount]'
+              InfoPanel.Visible = True
+              Align = alRight
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 0
+            end
+            object DBNavigator2: TDBNavigator
+              Left = 1
+              Top = 1
+              Width = 800
+              Height = 29
+              DataSource = UDM.dstb_SerieDatosVar
+              VisibleButtons = [nbFirst, nbPrior, nbNext, nbLast, nbInsert, nbDelete, nbEdit, nbPost, nbCancel, nbApplyUpdates]
+              Align = alClient
+              Hints.Strings = (
+                'Primero'
+                'Anterior'
+                'Pr'#243'ximo'
+                'Ultimo'
+                'Insertar'
+                'Borrar'
+                'Editar'
+                'Aceptar'
+                'Cancelar'
+                'Refrescar')
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 1
+              ExplicitLeft = -3
+              ExplicitTop = -4
+            end
+          end
+        end
+      end
     end
   end
   object PMAyuda: TAdvPopupMenu
@@ -1708,6 +2253,10 @@ object MAINFORM: TMAINFORM
     object D1: TMenuItem
       Caption = 'Destino documental'
       OnClick = D1Click
+    end
+    object E1: TMenuItem
+      Caption = 'Listado de especialistas'
+      OnClick = E1Click
     end
     object C1: TMenuItem
       Caption = 'Estructura de cargos'

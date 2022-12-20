@@ -934,7 +934,6 @@ object frmEstructura: TfrmEstructura
     end
   end
   object cmdPadres: TFDQuery
-    Active = True
     Connection = UDM.Conn
     SQL.Strings = (
       'select * from tb_tree where (tipo=1) or (tipo=2) order by ID')

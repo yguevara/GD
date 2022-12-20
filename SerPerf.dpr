@@ -34,7 +34,9 @@ uses
   UViewFunciones in 'UViewFunciones.pas' {frmSelectFuncionG},
   UCLVariables in 'UCLVariables.pas' {frmVariables},
   UVarVirtualVar in 'UVarVirtualVar.pas' {frmVarVirtualVar},
-  UMangementArch in 'UMangementArch.pas' {frmManagemetArch};
+  UMangementArch in 'UMangementArch.pas' {frmManagemetArch},
+  USeriesDisp in 'USeriesDisp.pas' {frmSeriesDisp},
+  UCL_Especialistas in 'UCL_Especialistas.pas' {frmListEspec};
 
 {$R *.res}
 

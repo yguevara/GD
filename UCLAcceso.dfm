@@ -101,6 +101,7 @@ object frmCLAcceso: TfrmCLAcceso
     Width = 371
     Height = 19
     Panels = <>
+    ExplicitLeft = 1
   end
   object Panel6: TPanel
     Left = 0
@@ -161,7 +162,7 @@ object frmCLAcceso: TfrmCLAcceso
       ShowHint = True
       TabOrder = 1
       ExplicitLeft = -5
-      ExplicitTop = 6
+      ExplicitTop = -4
     end
   end
 end
