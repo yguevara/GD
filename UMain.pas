@@ -553,6 +553,8 @@ type
     procedure modificarClick(Sender: TObject);
     procedure V1Click(Sender: TObject);
     procedure A1Click(Sender: TObject);
+    procedure TvTreeMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure ToolButton1Click(Sender: TObject);
   private
     procedure CargoState(aState: boolean);
     procedure MDSeriesSubSeriesDMDR;
@@ -568,7 +570,7 @@ type
 
 var
   MAINFORM: TMAINFORM;
-  AnItem: TcxTreeListNode;
+  AnItem: TTreeNode ;//TcxTreeListNode;
   NewId, ParentID: integer;
 
 implementation
@@ -583,7 +585,7 @@ uses
 
 procedure TMAINFORM.A1Click(Sender: TObject);
 begin
-  with TfrmManagemetArch.Create(nil)do
+  with TfrmManagemetArch.Create(nil) do
   try
     ShowModal;
   finally
@@ -766,24 +768,24 @@ begin
   etiqueta.Enabled := True;
   Estructura.Enabled := True;
   Cargo.Enabled := True;
-  case UDM.tb_tree.FieldByName('tipo').AsInteger of
+ { case UDM.tb_tree.FieldByName('tipo').AsInteger of
     1:
       begin
-        etiqueta.Enabled := False;
+        etiqueta.Enabled := True;
         Estructura.Enabled := True;
         Cargo.Enabled := True;
       end;
     2:
       begin
         etiqueta.Enabled := True;
-        Estructura.Enabled := False;
+        Estructura.Enabled := True;
         Cargo.Enabled := True;
       end;
     3:
       begin
         agregar.Visible := False;
       end;
-  end;
+  end;      }
   if UDM.tb_tree.State = dsInsert then
     TvTree.SelectedIndex := imagenactual
   else
@@ -972,26 +974,36 @@ begin
   busca(UDM.tb_tree.FieldByName('nombreentidad').AsString, UDM.tb_tree.FieldByName('keydef').AsString, UDM.tb_tree.FieldByName('keyvalue').AsString);  }
 end;
 
-procedure TMAINFORM.TvTreeMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+procedure TMAINFORM.TvTreeMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
-{  AnItem := TvTree.GetNodeAt(X, Y);
-  ParentID:=UDM.GetIDParentTreeNode;
+  AnItem := TvTree.GetNodeAt(X, Y);
+  ParentID := UDM.GetIDParentTreeNode;
+  //PContainer.Visible:=False;
   if AnItem <> nil then
   begin
     if Button = mbRight then
     begin
-      ParentID:=AnItem.Index;
+      ParentID := AnItem.Index;
     end
     else
     begin
-      ShowMessage(UDM.Tb_tree.FieldByName('ID').asstring);
+
+      if UDM.tb_Serietree.RecordCount>0 then begin
+        PContainer.Visible:=True;
+      end;
+
     end;
-  end; }
+  end;
+end;
+
+procedure TMAINFORM.TvTreeMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+{   }
 end;
 
 procedure TMAINFORM.V1Click(Sender: TObject);
 begin
-  with TfrmVariables.Create(nil)do
+  with TfrmVariables.Create(nil) do
   try
     ShowModal;
   finally
@@ -1122,7 +1134,7 @@ begin
   UDM.CleanTableTree('tb_mp');
   UDM.tb_mp.Active := True;
   CreateMapProcess;
-  PContainer.Visible:=False;
+  //PContainer.Visible := False;
   {UDM.CreaTree;
   UDM.tb_ueb.Filtered := False;
   cxDBTreeList2.DataController.DataSource := UDM.dstb_tree;}
@@ -1265,6 +1277,13 @@ begin
   finally
     Free;
   end;
+end;
+
+procedure TMAINFORM.ToolButton1Click(Sender: TObject);
+begin
+  UDM.Tb_SeriesDispo.Active:=False;
+  UDM.Tb_SeriesDispo.Active:=True;
+  UDM.Tb_SeriesDispo.FetchAll;
 end;
 
 end.

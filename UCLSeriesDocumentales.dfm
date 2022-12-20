@@ -572,7 +572,7 @@ object frmCLSeries: TfrmCLSeries
           0000000000000000000000000000000000000000000000000000000000000000
           00000000000000000000}
         ExplicitLeft = 312
-        ExplicitTop = -4
+        ExplicitTop = 6
       end
       object cxDBNavigator1: TcxDBNavigator
         Left = 274

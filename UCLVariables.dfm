@@ -152,6 +152,7 @@ object frmVariables: TfrmVariables
     Styles.StyleSheet = UDM.cxVerticalGridStyleSheetEggplant
     TabOrder = 3
     DataController.DataSource = UDM.dscl_variables
+    ExplicitTop = 72
     Version = 1
     object cxDBVerticalGrid6IdVar: TcxDBEditorRow
       Properties.Caption = 'Identificador'

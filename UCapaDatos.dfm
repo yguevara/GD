@@ -23364,4 +23364,50 @@ object UDM: TUDM
     Left = 907
     Top = 280
   end
+  object Tb_SeriesDispo: TFDQuery
+    Connection = Conn
+    SQL.Strings = (
+      'SELECT'
+      #9'cl_subseries.codsubs,'
+      #9'cl_subseries.subserie AS NombreSubSerie,'
+      #9'cl_series.codserie,'
+      #9'cl_series.serie AS NombreSerie,'
+      #9'cl_subseries.etiqueta,'
+      #9'cl_tipodoc.Tipodoc,'
+      #9'cl_subseries.ayear,'
+      #9'cl_subseries.tgestion,'
+      #9'cl_subseries.tcentral,'
+      #9'cl_subseries.destino '
+      'FROM'
+      #9'cl_series'
+      
+        #9'INNER JOIN ( cl_subseries INNER JOIN cl_tipodoc ON cl_subseries' +
+        '.tipodoc = cl_tipodoc.Idtipodoc ) ON cl_series.codserie = cl_sub' +
+        'series.codserie '
+      'ORDER BY'
+      #9'cl_subseries.codsubs,'
+      #9'cl_series.codserie;')
+    Left = 1122
+    Top = 37
+    object SmallintField1: TSmallintField
+      FieldName = 'IdGrupo'
+      Origin = 'IdGrupo'
+      ProviderFlags = [pfInUpdate, pfInWhere, pfInKey]
+    end
+    object SmallintField2: TSmallintField
+      FieldName = 'IdProceso'
+      Origin = 'IdProceso'
+      ProviderFlags = [pfInUpdate, pfInWhere, pfInKey]
+    end
+    object WideStringField1: TWideStringField
+      FieldName = 'NombreProceso'
+      Origin = 'NombreProceso'
+      Size = 30
+    end
+  end
+  object dsTb_SeriesDispo: TDataSource
+    DataSet = Tb_SeriesDispo
+    Left = 1122
+    Top = 93
+  end
 end

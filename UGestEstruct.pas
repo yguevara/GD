@@ -151,16 +151,17 @@ end;
 
 procedure TfrmEstructura.dstb_treeDataChange(Sender: TObject; Field: TField);
 begin
-  with cmdFunGen do
-  begin
-    Active := False;
-    SQL.Clear;
-    SQL.Add('select *  from cl_funcionesgen where idfunciones=' + UDM.tb_tree.FieldByName('IdfunGeneral').AsString);
-    try
-      Active := True;
-    except
+  if trim(UDM.tb_tree.FieldByName('IdfunGeneral').AsString) <> '' then
+    with cmdFunGen do
+    begin
+      Active := False;
+      SQL.Clear;
+      SQL.Add('select *  from cl_funcionesgen where idfunciones=' + UDM.tb_tree.FieldByName('IdfunGeneral').AsString);
+      try
+        Active := True;
+      except
+      end;
     end;
-  end;
 end;
 
 procedure TfrmEstructura.edtEtiquetaKeyPress(Sender: TObject; var Key: Char);
@@ -208,16 +209,17 @@ begin
       SQL.Add('select * from cl_funcionesgen where idfunciones=' + UDM.tb_tree.FieldByName('IdfunGeneral').AsString);
     end;
   end;  }
-  with cmdFunGen do
-  begin
-    Active := False;
-    SQL.Clear;
-    SQL.Add('select *  from cl_funcionesgen where idfunciones=' + UDM.tb_tree.FieldByName('IdfunGeneral').AsString);
-    try
-      Active := True;
-    except
+  if Trim(UDM.tb_tree.FieldByName('IdfunGeneral').AsString) <> '' then
+    with cmdFunGen do
+    begin
+      Active := False;
+      SQL.Clear;
+      SQL.Add('select *  from cl_funcionesgen where idfunciones=' + UDM.tb_tree.FieldByName('IdfunGeneral').AsString);
+      try
+        Active := True;
+      except
+      end;
     end;
-  end;
 end;
 
 procedure TfrmEstructura.FormCloseQuery(Sender: TObject; var CanClose: Boolean);

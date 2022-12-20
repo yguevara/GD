@@ -119,9 +119,8 @@ object frmManagemetArch: TfrmManagemetArch
       ParentShowHint = False
       ShowHint = True
       TabOrder = 1
-      ExplicitLeft = -5
-      ExplicitTop = -4
-      ExplicitWidth = 461
+      ExplicitLeft = 0
+      ExplicitTop = 6
     end
   end
   object StatusBar1: TStatusBar

@@ -1386,6 +1386,8 @@ object MAINFORM: TMAINFORM
     OptionsView.NavigationPane.MaxVisibleGroups = 7
     OptionsView.NavigationPane.OverflowPanelUseSmallImages = False
     OptionsView.NavigationPane.ShowOverflowPanel = False
+    ExplicitLeft = 1
+    ExplicitTop = 98
     object bgBD: TdxNavBarGroup
       Caption = 'ORGANIGRAMA'
       LargeImageIndex = 8
@@ -1440,6 +1442,8 @@ object MAINFORM: TMAINFORM
         Options = [trDBCanDelete, trDBConfirmDelete, trCanDBNavigate, trSmartRecordCopy, trCheckHasChildren]
         SelectedIndex = -1
         TabOrder = 0
+        OnMouseDown = TvTreeMouseDown
+        OnMouseUp = TvTreeMouseUp
         PopupMenu = PMNodeTree
         Images = UDM.ILDigital
       end
@@ -1448,7 +1452,7 @@ object MAINFORM: TMAINFORM
       Left = 1
       Top = 26
       Width = 379
-      Height = 229
+      Height = 283
       Caption = 'SGICControl'
       TabOrder = 1
       GroupIndex = 1
@@ -1457,7 +1461,7 @@ object MAINFORM: TMAINFORM
         Left = 0
         Top = 0
         Width = 379
-        Height = 229
+        Height = 283
         ShowNodeHint = True
         DataSource = UDM.dstb_mp
         DisplayField = 'etiqueta'
@@ -1477,6 +1481,7 @@ object MAINFORM: TMAINFORM
         SelectedIndex = -1
         TabOrder = 0
         Images = UDM.ILDigital
+        ExplicitHeight = 229
       end
     end
   end
@@ -1528,6 +1533,7 @@ object MAINFORM: TMAINFORM
           Properties.ListSource = UDM.dscl_subseries
           HeaderAlignmentHorz = taCenter
           HeaderGlyphAlignmentHorz = taCenter
+          Width = 68
         end
         object cxGrid1DBTableView1Ubicacion: TcxGridDBColumn
           Caption = 'Ubicaci'#243'n'
@@ -1536,63 +1542,77 @@ object MAINFORM: TMAINFORM
           Properties.ListColumns = <>
           HeaderAlignmentHorz = taCenter
           HeaderGlyphAlignmentHorz = taCenter
+          Width = 86
         end
         object cxGrid1DBTableView1deposito: TcxGridDBColumn
           Caption = 'Dep'#243'sito'
           DataBinding.FieldName = 'deposito'
           HeaderAlignmentHorz = taCenter
           HeaderGlyphAlignmentHorz = taCenter
+          Width = 90
         end
         object cxGrid1DBTableView1gaveta: TcxGridDBColumn
           Caption = 'Gaveta'
           DataBinding.FieldName = 'gaveta'
           HeaderAlignmentHorz = taCenter
           HeaderGlyphAlignmentHorz = taCenter
+          Width = 77
         end
         object cxGrid1DBTableView1especialista: TcxGridDBColumn
           Caption = 'Especialista'
           DataBinding.FieldName = 'especialista'
           HeaderAlignmentHorz = taCenter
           HeaderGlyphAlignmentHorz = taCenter
+          Width = 119
         end
         object cxGrid1DBTableView1correo: TcxGridDBColumn
           Caption = 'Correo'
           DataBinding.FieldName = 'correo'
           HeaderAlignmentHorz = taCenter
           HeaderGlyphAlignmentHorz = taCenter
+          Width = 75
         end
         object cxGrid1DBTableView1usuario: TcxGridDBColumn
           Caption = 'Usuario'
           DataBinding.FieldName = 'usuario'
           HeaderAlignmentHorz = taCenter
           HeaderGlyphAlignmentHorz = taCenter
+          Width = 73
         end
         object cxGrid1DBTableView1frecuencia: TcxGridDBColumn
           Caption = 'Frecuencia'
           DataBinding.FieldName = 'frecuencia'
           HeaderAlignmentHorz = taCenter
           HeaderGlyphAlignmentHorz = taCenter
+          Width = 85
         end
         object cxGrid1DBTableView1tiempo: TcxGridDBColumn
           Caption = 'Tiempo'
           DataBinding.FieldName = 'tiempo'
           HeaderAlignmentHorz = taCenter
           HeaderGlyphAlignmentHorz = taCenter
+          Width = 73
         end
         object cxGrid1DBTableView1observacion: TcxGridDBColumn
+          Caption = 'Observaci'#243'n'
           DataBinding.FieldName = 'observacion'
           HeaderAlignmentHorz = taCenter
           HeaderGlyphAlignmentHorz = taCenter
+          Width = 109
         end
         object cxGrid1DBTableView1servidor: TcxGridDBColumn
+          Caption = 'Servidor'
           DataBinding.FieldName = 'servidor'
           HeaderAlignmentHorz = taCenter
           HeaderGlyphAlignmentHorz = taCenter
+          Width = 100
         end
         object cxGrid1DBTableView1carpeta: TcxGridDBColumn
+          Caption = 'Carpeta'
           DataBinding.FieldName = 'carpeta'
           HeaderAlignmentHorz = taCenter
           HeaderGlyphAlignmentHorz = taCenter
+          Width = 100
         end
       end
       object cxGrid1Level1: TcxGridLevel
@@ -1611,7 +1631,6 @@ object MAINFORM: TMAINFORM
       Images = UDM.ILDigital
       ParentColor = False
       TabOrder = 1
-      ExplicitTop = 2
       object ToolButton2: TToolButton
         Left = 0
         Top = 0
@@ -1623,9 +1642,9 @@ object MAINFORM: TMAINFORM
       object ToolButton1: TToolButton
         Left = 8
         Top = 0
-        Hint = 'Listado de Series documentales'
-        Caption = 'btnClose'
+        Hint = 'Asignar series documentales'
         ImageIndex = 23
+        OnClick = ToolButton1Click
       end
     end
     object Panel3: TPanel
@@ -1645,7 +1664,7 @@ object MAINFORM: TMAINFORM
       ParentFont = False
       TabOrder = 2
       ExplicitLeft = 1
-      ExplicitTop = 0
+      ExplicitTop = 4
     end
   end
   object PMAyuda: TAdvPopupMenu

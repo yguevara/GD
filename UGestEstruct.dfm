@@ -495,6 +495,7 @@ object frmEstructura: TfrmEstructura
         Align = alTop
         BorderStyle = bsSingle
         TabOrder = 1
+        ExplicitTop = 38
         object Label2: TLabel
           Left = 18
           Top = 18
@@ -974,7 +975,7 @@ object frmEstructura: TfrmEstructura
     SQL.Strings = (
       'select *  from cl_funcionesgen')
     Left = 144
-    Top = 104
+    Top = 96
   end
   object dscmdFunGen: TDataSource
     DataSet = cmdFunGen
