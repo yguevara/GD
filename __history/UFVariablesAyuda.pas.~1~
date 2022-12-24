@@ -1,0 +1,81 @@
+unit UFVariablesAyuda;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, cxGraphics,
+  cxControls, cxLookAndFeels, cxLookAndFeelPainters, cxStyles, cxEdit,
+  dxSkinsCore, dxSkinsDefaultPainters, cxInplaceContainer, cxVGrid, cxDBVGrid,
+  cxMemo, Vcl.Buttons, cxClasses;
+
+type
+  TFVariablesAyuda = class(TForm)
+    Panel1: TPanel;
+    Button1: TButton;
+    cxDBVerticalGrid1: TcxDBVerticalGrid;
+    cxDBVerticalGrid1IdVar: TcxDBEditorRow;
+    cxDBVerticalGrid1NomVariable: TcxDBEditorRow;
+    cxDBVerticalGrid1Etiqueta: TcxDBEditorRow;
+    cxDBVerticalGrid1tipo: TcxDBEditorRow;
+    cxDBVerticalGrid1longitud: TcxDBEditorRow;
+    cxDBVerticalGrid1descripcion: TcxDBEditorRow;
+    cxDBVerticalGrid1ListaDesplegable: TcxDBEditorRow;
+    PanelHeader: TPanel;
+    SpeedButton1: TSpeedButton;
+    SpeedButton2: TSpeedButton;
+    cxStyleRepository1: TcxStyleRepository;
+    cxStyle1: TcxStyle;
+    procedure eesize(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
+    procedure SpeedButton2Click(Sender: TObject);
+    procedure SpeedButton1Click(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+//var
+ // FVariablesAyuda: TFVariablesAyuda;
+
+procedure AyudaVariable(nombreVariable:string);
+
+implementation
+
+{$R *.dfm}
+
+uses UCapaDatos;
+
+procedure AyudaVariable(nombreVariable:string);
+begin
+  with TFVariablesAyuda.Create(nil) do
+  try
+    caption := 'Variable:' +nombrevariable;
+    showmodal;
+  finally
+
+  end;
+end;
+
+procedure TFVariablesAyuda.Button1Click(Sender: TObject);
+begin
+  close;
+end;
+
+procedure TFVariablesAyuda.eesize(Sender: TObject);
+begin
+  button1.Left := panel1.Width div 2 -button1.Width div 2;
+end;
+
+procedure TFVariablesAyuda.SpeedButton1Click(Sender: TObject);
+begin
+  showmessage('Opción en construcción : Susana poner la descripción de los campos')
+end;
+
+procedure TFVariablesAyuda.SpeedButton2Click(Sender: TObject);
+begin
+  close;
+end;
+
+end.

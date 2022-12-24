@@ -1,0 +1,246 @@
+object frmSeriesDisp: TfrmSeriesDisp
+  Left = 0
+  Top = 0
+  Caption = 'Series documentales disponibles'
+  ClientHeight = 416
+  ClientWidth = 870
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  Position = poScreenCenter
+  PixelsPerInch = 96
+  TextHeight = 13
+  object ToolBar1: TToolBar
+    Left = 0
+    Top = 0
+    Width = 870
+    Height = 37
+    ButtonHeight = 34
+    ButtonWidth = 31
+    Caption = 'ToolBar1'
+    Images = UDM.ILv1
+    TabOrder = 0
+    ExplicitWidth = 371
+    object btnClose: TToolButton
+      Left = 0
+      Top = 0
+      Hint = 'Regresar a la ventana principal'
+      Caption = 'btnClose'
+      ImageIndex = 0
+      ParentShowHint = False
+      ShowHint = True
+      OnClick = btnCloseClick
+    end
+    object ToolButton3: TToolButton
+      Left = 31
+      Top = 0
+      Width = 794
+      Caption = 'ToolButton3'
+      ImageIndex = 136
+      Style = tbsSeparator
+    end
+    object btnhlp: TToolButton
+      Left = 825
+      Top = 0
+      Hint = 'Ayuda para manipular la interface actual'
+      Caption = 'btnhlp'
+      ImageIndex = 1
+      ParentShowHint = False
+      ShowHint = True
+    end
+  end
+  object StatusBar1: TStatusBar
+    Left = 0
+    Top = 397
+    Width = 870
+    Height = 19
+    Panels = <>
+    ExplicitLeft = 248
+    ExplicitTop = 403
+  end
+  object Panel6: TPanel
+    Left = 0
+    Top = 37
+    Width = 870
+    Height = 41
+    Align = alTop
+    TabOrder = 2
+    ExplicitWidth = 371
+    object cxDBNavigator3: TcxDBNavigator
+      Left = 827
+      Top = 1
+      Width = 42
+      Height = 39
+      Buttons.CustomButtons = <>
+      Buttons.First.Visible = False
+      Buttons.PriorPage.Visible = False
+      Buttons.Prior.Visible = False
+      Buttons.Next.Visible = False
+      Buttons.NextPage.Visible = False
+      Buttons.Last.Visible = False
+      Buttons.Insert.Visible = False
+      Buttons.Delete.Visible = False
+      Buttons.Edit.Visible = False
+      Buttons.Post.Visible = False
+      Buttons.Cancel.Visible = False
+      Buttons.Refresh.Visible = False
+      Buttons.SaveBookmark.Visible = False
+      Buttons.GotoBookmark.Visible = False
+      Buttons.Filter.Visible = False
+      DataSource = UDM.dsTb_SeriesDispo
+      InfoPanel.DisplayMask = '[RecordIndex] de [RecordCount]'
+      InfoPanel.Visible = True
+      Align = alRight
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 0
+      ExplicitLeft = 328
+    end
+    object DBNavigator3: TDBNavigator
+      Left = 1
+      Top = 1
+      Width = 826
+      Height = 39
+      DataSource = UDM.dsTb_SeriesDispo
+      VisibleButtons = [nbPrior, nbNext, nbInsert, nbDelete, nbEdit, nbPost, nbCancel]
+      Align = alClient
+      Hints.Strings = (
+        'Primero'
+        'Anterior'
+        'Pr'#243'ximo'
+        'Ultimo'
+        'Insertar'
+        'Borrar'
+        'Editar'
+        'Aceptar'
+        'Cancelar'
+        'Refrescar')
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 1
+      ExplicitLeft = 0
+      ExplicitTop = -4
+    end
+  end
+  object cxGrid1: TcxGrid
+    Left = 0
+    Top = 78
+    Width = 870
+    Height = 319
+    Align = alClient
+    TabOrder = 3
+    ExplicitTop = 72
+    object cxGrid1DBTableView1: TcxGridDBTableView
+      Navigator.Buttons.ConfirmDelete = True
+      Navigator.Buttons.CustomButtons = <>
+      Navigator.Buttons.PriorPage.Visible = False
+      Navigator.Buttons.NextPage.Visible = False
+      Navigator.Buttons.SaveBookmark.Visible = False
+      Navigator.Buttons.GotoBookmark.Visible = False
+      Navigator.Buttons.Filter.Visible = False
+      Navigator.InfoPanel.DisplayMask = '[RecordIndex] de [RecordCount]'
+      DataController.DataSource = UDM.dsTb_SeriesDispo
+      DataController.Summary.DefaultGroupSummaryItems = <>
+      DataController.Summary.FooterSummaryItems = <>
+      DataController.Summary.SummaryGroups = <>
+      OptionsView.GroupByBox = False
+      Styles.StyleSheet = UDM.GridTableViewStyleSheetEggplant
+      object cxGrid1DBTableView1codsubs: TcxGridDBColumn
+        Caption = 'ID'
+        DataBinding.FieldName = 'codsubs'
+        Visible = False
+        HeaderAlignmentHorz = taCenter
+        HeaderGlyphAlignmentHorz = taCenter
+        Width = 47
+      end
+      object cxGrid1DBTableView1NombreSubSerie: TcxGridDBColumn
+        Caption = 'Nombre'
+        DataBinding.FieldName = 'NombreSubSerie'
+        HeaderAlignmentHorz = taCenter
+        HeaderGlyphAlignmentHorz = taCenter
+        Width = 129
+      end
+      object cxGrid1DBTableView1codserie: TcxGridDBColumn
+        Caption = 'Grupo'
+        DataBinding.FieldName = 'codserie'
+        Visible = False
+        HeaderAlignmentHorz = taCenter
+        HeaderGlyphAlignmentHorz = taCenter
+        Width = 139
+      end
+      object cxGrid1DBTableView1NombreSerie: TcxGridDBColumn
+        Caption = 'Tipo de Serie'
+        DataBinding.FieldName = 'NombreSerie'
+        HeaderAlignmentHorz = taCenter
+        HeaderGlyphAlignmentHorz = taCenter
+        Width = 247
+      end
+      object cxGrid1DBTableView1etiqueta: TcxGridDBColumn
+        Caption = 'Etiqueta'
+        DataBinding.FieldName = 'etiqueta'
+        HeaderAlignmentHorz = taCenter
+        HeaderGlyphAlignmentHorz = taCenter
+        Width = 229
+      end
+      object cxGrid1DBTableView1Tipodoc: TcxGridDBColumn
+        Caption = 'Tipo documento'
+        DataBinding.FieldName = 'Tipodoc'
+        PropertiesClassName = 'TcxLookupComboBoxProperties'
+        Properties.KeyFieldNames = 'Idtipodoc'
+        Properties.ListColumns = <
+          item
+            Caption = 'Documento'
+            HeaderAlignment = taCenter
+            FieldName = 'Tipodoc'
+          end>
+        Properties.ListSource = UDM.dscl_tipodoc
+        HeaderAlignmentHorz = taCenter
+        HeaderGlyphAlignmentHorz = taCenter
+        Width = 100
+      end
+      object cxGrid1DBTableView1ayear: TcxGridDBColumn
+        Caption = 'A'#241'o'
+        DataBinding.FieldName = 'ayear'
+        HeaderAlignmentHorz = taCenter
+        HeaderGlyphAlignmentHorz = taCenter
+        Width = 100
+      end
+      object cxGrid1DBTableView1tgestion: TcxGridDBColumn
+        Caption = 'Gesti'#243'n'
+        DataBinding.FieldName = 'tgestion'
+        HeaderAlignmentHorz = taCenter
+        HeaderGlyphAlignmentHorz = taCenter
+        Width = 100
+      end
+      object cxGrid1DBTableView1tcentral: TcxGridDBColumn
+        DataBinding.FieldName = 'tcentral'
+        HeaderAlignmentHorz = taCenter
+        HeaderGlyphAlignmentHorz = taCenter
+        Width = 100
+      end
+      object cxGrid1DBTableView1destino: TcxGridDBColumn
+        Caption = 'Destino'
+        DataBinding.FieldName = 'destino'
+        PropertiesClassName = 'TcxLookupComboBoxProperties'
+        Properties.KeyFieldNames = 'IdDestino'
+        Properties.ListColumns = <
+          item
+            Caption = 'Destino'
+            Fixed = True
+            FieldName = 'NombreDestino'
+          end>
+        Properties.ListSource = UDM.dscl_destino
+        HeaderAlignmentHorz = taCenter
+        HeaderGlyphAlignmentHorz = taCenter
+        Width = 100
+      end
+    end
+    object cxGrid1Level1: TcxGridLevel
+      GridView = cxGrid1DBTableView1
+    end
+  end
+end

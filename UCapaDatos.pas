@@ -780,6 +780,8 @@ type
     Tb_SeriesDispo: TFDQuery;
     dscl_especialista: TDataSource;
     cl_especialista: TFDQuery;
+    tb_VirtualVar: TFDMemTable;
+    Dtb_VirtualVar: TDataSource;
     procedure DataModuleCreate(Sender: TObject);
     procedure tb_treeAfterPost(DataSet: TDataSet);
   private
@@ -799,9 +801,10 @@ type
     function GetIDParentTreeNode: integer;
     procedure AddBlankNode;
     procedure GetNodoPadreActual;
-    function GetLastFunct:Integer;
-    function GetLastFacult:Integer;
-    function GetLastId(NombreTabla, NombdeKey:string):Integer;
+    function GetLastFunct: Integer;
+    function GetLastFacult: Integer;
+    function GetLastId(NombreTabla, NombdeKey: string): Integer;
+    procedure VarVirt;
   end;
 
 var
@@ -814,9 +817,9 @@ var
   Descripcion: AnsiString;
   EditorActivo: Boolean;
   imagenactual: Integer;
-  EstructuraActual:Integer;
-  cadcmd:WideString;
-  varMod:string; // A: Append; E: Edit
+  EstructuraActual: Integer;
+  cadcmd: WideString;
+  varMod: string; // A: Append; E: Edit
 
 implementation
 
@@ -1039,7 +1042,7 @@ end;
 procedure TUDM.DataModuleCreate(Sender: TObject);
 begin
   PathTemp := CarpetaGeodato;
-  cadcmd:='';
+  cadcmd := '';
   PathSys := ExtractFilePath(Application.ExeName);
   PathBD := PathSys + 'BD\SDbd.mdb';
   with conn do
@@ -1063,9 +1066,9 @@ begin
   end;
 //Activando tablas de la base de datos....
   cl_acceso.Active := True;
-  cl_ArchivosGestion.Active:=True;
+  cl_ArchivosGestion.Active := True;
   cl_tipodoc.Active := True;
-  cl_especialista.Active:=True;
+  cl_especialista.Active := True;
   cl_destino.Active := True;
   cl_frecuencia.Active := True;
   cl_facultadesgen.Active := True;
@@ -1079,13 +1082,13 @@ begin
   cl_ftp_Server.Active := True;
   cl_tipoestructura.Active := True;
   cl_categoria_ocupacional.Active := True;
-  cl_variables.Active:=True;
-  cl_VarSubserie.Active:=True;
+  cl_variables.Active := True;
+  cl_VarSubserie.Active := True;
   AllFather.Active := True;
   tb_tree.Active := True;
   tb_Serietree.Active := True;
-  tb_SeriesDatos.Active:=True;
-  tb_SerieDatosVar.Active:=True;
+  tb_SeriesDatos.Active := True;
+  tb_SerieDatosVar.Active := True;
   //usuarios y Rol
   Tb_Rol.Active := True;
   Tb_User.Active := True;
@@ -1123,7 +1126,7 @@ function TUDM.GetLastId(NombreTabla, NombdeKey: string): Integer;
 begin
   Result := 0;
   try
-    Result := conn.ExecSQLScalar('SELECT Max('+NombdeKey+')+1 AS NewID FROM '+NombreTabla);
+    Result := conn.ExecSQLScalar('SELECT Max(' + NombdeKey + ')+1 AS NewID FROM ' + NombreTabla);
   except
   end;
 end;
@@ -1144,6 +1147,12 @@ begin
     Result := UDM.conn.ExecSQLScalar('SELECT Max(id)+1 AS NewID FROM tb_mp');
   except
   end;
+end;
+
+procedure TUDM.VarVirt;
+begin
+  if UDM.tb_SerieDatosVar.recordcount = 0 then
+    UDM.tb_VirtualVar.Append;
 end;
 
 procedure TUDM.VerPDFF(aFileName: string);

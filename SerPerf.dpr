@@ -36,7 +36,9 @@ uses
   UVarVirtualVar in 'UVarVirtualVar.pas' {frmVarVirtualVar},
   UMangementArch in 'UMangementArch.pas' {frmManagemetArch},
   USeriesDisp in 'USeriesDisp.pas' {frmSeriesDisp},
-  UCL_Especialistas in 'UCL_Especialistas.pas' {frmListEspec};
+  UCL_Especialistas in 'UCL_Especialistas.pas' {frmListEspec},
+  UEntrada in 'UEntrada.pas' {FEntrada},
+  UFVariablesAyuda in 'UFVariablesAyuda.pas' {FVariablesAyuda};
 
 {$R *.res}
 

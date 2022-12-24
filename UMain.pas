@@ -23,7 +23,7 @@ uses
   FireDAC.Comp.DataSet, FireDAC.Comp.Client, AdvRichEditorPopupToolBar, cxLabel,
   AdvDBLookupComboBox, cxDBLookupComboBox, cxBlobEdit, cxRichEdit, cxDBNavigator,
   dxBarBuiltInMenu, cxPC, cxGroupBox, cxLocalization, dxtree, dxdbtree,
-  cxDropDownEdit, cxCalendar, cxLookupEdit, cxDBLookupEdit;
+  cxDropDownEdit, cxCalendar, cxLookupEdit, cxDBLookupEdit, cxVGrid, cxDBVGrid;
 
 type
   TNODOSD = record
@@ -504,10 +504,10 @@ type
     N1: TMenuItem;
     PContainer: TPanel;
     V1: TMenuItem;
-    Panel3: TPanel;
+    PTituloSeries: TPanel;
     A1: TMenuItem;
     E1: TMenuItem;
-    cxPageControl1: TcxPageControl;
+    pcSeriesDocumentales: TcxPageControl;
     tsSeriesDef: TcxTabSheet;
     tsInputSeriesData: TcxTabSheet;
     pContainerDefSeries: TPanel;
@@ -540,33 +540,34 @@ type
     btnCloseTABDatos: TToolButton;
     ToolButton7: TToolButton;
     ToolButton5: TToolButton;
-    pGeneralData: TPanel;
-    cxGroupBox1: TcxGroupBox;
-    edtFechOper: TcxDBDateEdit;
-    lblFechaOper: TLabel;
-    edtVersion: TcxDBTextEdit;
-    Label1: TLabel;
     Panel1: TPanel;
-    clbSerie: TcxDBLookupComboBox;
+    pGeneralData: TPanel;
+    cxPageControl2: TcxPageControl;
+    cxTabSheet1: TcxTabSheet;
+    cxGrid2: TcxGrid;
+    cxGrid2DBTableView1: TcxGridDBTableView;
+    cxGrid2DBTableView1Id: TcxGridDBColumn;
+    cxGrid2DBTableView1codsubs: TcxGridDBColumn;
+    cxGrid2DBTableView1Fecha: TcxGridDBColumn;
+    cxGrid2DBTableView1Version: TcxGridDBColumn;
+    cxGrid2DBTableView1Codigodoc: TcxGridDBColumn;
+    cxGrid2DBTableView1Idservidor: TcxGridDBColumn;
+    cxGrid2DBTableView1deposito: TcxGridDBColumn;
+    cxGrid2DBTableView1gaveta: TcxGridDBColumn;
+    cxGrid2DBTableView1fichero: TcxGridDBColumn;
+    cxGrid2DBTableView1soporte: TcxGridDBColumn;
+    cxGrid2DBTableView1observaciones: TcxGridDBColumn;
+    cxGrid2Level1: TcxGridLevel;
+    cxGroupBox1: TcxGroupBox;
+    lblFechaOper: TLabel;
+    Label1: TLabel;
     Label2: TLabel;
+    edtFechOper: TcxDBDateEdit;
+    edtVersion: TcxDBTextEdit;
+    clbSerie: TcxDBLookupComboBox;
     Panel2: TPanel;
     cxDBNavigator1: TcxDBNavigator;
-    DBNavigator1: TDBNavigator;
-    cxGrid2: TcxGrid;
-    cxGridDBTableView1: TcxGridDBTableView;
-    cxGridLevel1: TcxGridLevel;
-    cxGridDBTableView1Id: TcxGridDBColumn;
-    cxGridDBTableView1codsubs: TcxGridDBColumn;
-    cxGridDBTableView1Fecha: TcxGridDBColumn;
-    cxGridDBTableView1Version: TcxGridDBColumn;
-    cxGridDBTableView1IdVar: TcxGridDBColumn;
-    cxGridDBTableView1ValorNum: TcxGridDBColumn;
-    cxGridDBTableView1ValorFecha: TcxGridDBColumn;
-    cxGridDBTableView1Valorcadena: TcxGridDBColumn;
-    Panel4: TPanel;
-    cxDBNavigator2: TcxDBNavigator;
-    DBNavigator2: TDBNavigator;
-    AdvSplitter2: TAdvSplitter;
+    dbnSeriesDatos: TDBNavigator;
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure btn2Click(Sender: TObject);
     procedure Acercade1Click(Sender: TObject);
@@ -601,6 +602,8 @@ type
     procedure E1Click(Sender: TObject);
     procedure btnCloseTABDatosClick(Sender: TObject);
     procedure ToolButton6Click(Sender: TObject);
+    procedure dbnSeriesDatosClick(Sender: TObject; Button: TNavigateBtn);
+    procedure ToolButton5Click(Sender: TObject);
   private
     procedure CargoState(aState: boolean);
     procedure MDSeriesSubSeriesDMDR;
@@ -616,7 +619,7 @@ type
 
 var
   MAINFORM: TMAINFORM;
-  AnItem: TTreeNode ;//TcxTreeListNode;
+  AnItem: TTreeNode; //TcxTreeListNode;
   NewId, ParentID: integer;
 
 implementation
@@ -627,7 +630,8 @@ uses
   UHistory, UAbout, UAutentica, UCapaDatos, UUserGest, UDocManagement,
   UCLSeriesDocumentales, UCLDestino, UCLAcceso, UCLSoporte, UCLFrecuencia,
   UCLTipoDoc, UNodeAsist, UCLFtpServer, UCLProcesos, UCLRepActArchiv,
-  UGestEstruct, UCategoria_Ocupa, UCL_Cargo, UCLVariables, UMangementArch, USeriesDisp, UCL_Especialistas;
+  UGestEstruct, UCategoria_Ocupa, UCL_Cargo, UCLVariables, UMangementArch,
+  USeriesDisp, UCL_Especialistas, UEntrada;
 
 procedure TMAINFORM.A1Click(Sender: TObject);
 begin
@@ -664,11 +668,11 @@ end;
 
 procedure TMAINFORM.btnCloseTABDatosClick(Sender: TObject);
 begin
-  tsInputSeriesData.TabVisible:=False;
-  tsSeriesDef.TabVisible:=True;
-  tsSeriesDef.Visible:=True;
-  pContainerDefSeries.Visible:=True;
-  cxPageControl1.ActivePage:=tsSeriesDef;
+  tsInputSeriesData.TabVisible := False;
+  tsSeriesDef.TabVisible := True;
+  tsSeriesDef.Visible := True;
+  pContainerDefSeries.Visible := True;
+  pcSeriesDocumentales.ActivePage := tsSeriesDef;
 end;
 
 procedure TMAINFORM.btnusercontrolClick(Sender: TObject);
@@ -823,6 +827,7 @@ begin
   etiqueta.Enabled := True;
   Estructura.Enabled := True;
   Cargo.Enabled := True;
+  PTituloSeries.Caption:='Series Documentales ('+Node.Text+')';
  { case UDM.tb_tree.FieldByName('tipo').AsInteger of
     1:
       begin
@@ -1043,8 +1048,9 @@ begin
     else
     begin
 
-      if UDM.tb_Serietree.RecordCount>0 then begin
-        PContainer.Visible:=True;
+      if UDM.tb_Serietree.RecordCount > 0 then
+      begin
+        PContainer.Visible := True;
       end;
 
     end;
@@ -1076,6 +1082,13 @@ begin
   end;
 end;
 
+procedure TMAINFORM.dbnSeriesDatosClick(Sender: TObject; Button: TNavigateBtn);
+begin
+  if Button = nbPost then
+  begin
+  end;
+end;
+
 procedure TMAINFORM.DesArmTree;
 begin
   UDM.tb_tree.Filtered := False;
@@ -1086,7 +1099,7 @@ end;
 
 procedure TMAINFORM.E1Click(Sender: TObject);
 begin
-  with TfrmListEspec.Create(NIL)do
+  with TfrmListEspec.Create(NIL) do
   try
     ShowModal;
   finally
@@ -1148,6 +1161,8 @@ begin
 end;
 
 procedure TMAINFORM.FormActivate(Sender: TObject);
+var
+  i: Integer;
 
   procedure CleanTMP(Dir: string);
   var
@@ -1175,6 +1190,9 @@ procedure TMAINFORM.FormActivate(Sender: TObject);
 begin
 //  ELIMINA TODOS LOS DOCUMENTOS PDF DE LOS TEMPORALES DEL  PC...
   CleanTMP(PathTemp);
+  pcSeriesDocumentales.ActivePage := tsSeriesDef;
+  for i := pcSeriesDocumentales.PageCount - 1 downto 1 do
+    pcSeriesDocumentales.Pages[i].TabVisible := False;
 end;
 
 procedure TMAINFORM.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -1346,10 +1364,10 @@ end;
 
 procedure TMAINFORM.ToolButton1Click(Sender: TObject);
 begin
-  UDM.Tb_SeriesDispo.Active:=False;
-  UDM.Tb_SeriesDispo.Active:=True;
+  UDM.Tb_SeriesDispo.Active := False;
+  UDM.Tb_SeriesDispo.Active := True;
   UDM.Tb_SeriesDispo.FetchAll;
-  with  TfrmSeriesDisp.Create(nil)do
+  with TfrmSeriesDisp.Create(nil) do
   try
     ShowModal;
   finally
@@ -1357,11 +1375,29 @@ begin
   end;
 end;
 
+procedure TMAINFORM.ToolButton5Click(Sender: TObject);
+begin
+  if UDM.tb_SeriesDatos.RecordCount > 0 then
+    VarVirtual
+  else
+  begin
+    MessageDlg('No ha introducido ninguna serie documental el dia de hoy.', mtInformation, [mbOK], 0);
+    Exit;
+  end;
+end;
+
 procedure TMAINFORM.ToolButton6Click(Sender: TObject);
 begin
-  tsInputSeriesData.TabVisible:=True;
-  tsSeriesDef.TabVisible:=False;
-  cxPageControl1.ActivePage:=tsInputSeriesData;
+  if UDM.tb_Serietree.RecordCount = 0 then
+  begin
+    MessageDlg('Debe identificar al menos una serie documental válida.', mtInformation, [mbOK], 0);
+    if MessageDlg('¿Desea consultar el listado de Series documentales identificadas?', mtConfirmation, [mbYes, mbNo], 0) = mrYes then
+      ToolButton1Click(Sender);
+    exit;
+  end;
+  tsInputSeriesData.TabVisible := True;
+  tsSeriesDef.TabVisible := False;
+  pcSeriesDocumentales.ActivePage := tsInputSeriesData;
 end;
 
 end.

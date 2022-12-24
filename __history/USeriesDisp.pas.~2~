@@ -1,0 +1,60 @@
+unit USeriesDisp;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, cxGraphics, cxControls, cxLookAndFeels,
+  cxLookAndFeelPainters, dxSkinsCore, dxSkinsDefaultPainters, cxStyles,
+  cxCustomData, cxFilter, cxData, cxDataStorage, cxEdit, cxNavigator,
+  dxDateRanges, Data.DB, cxDBData, cxGridLevel, cxGridCustomTableView,
+  cxGridTableView, cxGridDBTableView, cxClasses, cxGridCustomView, cxGrid,
+  Vcl.DBCtrls, cxDBNavigator, Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.ToolWin,
+  cxDBLookupComboBox;
+
+type
+  TfrmSeriesDisp = class(TForm)
+    ToolBar1: TToolBar;
+    btnClose: TToolButton;
+    ToolButton3: TToolButton;
+    btnhlp: TToolButton;
+    StatusBar1: TStatusBar;
+    Panel6: TPanel;
+    cxDBNavigator3: TcxDBNavigator;
+    DBNavigator3: TDBNavigator;
+    cxGrid1: TcxGrid;
+    cxGrid1DBTableView1: TcxGridDBTableView;
+    cxGrid1Level1: TcxGridLevel;
+    cxGrid1DBTableView1codsubs: TcxGridDBColumn;
+    cxGrid1DBTableView1NombreSubSerie: TcxGridDBColumn;
+    cxGrid1DBTableView1codserie: TcxGridDBColumn;
+    cxGrid1DBTableView1NombreSerie: TcxGridDBColumn;
+    cxGrid1DBTableView1etiqueta: TcxGridDBColumn;
+    cxGrid1DBTableView1Tipodoc: TcxGridDBColumn;
+    cxGrid1DBTableView1ayear: TcxGridDBColumn;
+    cxGrid1DBTableView1tgestion: TcxGridDBColumn;
+    cxGrid1DBTableView1tcentral: TcxGridDBColumn;
+    cxGrid1DBTableView1destino: TcxGridDBColumn;
+    procedure btnCloseClick(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  frmSeriesDisp: TfrmSeriesDisp;
+
+implementation
+
+uses
+  UCapaDatos;
+
+{$R *.dfm}
+
+procedure TfrmSeriesDisp.btnCloseClick(Sender: TObject);
+begin
+  Close;
+end;
+
+end.

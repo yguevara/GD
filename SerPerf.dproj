@@ -221,6 +221,14 @@
             <Form>frmListEspec</Form>
             <FormType>dfm</FormType>
         </DCCReference>
+        <DCCReference Include="UEntrada.pas">
+            <Form>FEntrada</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="UFVariablesAyuda.pas">
+            <Form>FVariablesAyuda</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
