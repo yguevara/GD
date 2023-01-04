@@ -805,6 +805,7 @@ type
     function GetLastFacult: Integer;
     function GetLastId(NombreTabla, NombdeKey: string): Integer;
     procedure VarVirt;
+    procedure CreateFTPDirStructure(ListProccess: TStringList);
   end;
 
 var
@@ -1148,6 +1149,18 @@ begin
   except
   end;
 end;
+
+procedure TUDM.CreateFTPDirStructure(ListProccess: TStringList);
+var
+  Local_i: Integer;
+begin
+  {for Local_i := 0 to ListFTPFiles.Count - 1 do
+  begin
+    ListProccess.DelimitedText := ListFTPFiles[Local_i];
+    ForceDirectories(pathftp + ExtractFilePath(ListProccess[1]));
+  end;    }
+end;
+
 
 procedure TUDM.VarVirt;
 begin

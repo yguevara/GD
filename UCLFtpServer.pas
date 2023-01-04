@@ -31,8 +31,9 @@ type
     Panel6: TPanel;
     cxDBNavigator3: TcxDBNavigator;
     DBNavigator3: TDBNavigator;
-    cxGrid1DBTableView1NombreServer: TcxGridDBColumn;
+    cxGrid1DBTableView1etiquetaServ: TcxGridDBColumn;
     procedure btnCloseClick(Sender: TObject);
+    procedure btnhlpClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -52,6 +53,22 @@ uses
 procedure TfrmListFTPServer.btnCloseClick(Sender: TObject);
 begin
   Close;
+end;
+
+procedure TfrmListFTPServer.btnhlpClick(Sender: TObject);
+var
+  i:integer;
+  cad:string;
+  list:TStringList;
+begin
+  list:=TStringList.Create;
+  cxGrid1DBTableView1.ApplyBestFit();
+  for i := 0 to cxGrid1DBTableView1.ColumnCount-1 do begin
+    cad:=IntToStr(cxGrid1DBTableView1.Columns[i].Width);
+    list.Add(cad);
+  end;
+  list.SaveToFile('C:\Temp\largocol.txt');
+  ShowMessage('YAAAAA!!!!');
 end;
 
 end.

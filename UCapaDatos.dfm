@@ -40,6 +40,7 @@ object UDM: TUDM
     Params.Strings = (
       'Database=C:\Temp\SerPerf\Win32\Debug\BD\SDbd.mdb'
       'DriverID=MSAcc')
+    Connected = True
     LoginPrompt = False
     Left = 96
     Top = 8

@@ -205,6 +205,7 @@ object MAINFORM: TMAINFORM
     Color = 15780526
     ParentBackground = False
     TabOrder = 2
+    ExplicitTop = 47
     object lblProgressTitle: TLabel
       Left = 582
       Top = 21
@@ -227,6 +228,7 @@ object MAINFORM: TMAINFORM
       ParentShowHint = False
       ShowHint = True
       Transparent = False
+      OnClick = btnCloseClick
       Glyph.Data = {
         36100000424D3610000000000000360000002800000020000000200000000100
         2000000000000010000000000000000000000000000000000000000000000000
@@ -1079,7 +1081,7 @@ object MAINFORM: TMAINFORM
       Top = 4
       Width = 55
       Height = 38
-      Hint = 'Buscar inventario en todos los meses  de trabajo'
+      Hint = 'Localizar Series documentales'
       FrameStyle = fsLight
       ParentShowHint = False
       ShowHint = True
@@ -1440,7 +1442,6 @@ object MAINFORM: TMAINFORM
         SelectedIndex = -1
         TabOrder = 0
         OnMouseDown = TvTreeMouseDown
-        OnMouseUp = TvTreeMouseUp
         PopupMenu = PMNodeTree
         Images = UDM.ILDigital
       end
@@ -1508,6 +1509,8 @@ object MAINFORM: TMAINFORM
       ParentBackground = False
       ParentFont = False
       TabOrder = 0
+      ExplicitLeft = 1
+      ExplicitTop = 4
     end
     object pcSeriesDocumentales: TcxPageControl
       Left = 2
@@ -1534,11 +1537,13 @@ object MAINFORM: TMAINFORM
           TabOrder = 0
           object cxGrid1: TcxGrid
             Left = 1
-            Top = 70
+            Top = 66
             Width = 856
-            Height = 514
+            Height = 518
             Align = alClient
             TabOrder = 0
+            ExplicitLeft = -2
+            ExplicitTop = 69
             object cxGrid1DBTableView1: TcxGridDBTableView
               Navigator.Buttons.CustomButtons = <>
               DataController.DataSource = UDM.dstb_Serietree
@@ -1588,12 +1593,6 @@ object MAINFORM: TMAINFORM
               object cxGrid1DBTableView1deposito: TcxGridDBColumn
                 Caption = 'Dep'#243'sito'
                 DataBinding.FieldName = 'deposito'
-                PropertiesClassName = 'TcxBlobEditProperties'
-                Properties.BlobEditKind = bekMemo
-                Properties.BlobPaintStyle = bpsText
-                Properties.MemoMaxLength = 255
-                Properties.PopupHeight = 300
-                Properties.PopupWidth = 350
                 HeaderAlignmentHorz = taCenter
                 HeaderGlyphAlignmentHorz = taCenter
                 Width = 90
@@ -1601,12 +1600,6 @@ object MAINFORM: TMAINFORM
               object cxGrid1DBTableView1gaveta: TcxGridDBColumn
                 Caption = 'Gaveta'
                 DataBinding.FieldName = 'gaveta'
-                PropertiesClassName = 'TcxBlobEditProperties'
-                Properties.BlobEditKind = bekMemo
-                Properties.BlobPaintStyle = bpsText
-                Properties.MemoMaxLength = 255
-                Properties.PopupHeight = 300
-                Properties.PopupWidth = 350
                 HeaderAlignmentHorz = taCenter
                 HeaderGlyphAlignmentHorz = taCenter
                 Width = 77
@@ -1628,6 +1621,7 @@ object MAINFORM: TMAINFORM
               object cxGrid1DBTableView1correo: TcxGridDBColumn
                 Caption = 'Correo'
                 DataBinding.FieldName = 'correo'
+                PropertiesClassName = 'TcxTextEditProperties'
                 Visible = False
                 HeaderAlignmentHorz = taCenter
                 HeaderGlyphAlignmentHorz = taCenter
@@ -1680,6 +1674,15 @@ object MAINFORM: TMAINFORM
               object cxGrid1DBTableView1servidor: TcxGridDBColumn
                 Caption = 'Servidor'
                 DataBinding.FieldName = 'servidor'
+                PropertiesClassName = 'TcxLookupComboBoxProperties'
+                Properties.KeyFieldNames = 'Idservidor'
+                Properties.ListColumns = <
+                  item
+                    Caption = 'Servidores (Disp.)'
+                    HeaderAlignment = taCenter
+                    FieldName = 'etiquetaServ'
+                  end>
+                Properties.ListSource = UDM.dscl_ftp_Server
                 HeaderAlignmentHorz = taCenter
                 HeaderGlyphAlignmentHorz = taCenter
                 Width = 100
@@ -1700,14 +1703,14 @@ object MAINFORM: TMAINFORM
             Left = 1
             Top = 35
             Width = 856
-            Height = 35
+            Height = 31
             Align = alTop
             TabOrder = 1
             object cxDBNavigator3: TcxDBNavigator
               Left = 813
               Top = 1
               Width = 42
-              Height = 33
+              Height = 29
               Buttons.CustomButtons = <>
               Buttons.First.Visible = False
               Buttons.PriorPage.Visible = False
@@ -1731,12 +1734,13 @@ object MAINFORM: TMAINFORM
               ParentShowHint = False
               ShowHint = True
               TabOrder = 0
+              ExplicitHeight = 33
             end
             object DBNavigator3: TDBNavigator
               Left = 1
               Top = 1
               Width = 812
-              Height = 33
+              Height = 29
               DataSource = UDM.dstb_Serietree
               VisibleButtons = [nbPrior, nbNext, nbDelete, nbPost, nbCancel]
               Align = alClient
@@ -1754,6 +1758,8 @@ object MAINFORM: TMAINFORM
               ParentShowHint = False
               ShowHint = True
               TabOrder = 1
+              ExplicitLeft = -3
+              ExplicitTop = -4
             end
           end
           object ToolBar1: TToolBar
@@ -1804,99 +1810,52 @@ object MAINFORM: TMAINFORM
       object tsInputSeriesData: TcxTabSheet
         Caption = 'Entrada de Datos'
         ImageIndex = 1
-        object ToolBar2: TToolBar
+        object Panel1: TPanel
           Left = 0
           Top = 0
           Width = 858
-          Height = 34
-          ButtonHeight = 34
-          ButtonWidth = 31
-          Caption = 'ToolBar1'
-          Color = clBtnFace
-          Images = UDM.ILv1
-          ParentColor = False
-          TabOrder = 0
-          object ToolButton4: TToolButton
-            Left = 0
-            Top = 0
-            Width = 8
-            Caption = 'ToolButton2'
-            ImageIndex = 24
-            Style = tbsSeparator
-          end
-          object btnCloseTABDatos: TToolButton
-            Left = 8
-            Top = 0
-            Hint = 'Regresar a la interfase anterior'
-            ImageIndex = 0
-            OnClick = btnCloseTABDatosClick
-          end
-          object ToolButton7: TToolButton
-            Left = 39
-            Top = 0
-            Width = 8
-            Caption = 'ToolButton3'
-            ImageIndex = 24
-            Style = tbsSeparator
-          end
-          object ToolButton5: TToolButton
-            Left = 47
-            Top = 0
-            Hint = 'Listado de Variables en la fecha actual'
-            Caption = 'ToolButton5'
-            ImageIndex = 14
-            OnClick = ToolButton5Click
-          end
-        end
-        object Panel1: TPanel
-          Left = 0
-          Top = 34
-          Width = 858
-          Height = 551
+          Height = 585
           Align = alClient
           BevelInner = bvLowered
           Caption = 'Panel1'
-          TabOrder = 1
+          TabOrder = 0
+          ExplicitLeft = -2
+          ExplicitTop = 36
+          ExplicitHeight = 551
           DesignSize = (
             858
-            551)
+            585)
           object pGeneralData: TPanel
             Left = 16
             Top = 57
             Width = 825
             Height = 384
             Anchors = [akTop]
+            BorderStyle = bsSingle
             TabOrder = 0
             object cxPageControl2: TcxPageControl
               Left = 1
-              Top = 129
-              Width = 823
-              Height = 254
+              Top = 163
+              Width = 819
+              Height = 216
               Align = alClient
               TabOrder = 0
               Properties.ActivePage = cxTabSheet1
               Properties.CustomButtons.Buttons = <>
-              ExplicitTop = 184
-              ExplicitWidth = 701
-              ExplicitHeight = 199
-              ClientRectBottom = 250
+              ClientRectBottom = 212
               ClientRectLeft = 4
-              ClientRectRight = 819
+              ClientRectRight = 815
               ClientRectTop = 24
               object cxTabSheet1: TcxTabSheet
                 Caption = 'Detalles'
                 ImageIndex = 0
-                ExplicitWidth = 693
-                ExplicitHeight = 171
                 object cxGrid2: TcxGrid
                   Left = 0
                   Top = 0
-                  Width = 815
-                  Height = 226
+                  Width = 811
+                  Height = 188
                   Align = alClient
                   TabOrder = 0
-                  ExplicitWidth = 693
-                  ExplicitHeight = 171
                   object cxGrid2DBTableView1: TcxGridDBTableView
                     Navigator.Buttons.CustomButtons = <>
                     DataController.DataSource = UDM.dstb_SeriesDatos
@@ -1939,6 +1898,15 @@ object MAINFORM: TMAINFORM
                     object cxGrid2DBTableView1Idservidor: TcxGridDBColumn
                       Caption = 'Servidor'
                       DataBinding.FieldName = 'Idservidor'
+                      PropertiesClassName = 'TcxLookupComboBoxProperties'
+                      Properties.KeyFieldNames = 'Idservidor'
+                      Properties.ListColumns = <
+                        item
+                          Caption = 'Servidores (Disp.)'
+                          HeaderAlignment = taCenter
+                          FieldName = 'etiquetaServ'
+                        end>
+                      Properties.ListSource = UDM.dscl_ftp_Server
                       HeaderAlignmentHorz = taCenter
                       HeaderGlyphAlignmentHorz = taCenter
                       Width = 77
@@ -1948,7 +1916,7 @@ object MAINFORM: TMAINFORM
                       DataBinding.FieldName = 'deposito'
                       HeaderAlignmentHorz = taCenter
                       HeaderGlyphAlignmentHorz = taCenter
-                      Width = 131
+                      Width = 149
                     end
                     object cxGrid2DBTableView1gaveta: TcxGridDBColumn
                       Caption = 'Gaveta'
@@ -1983,6 +1951,7 @@ object MAINFORM: TMAINFORM
                       Caption = 'Observaciones'
                       DataBinding.FieldName = 'observaciones'
                       PropertiesClassName = 'TcxBlobEditProperties'
+                      Properties.BlobEditKind = bekMemo
                       Properties.BlobPaintStyle = bpsText
                       Properties.PopupHeight = 300
                       Properties.PopupWidth = 300
@@ -1999,14 +1968,13 @@ object MAINFORM: TMAINFORM
             end
             object cxGroupBox1: TcxGroupBox
               Left = 1
-              Top = 1
+              Top = 35
               Align = alTop
               Caption = 'Datos generales'
               TabOrder = 1
-              ExplicitTop = 0
-              ExplicitWidth = 735
+              ExplicitTop = 29
               Height = 128
-              Width = 823
+              Width = 819
               object lblFechaOper: TLabel
                 Left = 242
                 Top = 69
@@ -2071,13 +2039,12 @@ object MAINFORM: TMAINFORM
               object Panel2: TPanel
                 Left = 2
                 Top = 18
-                Width = 819
+                Width = 815
                 Height = 31
                 Align = alTop
                 TabOrder = 3
-                ExplicitWidth = 731
                 object cxDBNavigator1: TcxDBNavigator
-                  Left = 776
+                  Left = 772
                   Top = 1
                   Width = 42
                   Height = 29
@@ -2104,12 +2071,11 @@ object MAINFORM: TMAINFORM
                   ParentShowHint = False
                   ShowHint = True
                   TabOrder = 0
-                  ExplicitLeft = 688
                 end
                 object dbnSeriesDatos: TDBNavigator
                   Left = 1
                   Top = 1
-                  Width = 775
+                  Width = 771
                   Height = 29
                   DataSource = UDM.dstb_SeriesDatos
                   VisibleButtons = [nbFirst, nbPrior, nbNext, nbLast, nbInsert, nbDelete, nbPost, nbCancel]
@@ -2129,8 +2095,66 @@ object MAINFORM: TMAINFORM
                   ShowHint = True
                   TabOrder = 1
                   OnClick = dbnSeriesDatosClick
-                  ExplicitLeft = -5
                 end
+              end
+            end
+            object ToolBar3: TToolBar
+              Left = 1
+              Top = 1
+              Width = 819
+              Height = 34
+              ButtonHeight = 34
+              ButtonWidth = 31
+              Caption = 'ToolBar1'
+              Color = clBtnFace
+              Images = UDM.ILv1
+              ParentColor = False
+              TabOrder = 2
+              ExplicitTop = -5
+              object ToolButton8: TToolButton
+                Left = 0
+                Top = 0
+                Width = 8
+                Caption = 'ToolButton2'
+                ImageIndex = 24
+                Style = tbsSeparator
+              end
+              object ToolButton9: TToolButton
+                Left = 8
+                Top = 0
+                Hint = 'Regresar a la interfase anterior'
+                ImageIndex = 0
+                OnClick = btnCloseTABDatosClick
+              end
+              object ToolButton10: TToolButton
+                Left = 39
+                Top = 0
+                Width = 8
+                Caption = 'ToolButton3'
+                ImageIndex = 24
+                Style = tbsSeparator
+              end
+              object ToolButton11: TToolButton
+                Left = 47
+                Top = 0
+                Hint = 'Listado de Variables en la fecha actual'
+                Caption = 'ToolButton5'
+                ImageIndex = 14
+                OnClick = ToolButton5Click
+              end
+              object ToolButton12: TToolButton
+                Left = 78
+                Top = 0
+                Width = 707
+                Caption = 'ToolButton12'
+                ImageIndex = 15
+                Style = tbsSeparator
+              end
+              object ToolButton13: TToolButton
+                Left = 785
+                Top = 0
+                Caption = 'ToolButton13'
+                ImageIndex = 1
               end
             end
           end

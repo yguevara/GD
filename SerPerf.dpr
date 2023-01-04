@@ -38,7 +38,8 @@ uses
   USeriesDisp in 'USeriesDisp.pas' {frmSeriesDisp},
   UCL_Especialistas in 'UCL_Especialistas.pas' {frmListEspec},
   UEntrada in 'UEntrada.pas' {FEntrada},
-  UFVariablesAyuda in 'UFVariablesAyuda.pas' {FVariablesAyuda};
+  UFVariablesAyuda in 'UFVariablesAyuda.pas' {FVariablesAyuda},
+  UManagementFileSeries in 'UManagementFileSeries.pas' {frmManagementFile};
 
 {$R *.res}
 
@@ -69,6 +70,7 @@ begin
   frmSplash.MueveBar(@frmSplash.Gauge1, 1);
   Application.CreateForm(TUDM, UDM);
   Application.CreateForm(TMAINFORM, MAINFORM);
+  Application.CreateForm(TfrmManagementFile, frmManagementFile);
   Sleep(2000);
   frmSplash.Hide;
   frmSplash.Free;

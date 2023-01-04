@@ -90,14 +90,14 @@ object frmCLSeries: TfrmCLSeries
       Left = 1
       Top = 25
       Width = 482
-      Height = 41
+      Height = 30
       Align = alTop
       TabOrder = 0
       object cxDBNavigator2: TcxDBNavigator
         Left = 439
         Top = 1
         Width = 42
-        Height = 39
+        Height = 28
         Buttons.CustomButtons = <>
         Buttons.First.Visible = False
         Buttons.PriorPage.Visible = False
@@ -119,12 +119,13 @@ object frmCLSeries: TfrmCLSeries
         InfoPanel.Visible = True
         Align = alRight
         TabOrder = 0
+        ExplicitHeight = 39
       end
       object DBNavigator2: TDBNavigator
         Left = 1
         Top = 1
         Width = 438
-        Height = 39
+        Height = 28
         DataSource = UDM.dscl_series
         VisibleButtons = [nbFirst, nbPrior, nbNext, nbLast, nbInsert, nbDelete, nbEdit, nbPost, nbCancel]
         Align = alClient
@@ -144,6 +145,7 @@ object frmCLSeries: TfrmCLSeries
         TabOrder = 1
         ExplicitLeft = -5
         ExplicitTop = -4
+        ExplicitHeight = 39
       end
     end
     object Panel4: TPanel
@@ -164,12 +166,13 @@ object frmCLSeries: TfrmCLSeries
     end
     object cxGrid1: TcxGrid
       Left = 1
-      Top = 66
+      Top = 55
       Width = 482
-      Height = 353
+      Height = 364
       Align = alClient
       TabOrder = 2
-      ExplicitTop = 61
+      ExplicitTop = 66
+      ExplicitHeight = 353
       object cxGrid1DBTableView1: TcxGridDBTableView
         Navigator.Buttons.ConfirmDelete = True
         Navigator.Buttons.CustomButtons = <>
@@ -218,9 +221,9 @@ object frmCLSeries: TfrmCLSeries
     TabOrder = 3
     object cxDBVerticalGrid6: TcxDBVerticalGrid
       Left = 1
-      Top = 66
+      Top = 55
       Width = 372
-      Height = 353
+      Height = 364
       Align = alClient
       OptionsView.PaintStyle = psDelphi
       OptionsView.RowHeaderWidth = 215
@@ -245,7 +248,8 @@ object frmCLSeries: TfrmCLSeries
       Styles.StyleSheet = UDM.cxVerticalGridStyleSheetEggplant
       TabOrder = 0
       DataController.DataSource = UDM.dscl_subseries
-      ExplicitTop = 61
+      ExplicitTop = 66
+      ExplicitHeight = 353
       Version = 1
       object cxDBVerticalGrid6codserie: TcxDBEditorRow
         Height = 21
@@ -440,14 +444,14 @@ object frmCLSeries: TfrmCLSeries
       Left = 1
       Top = 25
       Width = 372
-      Height = 41
+      Height = 30
       Align = alTop
       TabOrder = 1
       object btnFunciones: TJvTransparentButton
         Left = 316
         Top = 1
         Width = 55
-        Height = 39
+        Height = 28
         Hint = 'Variables virtuales asociaadas'
         Align = alRight
         FrameStyle = fsLight
@@ -573,12 +577,13 @@ object frmCLSeries: TfrmCLSeries
           00000000000000000000}
         ExplicitLeft = 312
         ExplicitTop = 6
+        ExplicitHeight = 39
       end
       object cxDBNavigator1: TcxDBNavigator
         Left = 274
         Top = 1
         Width = 42
-        Height = 39
+        Height = 28
         Buttons.CustomButtons = <>
         Buttons.First.Visible = False
         Buttons.PriorPage.Visible = False
@@ -600,12 +605,13 @@ object frmCLSeries: TfrmCLSeries
         InfoPanel.Visible = True
         Align = alRight
         TabOrder = 0
+        ExplicitHeight = 39
       end
       object DBNavigator1: TDBNavigator
         Left = 1
         Top = 1
         Width = 273
-        Height = 39
+        Height = 28
         DataSource = UDM.dscl_subseries
         VisibleButtons = [nbFirst, nbPrior, nbNext, nbLast, nbInsert, nbDelete, nbEdit, nbPost, nbCancel]
         Align = alClient
@@ -623,6 +629,7 @@ object frmCLSeries: TfrmCLSeries
         ParentShowHint = False
         ShowHint = True
         TabOrder = 1
+        ExplicitHeight = 39
       end
     end
     object Panel3: TPanel

@@ -58,11 +58,13 @@ object frmCLSoporte: TfrmCLSoporte
   end
   object cxGrid1: TcxGrid
     Left = 0
-    Top = 78
+    Top = 67
     Width = 315
-    Height = 134
+    Height = 145
     Align = alClient
     TabOrder = 1
+    ExplicitTop = 78
+    ExplicitHeight = 134
     object cxGrid1DBTableView1: TcxGridDBTableView
       Navigator.Buttons.ConfirmDelete = True
       Navigator.Buttons.CustomButtons = <>
@@ -107,14 +109,14 @@ object frmCLSoporte: TfrmCLSoporte
     Left = 0
     Top = 37
     Width = 315
-    Height = 41
+    Height = 30
     Align = alTop
     TabOrder = 3
     object cxDBNavigator3: TcxDBNavigator
       Left = 272
       Top = 1
       Width = 42
-      Height = 39
+      Height = 28
       Buttons.CustomButtons = <>
       Buttons.First.Visible = False
       Buttons.PriorPage.Visible = False
@@ -136,12 +138,13 @@ object frmCLSoporte: TfrmCLSoporte
       InfoPanel.Visible = True
       Align = alRight
       TabOrder = 0
+      ExplicitHeight = 39
     end
     object DBNavigator3: TDBNavigator
       Left = 1
       Top = 1
       Width = 271
-      Height = 39
+      Height = 28
       DataSource = UDM.dscl_soporte
       VisibleButtons = [nbPrior, nbNext, nbInsert, nbDelete, nbEdit, nbPost, nbCancel]
       Align = alClient
@@ -159,8 +162,7 @@ object frmCLSoporte: TfrmCLSoporte
       ParentShowHint = False
       ShowHint = True
       TabOrder = 1
-      ExplicitLeft = -5
-      ExplicitTop = -4
+      ExplicitHeight = 39
     end
   end
 end

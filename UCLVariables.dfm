@@ -58,14 +58,14 @@ object frmVariables: TfrmVariables
     Left = 0
     Top = 37
     Width = 425
-    Height = 41
+    Height = 30
     Align = alTop
     TabOrder = 1
     object cxDBNavigator3: TcxDBNavigator
       Left = 382
       Top = 1
       Width = 42
-      Height = 39
+      Height = 28
       Buttons.CustomButtons = <>
       Buttons.First.Visible = False
       Buttons.PriorPage.Visible = False
@@ -87,14 +87,13 @@ object frmVariables: TfrmVariables
       InfoPanel.Visible = True
       Align = alRight
       TabOrder = 0
-      ExplicitLeft = 388
-      ExplicitTop = 6
+      ExplicitHeight = 39
     end
     object DBNavigator3: TDBNavigator
       Left = 1
       Top = 1
       Width = 381
-      Height = 39
+      Height = 28
       DataSource = UDM.dscl_variables
       VisibleButtons = [nbPrior, nbNext, nbInsert, nbDelete, nbEdit, nbPost, nbCancel]
       Align = alClient
@@ -112,8 +111,7 @@ object frmVariables: TfrmVariables
       ParentShowHint = False
       ShowHint = True
       TabOrder = 1
-      ExplicitLeft = -5
-      ExplicitTop = -4
+      ExplicitHeight = 39
     end
   end
   object StatusBar1: TStatusBar
@@ -125,9 +123,9 @@ object frmVariables: TfrmVariables
   end
   object cxDBVerticalGrid6: TcxDBVerticalGrid
     Left = 0
-    Top = 78
+    Top = 67
     Width = 425
-    Height = 157
+    Height = 168
     Align = alClient
     OptionsView.ScrollBars = ssNone
     OptionsView.PaintStyle = psDelphi
@@ -153,7 +151,8 @@ object frmVariables: TfrmVariables
     Styles.StyleSheet = UDM.cxVerticalGridStyleSheetEggplant
     TabOrder = 3
     DataController.DataSource = UDM.dscl_variables
-    ExplicitTop = 72
+    ExplicitTop = 78
+    ExplicitHeight = 157
     Version = 1
     object cxDBVerticalGrid6IdVar: TcxDBEditorRow
       Properties.Caption = 'Identificador'

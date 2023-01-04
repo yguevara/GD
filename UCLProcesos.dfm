@@ -87,14 +87,14 @@ object frmCLprocesos: TfrmCLprocesos
       Left = 1
       Top = 25
       Width = 285
-      Height = 41
+      Height = 30
       Align = alTop
       TabOrder = 0
       object cxDBNavigator2: TcxDBNavigator
         Left = 242
         Top = 1
         Width = 42
-        Height = 39
+        Height = 28
         Buttons.CustomButtons = <>
         Buttons.First.Visible = False
         Buttons.PriorPage.Visible = False
@@ -116,12 +116,13 @@ object frmCLprocesos: TfrmCLprocesos
         InfoPanel.Visible = True
         Align = alRight
         TabOrder = 0
+        ExplicitHeight = 39
       end
       object DBNavigator2: TDBNavigator
         Left = 1
         Top = 1
         Width = 241
-        Height = 39
+        Height = 28
         DataSource = Dtcl_Procesos
         VisibleButtons = [nbPrior, nbNext, nbInsert, nbDelete, nbEdit, nbPost, nbCancel]
         Align = alClient
@@ -139,8 +140,7 @@ object frmCLprocesos: TfrmCLprocesos
         ParentShowHint = False
         ShowHint = True
         TabOrder = 1
-        ExplicitLeft = 3
-        ExplicitTop = -4
+        ExplicitHeight = 39
       end
     end
     object Panel4: TPanel
@@ -161,11 +161,13 @@ object frmCLprocesos: TfrmCLprocesos
     end
     object cxGrid1: TcxGrid
       Left = 1
-      Top = 66
+      Top = 55
       Width = 285
-      Height = 466
+      Height = 477
       Align = alClient
       TabOrder = 2
+      ExplicitTop = 66
+      ExplicitHeight = 466
       object cxGrid1DBTableView1: TcxGridDBTableView
         Navigator.Buttons.ConfirmDelete = True
         Navigator.Buttons.CustomButtons = <>
@@ -212,14 +214,14 @@ object frmCLprocesos: TfrmCLprocesos
       Left = 1
       Top = 25
       Width = 471
-      Height = 41
+      Height = 30
       Align = alTop
       TabOrder = 0
       object cxDBNavigator1: TcxDBNavigator
         Left = 428
         Top = 1
         Width = 42
-        Height = 39
+        Height = 28
         Buttons.CustomButtons = <>
         Buttons.First.Visible = False
         Buttons.PriorPage.Visible = False
@@ -241,14 +243,13 @@ object frmCLprocesos: TfrmCLprocesos
         InfoPanel.Visible = True
         Align = alRight
         TabOrder = 0
-        ExplicitLeft = 424
-        ExplicitTop = 6
+        ExplicitHeight = 39
       end
       object DBNavigator1: TDBNavigator
         Left = 1
         Top = 1
         Width = 427
-        Height = 39
+        Height = 28
         DataSource = Dtcl_ProcesoSubproceso
         VisibleButtons = [nbFirst, nbPrior, nbNext, nbLast, nbInsert, nbDelete, nbEdit, nbPost, nbCancel]
         Align = alClient
@@ -266,6 +267,7 @@ object frmCLprocesos: TfrmCLprocesos
         ParentShowHint = False
         ShowHint = True
         TabOrder = 1
+        ExplicitHeight = 39
       end
     end
     object Panel3: TPanel
@@ -286,11 +288,13 @@ object frmCLprocesos: TfrmCLprocesos
     end
     object cxGrid3: TcxGrid
       Left = 1
-      Top = 66
+      Top = 55
       Width = 471
-      Height = 466
+      Height = 477
       Align = alClient
       TabOrder = 2
+      ExplicitTop = 66
+      ExplicitHeight = 466
       object cxGrid3DBTableView1: TcxGridDBTableView
         Navigator.Buttons.CustomButtons = <>
         DataController.DataSource = Dtcl_ProcesoSubproceso
@@ -362,14 +366,14 @@ object frmCLprocesos: TfrmCLprocesos
       Left = 1
       Top = 25
       Width = 285
-      Height = 41
+      Height = 30
       Align = alTop
       TabOrder = 0
       object cxDBNavigator3: TcxDBNavigator
         Left = 242
         Top = 1
         Width = 42
-        Height = 39
+        Height = 28
         Buttons.CustomButtons = <>
         Buttons.First.Visible = False
         Buttons.PriorPage.Visible = False
@@ -391,12 +395,13 @@ object frmCLprocesos: TfrmCLprocesos
         InfoPanel.Visible = True
         Align = alRight
         TabOrder = 0
+        ExplicitHeight = 39
       end
       object DBNavigator3: TDBNavigator
         Left = 1
         Top = 1
         Width = 241
-        Height = 39
+        Height = 28
         DataSource = Dtcl_procesosGrupos
         VisibleButtons = [nbPrior, nbNext, nbInsert, nbDelete, nbEdit, nbPost, nbCancel]
         Align = alClient
@@ -415,7 +420,8 @@ object frmCLprocesos: TfrmCLprocesos
         ShowHint = True
         TabOrder = 1
         ExplicitLeft = 5
-        ExplicitTop = 6
+        ExplicitTop = -4
+        ExplicitHeight = 39
       end
     end
     object Panel7: TPanel
@@ -436,11 +442,13 @@ object frmCLprocesos: TfrmCLprocesos
     end
     object cxGrid2: TcxGrid
       Left = 1
-      Top = 66
+      Top = 55
       Width = 285
-      Height = 466
+      Height = 477
       Align = alClient
       TabOrder = 2
+      ExplicitTop = 66
+      ExplicitHeight = 466
       object cxGridDBTableView1: TcxGridDBTableView
         Navigator.Buttons.ConfirmDelete = True
         Navigator.Buttons.CustomButtons = <>

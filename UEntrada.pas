@@ -58,6 +58,7 @@ type
     ToolButton7: TToolButton;
     ToolButton8: TToolButton;
     StatusBar1: TStatusBar;
+    btnAddVar: TSpeedButton;
     procedure FormCreate(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure SpeedButton1Click(Sender: TObject);
@@ -70,6 +71,7 @@ type
     procedure SpeedButton3Click(Sender: TObject);
     procedure btnCloseClick(Sender: TObject);
     procedure ToolButton8Click(Sender: TObject);
+    procedure btnAddVarClick(Sender: TObject);
   private
     { Private declarations }
     varUltimoQuery: string;
@@ -126,6 +128,12 @@ begin
   end;
 end;
 
+procedure TFEntrada.btnAddVarClick(Sender: TObject);
+begin
+  Splitter1.Visible := False;
+  Panel2.Visible := False;
+end;
+
 procedure TFEntrada.btnCloseClick(Sender: TObject);
 begin
   salvo := False;
@@ -180,18 +188,6 @@ procedure TFEntrada.cxDBVerticalGrid1MouseDown(Sender: TObject; Button: TMouseBu
 var
   i: integer;
 begin
-  if Button <> mbRight then
-  begin
-    {Panel2.Visible:=False;
-    //UDM.tb_VirtualVar.FieldDefs.Add(UDM.cl_Variables.fieldbyname('NomVariable').asstring, vtipo, LEN);
-    UDM.cl_variables.locate('NomVariable', UDM.tb_VirtualVar.fieldbyname('NomVariable').asstring, []);
-    if not UDM.cl_variables.fieldbyname('ListaDesplegable').AsBoolean then
-      Panel2.Visible := False
-    else
-      G1Click(Sender);
-      Panel2.Visible:=True; }
-    exit;
-  end;
   Irow := -1;
   i := Y div cxDBVerticalGrid1.OptionsView.RowHeight;
   if i <= UDM.tb_SerieDatosVar.recordcount - 1 then
@@ -323,9 +319,6 @@ begin
   UDM.tb_VirtualVar.CreateDataSet;
   if not UDM.tb_VirtualVar.active then
     UDM.tb_VirtualVar.Active := true;
-
-
-
  //**************** Adicionar los valores ***************************************
   UDM.tb_SerieDatosVar.First;
   while not UDM.tb_SerieDatosVar.eof do

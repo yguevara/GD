@@ -77,14 +77,14 @@ object frmCLCargo: TfrmCLCargo
       Left = 1
       Top = 1
       Width = 583
-      Height = 41
+      Height = 30
       Align = alTop
       TabOrder = 0
       object btnFacultades: TJvTransparentButton
         Left = 527
         Top = 1
         Width = 55
-        Height = 39
+        Height = 28
         Hint = 'Facultades del cargo'
         Align = alRight
         DropDownMenu = PMFacultades
@@ -211,12 +211,13 @@ object frmCLCargo: TfrmCLCargo
           00000000000000000000}
         ExplicitLeft = 533
         ExplicitTop = 2
+        ExplicitHeight = 39
       end
       object btnFunciones: TJvTransparentButton
         Left = 472
         Top = 1
         Width = 55
-        Height = 39
+        Height = 28
         Hint = 'Funciones del Cargo'
         Align = alRight
         DropDownMenu = PMFunciones
@@ -343,12 +344,13 @@ object frmCLCargo: TfrmCLCargo
           00000000000000000000}
         ExplicitLeft = 466
         ExplicitTop = 2
+        ExplicitHeight = 39
       end
       object cxDBNavigator3: TcxDBNavigator
         Left = 430
         Top = 1
         Width = 42
-        Height = 39
+        Height = 28
         Buttons.CustomButtons = <>
         Buttons.First.Visible = False
         Buttons.PriorPage.Visible = False
@@ -370,12 +372,13 @@ object frmCLCargo: TfrmCLCargo
         InfoPanel.Visible = True
         Align = alRight
         TabOrder = 0
+        ExplicitHeight = 39
       end
       object DBNavigator3: TDBNavigator
         Left = 1
         Top = 1
         Width = 429
-        Height = 39
+        Height = 28
         DataSource = UDM.dscl_cargo
         VisibleButtons = [nbPrior, nbNext, nbInsert, nbDelete, nbEdit, nbPost, nbCancel]
         Align = alClient
@@ -394,8 +397,7 @@ object frmCLCargo: TfrmCLCargo
         ShowHint = True
         TabOrder = 1
         OnClick = DBNavigator3Click
-        ExplicitLeft = -5
-        ExplicitTop = 2
+        ExplicitHeight = 39
       end
     end
     object Panel8: TPanel
@@ -415,8 +417,6 @@ object frmCLCargo: TfrmCLCargo
         Caption = 'Estructura del cargo'
         ParentCtl3D = True
         TabOrder = 0
-        ExplicitLeft = -2
-        ExplicitTop = -2
         object Label1: TLabel
           Left = 48
           Top = 24

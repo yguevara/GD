@@ -43,12 +43,12 @@ object frmManagementProc: TfrmManagementProc
     Left = 0
     Top = 0
     Width = 566
+    Height = 29
     ButtonHeight = 30
     ButtonWidth = 31
     Caption = 'tlbObject'
     Images = UDM.ILv1
     TabOrder = 0
-    ExplicitWidth = 556
     object btntbtncerrar: TToolButton
       Left = 0
       Top = 0
@@ -113,8 +113,6 @@ object frmManagementProc: TfrmManagementProc
     Panels = <>
     ParentShowHint = False
     ShowHint = True
-    ExplicitTop = 115
-    ExplicitWidth = 556
   end
   object edt1: TEdit
     Left = 24

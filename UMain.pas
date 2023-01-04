@@ -6,7 +6,8 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
   System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
   Vcl.ComCtrls, Vcl.ToolWin, System.ImageList, Vcl.ImgList, Vcl.StdCtrls,
-  Vcl.Menus, AdvMenus, JvExControls, JvButton, JvTransparentButton, Vcl.ExtCtrls,
+  Vcl.Menus, AdvMenus, JvExControls, JvButton, JvTransparentButton,
+  Vcl.ExtCtrls,
   Vcl.Buttons, cxGraphics, cxControls, cxLookAndFeels, cxLookAndFeelPainters,
   dxSkinsCore, dxSkinsDefaultPainters, cxClasses, dxNavBarBase, dxNavBarCollns,
   dxNavBar, cxCustomData, cxStyles, cxTL, cxMaskEdit, cxMemo,
@@ -14,14 +15,16 @@ uses
   AdvSplitter, Data.DB, Vcl.Grids, Vcl.DBGrids, Vcl.DBCtrls, AdvPageControl,
   AdvOfficePager, cxContainer, cxEdit, cxFilter, cxData, cxDataStorage,
   cxNavigator, dxDateRanges, cxDBData, cxGridTableView, cxGridLevel,
-  cxGridCustomView, cxGridCustomTableView, cxGridDBTableView, cxGrid, cxTextEdit,
+  cxGridCustomView, cxGridCustomTableView, cxGridDBTableView, cxGrid,
+  cxTextEdit,
   cxDBEdit, AdvToolBar, AdvToolBarExt, AdvRichEditorToolBar, AdvScrollControl,
   AdvRichEditorBase, AdvRichEditor, DBAdvRichEditor,
   AdvRichEditorFormatButtonBar, AdvPanel, dxBarDBNav, FireDAC.Stan.Intf,
   FireDAC.Stan.Option, FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS,
   FireDAC.Phys.Intf, FireDAC.DApt.Intf, FireDAC.Stan.Async, FireDAC.DApt,
   FireDAC.Comp.DataSet, FireDAC.Comp.Client, AdvRichEditorPopupToolBar, cxLabel,
-  AdvDBLookupComboBox, cxDBLookupComboBox, cxBlobEdit, cxRichEdit, cxDBNavigator,
+  AdvDBLookupComboBox, cxDBLookupComboBox, cxBlobEdit, cxRichEdit,
+  cxDBNavigator,
   dxBarBuiltInMenu, cxPC, cxGroupBox, cxLocalization, dxtree, dxdbtree,
   cxDropDownEdit, cxCalendar, cxLookupEdit, cxDBLookupEdit, cxVGrid, cxDBVGrid;
 
@@ -29,9 +32,9 @@ type
   TNODOSD = record
     Id: integer;
     Etiqueta: string;
-    Padre: Integer;
-    ICONO: Integer;
-    Tipo: integer; //Etiqueta, Estructura, Cargo
+    Padre: integer;
+    ICONO: integer;
+    Tipo: integer; // Etiqueta, Estructura, Cargo
   end;
 
   TMAINFORM = class(TForm)
@@ -498,7 +501,7 @@ type
     SGICControl: TdxNavBarGroupControl;
     TvTreeCalidad: TdxDBTreeView;
     C2: TMenuItem;
-    etiqueta: TMenuItem;
+    Etiqueta: TMenuItem;
     Estructura: TMenuItem;
     Cargo: TMenuItem;
     N1: TMenuItem;
@@ -535,11 +538,6 @@ type
     ToolButton1: TToolButton;
     ToolButton3: TToolButton;
     ToolButton6: TToolButton;
-    ToolBar2: TToolBar;
-    ToolButton4: TToolButton;
-    btnCloseTABDatos: TToolButton;
-    ToolButton7: TToolButton;
-    ToolButton5: TToolButton;
     Panel1: TPanel;
     pGeneralData: TPanel;
     cxPageControl2: TcxPageControl;
@@ -568,6 +566,13 @@ type
     Panel2: TPanel;
     cxDBNavigator1: TcxDBNavigator;
     dbnSeriesDatos: TDBNavigator;
+    ToolBar3: TToolBar;
+    ToolButton8: TToolButton;
+    ToolButton9: TToolButton;
+    ToolButton10: TToolButton;
+    ToolButton11: TToolButton;
+    ToolButton12: TToolButton;
+    ToolButton13: TToolButton;
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure btn2Click(Sender: TObject);
     procedure Acercade1Click(Sender: TObject);
@@ -587,7 +592,6 @@ type
     procedure L1Click(Sender: TObject);
     procedure P2Click(Sender: TObject);
     procedure R1Click(Sender: TObject);
-    procedure TvTreeMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure eliminarClick(Sender: TObject);
     procedure TvTreeCalidadChange(Sender: TObject; Node: TTreeNode);
     procedure C2Click(Sender: TObject);
@@ -597,15 +601,17 @@ type
     procedure modificarClick(Sender: TObject);
     procedure V1Click(Sender: TObject);
     procedure A1Click(Sender: TObject);
-    procedure TvTreeMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure TvTreeMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: integer);
     procedure ToolButton1Click(Sender: TObject);
     procedure E1Click(Sender: TObject);
     procedure btnCloseTABDatosClick(Sender: TObject);
     procedure ToolButton6Click(Sender: TObject);
     procedure dbnSeriesDatosClick(Sender: TObject; Button: TNavigateBtn);
     procedure ToolButton5Click(Sender: TObject);
+    procedure btnCloseClick(Sender: TObject);
   private
-    procedure CargoState(aState: boolean);
+    procedure CargoState(aState: Boolean);
     procedure MDSeriesSubSeriesDMDR;
     procedure RemoveMDSeriesSubSeriesDMDR;
     procedure PMConfigMainNode(aIdNodo: integer);
@@ -619,7 +625,7 @@ type
 
 var
   MAINFORM: TMAINFORM;
-  AnItem: TTreeNode; //TcxTreeListNode;
+  AnItem: TTreeNode; // TcxTreeListNode;
   NewId, ParentID: integer;
 
 implementation
@@ -636,22 +642,22 @@ uses
 procedure TMAINFORM.A1Click(Sender: TObject);
 begin
   with TfrmManagemetArch.Create(nil) do
-  try
-    ShowModal;
-  finally
-    Free;
-  end;
+    try
+      ShowModal;
+    finally
+      Free;
+    end;
 end;
 
 procedure TMAINFORM.Acercade1Click(Sender: TObject);
 begin
   with TfrmAbout.Create(nil) do
-  try
-    Image1.Visible := True;
-    ShowModal;
-  finally
-    Free;
-  end;
+    try
+      Image1.Visible := True;
+      ShowModal;
+    finally
+      Free;
+    end;
 end;
 
 procedure TMAINFORM.btn2Click(Sender: TObject);
@@ -666,6 +672,11 @@ begin
   Rolactivo := autenticar(UDM.Connuser);
 end;
 
+procedure TMAINFORM.btnCloseClick(Sender: TObject);
+begin
+  close;
+end;
+
 procedure TMAINFORM.btnCloseTABDatosClick(Sender: TObject);
 begin
   tsInputSeriesData.TabVisible := False;
@@ -678,64 +689,64 @@ end;
 procedure TMAINFORM.btnusercontrolClick(Sender: TObject);
 begin
   with TfrmGestUser.Create(nil) do
-  try
-    ShowModal;
-  finally
-    Free;
-  end;
+    try
+      ShowModal;
+    finally
+      Free;
+    end;
 end;
 
 procedure TMAINFORM.C1Click(Sender: TObject);
 begin
   with TfrmCLCargo.Create(nil) do
-  try
-    {CargoState(False);
-    UDM.cl_funcionesgen.MasterSource := UDM.dscl_cargo;
-    UDM.cl_funcionesgen.MasterFields := 'Idcargo';
-    UDM.cl_funcionesgen.IndexFieldNames := 'IdCargo;idfunciones';
-    UDM.cl_facultadesgen.MasterSource := UDM.dscl_cargo;
-    UDM.cl_facultadesgen.MasterFields := 'Idcargo';
-    UDM.cl_facultadesgen.IndexFieldNames := 'IdCargo;idfacultades';
-    CargoState(True);   }
-    ShowModal;
-  finally
-    Free;
-   { CargoState(False);
-    UDM.cl_funcionesgen.MasterSource := nil;
-    UDM.cl_funcionesgen.MasterFields := '';
-    UDM.cl_funcionesgen.IndexFieldNames := '';
-    UDM.cl_facultadesgen.MasterSource := nil;
-    UDM.cl_facultadesgen.MasterFields := '';
-    UDM.cl_facultadesgen.IndexFieldNames := '';
-    CargoState(True);}
-  end;
+    try
+      { CargoState(False);
+        UDM.cl_funcionesgen.MasterSource := UDM.dscl_cargo;
+        UDM.cl_funcionesgen.MasterFields := 'Idcargo';
+        UDM.cl_funcionesgen.IndexFieldNames := 'IdCargo;idfunciones';
+        UDM.cl_facultadesgen.MasterSource := UDM.dscl_cargo;
+        UDM.cl_facultadesgen.MasterFields := 'Idcargo';
+        UDM.cl_facultadesgen.IndexFieldNames := 'IdCargo;idfacultades';
+        CargoState(True); }
+      ShowModal;
+    finally
+      Free;
+      { CargoState(False);
+        UDM.cl_funcionesgen.MasterSource := nil;
+        UDM.cl_funcionesgen.MasterFields := '';
+        UDM.cl_funcionesgen.IndexFieldNames := '';
+        UDM.cl_facultadesgen.MasterSource := nil;
+        UDM.cl_facultadesgen.MasterFields := '';
+        UDM.cl_facultadesgen.IndexFieldNames := '';
+        CargoState(True); }
+    end;
 end;
 
 procedure TMAINFORM.C2Click(Sender: TObject);
 begin
   with TfrmCatOcupa.Create(nil) do
-  try
-    ShowModal;
-  finally
-    Free;
-  end;
+    try
+      ShowModal;
+    finally
+      Free;
+    end;
 end;
 
 procedure TMAINFORM.ControldeVersiones1Click(Sender: TObject);
 begin
   with TfrmHistory.Create(nil) do
-  try
-    ShowModal;
-  finally
-    Free;
-  end;
+    try
+      ShowModal;
+    finally
+      Free;
+    end;
 end;
 
 procedure TMAINFORM.CreateMapProcess;
 var
   ContG, ContP, ContServ: integer;
 
-  function AddTreeProcess(aCode, aPadre, aImg: Integer; Etiq: string): Boolean;
+  function AddTreeProcess(aCode, aPadre, aImg: integer; Etiq: string): Boolean;
   begin
     UDM.tb_mp.Append;
     UDM.tb_mp.FieldByName('Id').AsInteger := aCode;
@@ -757,28 +768,31 @@ begin
   ContG := 1;
   while not UDM.tcl_procesosGrupos.Eof do
   begin
-    AddTreeProcess(ContG, 0, 14, UDM.tcl_procesosGrupos.FieldByName('NombreGrupo').AsString);
+    AddTreeProcess(ContG, 0, 14, UDM.tcl_procesosGrupos.FieldByName
+      ('NombreGrupo').AsString);
     UDM.tcl_Procesos.Active := True;
     UDM.tcl_Procesos.First;
     ContP := UDM.GetNewNodeMP;
-    while not UDM.tcl_procesos.Eof do
+    while not UDM.tcl_Procesos.Eof do
     begin
-      AddTreeProcess(ContP, ContG, 15, UDM.tcl_procesos.FieldbyName('NombreProceso').AsString);
+      AddTreeProcess(ContP, ContG, 15,
+        UDM.tcl_Procesos.FieldByName('NombreProceso').AsString);
       UDM.tcl_Procesos.Active := True;
       UDM.tcl_Procesos.First;
       ContServ := UDM.GetNewNodeMP;
       while not UDM.tcl_ProcesoSubproceso.Eof do
       begin
-        AddTreeProcess(ContServ, ContP, 16, UDM.tcl_ProcesoSubproceso.FieldbyName('Nombresubproceso').AsString);
+        AddTreeProcess(ContServ, ContP, 16,
+          UDM.tcl_ProcesoSubproceso.FieldByName('Nombresubproceso').AsString);
         ContServ := UDM.GetNewNodeMP;
         Application.ProcessMessages;
         UDM.tcl_ProcesoSubproceso.Next;
       end;
       ContP := UDM.GetNewNodeMP;
       Application.ProcessMessages;
-      UDM.tcl_procesos.Next;
+      UDM.tcl_Procesos.Next;
     end;
-    //Fin
+    // Fin
     ContG := UDM.GetNewNodeMP;
     Application.ProcessMessages;
     UDM.tcl_procesosGrupos.Next;
@@ -809,7 +823,7 @@ begin
   UDM.cl_subseries.Active := True;
 end;
 
-procedure TMAINFORM.CargoState(aState: boolean);
+procedure TMAINFORM.CargoState(aState: Boolean);
 begin
   UDM.cl_cargo.Active := aState;
   UDM.cl_funcionesgen.Active := aState;
@@ -824,28 +838,28 @@ end;
 procedure TMAINFORM.TvTreeChange(Sender: TObject; Node: TTreeNode);
 begin
   PMConfigMainNode(UDM.tb_tree.FieldByName('id').AsInteger);
-  etiqueta.Enabled := True;
+  Etiqueta.Enabled := True;
   Estructura.Enabled := True;
   Cargo.Enabled := True;
-  PTituloSeries.Caption:='Series Documentales ('+Node.Text+')';
- { case UDM.tb_tree.FieldByName('tipo').AsInteger of
+  PTituloSeries.Caption := 'Series Documentales (' + Node.Text + ')';
+  { case UDM.tb_tree.FieldByName('tipo').AsInteger of
     1:
-      begin
-        etiqueta.Enabled := True;
-        Estructura.Enabled := True;
-        Cargo.Enabled := True;
-      end;
+    begin
+    etiqueta.Enabled := True;
+    Estructura.Enabled := True;
+    Cargo.Enabled := True;
+    end;
     2:
-      begin
-        etiqueta.Enabled := True;
-        Estructura.Enabled := True;
-        Cargo.Enabled := True;
-      end;
+    begin
+    etiqueta.Enabled := True;
+    Estructura.Enabled := True;
+    Cargo.Enabled := True;
+    end;
     3:
-      begin
-        agregar.Visible := False;
-      end;
-  end;      }
+    begin
+    agregar.Visible := False;
+    end;
+    end; }
   if UDM.tb_tree.State = dsInsert then
     TvTree.SelectedIndex := imagenactual
   else
@@ -859,12 +873,14 @@ procedure TMAINFORM.TvTreeDblClick(Sender: TObject);
 
   end;
 
-  procedure ConfigComponentFuncionesGenerales(aDS: TDataSource; NombreCampo: string);
+  procedure ConfigComponentFuncionesGenerales(aDS: TDataSource;
+    NombreCampo: string);
   begin
 
   end;
 
-  procedure ConfigFuncionesGenerales(aDS: TDataSource; aNombreCampo: string);   //(UDM.dstb_empresa, 'fungenerales')
+  procedure ConfigFuncionesGenerales(aDS: TDataSource; aNombreCampo: string);
+  // (UDM.dstb_empresa, 'fungenerales')
   begin
     ConfigComponentFuncionesGenerales(aDS, aNombreCampo);
     if Trim(aDS.DataSet.FieldByName(aNombreCampo).AsString) <> '' then
@@ -873,10 +889,11 @@ procedure TMAINFORM.TvTreeDblClick(Sender: TObject);
         Active := False;
         Connection := UDM.Conn;
         SQL.Clear;
-        SQL.Add('select funciones from cl_funcionesgen where cl_funcionesgen.id=' + aDS.DataSet.FieldByName(aNombreCampo).AsString);
+        SQL.Add('select funciones from cl_funcionesgen where cl_funcionesgen.id='
+          + aDS.DataSet.FieldByName(aNombreCampo).AsString);
         try
           Active := True;
-          //reDescripCion.Text := VarToStr(Fields[0].Value);
+          // reDescripCion.Text := VarToStr(Fields[0].Value);
         except
         end;
       end;
@@ -888,157 +905,158 @@ procedure TMAINFORM.TvTreeDblClick(Sender: TObject);
     i: integer;
     tmp: Variant;
     k: string;
-    Qt: tFDQuery;
+    Qt: TFDQuery;
     cadwhere: string;
     cadKeyDEFUEB, cadKeyDEFDEP: string;
   begin
-   { ListDEF := TStringList.Create;
-    ListDEF.Delimiter := ';';
-    ListDEF.DelimitedText := KeyDEF;
-    ListVAL := TStringList.Create;
-    ListVAL.Delimiter := ',';
-    ListVAL.DelimitedText := KeyVAL;
-    tmp := VarArrayCreate([0, ListVAL.Count], varVariant);
-    if NombreTabla = 'tb_empresa' then
-    begin
+    { ListDEF := TStringList.Create;
+      ListDEF.Delimiter := ';';
+      ListDEF.DelimitedText := KeyDEF;
+      ListVAL := TStringList.Create;
+      ListVAL.Delimiter := ',';
+      ListVAL.DelimitedText := KeyVAL;
+      tmp := VarArrayCreate([0, ListVAL.Count], varVariant);
+      if NombreTabla = 'tb_empresa' then
+      begin
       if UDM.tb_empresa.Locate(ListDEF[0], ListVAL[0], []) then
       begin
-        ConfigFuncionesGenerales(UDM.dstb_empresa, 'fungenerales');
-        ConfigFuncionEspecial(UDM.dstb_empresa, 'funespemp');
+      ConfigFuncionesGenerales(UDM.dstb_empresa, 'fungenerales');
+      ConfigFuncionEspecial(UDM.dstb_empresa, 'funespemp');
       end;
-    end
-    else if NombreTabla = 'tb_ueb' then
-    begin
+      end
+      else if NombreTabla = 'tb_ueb' then
+      begin
       if UDM.tb_empresa.Locate(ListDEF[0], ListVAL[0], []) then
       begin
-        tmp := VarArrayCreate([0, ListVAL.Count], varVariant);
-        for i := 0 to ListVAL.Count - 1 do
-          tmp[i] := ListVAL[i];
-        if UDM.tb_ueb.Locate(KeyDEF, tmp, []) then
-        begin
-          //funciones generales ueb...
-          ConfigFuncionesGenerales(UDM.dstb_ueb, 'fungenerales');
-          //funciones especificas ueb
-          ConfigFuncionEspecial(UDM.dstb_ueb, 'funespueb');
-        end;
+      tmp := VarArrayCreate([0, ListVAL.Count], varVariant);
+      for i := 0 to ListVAL.Count - 1 do
+      tmp[i] := ListVAL[i];
+      if UDM.tb_ueb.Locate(KeyDEF, tmp, []) then
+      begin
+      //funciones generales ueb...
+      ConfigFuncionesGenerales(UDM.dstb_ueb, 'fungenerales');
+      //funciones especificas ueb
+      ConfigFuncionEspecial(UDM.dstb_ueb, 'funespueb');
       end;
-    end
-    else if NombreTabla = 'tb_departamento' then
-    begin
-      if UDM.tb_empresa.Locate(ListDEF[0], ListVAL[0], []) then
-      begin
-        tmp := VarArrayCreate([0, ListVAL.Count - 2], varVariant);
-        for i := 0 to ListVAL.Count - 2 do
-        begin
-          tmp[i] := trim(ListVAL[i]);
-          if i = 0 then
-            cadKeyDEFUEB := ListDEF[i]
-          else
-            cadKeyDEFUEB := cadKeyDEFUEB + ';' + ListDEF[i];
-        end;
-        UDM.tb_ueb.First;
-        if UDM.tb_ueb.Locate(cadKeyDEFUEB, tmp, []) then
-        begin
-          tmp := VarArrayCreate([0, ListVAL.Count - 1], varVariant);
-          for i := 0 to ListVAL.Count - 1 do
-          begin
-            tmp[i] := ListVAL[i];
-          end;
-          if UDM.tb_departamento.Locate(KeyDEF, tmp, []) then
-          begin
-            //Funciones generales departamento...
-            ConfigFuncionesGenerales(UDM.dstb_departamento, 'fungenerales');
-            //funciones especificas ueb
-            ConfigFuncionEspecial(UDM.dstb_departamento, 'funespdepto');
-          end;
-        end;
       end;
-    end
-    else if NombreTabla = 'tb_cargo' then
-    begin
+      end
+      else if NombreTabla = 'tb_departamento' then
+      begin
       if UDM.tb_empresa.Locate(ListDEF[0], ListVAL[0], []) then
       begin
-        tmp := VarArrayCreate([0, ListVAL.Count - 3], varVariant);
-        for i := 0 to ListVAL.Count - 3 do
-        begin
-          tmp[i] := ListVAL[i];
-          if i = 0 then
-            cadKeyDEFUEB := ListDEF[i]
-          else
-            cadKeyDEFUEB := cadKeyDEFUEB + ';' + ListDEF[i];
-        end;
-        if UDM.tb_ueb.Locate(cadKeyDEFUEB, tmp, []) then
-        begin
-          tmp := VarArrayCreate([0, ListVAL.Count - 2], varVariant);
-          for i := 0 to ListVAL.Count - 2 do
-          begin
-            tmp[i] := ListVAL[i];
-            if i = 0 then
-              cadKeyDEFDEP := ListDEF[i]
-            else
-              cadKeyDEFDEP := cadKeyDEFDEP + ';' + ListDEF[i];
-          end;
-          if UDM.tb_departamento.Locate(cadKeyDEFDEP, tmp, []) then
-          begin
-            tmp := VarArrayCreate([0, ListVAL.Count], varVariant);
-            for i := 0 to ListVAL.Count - 1 do
-              tmp[i] := ListVAL[i];
-            if UDM.tb_cargo.Locate(KeyDEF, tmp, []) then
-            begin
-              //funciones generales del cargo...
-              ConfigFuncionesGenerales(UDM.dstb_cargo, 'fungenerales');
-              //funciones especificas ueb
-              ConfigFuncionEspecial(UDM.dstb_cargo, 'funciones');
-            end;
-          end;
-        end;
+      tmp := VarArrayCreate([0, ListVAL.Count - 2], varVariant);
+      for i := 0 to ListVAL.Count - 2 do
+      begin
+      tmp[i] := trim(ListVAL[i]);
+      if i = 0 then
+      cadKeyDEFUEB := ListDEF[i]
+      else
+      cadKeyDEFUEB := cadKeyDEFUEB + ';' + ListDEF[i];
       end;
-    end
-    else if NombreTabla = 'tb_orgnoaux' then
-    begin
-      if UDM.tb_empresa.Locate(ListDEF[0], ListVAL[0], []) then
+      UDM.tb_ueb.First;
+      if UDM.tb_ueb.Locate(cadKeyDEFUEB, tmp, []) then
       begin
-        tmp := VarArrayCreate([0, ListVAL.Count], varVariant);
-        for i := 0 to ListVAL.Count - 1 do
-          tmp[i] := ListVAL[i];
-        if UDM.tb_orgnoaux.Locate(KeyDEF, tmp, []) then
-        begin
-          ConfigFuncionesGenerales(UDM.dstb_orgnoaux, 'fungenerales');
-        end;
+      tmp := VarArrayCreate([0, ListVAL.Count - 1], varVariant);
+      for i := 0 to ListVAL.Count - 1 do
+      begin
+      tmp[i] := ListVAL[i];
       end;
-    end
-    else if NombreTabla = 'tb_organoauxasisten' then
-    begin
+      if UDM.tb_departamento.Locate(KeyDEF, tmp, []) then
+      begin
+      //Funciones generales departamento...
+      ConfigFuncionesGenerales(UDM.dstb_departamento, 'fungenerales');
+      //funciones especificas ueb
+      ConfigFuncionEspecial(UDM.dstb_departamento, 'funespdepto');
+      end;
+      end;
+      end;
+      end
+      else if NombreTabla = 'tb_cargo' then
+      begin
       if UDM.tb_empresa.Locate(ListDEF[0], ListVAL[0], []) then
       begin
-        tmp := VarArrayCreate([0, ListVAL.Count - 1], varVariant);
-        for i := 0 to ListVAL.Count - 2 do
-          tmp[i] := ListVAL[i];
-        if UDM.tb_orgnoaux.Locate(KeyDEF, tmp, []) then
-        begin
-          tmp := VarArrayCreate([0, ListVAL.Count], varVariant);
-          for i := 0 to ListVAL.Count - 1 do
-            tmp[i] := ListVAL[i];
-          UDM.tb_organoauxasisten.Locate(KeyDEF, tmp, []);
-          Panel2.Visible := False;
-        end;
+      tmp := VarArrayCreate([0, ListVAL.Count - 3], varVariant);
+      for i := 0 to ListVAL.Count - 3 do
+      begin
+      tmp[i] := ListVAL[i];
+      if i = 0 then
+      cadKeyDEFUEB := ListDEF[i]
+      else
+      cadKeyDEFUEB := cadKeyDEFUEB + ';' + ListDEF[i];
+      end;
+      if UDM.tb_ueb.Locate(cadKeyDEFUEB, tmp, []) then
+      begin
+      tmp := VarArrayCreate([0, ListVAL.Count - 2], varVariant);
+      for i := 0 to ListVAL.Count - 2 do
+      begin
+      tmp[i] := ListVAL[i];
+      if i = 0 then
+      cadKeyDEFDEP := ListDEF[i]
+      else
+      cadKeyDEFDEP := cadKeyDEFDEP + ';' + ListDEF[i];
+      end;
+      if UDM.tb_departamento.Locate(cadKeyDEFDEP, tmp, []) then
+      begin
+      tmp := VarArrayCreate([0, ListVAL.Count], varVariant);
+      for i := 0 to ListVAL.Count - 1 do
+      tmp[i] := ListVAL[i];
+      if UDM.tb_cargo.Locate(KeyDEF, tmp, []) then
+      begin
+      //funciones generales del cargo...
+      ConfigFuncionesGenerales(UDM.dstb_cargo, 'fungenerales');
+      //funciones especificas ueb
+      ConfigFuncionEspecial(UDM.dstb_cargo, 'funciones');
+      end;
+      end;
+      end;
+      end;
+      end
+      else if NombreTabla = 'tb_orgnoaux' then
+      begin
+      if UDM.tb_empresa.Locate(ListDEF[0], ListVAL[0], []) then
+      begin
+      tmp := VarArrayCreate([0, ListVAL.Count], varVariant);
+      for i := 0 to ListVAL.Count - 1 do
+      tmp[i] := ListVAL[i];
+      if UDM.tb_orgnoaux.Locate(KeyDEF, tmp, []) then
+      begin
+      ConfigFuncionesGenerales(UDM.dstb_orgnoaux, 'fungenerales');
+      end;
+      end;
+      end
+      else if NombreTabla = 'tb_organoauxasisten' then
+      begin
+      if UDM.tb_empresa.Locate(ListDEF[0], ListVAL[0], []) then
+      begin
+      tmp := VarArrayCreate([0, ListVAL.Count - 1], varVariant);
+      for i := 0 to ListVAL.Count - 2 do
+      tmp[i] := ListVAL[i];
+      if UDM.tb_orgnoaux.Locate(KeyDEF, tmp, []) then
+      begin
+      tmp := VarArrayCreate([0, ListVAL.Count], varVariant);
+      for i := 0 to ListVAL.Count - 1 do
+      tmp[i] := ListVAL[i];
+      UDM.tb_organoauxasisten.Locate(KeyDEF, tmp, []);
+      Panel2.Visible := False;
+      end;
       end;
       Qt := UDM.tb_organoauxasisten;
-    end;
-    ListDEF.Free;
-    ListVAL.Free; }
+      end;
+      ListDEF.Free;
+      ListVAL.Free; }
   end;
 
 begin
-  {Panel2.Visible := True;
-  busca(UDM.tb_tree.FieldByName('nombreentidad').AsString, UDM.tb_tree.FieldByName('keydef').AsString, UDM.tb_tree.FieldByName('keyvalue').AsString);  }
+  { Panel2.Visible := True;
+    busca(UDM.tb_tree.FieldByName('nombreentidad').AsString, UDM.tb_tree.FieldByName('keydef').AsString, UDM.tb_tree.FieldByName('keyvalue').AsString); }
 end;
 
-procedure TMAINFORM.TvTreeMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+procedure TMAINFORM.TvTreeMouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: integer);
 begin
   AnItem := TvTree.GetNodeAt(X, Y);
   ParentID := UDM.GetIDParentTreeNode;
-  //PContainer.Visible:=False;
+  // PContainer.Visible:=False;
   if AnItem <> nil then
   begin
     if Button = mbRight then
@@ -1048,44 +1066,63 @@ begin
     else
     begin
 
-      if UDM.tb_Serietree.RecordCount > 0 then
+      if UDM.tb_tree.FieldByName('tipo').AsInteger<>1 then
       begin
         PContainer.Visible := True;
-      end;
+      end else
+        PContainer.Visible:=False;
 
     end;
   end;
 end;
 
-procedure TMAINFORM.TvTreeMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
-{   }
-end;
-
 procedure TMAINFORM.V1Click(Sender: TObject);
 begin
   with TfrmVariables.Create(nil) do
-  try
-    ShowModal;
-  finally
-    Free;
-  end;
+    try
+      ShowModal;
+    finally
+      Free;
+    end;
 end;
 
 procedure TMAINFORM.D1Click(Sender: TObject);
 begin
   with TfrmCLDestino.Create(nil) do
-  try
-    ShowModal;
-  finally
-    Free;
-  end;
+    try
+      ShowModal;
+    finally
+      Free;
+    end;
 end;
 
 procedure TMAINFORM.dbnSeriesDatosClick(Sender: TObject; Button: TNavigateBtn);
 begin
+  if Button = nbInsert then
+  begin
+    if UDM.tb_SeriesDatos.State = dsInsert then
+    begin
+      UDM.tb_SeriesDatos.FieldByName('idservidor').AsInteger :=
+        UDM.tb_Serietree.FieldByName('servidor').AsInteger;
+      UDM.tb_SeriesDatos.FieldByName('deposito').AsString :=
+        UDM.tb_Serietree.FieldByName('deposito').AsString;
+      UDM.tb_SeriesDatos.FieldByName('gaveta').AsString :=
+        UDM.tb_Serietree.FieldByName('gaveta').AsString;
+    end;
+
+  end;
+
   if Button = nbPost then
   begin
+    if UDM.tb_SeriesDatos.State = dsInsert then
+    begin
+      UDM.tb_SeriesDatos.FieldByName('idservidor').AsInteger :=
+        UDM.tb_Serietree.FieldByName('servidor').AsInteger;
+      UDM.tb_SeriesDatos.FieldByName('deposito').AsString :=
+        UDM.tb_Serietree.FieldByName('deposito').AsString;
+      UDM.tb_SeriesDatos.FieldByName('gaveta').AsString :=
+        UDM.tb_Serietree.FieldByName('gaveta').AsString;
+    end;
   end;
 end;
 
@@ -1100,21 +1137,26 @@ end;
 procedure TMAINFORM.E1Click(Sender: TObject);
 begin
   with TfrmListEspec.Create(NIL) do
-  try
-    ShowModal;
-  finally
-    Free;
-  end;
+    try
+      ShowModal;
+    finally
+      Free;
+    end;
 end;
 
 procedure TMAINFORM.eliminarClick(Sender: TObject);
 begin
   if (UDM.tb_tree.FieldByName('Id').AsInteger < 1) then
   begin
-    MessageDlg('Etiqueta del sistema. No se puede eliminar. Debe especificar una estructura válida que pueda modificar.', mtInformation, [mbOK], 0);
+    MessageDlg
+      ('Etiqueta del sistema. No se puede eliminar. Debe especificar una estructura válida que pueda modificar.',
+      mtInformation, [mbOK], 0);
     Exit;
   end;
-  if MessageDlg('¿Está seguro que desea eliminar el objeto ' + UDM.tb_tree.FieldByName('etiqueta').AsString + ' de la estructura de su empresa?', mtConfirmation, [mbYes, mbNo], 0) = mrYes then
+  if MessageDlg('¿Está seguro que desea eliminar el objeto ' +
+    UDM.tb_tree.FieldByName('etiqueta').AsString +
+    ' de la estructura de su empresa?', mtConfirmation, [mbYes, mbNo], 0) = mrYes
+  then
   begin
     UDM.tb_tree.Delete;
   end;
@@ -1124,45 +1166,47 @@ end;
 procedure TMAINFORM.etiquetaClick(Sender: TObject);
 begin
   EstructuraActual := TMenuItem(Sender).Tag;
-  imagenactual := UDM.Conn.ExecSQLScalar('select icon from cl_tipoestructura where Idestructura=' + IntToStr(EstructuraActual));
+  imagenactual := UDM.Conn.ExecSQLScalar
+    ('select icon from cl_tipoestructura where Idestructura=' +
+    IntToStr(EstructuraActual));
   UDM.GetNodoPadreActual;
   UDM.AddBlankNode;
   with TfrmEstructura.Create(nil) do
-  try
-    tsAddNodo.Caption := 'Gestionar ' + TMenuItem(Sender).Caption;
-    tsAddNodo.TabVisible := True;
-    tseditNode.TabVisible := False;
-    pcTree.ActivePage := tsAddNodo;
-    ShowModal;
-  finally
-    Free;
-  end;
+    try
+      tsAddNodo.Caption := 'Gestionar ' + TMenuItem(Sender).Caption;
+      tsAddNodo.TabVisible := True;
+      tseditNode.TabVisible := False;
+      pcTree.ActivePage := tsAddNodo;
+      ShowModal;
+    finally
+      Free;
+    end;
   EquipTree;
 end;
 
 procedure TMAINFORM.EquipTree;
 begin
   UDM.tb_tree.Filtered := False;
-  {TvTree.DataController.DataSource:=UDM.dstb_tree;
-  TvTree.DataController.ImageIndexField:='icono';
-  TvTree.DataController.KeyField:='id';
-  TvTree.DataController.ParentField:='padre';
-  TvTree.DataControll  er.StateIndexField:='icono'; }
+  { TvTree.DataController.DataSource:=UDM.dstb_tree;
+    TvTree.DataController.ImageIndexField:='icono';
+    TvTree.DataController.KeyField:='id';
+    TvTree.DataController.ParentField:='padre';
+    TvTree.DataControll  er.StateIndexField:='icono'; }
 end;
 
 procedure TMAINFORM.F1Click(Sender: TObject);
 begin
   with TfrmCLFrecuencia.Create(nil) do
-  try
-    ShowModal;
-  finally
-    Free;
-  end;
+    try
+      ShowModal;
+    finally
+      Free;
+    end;
 end;
 
 procedure TMAINFORM.FormActivate(Sender: TObject);
 var
-  i: Integer;
+  i: integer;
 
   procedure CleanTMP(Dir: string);
   var
@@ -1171,33 +1215,37 @@ var
     ChDir(Dir);
     if FindFirst('*.pdf', faDirectory, FileSearch) = 0 then
       repeat
-        if ((FileSearch.Attr and fadirectory) = fadirectory) then
+        if ((FileSearch.Attr and faDirectory) = faDirectory) then
         begin
           if (FileSearch.Name <> '.') and (FileSearch.Name <> '..') then
             CleanTMP(Dir + '\' + FileSearch.Name);
         end
         else
         begin
-         {Pon aqui lo que quieras hacer con los ficheros encontrados}
-         {Put here anything to make with the find files}
+          { Pon aqui lo que quieras hacer con los ficheros encontrados }
+          { Put here anything to make with the find files }
           DeleteFile(Dir + '\' + FileSearch.Name);
-         //Memo1.Lines.Add( Dir +'\'+FileSearch.Name );
+          // Memo1.Lines.Add( Dir +'\'+FileSearch.Name );
         end;
       until FindNext(FileSearch) <> 0;
     FindClose(FileSearch);
   end;
 
 begin
-//  ELIMINA TODOS LOS DOCUMENTOS PDF DE LOS TEMPORALES DEL  PC...
+  // ELIMINA TODOS LOS DOCUMENTOS PDF DE LOS TEMPORALES DEL  PC...
   CleanTMP(PathTemp);
   pcSeriesDocumentales.ActivePage := tsSeriesDef;
   for i := pcSeriesDocumentales.PageCount - 1 downto 1 do
     pcSeriesDocumentales.Pages[i].TabVisible := False;
+  for i := 0 to TvTree.Items.Count - 1 do
+    TvTree.Items[i].Expanded:=True;
+  PContainer.Visible:=False;
 end;
 
 procedure TMAINFORM.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
-  if MessageDlg('¿Realmente desea salir del sistema?', mtConfirmation, [mbYes, mbNo], 0) = mrYes then
+  if MessageDlg('¿Realmente desea salir del sistema?', mtConfirmation,
+    [mbYes, mbNo], 0) = mrYes then
   begin
     CanClose := True
   end
@@ -1209,28 +1257,29 @@ procedure TMAINFORM.FormCreate(Sender: TObject);
 begin
   if FileExists(ExtractFilePath(Application.ExeName) + '\SDTrad.ini') then
   begin
-    cxLocalizer1.LoadFromFile(ExtractFilePath(Application.ExeName) + '\SDTrad.ini');
+    cxLocalizer1.LoadFromFile(ExtractFilePath(Application.ExeName) +
+      '\SDTrad.ini');
     cxLocalizer1.LanguageIndex := 1; // MUDA DE LINGUAGEM
-    cxLocalizer1.Active := TRUE;     // ATIVA O COMPONENTE
+    cxLocalizer1.Active := True; // ATIVA O COMPONENTE
   end;
   UDM.tb_mp.Active := False;
   UDM.CleanTableTree('tb_mp');
   UDM.tb_mp.Active := True;
   CreateMapProcess;
-  //PContainer.Visible := False;
-  {UDM.CreaTree;
-  UDM.tb_ueb.Filtered := False;
-  cxDBTreeList2.DataController.DataSource := UDM.dstb_tree;}
+  // PContainer.Visible := False;
+  { UDM.CreaTree;
+    UDM.tb_ueb.Filtered := False;
+    cxDBTreeList2.DataController.DataSource := UDM.dstb_tree; }
 end;
 
 procedure TMAINFORM.L1Click(Sender: TObject);
 begin
   with TfrmListFTPServer.Create(nil) do
-  try
-    ShowModal;
-  finally
-    Free;
-  end;
+    try
+      ShowModal;
+    finally
+      Free;
+    end;
 end;
 
 procedure TMAINFORM.modificarClick(Sender: TObject);
@@ -1243,70 +1292,72 @@ begin
     cad := '(tipo is null) or (tipo=1)';
   end;
   with TfrmEstructura.Create(nil) do
-  try
-    tsAddNodo.TabVisible := False;
-    tseditNode.TabVisible := True;
-    pcTree.ActivePage := tseditNode;
-    if (UDM.tb_tree.FieldByName('tipo').AsInteger = 2) or (UDM.tb_tree.FieldByName('tipo').AsInteger = 3) then
-    begin
-      with cmdFunGen do
+    try
+      tsAddNodo.TabVisible := False;
+      tseditNode.TabVisible := True;
+      pcTree.ActivePage := tseditNode;
+      if (UDM.tb_tree.FieldByName('tipo').AsInteger = 2) or
+        (UDM.tb_tree.FieldByName('tipo').AsInteger = 3) then
+      begin
+        with cmdFunGen do
+        begin
+          Active := False;
+          SQL.Clear;
+          SQL.Add('select *  from cl_funcionesgen where idfunciones=' +
+            UDM.tb_tree.FieldByName('IdfunGeneral').AsString);
+          try
+            Active := True;
+          except
+          end;
+        end;
+        tsFunGen.TabVisible := True;
+        tsFuncionesEspecificas.TabVisible := True;
+        tsFacultades.TabVisible := True;
+      end;
+      with cmdPadres do
       begin
         Active := False;
         SQL.Clear;
-        SQL.Add('select *  from cl_funcionesgen where idfunciones=' + UDM.tb_tree.FieldByName('IdfunGeneral').AsString);
+        SQL.Add('select * from tb_tree where ' + cad + ' order by ID');
         try
           Active := True;
         except
         end;
       end;
-      tsFunGen.TabVisible := True;
-      tsFuncionesEspecificas.TabVisible := True;
-      tsFacultades.TabVisible := True;
+      ShowModal;
+    finally
+      Free;
     end;
-    with cmdPadres do
-    begin
-      Active := False;
-      SQL.Clear;
-      SQL.Add('select * from tb_tree where ' + cad + ' order by ID');
-      try
-        Active := True;
-      except
-      end;
-    end;
-    ShowModal;
-  finally
-    Free;
-  end;
 end;
 
 procedure TMAINFORM.P1Click(Sender: TObject);
 begin
   with TfrmDoc.Create(nil) do
-  try
-    ShowModal;
-  finally
-    Free;
-  end;
+    try
+      ShowModal;
+    finally
+      Free;
+    end;
 end;
 
 procedure TMAINFORM.P2Click(Sender: TObject);
 begin
   with TfrmCLprocesos.Create(nil) do
-  try
-    ShowModal;
-  finally
-    Free;
-  end;
+    try
+      ShowModal;
+    finally
+      Free;
+    end;
 end;
 
 procedure TMAINFORM.R1Click(Sender: TObject);
 begin
   with TfrmRepActArch.Create(nil) do
-  try
-    ShowModal;
-  finally
-    Free;
-  end;
+    try
+      ShowModal;
+    finally
+      Free;
+    end;
 end;
 
 procedure TMAINFORM.RemoveMDSeriesSubSeriesDMDR;
@@ -1323,43 +1374,43 @@ end;
 procedure TMAINFORM.S1Click(Sender: TObject);
 begin
   with TfrmCLSeries.Create(nil) do
-  try
-    MDSeriesSubSeriesDMDR;
-    ShowModal;
-  finally
-    Free;
-    RemoveMDSeriesSubSeriesDMDR
-  end;
+    try
+      MDSeriesSubSeriesDMDR;
+      ShowModal;
+    finally
+      Free;
+      RemoveMDSeriesSubSeriesDMDR
+    end;
 end;
 
 procedure TMAINFORM.S2Click(Sender: TObject);
 begin
   with TfrmCLSoporte.Create(nil) do
-  try
-    ShowModal;
-  finally
-    Free;
-  end;
+    try
+      ShowModal;
+    finally
+      Free;
+    end;
 end;
 
 procedure TMAINFORM.T1Click(Sender: TObject);
 begin
   with TfrmCLAcceso.Create(nil) do
-  try
-    ShowModal;
-  finally
-    Free;
-  end;
+    try
+      ShowModal;
+    finally
+      Free;
+    end;
 end;
 
 procedure TMAINFORM.T2Click(Sender: TObject);
 begin
   with TfrmCLTipoDoc.Create(nil) do
-  try
-    ShowModal;
-  finally
-    Free;
-  end;
+    try
+      ShowModal;
+    finally
+      Free;
+    end;
 end;
 
 procedure TMAINFORM.ToolButton1Click(Sender: TObject);
@@ -1368,11 +1419,11 @@ begin
   UDM.Tb_SeriesDispo.Active := True;
   UDM.Tb_SeriesDispo.FetchAll;
   with TfrmSeriesDisp.Create(nil) do
-  try
-    ShowModal;
-  finally
-    Free;
-  end;
+    try
+      ShowModal;
+    finally
+      Free;
+    end;
 end;
 
 procedure TMAINFORM.ToolButton5Click(Sender: TObject);
@@ -1381,7 +1432,8 @@ begin
     VarVirtual
   else
   begin
-    MessageDlg('No ha introducido ninguna serie documental el dia de hoy.', mtInformation, [mbOK], 0);
+    MessageDlg('No ha introducido ninguna serie documental el dia de hoy.',
+      mtInformation, [mbOK], 0);
     Exit;
   end;
 end;
@@ -1390,10 +1442,13 @@ procedure TMAINFORM.ToolButton6Click(Sender: TObject);
 begin
   if UDM.tb_Serietree.RecordCount = 0 then
   begin
-    MessageDlg('Debe identificar al menos una serie documental válida.', mtInformation, [mbOK], 0);
-    if MessageDlg('¿Desea consultar el listado de Series documentales identificadas?', mtConfirmation, [mbYes, mbNo], 0) = mrYes then
+    MessageDlg('Debe identificar al menos una serie documental válida.',
+      mtInformation, [mbOK], 0);
+    if MessageDlg
+      ('¿Desea consultar el listado de Series documentales identificadas?',
+      mtConfirmation, [mbYes, mbNo], 0) = mrYes then
       ToolButton1Click(Sender);
-    exit;
+    Exit;
   end;
   tsInputSeriesData.TabVisible := True;
   tsSeriesDef.TabVisible := False;
@@ -1401,4 +1456,3 @@ begin
 end;
 
 end.
-
