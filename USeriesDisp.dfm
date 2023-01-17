@@ -29,9 +29,6 @@ object frmSeriesDisp: TfrmSeriesDisp
     Caption = 'ToolBar1'
     Images = UDM.ILv1
     TabOrder = 0
-    ExplicitLeft = -1
-    ExplicitTop = -5
-    ExplicitWidth = 890
     object btnClose: TToolButton
       Left = 0
       Top = 0
@@ -58,6 +55,7 @@ object frmSeriesDisp: TfrmSeriesDisp
       ImageIndex = 1
       ParentShowHint = False
       ShowHint = True
+      OnClick = btnhlpClick
     end
   end
   object StatusBar1: TStatusBar
@@ -66,23 +64,19 @@ object frmSeriesDisp: TfrmSeriesDisp
     Width = 556
     Height = 19
     Panels = <>
-    ExplicitLeft = 248
-    ExplicitTop = 403
-    ExplicitWidth = 870
   end
   object Panel6: TPanel
     Left = 0
     Top = 37
     Width = 556
-    Height = 41
+    Height = 31
     Align = alTop
     TabOrder = 2
-    ExplicitWidth = 371
     object btnAsignVarVir: TSpeedButton
       Left = 1
       Top = 1
       Width = 136
-      Height = 39
+      Height = 29
       Hint = 'Asignar variable actual'
       Align = alLeft
       Glyph.Data = {
@@ -204,12 +198,13 @@ object frmSeriesDisp: TfrmSeriesDisp
       OnClick = btnAsignVarVirClick
       ExplicitLeft = 0
       ExplicitTop = -4
+      ExplicitHeight = 39
     end
     object cxDBNavigator3: TcxDBNavigator
       Left = 513
       Top = 1
       Width = 42
-      Height = 39
+      Height = 29
       Buttons.CustomButtons = <>
       Buttons.First.Visible = False
       Buttons.PriorPage.Visible = False
@@ -233,13 +228,13 @@ object frmSeriesDisp: TfrmSeriesDisp
       ParentShowHint = False
       ShowHint = True
       TabOrder = 0
-      ExplicitLeft = 328
+      ExplicitHeight = 39
     end
     object DBNavigator3: TDBNavigator
       Left = 137
       Top = 1
       Width = 376
-      Height = 39
+      Height = 29
       DataSource = UDM.dsTb_SeriesDispo
       VisibleButtons = [nbPrior, nbNext]
       Align = alClient
@@ -257,19 +252,18 @@ object frmSeriesDisp: TfrmSeriesDisp
       ParentShowHint = False
       ShowHint = True
       TabOrder = 1
-      ExplicitLeft = 131
-      ExplicitTop = -4
-      ExplicitWidth = 710
+      ExplicitHeight = 39
     end
   end
   object cxGrid1: TcxGrid
     Left = 0
-    Top = 78
+    Top = 68
     Width = 556
-    Height = 329
+    Height = 339
     Align = alClient
     TabOrder = 3
-    ExplicitTop = 72
+    ExplicitTop = 78
+    ExplicitHeight = 329
     object cxGrid1DBTableView1: TcxGridDBTableView
       Navigator.Buttons.CustomButtons = <>
       DataController.DataSource = UDM.dsTb_SeriesDispo

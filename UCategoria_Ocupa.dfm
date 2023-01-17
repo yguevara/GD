@@ -54,6 +54,7 @@ object frmCatOcupa: TfrmCatOcupa
       ImageIndex = 1
       ParentShowHint = False
       ShowHint = True
+      OnClick = btnhlpClick
     end
   end
   object StatusBar1: TStatusBar
@@ -98,8 +99,6 @@ object frmCatOcupa: TfrmCatOcupa
       ParentShowHint = False
       ShowHint = True
       TabOrder = 0
-      ExplicitLeft = 290
-      ExplicitTop = -4
     end
     object DBNavigator3: TDBNavigator
       Left = 1

@@ -1,12 +1,15 @@
 object frmVariables: TfrmVariables
   Left = 0
   Top = 0
-  Caption = 
-    'Clasificador de variables virtuales identifcadas en Series docum' +
-    'entales'
-  ClientHeight = 254
-  ClientWidth = 425
+  BorderStyle = bsDialog
+  Caption = 'Clasificador de variables virtuales'
+  ClientHeight = 220
+  ClientWidth = 364
   Color = clBtnFace
+  Constraints.MaxHeight = 249
+  Constraints.MaxWidth = 370
+  Constraints.MinHeight = 249
+  Constraints.MinWidth = 370
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
@@ -19,13 +22,14 @@ object frmVariables: TfrmVariables
   object ToolBar1: TToolBar
     Left = 0
     Top = 0
-    Width = 425
+    Width = 364
     Height = 37
     ButtonHeight = 34
     ButtonWidth = 31
     Caption = 'ToolBar1'
     Images = UDM.ILv1
     TabOrder = 0
+    ExplicitWidth = 425
     object btnClose: TToolButton
       Left = 0
       Top = 0
@@ -39,30 +43,32 @@ object frmVariables: TfrmVariables
     object ToolButton3: TToolButton
       Left = 31
       Top = 0
-      Width = 351
+      Width = 298
       Caption = 'ToolButton3'
       ImageIndex = 136
       Style = tbsSeparator
     end
     object btnhlp: TToolButton
-      Left = 382
+      Left = 329
       Top = 0
       Hint = 'Ayuda para manipular la interface actual'
       Caption = 'btnhlp'
       ImageIndex = 1
       ParentShowHint = False
       ShowHint = True
+      OnClick = btnhlpClick
     end
   end
   object Panel6: TPanel
     Left = 0
     Top = 37
-    Width = 425
+    Width = 364
     Height = 30
     Align = alTop
     TabOrder = 1
+    ExplicitWidth = 425
     object cxDBNavigator3: TcxDBNavigator
-      Left = 382
+      Left = 321
       Top = 1
       Width = 42
       Height = 28
@@ -87,12 +93,12 @@ object frmVariables: TfrmVariables
       InfoPanel.Visible = True
       Align = alRight
       TabOrder = 0
-      ExplicitHeight = 39
+      ExplicitLeft = 382
     end
     object DBNavigator3: TDBNavigator
       Left = 1
       Top = 1
-      Width = 381
+      Width = 320
       Height = 28
       DataSource = UDM.dscl_variables
       VisibleButtons = [nbPrior, nbNext, nbInsert, nbDelete, nbEdit, nbPost, nbCancel]
@@ -111,21 +117,25 @@ object frmVariables: TfrmVariables
       ParentShowHint = False
       ShowHint = True
       TabOrder = 1
-      ExplicitHeight = 39
+      ExplicitLeft = -5
+      ExplicitTop = -4
+      ExplicitWidth = 381
     end
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 235
-    Width = 425
+    Top = 201
+    Width = 364
     Height = 19
     Panels = <>
+    ExplicitLeft = 1
+    ExplicitTop = 214
   end
   object cxDBVerticalGrid6: TcxDBVerticalGrid
     Left = 0
     Top = 67
-    Width = 425
-    Height = 168
+    Width = 364
+    Height = 134
     Align = alClient
     OptionsView.ScrollBars = ssNone
     OptionsView.PaintStyle = psDelphi
@@ -151,8 +161,7 @@ object frmVariables: TfrmVariables
     Styles.StyleSheet = UDM.cxVerticalGridStyleSheetEggplant
     TabOrder = 3
     DataController.DataSource = UDM.dscl_variables
-    ExplicitTop = 78
-    ExplicitHeight = 157
+    ExplicitTop = 61
     Version = 1
     object cxDBVerticalGrid6IdVar: TcxDBEditorRow
       Properties.Caption = 'Identificador'
@@ -163,7 +172,7 @@ object frmVariables: TfrmVariables
       Version = 1
     end
     object cxDBVerticalGrid6NomVariable: TcxDBEditorRow
-      Properties.Caption = 'Nombre'
+      Properties.Caption = 'Variable'
       Properties.DataBinding.FieldName = 'NomVariable'
       ID = 1
       ParentID = -1

@@ -12,7 +12,7 @@ uses
   cxCustomData, cxFilter, cxData, cxDataStorage, dxDateRanges, Data.DB, cxDBData,
   cxGridCustomTableView, cxGridTableView, cxGridDBTableView, cxGridLevel,
   cxClasses, cxGridCustomView, cxGrid, cxDBLookupComboBox, JvExControls,
-  JvButton, JvTransparentButton;
+  JvButton, JvTransparentButton, cxCalendar;
 
 type
   TfrmCLSeries = class(TForm)
@@ -25,6 +25,22 @@ type
     AdvSplitter1: TAdvSplitter;
     pSubSeries: TPanel;
     cxDBVerticalGrid6: TcxDBVerticalGrid;
+    Panel1: TPanel;
+    cxDBNavigator1: TcxDBNavigator;
+    DBNavigator1: TDBNavigator;
+    Panel2: TPanel;
+    cxDBNavigator2: TcxDBNavigator;
+    DBNavigator2: TDBNavigator;
+    Panel3: TPanel;
+    Panel4: TPanel;
+    Panel5: TPanel;
+    cxGrid1: TcxGrid;
+    cxGrid1DBTableView1: TcxGridDBTableView;
+    cxGrid1Level1: TcxGridLevel;
+    cxGrid1DBTableView1codserie: TcxGridDBColumn;
+    cxGrid1DBTableView1serie: TcxGridDBColumn;
+    btnFunciones: TJvTransparentButton;
+    Timer1: TTimer;
     cxDBVerticalGrid6codserie: TcxDBEditorRow;
     cxDBVerticalGrid6codsubs: TcxDBEditorRow;
     cxDBVerticalGrid6subserie: TcxDBEditorRow;
@@ -36,32 +52,13 @@ type
     cxDBVerticalGrid6destino: TcxDBEditorRow;
     cxDBVerticalGrid6acceso: TcxDBEditorRow;
     cxDBVerticalGrid6soporte: TcxDBEditorRow;
-    cxDBVerticalGrid6frecuencia: TcxDBEditorRow;
-    cxDBVerticalGrid6tiempo: TcxDBEditorRow;
     cxDBVerticalGrid6observacion: TcxDBEditorRow;
     cxDBVerticalGrid6CategoryRow1: TcxCategoryRow;
     cxDBVerticalGrid6CategoryRow2: TcxCategoryRow;
-    cxDBVerticalGrid6CategoryRow5: TcxCategoryRow;
-    Panel1: TPanel;
-    cxDBNavigator1: TcxDBNavigator;
-    DBNavigator1: TDBNavigator;
-    Panel2: TPanel;
-    cxDBNavigator2: TcxDBNavigator;
-    DBNavigator2: TDBNavigator;
-    Panel3: TPanel;
-    Panel4: TPanel;
-    cxDBVerticalGrid6CategoryRow6: TcxCategoryRow;
-    Panel5: TPanel;
-    cxGrid1: TcxGrid;
-    cxGrid1DBTableView1: TcxGridDBTableView;
-    cxGrid1Level1: TcxGridLevel;
-    cxGrid1DBTableView1codserie: TcxGridDBColumn;
-    cxGrid1DBTableView1serie: TcxGridDBColumn;
-    btnFunciones: TJvTransparentButton;
-    Timer1: TTimer;
     procedure btnCloseClick(Sender: TObject);
     procedure btnFuncionesClick(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
+    procedure btnhlpClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -99,6 +96,11 @@ begin
     MessageDlg('Debe existir al menos una serie documental valida.', mtWarning, [mbOK], 0);
     Exit;
   end;
+end;
+
+procedure TfrmCLSeries.btnhlpClick(Sender: TObject);
+begin
+  UDM.ManagementHLP(Caption, Self.Handle);
 end;
 
 procedure TfrmCLSeries.Timer1Timer(Sender: TObject);

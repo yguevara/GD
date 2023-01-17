@@ -53,6 +53,7 @@ type
     procedure agregarfacClick(Sender: TObject);
     procedure editarfacClick(Sender: TObject);
     procedure DBNavigator3Click(Sender: TObject; Button: TNavigateBtn);
+    procedure btnhlpClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -123,6 +124,11 @@ begin
   UDM.cl_funcionesgen.SQL.Add('select idfunciones, funciones from cl_funcionesgen where( idcargo is null)and(ltrim(rtrim(idcargo))='')');
   if UDM.cl_funcionesgen.RecordCount = 0 then
 
+end;
+
+procedure TfrmCLCargo.btnhlpClick(Sender: TObject);
+begin
+  UDM.ManagementHLP(Caption, Self.Handle);
 end;
 
 procedure TfrmCLCargo.DBNavigator3Click(Sender: TObject; Button: TNavigateBtn);

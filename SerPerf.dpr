@@ -70,7 +70,7 @@ begin
   frmSplash.MueveBar(@frmSplash.Gauge1, 1);
   Application.CreateForm(TUDM, UDM);
   Application.CreateForm(TMAINFORM, MAINFORM);
-  Application.CreateForm(TfrmManagementFile, frmManagementFile);
+  //Application.CreateForm(TfrmManagementFile, frmManagementFile);
   Sleep(2000);
   frmSplash.Hide;
   frmSplash.Free;

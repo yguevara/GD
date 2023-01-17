@@ -31,6 +31,7 @@ type
     cxDBVerticalGrid6descripcion: TcxDBEditorRow;
     cxDBVerticalGrid6ListaDesplegable: TcxDBEditorRow;
     procedure btnCloseClick(Sender: TObject);
+    procedure btnhlpClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -50,6 +51,11 @@ uses
 procedure TfrmVariables.btnCloseClick(Sender: TObject);
 begin
   Close;
+end;
+
+procedure TfrmVariables.btnhlpClick(Sender: TObject);
+begin
+  UDM.ManagementHLP(Caption, Self.Handle);
 end;
 
 end.

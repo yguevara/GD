@@ -29,7 +29,6 @@ object frmManagemetArch: TfrmManagemetArch
     Caption = 'ToolBar1'
     Images = UDM.ILv1
     TabOrder = 0
-    ExplicitWidth = 371
     object btnClose: TToolButton
       Left = 0
       Top = 0
@@ -56,6 +55,7 @@ object frmManagemetArch: TfrmManagemetArch
       ImageIndex = 1
       ParentShowHint = False
       ShowHint = True
+      OnClick = btnhlpClick
     end
   end
   object Panel6: TPanel
@@ -65,7 +65,6 @@ object frmManagemetArch: TfrmManagemetArch
     Height = 41
     Align = alTop
     TabOrder = 1
-    ExplicitWidth = 371
     object cxDBNavigator3: TcxDBNavigator
       Left = 738
       Top = 1
@@ -94,8 +93,6 @@ object frmManagemetArch: TfrmManagemetArch
       ParentShowHint = False
       ShowHint = True
       TabOrder = 0
-      ExplicitLeft = 463
-      ExplicitTop = -4
     end
     object DBNavigator3: TDBNavigator
       Left = 1
@@ -119,8 +116,6 @@ object frmManagemetArch: TfrmManagemetArch
       ParentShowHint = False
       ShowHint = True
       TabOrder = 1
-      ExplicitLeft = 0
-      ExplicitTop = 6
     end
   end
   object StatusBar1: TStatusBar
@@ -130,9 +125,6 @@ object frmManagemetArch: TfrmManagemetArch
     Height = 19
     AutoHint = True
     Panels = <>
-    ExplicitLeft = -1
-    ExplicitTop = 327
-    ExplicitWidth = 505
   end
   object cxGrid1: TcxGrid
     Left = 0
@@ -141,10 +133,6 @@ object frmManagemetArch: TfrmManagemetArch
     Height = 254
     Align = alClient
     TabOrder = 3
-    ExplicitLeft = -1
-    ExplicitTop = 83
-    ExplicitWidth = 771
-    ExplicitHeight = 244
     object cxGrid1DBTableView1: TcxGridDBTableView
       Navigator.Buttons.ConfirmDelete = True
       Navigator.Buttons.CustomButtons = <>

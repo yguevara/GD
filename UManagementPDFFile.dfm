@@ -1,17 +1,12 @@
 object frmManagementProc: TfrmManagementProc
   Left = 0
   Top = 0
-  BorderStyle = bsDialog
   Caption = 
     'Gestiona procedimientos de calidad asociados al procedimiento ac' +
     'tual'
-  ClientHeight = 144
-  ClientWidth = 566
+  ClientHeight = 127
+  ClientWidth = 556
   Color = clBtnFace
-  Constraints.MaxHeight = 173
-  Constraints.MaxWidth = 572
-  Constraints.MinHeight = 173
-  Constraints.MinWidth = 572
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
@@ -22,8 +17,8 @@ object frmManagementProc: TfrmManagementProc
   PixelsPerInch = 96
   TextHeight = 13
   object btnFindInforme: TSpeedButton
-    Left = 506
-    Top = 59
+    Left = 501
+    Top = 58
     Width = 24
     Height = 25
     Hint = 'Abrir ficheros existentes'
@@ -33,8 +28,8 @@ object frmManagementProc: TfrmManagementProc
     OnClick = btnFindInformeClick
   end
   object lbl1: TLabel
-    Left = 24
-    Top = 40
+    Left = 20
+    Top = 45
     Width = 133
     Height = 13
     Caption = 'Camino o estado del fichero'
@@ -42,8 +37,8 @@ object frmManagementProc: TfrmManagementProc
   object tlbObject: TToolBar
     Left = 0
     Top = 0
-    Width = 566
-    Height = 29
+    Width = 556
+    Height = 33
     ButtonHeight = 30
     ButtonWidth = 31
     Caption = 'tlbObject'
@@ -69,16 +64,8 @@ object frmManagementProc: TfrmManagementProc
       ShowHint = True
       OnClick = btn3Click
     end
-    object btn1: TToolButton
-      Left = 62
-      Top = 0
-      Width = 8
-      Caption = 'btn1'
-      ImageIndex = 112
-      Style = tbsSeparator
-    end
     object btnViewInforme: TToolButton
-      Left = 70
+      Left = 62
       Top = 0
       Hint = 'Ver informe'
       Caption = 'btnViewInforme'
@@ -86,6 +73,14 @@ object frmManagementProc: TfrmManagementProc
       ParentShowHint = False
       ShowHint = True
       OnClick = btnViewInformeClick
+    end
+    object btn1: TToolButton
+      Left = 93
+      Top = 0
+      Width = 8
+      Caption = 'btn1'
+      ImageIndex = 112
+      Style = tbsSeparator
     end
     object btn2: TToolButton
       Left = 101
@@ -102,12 +97,13 @@ object frmManagementProc: TfrmManagementProc
       ImageIndex = 1
       ParentShowHint = False
       ShowHint = True
+      OnClick = btnhelpClick
     end
   end
   object statInformesGeo: TStatusBar
     Left = 0
-    Top = 125
-    Width = 566
+    Top = 108
+    Width = 556
     Height = 19
     AutoHint = True
     Panels = <>
@@ -115,7 +111,7 @@ object frmManagementProc: TfrmManagementProc
     ShowHint = True
   end
   object edt1: TEdit
-    Left = 24
+    Left = 20
     Top = 60
     Width = 481
     Height = 21
@@ -129,7 +125,7 @@ object frmManagementProc: TfrmManagementProc
   object Timer1: TTimer
     Interval = 500
     OnTimer = Timer1Timer
-    Left = 272
-    Top = 80
+    Left = 208
+    Top = 48
   end
 end

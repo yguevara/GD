@@ -49,6 +49,7 @@ object frmSelectFuncionG: TfrmSelectFuncionG
       ImageIndex = 1
       ParentShowHint = False
       ShowHint = True
+      OnClick = btnhlpClick
     end
   end
   object Panel6: TPanel
@@ -107,8 +108,6 @@ object frmSelectFuncionG: TfrmSelectFuncionG
       ParentShowHint = False
       ShowHint = True
       TabOrder = 1
-      ExplicitLeft = -5
-      ExplicitTop = -4
     end
   end
   object z: TcxGrid
@@ -118,6 +117,8 @@ object frmSelectFuncionG: TfrmSelectFuncionG
     Height = 262
     Align = alClient
     TabOrder = 3
+    ExplicitLeft = -1
+    ExplicitTop = 83
     object zDBTableView1: TcxGridDBTableView
       Navigator.Buttons.CustomButtons = <>
       DataController.DataSource = dscmdfun
@@ -125,7 +126,7 @@ object frmSelectFuncionG: TfrmSelectFuncionG
       DataController.Summary.FooterSummaryItems = <>
       DataController.Summary.SummaryGroups = <>
       OptionsView.GroupByBox = False
-      Styles.StyleSheet = UDM.GridTableViewStyleSheetRedWhiteandBlueVGA
+      Styles.StyleSheet = UDM.GridTableViewStyleSheetEggplant
       object zDBTableView1idfunciones: TcxGridDBColumn
         Caption = 'ID'
         DataBinding.FieldName = 'idfunciones'

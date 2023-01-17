@@ -43,6 +43,7 @@ type
       Button: TJvCapBtnStyle);
     procedure eliminarfunClick(Sender: TObject);
     procedure btnCloseClick(Sender: TObject);
+    procedure btnhlpClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -77,6 +78,11 @@ end;
 procedure TfrmSelectFuncionG.btnCloseClick(Sender: TObject);
 begin
   Close;
+end;
+
+procedure TfrmSelectFuncionG.btnhlpClick(Sender: TObject);
+begin
+  UDM.ManagementHLP(Caption, Self.Handle);
 end;
 
 procedure TfrmSelectFuncionG.eliminarfunClick(Sender: TObject);

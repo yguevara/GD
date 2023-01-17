@@ -22,7 +22,6 @@ object FVariablesAyuda: TFVariablesAyuda
     Align = alBottom
     TabOrder = 0
     OnResize = eesize
-    ExplicitWidth = 308
     object Button1: TButton
       Left = 112
       Top = 6
@@ -42,9 +41,6 @@ object FVariablesAyuda: TFVariablesAyuda
     Styles.Header = cxStyle1
     TabOrder = 1
     DataController.DataSource = UDM.dscl_variables
-    ExplicitTop = 42
-    ExplicitWidth = 308
-    ExplicitHeight = 227
     Version = 1
     object cxDBVerticalGrid1IdVar: TcxDBEditorRow
       Properties.Caption = 'ID Variable'
@@ -121,8 +117,6 @@ object FVariablesAyuda: TFVariablesAyuda
     Caption = 'ToolBar1'
     Images = UDM.ILv1
     TabOrder = 2
-    ExplicitTop = 47
-    ExplicitWidth = 450
     object btnClose: TToolButton
       Left = 0
       Top = 0
@@ -149,6 +143,7 @@ object FVariablesAyuda: TFVariablesAyuda
       ImageIndex = 1
       ParentShowHint = False
       ShowHint = True
+      OnClick = btnhlpClick
     end
   end
   object cxStyleRepository1: TcxStyleRepository

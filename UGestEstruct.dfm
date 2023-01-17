@@ -1,9 +1,14 @@
 object frmEstructura: TfrmEstructura
   Left = 0
   Top = 0
-  ClientHeight = 238
-  ClientWidth = 499
+  BorderStyle = bsDialog
+  ClientHeight = 248
+  ClientWidth = 509
   Color = clBtnFace
+  Constraints.MaxHeight = 277
+  Constraints.MaxWidth = 515
+  Constraints.MinHeight = 277
+  Constraints.MinWidth = 515
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
@@ -19,13 +24,14 @@ object frmEstructura: TfrmEstructura
   object ToolBar1: TToolBar
     Left = 0
     Top = 0
-    Width = 499
+    Width = 509
     Height = 37
     ButtonHeight = 34
     ButtonWidth = 31
     Caption = '`'
     Images = UDM.ILv1
     TabOrder = 0
+    ExplicitWidth = 499
     object btnClose: TToolButton
       Left = 0
       Top = 0
@@ -39,56 +45,64 @@ object frmEstructura: TfrmEstructura
     object ToolButton3: TToolButton
       Left = 31
       Top = 0
-      Width = 418
+      Width = 434
       Caption = 'ToolButton3'
       ImageIndex = 136
       Style = tbsSeparator
     end
     object btnhlp: TToolButton
-      Left = 449
+      Left = 465
       Top = 0
       Hint = 'Ayuda para manipular la interface actual'
       Caption = 'btnhlp'
       ImageIndex = 1
       ParentShowHint = False
       ShowHint = True
+      OnClick = btnhlpClick
     end
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 219
-    Width = 499
+    Top = 229
+    Width = 509
     Height = 19
     Panels = <>
+    ExplicitTop = 219
+    ExplicitWidth = 499
   end
   object pcTree: TcxPageControl
     Left = 0
     Top = 37
-    Width = 499
-    Height = 182
+    Width = 509
+    Height = 192
     Align = alClient
     TabOrder = 2
     Properties.ActivePage = tsAddNodo
     Properties.CustomButtons.Buttons = <>
-    ClientRectBottom = 178
+    ExplicitWidth = 499
+    ExplicitHeight = 182
+    ClientRectBottom = 188
     ClientRectLeft = 4
-    ClientRectRight = 495
+    ClientRectRight = 505
     ClientRectTop = 24
     object tsAddNodo: TcxTabSheet
       Caption = 'Gestionar estructura'
       ImageIndex = 0
+      ExplicitWidth = 491
+      ExplicitHeight = 154
       object Panel6: TPanel
         Left = 0
         Top = 0
-        Width = 491
-        Height = 41
+        Width = 501
+        Height = 31
         Align = alTop
         TabOrder = 0
+        ExplicitWidth = 491
         object SpeedButton1: TSpeedButton
           Left = 1
           Top = 1
           Width = 136
-          Height = 39
+          Height = 29
           Hint = 'Agregar elementos al Organigrama'
           Align = alLeft
           Glyph.Data = {
@@ -171,12 +185,13 @@ object frmEstructura: TfrmEstructura
           OnClick = SpeedButton1Click
           ExplicitLeft = 0
           ExplicitTop = -4
+          ExplicitHeight = 39
         end
         object btnFacultades: TJvTransparentButton
-          Left = 435
+          Left = 445
           Top = 1
           Width = 55
-          Height = 39
+          Height = 29
           Hint = 'facultades generales'
           Align = alRight
           DropDownMenu = PMFacultades
@@ -184,6 +199,7 @@ object frmEstructura: TfrmEstructura
           ParentShowHint = False
           ShowHint = True
           Transparent = False
+          Visible = False
           Glyph.Data = {
             460E0000424D460E00000000000036000000280000001E0000001E0000000100
             200000000000100E000000000000000000000000000000000000000000000000
@@ -300,14 +316,14 @@ object frmEstructura: TfrmEstructura
             000000000000000000000000000000000000000000000000000000000000A06B
             8E2BA6738CA0A5718EE8A26F8DF5A26F8DF6A4728CE7A6748D98A16B8D260000
             00000000000000000000}
-          ExplicitLeft = 445
           ExplicitTop = -4
+          ExplicitHeight = 39
         end
         object btnFunciones: TJvTransparentButton
-          Left = 380
+          Left = 390
           Top = 1
           Width = 55
-          Height = 39
+          Height = 29
           Hint = 'Funciones generales'
           Align = alRight
           DropDownMenu = PMFunciones
@@ -315,6 +331,7 @@ object frmEstructura: TfrmEstructura
           ParentShowHint = False
           ShowHint = True
           Transparent = False
+          Visible = False
           Glyph.Data = {
             460E0000424D460E00000000000036000000280000001E0000001E0000000100
             200000000000100E000000000000000000000000000000000000000000000000
@@ -433,12 +450,13 @@ object frmEstructura: TfrmEstructura
             00000000000000000000}
           ExplicitLeft = 374
           ExplicitTop = -4
+          ExplicitHeight = 39
         end
         object cxDBNavigator3: TcxDBNavigator
-          Left = 338
+          Left = 348
           Top = 1
           Width = 42
-          Height = 39
+          Height = 29
           Buttons.CustomButtons = <>
           Buttons.First.Visible = False
           Buttons.PriorPage.Visible = False
@@ -460,12 +478,14 @@ object frmEstructura: TfrmEstructura
           InfoPanel.Visible = True
           Align = alRight
           TabOrder = 0
+          ExplicitLeft = 338
+          ExplicitHeight = 39
         end
         object DBNavigator3: TDBNavigator
           Left = 137
           Top = 1
-          Width = 201
-          Height = 39
+          Width = 211
+          Height = 29
           DataSource = UDM.dstb_tree
           VisibleButtons = [nbPost, nbCancel]
           Align = alClient
@@ -483,19 +503,19 @@ object frmEstructura: TfrmEstructura
           ParentShowHint = False
           ShowHint = True
           TabOrder = 1
-          ExplicitLeft = 131
-          ExplicitTop = -4
+          ExplicitWidth = 201
+          ExplicitHeight = 39
         end
       end
       object Panel1: TPanel
         Left = 0
-        Top = 41
-        Width = 491
+        Top = 31
+        Width = 501
         Height = 114
         Align = alTop
         BorderStyle = bsSingle
         TabOrder = 1
-        ExplicitTop = 38
+        ExplicitTop = 36
         object Label2: TLabel
           Left = 18
           Top = 18
@@ -532,6 +552,8 @@ object frmEstructura: TfrmEstructura
     object tseditNode: TcxTabSheet
       Caption = 'Modificar'
       ImageIndex = 1
+      ExplicitWidth = 491
+      ExplicitHeight = 154
       object Label3: TLabel
         Left = 20
         Top = 50
@@ -556,15 +578,16 @@ object frmEstructura: TfrmEstructura
       object Panel2: TPanel
         Left = 0
         Top = 0
-        Width = 491
-        Height = 41
+        Width = 501
+        Height = 31
         Align = alTop
         TabOrder = 0
+        ExplicitWidth = 491
         object cxDBNavigator1: TcxDBNavigator
-          Left = 448
+          Left = 458
           Top = 1
           Width = 42
-          Height = 39
+          Height = 29
           Buttons.CustomButtons = <>
           Buttons.First.Visible = False
           Buttons.PriorPage.Visible = False
@@ -586,16 +609,20 @@ object frmEstructura: TfrmEstructura
           InfoPanel.Visible = True
           Align = alRight
           TabOrder = 0
+          ExplicitLeft = 448
+          ExplicitHeight = 39
         end
         object DBNavigator1: TDBNavigator
           Left = 1
           Top = 1
-          Width = 447
-          Height = 39
+          Width = 457
+          Height = 29
           DataSource = UDM.dstb_tree
           VisibleButtons = [nbPost, nbCancel]
           Align = alClient
           TabOrder = 1
+          ExplicitWidth = 447
+          ExplicitHeight = 39
         end
       end
       object edtCodigoMod: TcxDBTextEdit
@@ -635,15 +662,18 @@ object frmEstructura: TfrmEstructura
       Caption = 'Funciones Generales'
       ImageIndex = 4
       TabVisible = False
+      ExplicitWidth = 491
+      ExplicitHeight = 154
       object Panel5: TPanel
         Left = 0
         Top = 0
-        Width = 491
+        Width = 501
         Height = 41
         Align = alTop
         TabOrder = 0
+        ExplicitWidth = 491
         object JvTransparentButton1: TJvTransparentButton
-          Left = 435
+          Left = 445
           Top = 1
           Width = 55
           Height = 39
@@ -770,10 +800,11 @@ object frmEstructura: TfrmEstructura
             8D1DA2708F70AA7E9CCEA67997F3A47493F9A27393FAA57494F8A67997F2A97E
             9DC6A0708F69A3708F1900000000000000000000000000000000000000000000
             00000000000000000000}
+          ExplicitLeft = 435
           ExplicitTop = -4
         end
         object cxDBNavigator5: TcxDBNavigator
-          Left = 393
+          Left = 403
           Top = 1
           Width = 42
           Height = 39
@@ -798,6 +829,7 @@ object frmEstructura: TfrmEstructura
           InfoPanel.Visible = True
           Align = alRight
           TabOrder = 0
+          ExplicitLeft = 393
         end
       end
       object cxDBRichEdit1: TcxDBRichEdit
@@ -809,22 +841,27 @@ object frmEstructura: TfrmEstructura
         Properties.ScrollBars = ssVertical
         Properties.VisibleLineCount = 10
         TabOrder = 1
-        Width = 491
+        ExplicitWidth = 491
+        ExplicitHeight = 113
+        Width = 501
       end
     end
     object tsFuncionesEspecificas: TcxTabSheet
       Caption = 'Funciones Especificas'
       ImageIndex = 2
       TabVisible = False
+      ExplicitWidth = 491
+      ExplicitHeight = 154
       object Panel3: TPanel
         Left = 0
         Top = 0
-        Width = 491
+        Width = 501
         Height = 41
         Align = alTop
         TabOrder = 0
+        ExplicitWidth = 491
         object cxDBNavigator2: TcxDBNavigator
-          Left = 448
+          Left = 458
           Top = 1
           Width = 42
           Height = 39
@@ -849,16 +886,18 @@ object frmEstructura: TfrmEstructura
           InfoPanel.Visible = True
           Align = alRight
           TabOrder = 0
+          ExplicitLeft = 448
         end
         object DBNavigator2: TDBNavigator
           Left = 1
           Top = 1
-          Width = 447
+          Width = 457
           Height = 39
           DataSource = UDM.dstb_tree
           VisibleButtons = [nbEdit, nbPost, nbCancel]
           Align = alClient
           TabOrder = 1
+          ExplicitWidth = 447
         end
       end
       object dbFunEsp: TcxDBRichEdit
@@ -868,23 +907,28 @@ object frmEstructura: TfrmEstructura
         DataBinding.DataField = 'funEspecifica'
         DataBinding.DataSource = UDM.dstb_tree
         TabOrder = 1
-        Height = 113
-        Width = 491
+        ExplicitWidth = 491
+        ExplicitHeight = 113
+        Height = 123
+        Width = 501
       end
     end
     object tsFacultades: TcxTabSheet
       Caption = 'Facultades'
       ImageIndex = 3
       TabVisible = False
+      ExplicitWidth = 491
+      ExplicitHeight = 154
       object Panel4: TPanel
         Left = 0
         Top = 0
-        Width = 491
+        Width = 501
         Height = 41
         Align = alTop
         TabOrder = 0
+        ExplicitWidth = 491
         object cxDBNavigator4: TcxDBNavigator
-          Left = 448
+          Left = 458
           Top = 1
           Width = 42
           Height = 39
@@ -909,16 +953,18 @@ object frmEstructura: TfrmEstructura
           InfoPanel.Visible = True
           Align = alRight
           TabOrder = 0
+          ExplicitLeft = 448
         end
         object DBNavigator4: TDBNavigator
           Left = 1
           Top = 1
-          Width = 447
+          Width = 457
           Height = 39
           DataSource = UDM.dstb_tree
           VisibleButtons = [nbEdit, nbPost, nbCancel]
           Align = alClient
           TabOrder = 1
+          ExplicitWidth = 447
         end
       end
       object dbreFacultades: TcxDBRichEdit
@@ -928,8 +974,10 @@ object frmEstructura: TfrmEstructura
         DataBinding.DataField = 'Facultades'
         DataBinding.DataSource = UDM.dstb_tree
         TabOrder = 1
-        Height = 113
-        Width = 491
+        ExplicitWidth = 491
+        ExplicitHeight = 113
+        Height = 123
+        Width = 501
       end
     end
   end

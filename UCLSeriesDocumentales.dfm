@@ -69,6 +69,7 @@ object frmCLSeries: TfrmCLSeries
       ImageIndex = 1
       ParentShowHint = False
       ShowHint = True
+      OnClick = btnhlpClick
     end
   end
   object StatusBar1: TStatusBar
@@ -119,7 +120,6 @@ object frmCLSeries: TfrmCLSeries
         InfoPanel.Visible = True
         Align = alRight
         TabOrder = 0
-        ExplicitHeight = 39
       end
       object DBNavigator2: TDBNavigator
         Left = 1
@@ -143,9 +143,6 @@ object frmCLSeries: TfrmCLSeries
         ParentShowHint = False
         ShowHint = True
         TabOrder = 1
-        ExplicitLeft = -5
-        ExplicitTop = -4
-        ExplicitHeight = 39
       end
     end
     object Panel4: TPanel
@@ -171,8 +168,6 @@ object frmCLSeries: TfrmCLSeries
       Height = 364
       Align = alClient
       TabOrder = 2
-      ExplicitTop = 66
-      ExplicitHeight = 353
       object cxGrid1DBTableView1: TcxGridDBTableView
         Navigator.Buttons.ConfirmDelete = True
         Navigator.Buttons.CustomButtons = <>
@@ -226,7 +221,7 @@ object frmCLSeries: TfrmCLSeries
       Height = 364
       Align = alClient
       OptionsView.PaintStyle = psDelphi
-      OptionsView.RowHeaderWidth = 215
+      OptionsView.RowHeaderWidth = 150
       Navigator.Buttons.CustomButtons = <>
       Navigator.Buttons.First.Hint = 'Primero'
       Navigator.Buttons.PriorPage.Visible = False
@@ -248,12 +243,9 @@ object frmCLSeries: TfrmCLSeries
       Styles.StyleSheet = UDM.cxVerticalGridStyleSheetEggplant
       TabOrder = 0
       DataController.DataSource = UDM.dscl_subseries
-      ExplicitTop = 66
-      ExplicitHeight = 353
+      DataController.GridMode = True
       Version = 1
       object cxDBVerticalGrid6codserie: TcxDBEditorRow
-        Height = 21
-        Properties.Caption = 'C'#243'digo'
         Properties.DataBinding.FieldName = 'codserie'
         Visible = False
         ID = 0
@@ -261,89 +253,82 @@ object frmCLSeries: TfrmCLSeries
         Index = 0
         Version = 1
       end
-      object cxDBVerticalGrid6codsubs: TcxDBEditorRow
-        Properties.Caption = 'C'#243'digo'
-        Properties.DataBinding.FieldName = 'codsubs'
+      object cxDBVerticalGrid6CategoryRow1: TcxCategoryRow
+        Properties.Caption = 'DATOS GENERALES'
         ID = 1
         ParentID = -1
         Index = 1
         Version = 1
       end
-      object cxDBVerticalGrid6subserie: TcxDBEditorRow
-        Properties.Caption = 'Nombre'
-        Properties.DataBinding.FieldName = 'subserie'
+      object cxDBVerticalGrid6codsubs: TcxDBEditorRow
+        Properties.Caption = 'C'#243'digo'
+        Properties.DataBinding.FieldName = 'codsubs'
         ID = 2
-        ParentID = -1
-        Index = 2
+        ParentID = 1
+        Index = 0
         Version = 1
       end
       object cxDBVerticalGrid6etiqueta: TcxDBEditorRow
         Properties.Caption = 'Etiqueta'
         Properties.DataBinding.FieldName = 'etiqueta'
         ID = 3
-        ParentID = -1
-        Index = 3
+        ParentID = 1
+        Index = 1
         Version = 1
       end
-      object cxDBVerticalGrid6CategoryRow2: TcxCategoryRow
-        Properties.Caption = 'RETARDO DOCUMENTAL'
+      object cxDBVerticalGrid6subserie: TcxDBEditorRow
+        Properties.Caption = 'Nombre'
+        Properties.DataBinding.FieldName = 'subserie'
         ID = 4
-        ParentID = -1
-        Index = 4
+        ParentID = 1
+        Index = 2
         Version = 1
       end
       object cxDBVerticalGrid6tipodoc: TcxDBEditorRow
-        Properties.Caption = 'Tipo de Documento'
+        Height = 17
+        Properties.Caption = 'Tipo de documento'
         Properties.EditPropertiesClassName = 'TcxLookupComboBoxProperties'
         Properties.EditProperties.KeyFieldNames = 'Idtipodoc'
         Properties.EditProperties.ListColumns = <
           item
-            Caption = 'Tipo'
-            HeaderAlignment = taCenter
+            Caption = 'Tipo de Documento'
             FieldName = 'Tipodoc'
           end>
         Properties.EditProperties.ListSource = UDM.dscl_tipodoc
         Properties.DataBinding.FieldName = 'tipodoc'
         ID = 5
-        ParentID = 4
-        Index = 0
-        Version = 1
-      end
-      object cxDBVerticalGrid6CategoryRow1: TcxCategoryRow
-        Properties.Caption = 'TRD'
-        ID = 6
-        ParentID = 4
-        Index = 1
+        ParentID = -1
+        Index = 2
         Version = 1
       end
       object cxDBVerticalGrid6ayear: TcxDBEditorRow
         Properties.Caption = 'A'#241'o'
         Properties.DataBinding.FieldName = 'ayear'
-        ID = 7
-        ParentID = 6
-        Index = 0
+        ID = 6
+        ParentID = -1
+        Index = 3
         Version = 1
       end
-      object cxDBVerticalGrid6CategoryRow6: TcxCategoryRow
-        Properties.Caption = 'TRD POR TIPOS DE ARCHIVOS'
-        ID = 8
-        ParentID = 6
-        Index = 1
+      object cxDBVerticalGrid6CategoryRow2: TcxCategoryRow
+        Properties.Caption = 'RETARDO'
+        ID = 7
+        ParentID = -1
+        Index = 4
         Version = 1
       end
       object cxDBVerticalGrid6tgestion: TcxDBEditorRow
-        Properties.Caption = 'Gesti'#243'n'
+        Properties.Caption = 'Archivo de Gesti'#243'n'
         Properties.DataBinding.FieldName = 'tgestion'
-        ID = 9
-        ParentID = 8
+        ID = 8
+        ParentID = 7
         Index = 0
         Version = 1
       end
       object cxDBVerticalGrid6tcentral: TcxDBEditorRow
-        Properties.Caption = 'Central'
+        Properties.Caption = 'Archivo Central'
         Properties.DataBinding.FieldName = 'tcentral'
-        ID = 10
-        ParentID = 8
+        ID = 9
+        ParentID = 7
         Index = 1
         Version = 1
       end
@@ -353,14 +338,13 @@ object frmCLSeries: TfrmCLSeries
         Properties.EditProperties.KeyFieldNames = 'IdDestino'
         Properties.EditProperties.ListColumns = <
           item
-            Caption = 'Destino Documental'
+            Caption = 'Destino'
             HeaderAlignment = taCenter
-            SortOrder = soAscending
             FieldName = 'NombreDestino'
           end>
         Properties.EditProperties.ListSource = UDM.dscl_destino
         Properties.DataBinding.FieldName = 'destino'
-        ID = 11
+        ID = 10
         ParentID = -1
         Index = 5
         Version = 1
@@ -371,13 +355,13 @@ object frmCLSeries: TfrmCLSeries
         Properties.EditProperties.KeyFieldNames = 'Idacceso'
         Properties.EditProperties.ListColumns = <
           item
-            Caption = 'Tipo de Acceso'
+            Caption = 'Acceso'
             HeaderAlignment = taCenter
             FieldName = 'NombreAcceso'
           end>
         Properties.EditProperties.ListSource = UDM.dscl_acceso
         Properties.DataBinding.FieldName = 'acceso'
-        ID = 12
+        ID = 11
         ParentID = -1
         Index = 6
         Version = 1
@@ -394,49 +378,20 @@ object frmCLSeries: TfrmCLSeries
           end>
         Properties.EditProperties.ListSource = UDM.dscl_soporte
         Properties.DataBinding.FieldName = 'soporte'
-        ID = 13
+        ID = 12
         ParentID = -1
         Index = 7
         Version = 1
       end
-      object cxDBVerticalGrid6CategoryRow5: TcxCategoryRow
-        Properties.Caption = 'FRECUENCIA'
-        ID = 14
-        ParentID = -1
-        Index = 8
-        Version = 1
-      end
-      object cxDBVerticalGrid6frecuencia: TcxDBEditorRow
-        Properties.Caption = 'Frecuencia'
-        Properties.EditPropertiesClassName = 'TcxLookupComboBoxProperties'
-        Properties.EditProperties.KeyFieldNames = 'Idfrecuencia'
-        Properties.EditProperties.ListColumns = <
-          item
-            Caption = 'Frecuencia'
-            HeaderAlignment = taCenter
-            FieldName = 'NombreFrecuencia'
-          end>
-        Properties.EditProperties.ListSource = UDM.dscl_frecuencia
-        Properties.DataBinding.FieldName = 'frecuencia'
-        ID = 15
-        ParentID = 14
-        Index = 0
-        Version = 1
-      end
-      object cxDBVerticalGrid6tiempo: TcxDBEditorRow
-        Properties.Caption = 'Tiempo'
-        Properties.DataBinding.FieldName = 'tiempo'
-        ID = 16
-        ParentID = 14
-        Index = 1
-        Version = 1
-      end
       object cxDBVerticalGrid6observacion: TcxDBEditorRow
         Properties.Caption = 'Observaci'#243'n'
+        Properties.EditPropertiesClassName = 'TcxBlobEditProperties'
+        Properties.EditProperties.BlobEditKind = bekMemo
+        Properties.EditProperties.PopupHeight = 250
         Properties.DataBinding.FieldName = 'observacion'
-        ID = 17
+        ID = 13
         ParentID = -1
-        Index = 9
+        Index = 8
         Version = 1
       end
     end
@@ -605,7 +560,6 @@ object frmCLSeries: TfrmCLSeries
         InfoPanel.Visible = True
         Align = alRight
         TabOrder = 0
-        ExplicitHeight = 39
       end
       object DBNavigator1: TDBNavigator
         Left = 1
@@ -629,7 +583,6 @@ object frmCLSeries: TfrmCLSeries
         ParentShowHint = False
         ShowHint = True
         TabOrder = 1
-        ExplicitHeight = 39
       end
     end
     object Panel3: TPanel

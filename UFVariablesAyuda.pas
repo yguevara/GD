@@ -31,6 +31,7 @@ type
     procedure eesize(Sender: TObject);
     procedure SpeedButton2Click(Sender: TObject);
     procedure btnCloseClick(Sender: TObject);
+    procedure btnhlpClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -63,6 +64,11 @@ end;
 procedure TFVariablesAyuda.btnCloseClick(Sender: TObject);
 begin
   Close;
+end;
+
+procedure TFVariablesAyuda.btnhlpClick(Sender: TObject);
+begin
+  UDM.ManagementHLP(Caption, Self.Handle);
 end;
 
 procedure TFVariablesAyuda.eesize(Sender: TObject);

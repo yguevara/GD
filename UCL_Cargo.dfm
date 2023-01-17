@@ -54,6 +54,7 @@ object frmCLCargo: TfrmCLCargo
       ImageIndex = 1
       ParentShowHint = False
       ShowHint = True
+      OnClick = btnhlpClick
     end
   end
   object StatusBar1: TStatusBar
@@ -372,7 +373,6 @@ object frmCLCargo: TfrmCLCargo
         InfoPanel.Visible = True
         Align = alRight
         TabOrder = 0
-        ExplicitHeight = 39
       end
       object DBNavigator3: TDBNavigator
         Left = 1
@@ -397,7 +397,6 @@ object frmCLCargo: TfrmCLCargo
         ShowHint = True
         TabOrder = 1
         OnClick = DBNavigator3Click
-        ExplicitHeight = 39
       end
     end
     object Panel8: TPanel

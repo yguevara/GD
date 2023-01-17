@@ -85,6 +85,7 @@ type
     procedure eliminarfunClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure dstb_treeDataChange(Sender: TObject; Field: TField);
+    procedure btnhlpClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -131,6 +132,11 @@ end;
 procedure TfrmEstructura.btnCloseClick(Sender: TObject);
 begin
   Close;
+end;
+
+procedure TfrmEstructura.btnhlpClick(Sender: TObject);
+begin
+  UDM.ManagementHLP(Caption, Self.Handle);
 end;
 
 function TfrmEstructura.checkTreeState: Boolean;
@@ -245,6 +251,11 @@ end;
 procedure TfrmEstructura.SpeedButton1Click(Sender: TObject);
 begin
   UDM.AddBlankNode;
+  if tsAddNodo.TabVisible then
+  begin
+    edtEtiqueta.Focused;
+    edtEtiqueta.SetFocus;
+  end;
 end;
 
 end.

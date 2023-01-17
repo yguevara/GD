@@ -24,8 +24,6 @@ object FEntrada: TFEntrada
     Align = alClient
     Caption = ' '
     TabOrder = 0
-    ExplicitWidth = 684
-    ExplicitHeight = 281
     object Splitter1: TSplitter
       Left = 291
       Top = 1
@@ -54,8 +52,6 @@ object FEntrada: TFEntrada
       TabOrder = 0
       OnMouseDown = cxDBVerticalGrid1MouseDown
       DataController.DataSource = UDM.Dtb_VirtualVar
-      ExplicitLeft = 2
-      ExplicitTop = -4
       Version = 1
       object iv1: TcxDBEditorRow
         Visible = False
@@ -155,8 +151,6 @@ object FEntrada: TFEntrada
       TabOrder = 1
       Visible = False
       OnResize = Panel2Resize
-      ExplicitLeft = 384
-      ExplicitHeight = 279
       object DBGrid1: TDBGrid
         Left = 41
         Top = 25
@@ -186,7 +180,6 @@ object FEntrada: TFEntrada
         Align = alLeft
         TabOrder = 0
         OnResize = Panel3Resize
-        ExplicitTop = 21
         object SpeedButton3: TSpeedButton
           Left = 1
           Top = 33
@@ -385,7 +378,6 @@ object FEntrada: TFEntrada
         ParentBackground = False
         ParentFont = False
         TabOrder = 2
-        ExplicitTop = -5
       end
       object Panel4: TPanel
         Left = 47
@@ -413,7 +405,6 @@ object FEntrada: TFEntrada
     Caption = 'ToolBar1'
     Images = UDM.ILv1
     TabOrder = 1
-    ExplicitWidth = 684
     object ToolButton6: TToolButton
       Left = 0
       Top = 0
@@ -487,19 +478,20 @@ object FEntrada: TFEntrada
     object ToolButton3: TToolButton
       Left = 156
       Top = 0
-      Width = 293
+      Width = 405
       Caption = 'ToolButton3'
       ImageIndex = 136
       Style = tbsSeparator
     end
     object btnhlp: TToolButton
-      Left = 449
+      Left = 561
       Top = 0
       Hint = 'Ayuda para manipular la interface actual'
       Caption = 'btnhlp'
       ImageIndex = 1
       ParentShowHint = False
       ShowHint = True
+      OnClick = btnhlpClick
     end
   end
   object StatusBar1: TStatusBar
@@ -508,8 +500,6 @@ object FEntrada: TFEntrada
     Width = 596
     Height = 19
     Panels = <>
-    ExplicitTop = 318
-    ExplicitWidth = 684
   end
   object cxStyleRepository1: TcxStyleRepository
     Left = 472

@@ -27,6 +27,7 @@ type
     cxDBNavigator3: TcxDBNavigator;
     DBNavigator3: TDBNavigator;
     procedure btnCloseClick(Sender: TObject);
+    procedure btnhlpClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -46,6 +47,11 @@ uses
 procedure TfrmCLAcceso.btnCloseClick(Sender: TObject);
 begin
   Close;
+end;
+
+procedure TfrmCLAcceso.btnhlpClick(Sender: TObject);
+begin
+  UDM.ManagementHLP(Caption, Self.Handle);
 end;
 
 end.

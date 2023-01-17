@@ -24,7 +24,6 @@ object frmListEspec: TfrmListEspec
     Caption = 'ToolBar1'
     Images = UDM.ILv1
     TabOrder = 0
-    ExplicitWidth = 371
     object btnClose: TToolButton
       Left = 0
       Top = 0
@@ -51,6 +50,7 @@ object frmListEspec: TfrmListEspec
       ImageIndex = 1
       ParentShowHint = False
       ShowHint = True
+      OnClick = btnhlpClick
     end
   end
   object Panel6: TPanel
@@ -60,7 +60,6 @@ object frmListEspec: TfrmListEspec
     Height = 41
     Align = alTop
     TabOrder = 1
-    ExplicitWidth = 371
     object cxDBNavigator3: TcxDBNavigator
       Left = 813
       Top = 1
@@ -89,7 +88,6 @@ object frmListEspec: TfrmListEspec
       ParentShowHint = False
       ShowHint = True
       TabOrder = 0
-      ExplicitLeft = 328
     end
     object DBNavigator3: TDBNavigator
       Left = 1
@@ -113,8 +111,6 @@ object frmListEspec: TfrmListEspec
       ParentShowHint = False
       ShowHint = True
       TabOrder = 1
-      ExplicitLeft = -5
-      ExplicitTop = -4
     end
   end
   object cxGrid1: TcxGrid
@@ -124,8 +120,6 @@ object frmListEspec: TfrmListEspec
     Height = 134
     Align = alClient
     TabOrder = 2
-    ExplicitLeft = 104
-    ExplicitTop = 72
     object cxGrid1DBTableView1: TcxGridDBTableView
       Navigator.Buttons.ConfirmDelete = True
       Navigator.Buttons.CustomButtons = <>
@@ -216,7 +210,5 @@ object frmListEspec: TfrmListEspec
     Width = 856
     Height = 19
     Panels = <>
-    ExplicitLeft = 1
-    ExplicitWidth = 371
   end
 end

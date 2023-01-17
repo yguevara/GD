@@ -24,7 +24,6 @@ object frmListFTPServer: TfrmListFTPServer
     Caption = '`'
     Images = UDM.ILv1
     TabOrder = 0
-    ExplicitWidth = 953
     object btnClose: TToolButton
       Left = 0
       Top = 0
@@ -61,8 +60,6 @@ object frmListFTPServer: TfrmListFTPServer
     Height = 210
     Align = alClient
     TabOrder = 1
-    ExplicitLeft = -1
-    ExplicitTop = 72
     object cxGrid1DBTableView1: TcxGridDBTableView
       Navigator.Buttons.ConfirmDelete = True
       Navigator.Buttons.CustomButtons = <>
@@ -144,7 +141,6 @@ object frmListFTPServer: TfrmListFTPServer
     Width = 700
     Height = 19
     Panels = <>
-    ExplicitWidth = 953
   end
   object Panel6: TPanel
     Left = 0
@@ -153,7 +149,6 @@ object frmListFTPServer: TfrmListFTPServer
     Height = 30
     Align = alTop
     TabOrder = 3
-    ExplicitWidth = 953
     object cxDBNavigator3: TcxDBNavigator
       Left = 657
       Top = 1
@@ -182,7 +177,6 @@ object frmListFTPServer: TfrmListFTPServer
       ParentShowHint = False
       ShowHint = True
       TabOrder = 0
-      ExplicitLeft = 910
     end
     object DBNavigator3: TDBNavigator
       Left = 1
@@ -206,7 +200,6 @@ object frmListFTPServer: TfrmListFTPServer
       ParentShowHint = False
       ShowHint = True
       TabOrder = 1
-      ExplicitWidth = 909
     end
   end
 end

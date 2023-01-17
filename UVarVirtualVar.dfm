@@ -3,8 +3,12 @@ object frmVarVirtualVar: TfrmVarVirtualVar
   Top = 0
   Caption = 'Variables asignadas a la Serie documental'
   ClientHeight = 394
-  ClientWidth = 492
+  ClientWidth = 573
   Color = clBtnFace
+  Constraints.MaxHeight = 433
+  Constraints.MaxWidth = 589
+  Constraints.MinHeight = 433
+  Constraints.MinWidth = 589
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
@@ -17,7 +21,7 @@ object frmVarVirtualVar: TfrmVarVirtualVar
   object ToolBar1: TToolBar
     Left = 0
     Top = 0
-    Width = 492
+    Width = 573
     Height = 37
     ButtonHeight = 34
     ButtonWidth = 31
@@ -35,34 +39,34 @@ object frmVarVirtualVar: TfrmVarVirtualVar
     object ToolButton3: TToolButton
       Left = 31
       Top = 0
-      Width = 354
+      Width = 499
       Caption = 'ToolButton3'
       ImageIndex = 136
       Style = tbsSeparator
     end
     object btnhlp: TToolButton
-      Left = 385
+      Left = 530
       Top = 0
       Hint = 'Ayuda para manipular la interface actual'
       Caption = 'btnhlp'
       ImageIndex = 1
       ParentShowHint = False
       ShowHint = True
+      OnClick = btnhlpClick
     end
   end
   object Panel6: TPanel
     Left = 0
     Top = 37
-    Width = 492
-    Height = 41
+    Width = 573
+    Height = 31
     Align = alTop
     TabOrder = 1
-    ExplicitWidth = 458
     object btnProp: TSpeedButton
       Left = 137
       Top = 1
       Width = 136
-      Height = 39
+      Height = 29
       Hint = 'Propiedades de la variable actual'
       Align = alLeft
       Glyph.Data = {
@@ -145,12 +149,13 @@ object frmVarVirtualVar: TfrmVarVirtualVar
       OnClick = btnPropClick
       ExplicitLeft = 143
       ExplicitTop = 2
+      ExplicitHeight = 39
     end
     object btnAddVar: TSpeedButton
       Left = 1
       Top = 1
       Width = 136
-      Height = 39
+      Height = 29
       Hint = 'Agregar variables'
       Align = alLeft
       Glyph.Data = {
@@ -233,12 +238,13 @@ object frmVarVirtualVar: TfrmVarVirtualVar
       OnClick = btnAddVarClick
       ExplicitLeft = 0
       ExplicitTop = 2
+      ExplicitHeight = 39
     end
     object cxDBNavigator3: TcxDBNavigator
-      Left = 449
+      Left = 530
       Top = 1
       Width = 42
-      Height = 39
+      Height = 29
       Buttons.CustomButtons = <>
       Buttons.First.Visible = False
       Buttons.PriorPage.Visible = False
@@ -264,8 +270,8 @@ object frmVarVirtualVar: TfrmVarVirtualVar
     object DBNavigator3: TDBNavigator
       Left = 273
       Top = 1
-      Width = 176
-      Height = 39
+      Width = 257
+      Height = 29
       DataSource = UDM.dscl_VarSubserie
       VisibleButtons = [nbDelete, nbPost, nbCancel]
       Align = alClient
@@ -283,19 +289,15 @@ object frmVarVirtualVar: TfrmVarVirtualVar
       ParentShowHint = False
       ShowHint = True
       TabOrder = 1
-      ExplicitLeft = 267
-      ExplicitTop = 2
     end
   end
   object cxGrid1: TcxGrid
     Left = 0
-    Top = 78
-    Width = 492
-    Height = 297
+    Top = 68
+    Width = 573
+    Height = 307
     Align = alClient
     TabOrder = 2
-    ExplicitLeft = -1
-    ExplicitTop = 83
     object cxGrid1DBTableView1: TcxGridDBTableView
       Navigator.Buttons.ConfirmDelete = True
       Navigator.Buttons.CustomButtons = <>
@@ -350,18 +352,16 @@ object frmVarVirtualVar: TfrmVarVirtualVar
   object StatusBar1: TStatusBar
     Left = 0
     Top = 375
-    Width = 492
+    Width = 573
     Height = 19
     Panels = <>
-    ExplicitLeft = 1
-    ExplicitTop = 381
   end
   object jcpVarList: TJvCaptionPanel
     Left = 0
     Top = 84
-    Width = 484
+    Width = 553
     Height = 209
-    Buttons = [capClose]
+    Buttons = [capClose, capHelp]
     Caption = 'Listado de variables disponibles'
     CaptionPosition = dpTop
     CaptionFont.Charset = DEFAULT_CHARSET
@@ -376,16 +376,15 @@ object frmVarVirtualVar: TfrmVarVirtualVar
     object Panel1: TPanel
       Left = 1
       Top = 26
-      Width = 468
-      Height = 41
+      Width = 537
+      Height = 31
       Align = alTop
       TabOrder = 0
-      ExplicitTop = 20
       object btnAsignVarVir: TSpeedButton
-        Left = 1
+        Left = 137
         Top = 1
         Width = 136
-        Height = 39
+        Height = 29
         Hint = 'Asignar variable actual'
         Align = alLeft
         Glyph.Data = {
@@ -505,14 +504,100 @@ object frmVarVirtualVar: TfrmVarVirtualVar
           0000000000000000000000000000000000000000000000000000000000000000
           00000000000000000000}
         OnClick = btnAsignVarVirClick
+        ExplicitLeft = 143
+        ExplicitTop = -4
+      end
+      object SpeedButton1: TSpeedButton
+        Left = 1
+        Top = 1
+        Width = 136
+        Height = 29
+        Hint = 'Asignar variable actual'
+        Align = alLeft
+        Glyph.Data = {
+          36090000424D3609000000000000360000002800000018000000180000000100
+          2000000000000009000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000FFC10029FFBF00B4FFC000DDFFC000DDFFC000DDFFC000DDFFC000DDFFC0
+          00DDFFC000DDFFC000DDFFC000DDFFC000DDFFC000DDFFC000DDFFC000DDFFC0
+          00DDFFC000DDFFBF00DAFFC000A1FFBF00140000000000000000000000000000
+          0000FFBF00D2FFC00059FFC30011FFC30011FFC30011FFC30011FFC30011FFC3
+          0011FFC30011FFC30011FFC30011FFC30011FFC30011FFC30011FFC30011FFC3
+          0011FFC30011FFBF0014FFBE0082FFC000A1000000000000000000000000FFB8
+          0012FFC000E10000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          00000000000000000000FFB80012FFBF00E0000000000000000000000000FFBF
+          0018FFBF00DB0000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          00000000000000000000FFBF000CFFBF00E7000000000000000000000000FFBF
+          0018FFBF00DB0000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          00000000000000000000FFBF000CFFBF00E7000000000000000000000000FFBF
+          0018FFBF00DB00000000000000000000000000000000FFBC0026FFBA001A0000
+          00000000000000000000000000000000000000000000FFBF0030FFBF00100000
+          00000000000000000000FFBF000CFFBF00E7000000000000000000000000FFBF
+          0018FFBF00DB00000000000000000000000000000000FFC0005DFFBF00D7FFBD
+          001B00000000000000000000000000000000FFBD0036FFBF00E3FFBD00360000
+          00000000000000000000FFBF000CFFBF00E7000000000000000000000000FFBF
+          0018FFBF00DB0000000000000000000000000000000000000000FFC0006DFFBF
+          00D2FFB900160000000000000000FFBF0030FFBF00E2FFBF0044000000000000
+          00000000000000000000FFBF000CFFBF00E7000000000000000000000000FFBF
+          0018FFBF00DB000000000000000000000000000000000000000000000000FFBF
+          006CFFBF00D3FFB90016FFBF0030FFBF00E2FFBE004300000000000000000000
+          00000000000000000000FFBF000CFFBF00E7000000000000000000000000FFBF
+          0018FFBF00DB0000000000000000000000000000000000000000000000000000
+          0000FFBF006CFFBF00DBFFBF00E4FFBD00420000000000000000000000000000
+          00000000000000000000FFBF000CFFBF00E7000000000000000000000000FFBF
+          0018FFBF00DB0000000000000000000000000000000000000000000000000000
+          0000FFC10031FFBF00EEFFBF00DEFFBC00170000000000000000000000000000
+          00000000000000000000FFBF000CFFBF00E7000000000000000000000000FFBF
+          0018FFBF00DB000000000000000000000000000000000000000000000000FFC1
+          0031FFBF00E2FFBD0042FFBF006BFFBF00D4FFBC001700000000000000000000
+          00000000000000000000FFBF000CFFBF00E7000000000000000000000000FFBF
+          0018FFBF00DB0000000000000000000000000000000000000000FFBD0032FFBF
+          00E2FFC000410000000000000000FFBE006AFFBF00D4FFBC0017000000000000
+          00000000000000000000FFBF000CFFBF00E7000000000000000000000000FFBF
+          0018FFBF00DB00000000000000000000000000000000FFBD0032FFBF00E2FFC0
+          004100000000000000000000000000000000FFBE006AFFBF00D4FFBC00170000
+          00000000000000000000FFBF000CFFBF00E7000000000000000000000000FFBF
+          0018FFBF00DB00000000000000000000000000000000FFBE0047FFBD00360000
+          00000000000000000000000000000000000000000000FFBE0056FFBF00280000
+          00000000000000000000FFBF000CFFBF00E7000000000000000000000000FFBF
+          0018FFBF00DB0000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          00000000000000000000FFBF000CFFBF00E7000000000000000000000000FFBF
+          0018FFBF00DB0000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          00000000000000000000FFBF000CFFBF00E7000000000000000000000000FFB9
+          0016FFC000DD0000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          00000000000000000000FFB6000EFFC000E5000000000000000000000000FFFF
+          0001FFC000E1FFBF003000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          00000000000000000000FFBE005EFFC000B50000000000000000000000000000
+          0000FFBF0040FFBF00E0FFC000D1FFBF00CCFFBF00CCFFBF00CCFFBF00CCFFBF
+          00CCFFBF00CCFFBF00CCFFBF00CCFFBF00CCFFBF00CCFFBF00CCFFBF00CCFFBF
+          00CCFFBF00CCFFBF00D8FFBF00CFFFBD00230000000000000000000000000000
+          00000000000000000000FFC1001DFFBC0022FFBC0022FFBC0022FFBC0022FFBC
+          0022FFBC0022FFBC0022FFBC0022FFBC0022FFBC0022FFBC0022FFBC0022FFBC
+          0022FFBC0022FFBC001700000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000}
+        OnClick = SpeedButton1Click
         ExplicitLeft = -5
         ExplicitTop = -4
       end
       object cxDBNavigator1: TcxDBNavigator
-        Left = 425
+        Left = 494
         Top = 1
         Width = 42
-        Height = 39
+        Height = 29
         Buttons.CustomButtons = <>
         Buttons.First.Visible = False
         Buttons.PriorPage.Visible = False
@@ -536,35 +621,30 @@ object frmVarVirtualVar: TfrmVarVirtualVar
         TabOrder = 0
       end
       object DBNavigator1: TDBNavigator
-        Left = 137
+        Left = 273
         Top = 1
-        Width = 288
-        Height = 39
+        Width = 221
+        Height = 29
         DataSource = UDM.dscl_variables
-        VisibleButtons = [nbPost, nbCancel]
+        VisibleButtons = [nbInsert, nbPost, nbCancel]
         Align = alClient
         TabOrder = 1
-        ExplicitLeft = 143
-        ExplicitTop = -4
       end
     end
     object StatusBar2: TStatusBar
       Left = 1
       Top = 175
-      Width = 468
+      Width = 537
       Height = 19
       Panels = <>
-      ExplicitTop = 381
-      ExplicitWidth = 417
     end
     object cxGrid2: TcxGrid
       Left = 1
-      Top = 67
-      Width = 468
-      Height = 108
+      Top = 57
+      Width = 537
+      Height = 118
       Align = alClient
       TabOrder = 2
-      ExplicitTop = 72
       object cxGridDBTableView1: TcxGridDBTableView
         Navigator.Buttons.ConfirmDelete = True
         Navigator.Buttons.CustomButtons = <>
@@ -584,33 +664,36 @@ object frmVarVirtualVar: TfrmVarVirtualVar
           Caption = 'Variable'
           DataBinding.FieldName = 'IdVar'
           Visible = False
-          Options.Editing = False
           Options.Moving = False
         end
         object cxGridDBTableView1NomVariable: TcxGridDBColumn
           Caption = 'Variable'
           DataBinding.FieldName = 'NomVariable'
           HeaderAlignmentHorz = taCenter
-          Options.Editing = False
           Options.Moving = False
         end
         object cxGridDBTableView1Etiqueta: TcxGridDBColumn
           DataBinding.FieldName = 'Etiqueta'
           HeaderAlignmentHorz = taCenter
-          Options.Editing = False
           Options.Moving = False
         end
         object cxGridDBTableView1tipo: TcxGridDBColumn
+          Caption = 'Tipo'
           DataBinding.FieldName = 'tipo'
+          PropertiesClassName = 'TcxComboBoxProperties'
+          Properties.Items.Strings = (
+            'Entero'
+            'Fecha'
+            'Real'
+            'String')
           HeaderAlignmentHorz = taCenter
-          Options.Editing = False
           Options.Moving = False
           Width = 69
         end
         object cxGridDBTableView1longitud: TcxGridDBColumn
+          Caption = 'Longitud'
           DataBinding.FieldName = 'longitud'
           HeaderAlignmentHorz = taCenter
-          Options.Editing = False
           Options.Moving = False
           Width = 82
         end
@@ -622,16 +705,15 @@ object frmVarVirtualVar: TfrmVarVirtualVar
           Properties.BlobPaintStyle = bpsText
           Properties.PopupHeight = 300
           Properties.PopupWidth = 300
-          Properties.ReadOnly = True
+          Properties.ReadOnly = False
           HeaderAlignmentHorz = taCenter
-          Options.Editing = False
           Options.Moving = False
           Width = 117
         end
         object cxGridDBTableView1ListaDesplegable: TcxGridDBColumn
           DataBinding.FieldName = 'ListaDesplegable'
+          PropertiesClassName = 'TcxCheckBoxProperties'
           HeaderAlignmentHorz = taCenter
-          Options.Editing = False
           Options.Moving = False
           Width = 120
         end

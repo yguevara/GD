@@ -1,7 +1,7 @@
 object frmCLAcceso: TfrmCLAcceso
   Left = 0
   Top = 0
-  Caption = 'Clasificador de Tipos de Acceso a la informaci'#243'n'
+  Caption = 'Tipos de Acceso a la informaci'#243'n'
   ClientHeight = 231
   ClientWidth = 371
   Color = clBtnFace
@@ -54,6 +54,7 @@ object frmCLAcceso: TfrmCLAcceso
       ImageIndex = 1
       ParentShowHint = False
       ShowHint = True
+      OnClick = btnhlpClick
     end
   end
   object cxGrid1: TcxGrid
@@ -101,7 +102,6 @@ object frmCLAcceso: TfrmCLAcceso
     Width = 371
     Height = 19
     Panels = <>
-    ExplicitLeft = 1
   end
   object Panel6: TPanel
     Left = 0
@@ -161,8 +161,6 @@ object frmCLAcceso: TfrmCLAcceso
       ParentShowHint = False
       ShowHint = True
       TabOrder = 1
-      ExplicitLeft = -5
-      ExplicitTop = -4
     end
   end
 end

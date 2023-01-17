@@ -66,6 +66,7 @@ object frmCLprocesos: TfrmCLprocesos
       ImageIndex = 1
       ParentShowHint = False
       ShowHint = True
+      OnClick = btnhlpClick
     end
   end
   object StatusBar1: TStatusBar
@@ -116,7 +117,6 @@ object frmCLprocesos: TfrmCLprocesos
         InfoPanel.Visible = True
         Align = alRight
         TabOrder = 0
-        ExplicitHeight = 39
       end
       object DBNavigator2: TDBNavigator
         Left = 1
@@ -140,7 +140,6 @@ object frmCLprocesos: TfrmCLprocesos
         ParentShowHint = False
         ShowHint = True
         TabOrder = 1
-        ExplicitHeight = 39
       end
     end
     object Panel4: TPanel
@@ -166,8 +165,6 @@ object frmCLprocesos: TfrmCLprocesos
       Height = 477
       Align = alClient
       TabOrder = 2
-      ExplicitTop = 66
-      ExplicitHeight = 466
       object cxGrid1DBTableView1: TcxGridDBTableView
         Navigator.Buttons.ConfirmDelete = True
         Navigator.Buttons.CustomButtons = <>
@@ -243,7 +240,6 @@ object frmCLprocesos: TfrmCLprocesos
         InfoPanel.Visible = True
         Align = alRight
         TabOrder = 0
-        ExplicitHeight = 39
       end
       object DBNavigator1: TDBNavigator
         Left = 1
@@ -267,7 +263,6 @@ object frmCLprocesos: TfrmCLprocesos
         ParentShowHint = False
         ShowHint = True
         TabOrder = 1
-        ExplicitHeight = 39
       end
     end
     object Panel3: TPanel
@@ -293,8 +288,6 @@ object frmCLprocesos: TfrmCLprocesos
       Height = 477
       Align = alClient
       TabOrder = 2
-      ExplicitTop = 66
-      ExplicitHeight = 466
       object cxGrid3DBTableView1: TcxGridDBTableView
         Navigator.Buttons.CustomButtons = <>
         DataController.DataSource = Dtcl_ProcesoSubproceso
@@ -395,7 +388,6 @@ object frmCLprocesos: TfrmCLprocesos
         InfoPanel.Visible = True
         Align = alRight
         TabOrder = 0
-        ExplicitHeight = 39
       end
       object DBNavigator3: TDBNavigator
         Left = 1
@@ -419,9 +411,6 @@ object frmCLprocesos: TfrmCLprocesos
         ParentShowHint = False
         ShowHint = True
         TabOrder = 1
-        ExplicitLeft = 5
-        ExplicitTop = -4
-        ExplicitHeight = 39
       end
     end
     object Panel7: TPanel
@@ -447,8 +436,6 @@ object frmCLprocesos: TfrmCLprocesos
       Height = 477
       Align = alClient
       TabOrder = 2
-      ExplicitTop = 66
-      ExplicitHeight = 466
       object cxGridDBTableView1: TcxGridDBTableView
         Navigator.Buttons.ConfirmDelete = True
         Navigator.Buttons.CustomButtons = <>

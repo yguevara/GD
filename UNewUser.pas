@@ -53,6 +53,7 @@ type
     procedure btnCreateUserClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormCreate(Sender: TObject);
+    procedure btnHelpClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -133,6 +134,11 @@ begin
       end;
     end;
   end;
+end;
+
+procedure TfrmNewUser.btnHelpClick(Sender: TObject);
+begin
+  UDM.ManagementHLP(Caption, Self.Handle);
 end;
 
 procedure TfrmNewUser.FormCloseQuery(Sender: TObject; var CanClose: Boolean);

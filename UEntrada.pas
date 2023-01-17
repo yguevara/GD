@@ -72,6 +72,7 @@ type
     procedure btnCloseClick(Sender: TObject);
     procedure ToolButton8Click(Sender: TObject);
     procedure btnAddVarClick(Sender: TObject);
+    procedure btnhlpClick(Sender: TObject);
   private
     { Private declarations }
     varUltimoQuery: string;
@@ -138,6 +139,11 @@ procedure TFEntrada.btnCloseClick(Sender: TObject);
 begin
   salvo := False;
   Close;
+end;
+
+procedure TFEntrada.btnhlpClick(Sender: TObject);
+begin
+  UDM.ManagementHLP(Caption, Self.Handle);
 end;
 
 procedure TFEntrada.Button1Click(Sender: TObject);

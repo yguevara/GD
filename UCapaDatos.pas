@@ -12,7 +12,9 @@ uses
   FireDAC.Stan.Param, FireDAC.DatS, FireDAC.DApt.Intf, FireDAC.DApt,
   FireDAC.Comp.DataSet, Vcl.Dialogs, System.ImageList, Vcl.ImgList, Vcl.Controls,
   Data.Win.ADODB, cxVGrid, cxStyles, cxGridTableView, cxClasses, VCL.StdCtrls,
-  Vcl.ComCtrls, FireDAC.Stan.StorageJSON;
+  Vcl.ComCtrls, FireDAC.Stan.StorageJSON, IdBaseComponent, IdComponent,
+  IdTCPConnection, IdTCPClient, IdExplicitTLSClientServerBase, IdFTP,
+  Winapi.ShellAPI;
 
 type
 //==============================================================================
@@ -28,6 +30,15 @@ type
     funEspecifica
     Facultades
   }
+  RActiveFTPServer = record
+    Ip: string;
+    Nombre: string;
+    puerto: Integer;
+    usuario: string;
+    password: string;
+    PathServer: string;
+  end;
+
   TNODOSD = record
     Id: integer;
     Etiqueta: string;
@@ -59,7 +70,6 @@ type
     DSTb_User: TDataSource;
     Tb_User: TFDTable;
     cmdUser: TFDQuery;
-    ILDigital: TImageList;
     dstb_tree: TDataSource;
     tb_tree: TFDQuery;
     ImageList1: TImageList;
@@ -782,6 +792,8 @@ type
     cl_especialista: TFDQuery;
     tb_VirtualVar: TFDMemTable;
     Dtb_VirtualVar: TDataSource;
+    IdFTP1: TIdFTP;
+    ILDigital: TImageList;
     procedure DataModuleCreate(Sender: TObject);
     procedure tb_treeAfterPost(DataSet: TDataSet);
   private
@@ -805,7 +817,12 @@ type
     function GetLastFacult: Integer;
     function GetLastId(NombreTabla, NombdeKey: string): Integer;
     procedure VarVirt;
+    procedure FTPconnect(aHost, auser, apass, aport: string);
+    procedure FTPDisconnect;
+    function GetFTPHost(IdServer: integer): RActiveFTPServer;
     procedure CreateFTPDirStructure(ListProccess: TStringList);
+    procedure ejecutaPDF(WindowsID: HWND; Path: string);
+    procedure ManagementHLP(HLPName: string; WindowsHandle: HWND);
   end;
 
 var
@@ -821,6 +838,7 @@ var
   EstructuraActual: Integer;
   cadcmd: WideString;
   varMod: string; // A: Append; E: Edit
+  NodoActivo: string;
 
 implementation
 
@@ -1100,6 +1118,62 @@ begin
 
 end;
 
+procedure TUDM.ejecutaPDF(WindowsID: HWND; Path: string);
+begin
+  try
+    ShellExecute(WindowsID, nil, PChar(Path), '', '', SW_SHOWNORMAL);
+  except
+    on E: EFilerError do
+    begin
+      MessageDlg('No se pudo abrir el Informe especificado. Motivo:' + E.Message, mtError, [mbOK], 0);
+      Exit;
+    end;
+  end;
+end;
+
+procedure TUDM.FTPconnect(aHost, auser, apass, aport: string);
+begin
+  if UDM.IdFTP1.Connected then
+    UDM.IdFTP1.Disconnect;
+  UDM.IdFTP1.Host := aHost; //'127.0.0.1';
+  UDM.IdFTP1.Username := auser; //'geodato';
+  UDM.IdFTP1.Password := apass; //'geodato';
+  UDM.IdFTP1.Port := StrToInt(aport);
+  UDM.IdFTP1.Passive := True;
+  UDM.IdFTP1.Connect;
+end;
+
+procedure TUDM.FTPDisconnect;
+begin
+  UDM.IdFTP1.Disconnect;
+end;
+
+function TUDM.GetFTPHost(IdServer: integer): RActiveFTPServer;
+var
+  tmp: RActiveFTPServer;
+begin
+  with TFDQuery.Create(nil) do
+  try
+    Active := False;
+    Connection := UDM.Conn;
+    SQL.Clear;
+    SQL.Add('select * from cl_ftp_Server where idservidor=' + IntToStr(IdServer));
+    try
+      Active := True;
+      tmp.Ip := FieldByName('ipserver').AsString;
+      tmp.Nombre := FieldByName('etiquetaServ').AsString;
+      tmp.PathServer := FieldByName('path').AsString;
+      tmp.usuario := FieldByName('user').AsString;
+      tmp.password := FieldByName('pass').AsString;
+      tmp.puerto := FieldByName('puerto').AsInteger;
+    except
+    end;
+  finally
+    Free;
+  end;
+  Result := tmp;
+end;
+
 function TUDM.GetIDParentTreeNode: integer;
 begin
   Result := conn.ExecSQLScalar('SELECT Min(id) AS ParentID FROM tb_tree');
@@ -1160,7 +1234,6 @@ begin
     ForceDirectories(pathftp + ExtractFilePath(ListProccess[1]));
   end;    }
 end;
-
 
 procedure TUDM.VarVirt;
 begin
@@ -1223,6 +1296,16 @@ begin
       tb_tree.Cancel;
     end;
   end;
+end;
+
+procedure TUDM.ManagementHLP(HLPName: string; WindowsHandle: HWND);
+var
+  PathHLP: string;
+begin
+  PathHLP := ExtractFilePath(Application.ExeName)+'HLP\';
+  if not FileExists(PathHLP + HLPName + '.docx') then
+    CopyFile(PWideChar(PathHLP + 'plt.docx'), PWideChar(PathHLP + HLPName + '.docx'), False);
+  ejecutaPDF(WindowsHandle, PathHLP + HLPName + '.docx');
 end;
 
 procedure TUDM.tb_treeAfterPost(DataSet: TDataSet);

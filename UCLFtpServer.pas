@@ -10,7 +10,7 @@ uses
   dxDateRanges, Data.DB, cxDBData, cxTextEdit, cxGridCustomTableView,
   cxGridTableView, cxGridDBTableView, Vcl.ComCtrls, cxGridLevel, cxClasses,
   cxGridCustomView, cxGrid, Vcl.ToolWin, Vcl.DBCtrls, cxDBNavigator,
-  Vcl.ExtCtrls;
+  Vcl.ExtCtrls, cxDropDownEdit;
 
 type
   TfrmListFTPServer = class(TForm)
@@ -56,7 +56,7 @@ begin
 end;
 
 procedure TfrmListFTPServer.btnhlpClick(Sender: TObject);
-var
+{var
   i:integer;
   cad:string;
   list:TStringList;
@@ -69,6 +69,9 @@ begin
   end;
   list.SaveToFile('C:\Temp\largocol.txt');
   ShowMessage('YAAAAA!!!!');
+end;}
+begin
+  UDM.ManagementHLP(Caption, Self.Handle);
 end;
 
 end.

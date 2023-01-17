@@ -29,6 +29,7 @@ type
     cxGrid1DBTableView1usuario: TcxGridDBColumn;
     cxGrid1DBTableView1CorreoElect: TcxGridDBColumn;
     procedure btnCloseClick(Sender: TObject);
+    procedure btnhlpClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -48,6 +49,11 @@ uses
 procedure TfrmRepActArch.btnCloseClick(Sender: TObject);
 begin
   Close;
+end;
+
+procedure TfrmRepActArch.btnhlpClick(Sender: TObject);
+begin
+  UDM.ManagementHLP(Caption, Self.Handle);
 end;
 
 end.

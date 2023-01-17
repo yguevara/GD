@@ -11,7 +11,8 @@ uses
   Vcl.ComCtrls, cxGridLevel, cxGridCustomTableView, cxGridTableView,
   cxGridDBTableView, cxClasses, cxGridCustomView, cxGrid, Vcl.DBCtrls,
   cxDBNavigator, Vcl.Buttons, Vcl.ExtCtrls, Vcl.ToolWin, cxDBLookupComboBox,
-  cxBlobEdit, JvExExtCtrls, JvExtComponent, JvCaptionPanel;
+  cxBlobEdit, JvExExtCtrls, JvExtComponent, JvCaptionPanel, cxCheckBox,
+  cxDropDownEdit;
 
 type
   TfrmVarVirtualVar = class(TForm)
@@ -47,11 +48,14 @@ type
     cxGridDBTableView1longitud: TcxGridDBColumn;
     cxGridDBTableView1descripcion: TcxGridDBColumn;
     cxGridDBTableView1ListaDesplegable: TcxGridDBColumn;
+    SpeedButton1: TSpeedButton;
     procedure btnCloseClick(Sender: TObject);
     procedure jcpVarListButtonClick(Sender: TObject; Button: TJvCapBtnStyle);
     procedure btnAsignVarVirClick(Sender: TObject);
     procedure btnAddVarClick(Sender: TObject);
     procedure btnPropClick(Sender: TObject);
+    procedure SpeedButton1Click(Sender: TObject);
+    procedure btnhlpClick(Sender: TObject);
   private
     procedure ActCmp(Action: boolean);
     { Private declarations }
@@ -88,6 +92,11 @@ end;
 procedure TfrmVarVirtualVar.btnCloseClick(Sender: TObject);
 begin
   Close;
+end;
+
+procedure TfrmVarVirtualVar.btnhlpClick(Sender: TObject);
+begin
+  UDM.ManagementHLP(Caption, Self.Handle);
 end;
 
 procedure TfrmVarVirtualVar.btnPropClick(Sender: TObject);
@@ -135,6 +144,14 @@ begin
       end;
     end;
   end;
+  if Button=capHelp then begin
+    UDM.ManagementHLP(jcpVarList.Caption, jcpVarList.Handle);
+  end;
+end;
+
+procedure TfrmVarVirtualVar.SpeedButton1Click(Sender: TObject);
+begin
+  jcpVarList.Visible:=False;
 end;
 
 end.

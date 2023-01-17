@@ -160,12 +160,13 @@ object frmNewUser: TfrmNewUser
     OnClick = btnCreateUserClick
   end
   object btnHelp: TButton
-    Left = 16
+    Left = 8
     Top = 344
     Width = 75
     Height = 25
     Caption = 'Ayuda'
     TabOrder = 9
+    OnClick = btnHelpClick
   end
   object edtEmpresa: TEdit
     Left = 128

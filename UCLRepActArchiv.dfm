@@ -50,6 +50,7 @@ object frmRepActArch: TfrmRepActArch
       ImageIndex = 1
       ParentShowHint = False
       ShowHint = True
+      OnClick = btnhlpClick
     end
   end
   object cxGrid1: TcxGrid
@@ -59,8 +60,6 @@ object frmRepActArch: TfrmRepActArch
     Height = 145
     Align = alClient
     TabOrder = 1
-    ExplicitTop = 78
-    ExplicitHeight = 134
     object cxGrid1DBTableView1: TcxGridDBTableView
       Navigator.Buttons.ConfirmDelete = True
       Navigator.Buttons.CustomButtons = <>
@@ -147,7 +146,6 @@ object frmRepActArch: TfrmRepActArch
       InfoPanel.Visible = True
       Align = alRight
       TabOrder = 0
-      ExplicitHeight = 39
     end
     object DBNavigator3: TDBNavigator
       Left = 1
@@ -169,9 +167,6 @@ object frmRepActArch: TfrmRepActArch
         'Cancelar'
         'Refrescar')
       TabOrder = 1
-      ExplicitLeft = -5
-      ExplicitTop = -4
-      ExplicitHeight = 39
     end
   end
 end

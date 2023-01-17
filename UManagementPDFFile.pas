@@ -33,6 +33,7 @@ type
     procedure btnViewInformeClick(Sender: TObject);
     procedure btntbtncerrarClick(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
+    procedure btnhelpClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -103,6 +104,11 @@ begin
     end;
   end;
 
+end;
+
+procedure TfrmManagementProc.btnhelpClick(Sender: TObject);
+begin
+  UDM.ManagementHLP(Caption, Self.Handle);
 end;
 
 procedure TfrmManagementProc.btntbtncerrarClick(Sender: TObject);

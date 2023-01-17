@@ -54,6 +54,7 @@ object frmCLDestino: TfrmCLDestino
       ImageIndex = 1
       ParentShowHint = False
       ShowHint = True
+      OnClick = btnhlpClick
     end
   end
   object StatusBar1: TStatusBar
@@ -70,8 +71,6 @@ object frmCLDestino: TfrmCLDestino
     Height = 145
     Align = alClient
     TabOrder = 2
-    ExplicitTop = 78
-    ExplicitHeight = 134
     object cxGrid1DBTableView1: TcxGridDBTableView
       Navigator.Buttons.ConfirmDelete = True
       Navigator.Buttons.CustomButtons = <>
@@ -140,7 +139,6 @@ object frmCLDestino: TfrmCLDestino
       ParentShowHint = False
       ShowHint = True
       TabOrder = 0
-      ExplicitHeight = 39
     end
     object DBNavigator3: TDBNavigator
       Left = 1
@@ -164,7 +162,6 @@ object frmCLDestino: TfrmCLDestino
       ParentShowHint = False
       ShowHint = True
       TabOrder = 1
-      ExplicitHeight = 39
     end
   end
 end

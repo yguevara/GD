@@ -54,6 +54,7 @@ object frmCLTipoDoc: TfrmCLTipoDoc
       ImageIndex = 1
       ParentShowHint = False
       ShowHint = True
+      OnClick = btnhlpClick
     end
   end
   object cxGrid1: TcxGrid
@@ -63,8 +64,6 @@ object frmCLTipoDoc: TfrmCLTipoDoc
     Height = 145
     Align = alClient
     TabOrder = 1
-    ExplicitTop = 78
-    ExplicitHeight = 134
     object cxGrid1DBTableView1: TcxGridDBTableView
       Navigator.Buttons.ConfirmDelete = True
       Navigator.Buttons.CustomButtons = <>
@@ -138,7 +137,6 @@ object frmCLTipoDoc: TfrmCLTipoDoc
       InfoPanel.Visible = True
       Align = alRight
       TabOrder = 0
-      ExplicitHeight = 39
     end
     object DBNavigator3: TDBNavigator
       Left = 1
@@ -162,8 +160,6 @@ object frmCLTipoDoc: TfrmCLTipoDoc
       ParentShowHint = False
       ShowHint = True
       TabOrder = 1
-      ExplicitLeft = -5
-      ExplicitTop = -4
     end
   end
 end

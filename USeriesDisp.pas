@@ -32,6 +32,7 @@ type
     cxGrid1DBTableView1serie: TcxGridDBColumn;
     procedure btnCloseClick(Sender: TObject);
     procedure btnAsignVarVirClick(Sender: TObject);
+    procedure btnhlpClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -90,6 +91,11 @@ end;
 procedure TfrmSeriesDisp.btnCloseClick(Sender: TObject);
 begin
   Close;
+end;
+
+procedure TfrmSeriesDisp.btnhlpClick(Sender: TObject);
+begin
+  UDM.ManagementHLP(Caption, Self.Handle);
 end;
 
 end.

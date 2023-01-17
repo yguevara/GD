@@ -75,6 +75,7 @@ type
     procedure btnCloseClick(Sender: TObject);
     procedure cxGrid3DBTableView1PDFSubprocesoPropertiesButtonClick(Sender: TObject; AButtonIndex: Integer);
     procedure FormActivate(Sender: TObject);
+    procedure btnhlpClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -95,6 +96,11 @@ uses
 procedure TfrmCLprocesos.btnCloseClick(Sender: TObject);
 begin
   Close;
+end;
+
+procedure TfrmCLprocesos.btnhlpClick(Sender: TObject);
+begin
+  UDM.ManagementHLP(Caption, Self.Handle);
 end;
 
 procedure TfrmCLprocesos.cxGrid3DBTableView1PDFSubprocesoPropertiesButtonClick(Sender: TObject; AButtonIndex: Integer);

@@ -30,6 +30,7 @@ type
     cxGrid1DBTableView1Direccion: TcxGridDBColumn;
     cxGrid1DBTableView1Idresp: TcxGridDBColumn;
     procedure btnCloseClick(Sender: TObject);
+    procedure btnhlpClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -49,6 +50,11 @@ uses
 procedure TfrmManagemetArch.btnCloseClick(Sender: TObject);
 begin
   Close;
+end;
+
+procedure TfrmManagemetArch.btnhlpClick(Sender: TObject);
+begin
+  UDM.ManagementHLP(Caption, Self.Handle);
 end;
 
 end.
