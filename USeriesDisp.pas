@@ -26,13 +26,22 @@ type
     cxGrid1DBTableView1: TcxGridDBTableView;
     cxGrid1Level1: TcxGridLevel;
     cxGrid1: TcxGrid;
+    ToolButton1: TToolButton;
+    ToolButton2: TToolButton;
+    ToolButton4: TToolButton;
+    ToolButton5: TToolButton;
+    ToolButton6: TToolButton;
+    ToolButton7: TToolButton;
+    cxGrid1DBTableView1codserie: TcxGridDBColumn;
     cxGrid1DBTableView1codsubs: TcxGridDBColumn;
-    cxGrid1DBTableView1subserie: TcxGridDBColumn;
-    cxGrid1DBTableView1etiqueta: TcxGridDBColumn;
-    cxGrid1DBTableView1serie: TcxGridDBColumn;
+    cxGrid1DBTableView1Series: TcxGridDBColumn;
+    cxGrid1DBTableView1Subseries: TcxGridDBColumn;
+    cxGrid1DBTableView1Etiqueta: TcxGridDBColumn;
     procedure btnCloseClick(Sender: TObject);
     procedure btnAsignVarVirClick(Sender: TObject);
     procedure btnhlpClick(Sender: TObject);
+    procedure ToolButton2Click(Sender: TObject);
+    procedure FormActivate(Sender: TObject);
   private
     { Private declarations }
   public
@@ -45,45 +54,30 @@ var
 implementation
 
 uses
-  UCapaDatos;
+  UCapaDatos, UExcelExport;
 
 {$R *.dfm}
 
 procedure TfrmSeriesDisp.btnAsignVarVirClick(Sender: TObject);
 begin
-  if MessageDlg('¿Desea agregar la serie a la estructura actual?', mtConfirmation, [mbYes, mbNo], 0) = mrYes then
+  if UDM.sms('¿Desea agregar la serie a la estructura actual?', 4) = 6 then
   begin
-    if not UDM.tb_Serietree.Locate('id;codsubs', VarArrayOf([UDM.tb_tree.FieldByName('Id').AsInteger, UDM.Tb_SeriesDispo.FieldByName('codsubs').AsInteger]), []) then
+    if not UDM.tb_Serietree.Locate('IdEstructura;codsubs', VarArrayOf([UDM.tb_tree.FieldByName('IdEstructura').AsString, UDM.Tb_SeriesDispo.FieldByName('codsubs').AsString]), []) then
     begin
       UDM.tb_Serietree.Append;
-      UDM.tb_Serietree.FieldByName('Id').AsInteger := UDM.tb_tree.FieldByName('Id').AsInteger;
-      UDM.tb_Serietree.FieldByName('codsubs').AsInteger := UDM.Tb_SeriesDispo.FieldByName('codsubs').AsInteger;
+      UDM.tb_Serietree.FieldByName('IdEstructura').AsString := UDM.tb_tree.FieldByName('IdEstructura').AsString;
+      UDM.tb_Serietree.FieldByName('id').AsInteger := UDM.tb_tree.FieldByName('id').AsInteger;
+      UDM.tb_Serietree.FieldByName('codsubs').AsString := UDM.Tb_SeriesDispo.FieldByName('codsubs').AsString;
       try
         UDM.tb_Serietree.Post;
       except
         on E: EFDException do
         begin
-          MessageDlg('La serie ' + UDM.Tb_SeriesDispo.FieldByName('Etiqueta').AsString + ' no se pudo agregar. Motivo: ' + E.Message, mtError, [mbOK], 0);
+          UDM.sms('La serie ' + UDM.Tb_SeriesDispo.FieldByName('Etiqueta').AsString + ' no se pudo agregar. Motivo: ' + E.Message,1);
           Exit;
         end;
       end;
     end;
-    {
-    Id
-codsubs
-Ubicacion
-deposito
-gaveta
-especialista
-correo
-usuario
-frecuencia
-tiempo
-observacion
-servidor
-carpeta
-
-    }
 
   end;
 end;
@@ -96,6 +90,16 @@ end;
 procedure TfrmSeriesDisp.btnhlpClick(Sender: TObject);
 begin
   UDM.ManagementHLP(Caption, Self.Handle);
+end;
+
+procedure TfrmSeriesDisp.FormActivate(Sender: TObject);
+begin
+  Security.SetModSecurity(Self, acceso);
+end;
+
+procedure TfrmSeriesDisp.ToolButton2Click(Sender: TObject);
+begin
+  ExcelExport(nil, cxGrid1);
 end;
 
 end.

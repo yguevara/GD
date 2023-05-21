@@ -12,7 +12,12 @@ uses
   cxGridDBTableView, cxClasses, cxGridCustomView, cxGrid, Vcl.DBCtrls,
   cxDBNavigator, Vcl.Buttons, Vcl.ExtCtrls, Vcl.ToolWin, cxDBLookupComboBox,
   cxBlobEdit, JvExExtCtrls, JvExtComponent, JvCaptionPanel, cxCheckBox,
-  cxDropDownEdit;
+  cxDropDownEdit, cxVGrid, cxDBVGrid, cxInplaceContainer, dxBarBuiltInMenu,
+  cxContainer, cxDBEdit, cxMaskEdit, cxTextEdit, Vcl.StdCtrls, cxPC, AdvSplitter,
+  FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.UI.Intf,
+  FireDAC.Phys.Intf, FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Stan.Async,
+  FireDAC.Phys, FireDAC.VCLUI.Wait, FireDAC.Stan.Param, FireDAC.DatS,
+  FireDAC.DApt.Intf, FireDAC.DApt, FireDAC.Comp.DataSet, FireDAC.Comp.Client;
 
 type
   TfrmVarVirtualVar = class(TForm)
@@ -20,10 +25,6 @@ type
     btnClose: TToolButton;
     ToolButton3: TToolButton;
     btnhlp: TToolButton;
-    Panel6: TPanel;
-    btnProp: TSpeedButton;
-    cxDBNavigator3: TcxDBNavigator;
-    DBNavigator3: TDBNavigator;
     cxGrid1: TcxGrid;
     cxGrid1DBTableView1: TcxGridDBTableView;
     cxGrid1Level1: TcxGridLevel;
@@ -31,36 +32,61 @@ type
     cxGrid1DBTableView1codserie: TcxGridDBColumn;
     cxGrid1DBTableView1codsubs: TcxGridDBColumn;
     cxGrid1DBTableView1IdVar: TcxGridDBColumn;
-    btnAddVar: TSpeedButton;
-    jcpVarList: TJvCaptionPanel;
-    Panel1: TPanel;
-    btnAsignVarVir: TSpeedButton;
-    cxDBNavigator1: TcxDBNavigator;
-    DBNavigator1: TDBNavigator;
-    StatusBar2: TStatusBar;
+    PVariables: TPanel;
+    cxPageControl1: TcxPageControl;
+    tsform: TcxTabSheet;
+    cxDBVerticalGrid1: TcxDBVerticalGrid;
+    cxDBEditorRow1: TcxDBEditorRow;
+    cxDBEditorRow2: TcxDBEditorRow;
+    cxDBEditorRow3: TcxDBEditorRow;
+    cxDBEditorRow4: TcxDBEditorRow;
+    cxLong: TcxDBEditorRow;
+    cxDBEditorRow5: TcxDBEditorRow;
+    cxDBEditorRow6: TcxDBEditorRow;
+    cxTabSheet2: TcxTabSheet;
     cxGrid2: TcxGrid;
     cxGridDBTableView1: TcxGridDBTableView;
+    cxGridDBColumn1: TcxGridDBColumn;
+    cxGrid1DBTableView1NomVariable: TcxGridDBColumn;
+    cxGrid1DBTableView1Etiqueta: TcxGridDBColumn;
+    cxGrid1DBTableView1tipo: TcxGridDBColumn;
+    cxGrid1DBTableView1longitud: TcxGridDBColumn;
+    cxGrid1DBTableView1descripcion: TcxGridDBColumn;
+    cxGrid1DBTableView1ListaDesplegable: TcxGridDBColumn;
     cxGridLevel1: TcxGridLevel;
-    cxGridDBTableView1IdVar: TcxGridDBColumn;
-    cxGridDBTableView1NomVariable: TcxGridDBColumn;
-    cxGridDBTableView1Etiqueta: TcxGridDBColumn;
-    cxGridDBTableView1tipo: TcxGridDBColumn;
-    cxGridDBTableView1longitud: TcxGridDBColumn;
-    cxGridDBTableView1descripcion: TcxGridDBColumn;
-    cxGridDBTableView1ListaDesplegable: TcxGridDBColumn;
-    SpeedButton1: TSpeedButton;
+    AdvSplitter1: TAdvSplitter;
+    ToolButton1: TToolButton;
+    ToolButton2: TToolButton;
+    ToolButton4: TToolButton;
+    dsVarVirtSS: TDataSource;
+    cxGrid3: TcxGrid;
+    cxGridDBTableView2: TcxGridDBTableView;
+    cxGridDBTableView2IdEstructura: TcxGridDBColumn;
+    cxGridDBTableView2id: TcxGridDBColumn;
+    cxGridDBTableView2Orden: TcxGridDBColumn;
+    cxGridDBTableView2IdVar: TcxGridDBColumn;
+    cxGridLevel2: TcxGridLevel;
+    dscl_VarProject: TDataSource;
+    Panel2: TPanel;
+    btnAsignVarVir: TSpeedButton;
+    Panel3: TPanel;
+    Panel4: TPanel;
+    btnDelAsignVirtVar: TSpeedButton;
     procedure btnCloseClick(Sender: TObject);
-    procedure jcpVarListButtonClick(Sender: TObject; Button: TJvCapBtnStyle);
     procedure btnAsignVarVirClick(Sender: TObject);
     procedure btnAddVarClick(Sender: TObject);
-    procedure btnPropClick(Sender: TObject);
-    procedure SpeedButton1Click(Sender: TObject);
-    procedure btnhlpClick(Sender: TObject);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure FormActivate(Sender: TObject);
+    procedure DataSource1UpdateData(Sender: TObject);
+    procedure dsVarVirtSSDataChange(Sender: TObject; Field: TField);
+    procedure dscl_VarProjectDataChange(Sender: TObject; Field: TField);
+    procedure dscl_VarProjectUpdateData(Sender: TObject);
+    procedure btnDelAsignVirtVarClick(Sender: TObject);
   private
-    procedure ActCmp(Action: boolean);
     { Private declarations }
   public
     { Public declarations }
+
   end;
 
 var
@@ -69,24 +95,92 @@ var
 implementation
 
 uses
-  UCapaDatos, UCLVariables;
+  UCapaDatos, UCLVariables, UExcelExport;
 
 {$R *.dfm}
 
 procedure TfrmVarVirtualVar.btnAddVarClick(Sender: TObject);
 begin
-  ActCmp(False);
-  jcpVarList.Visible := True;
-  varMod:='A';
+  if TipoObj = 'S' then
+    ExcelExport(nil, cxGrid1)
+  else
+    ExcelExport(nil, cxGrid3)
 end;
 
 procedure TfrmVarVirtualVar.btnAsignVarVirClick(Sender: TObject);
+var
+  idvariable: integer;
 begin
-  if varMod='A' then
-    UDM.cl_VarSubserie.Append
+  if TipoObj = 'S' then
+  begin
+    if UDM.VarDispSubS.RecordCount = 0 then
+    begin
+      UDM.sms('No existen variables disponibles para agregar a la subserie actual.', 3);
+      Exit;
+    end;
+    if (UDM.cl_VarSubserie.State = dsInsert) or (UDM.cl_VarSubserie.State = dsEdit) then
+    try
+      UDM.cl_VarSubserie.Post;
+    except
+      on E: EFDException do
+      begin
+        UDM.sms('No se pudo agregar la variable especificada. Motivo: ' + e.Message, 1);
+        UDM.cl_varsubserie.cancel;
+      end;
+    end;
+    idvariable := UDM.VarDispSubS.FieldByName('IdVar').AsInteger;
+    if not UDM.cl_VarSubserie.Locate('codserie;codsubs;IdVar', VarArrayOf([UDM.cl_subseries.FieldByName('codserie').AsString, UDM.cl_subseries.FieldByName('codsubs').AsString, idvariable]), []) then
+    begin
+      UDM.cl_VarSubserie.Append;
+      UDM.cl_VarSubserie.FieldByName('Orden').AsInteger := UDM.GetLastId('cl_VarSubserie', 'Orden');
+      UDM.cl_VarSubserie.FieldByName('IdVar').AsInteger := idvariable;
+      try
+        UDM.cl_VarSubserie.Post;
+      except
+        on E: EFDException do
+        begin
+          UDM.sms('No se pudo agregar la variable especificada. Motivo: ' + e.Message, 1);
+          UDM.cl_varsubserie.cancel;
+        end;
+      end;
+    end
+    else
+    begin
+      UDM.sms('La variable especificada ya existe en el conjunto de datos.', 2);
+      Exit;
+    end;
+  end
   else
-    UDM.cl_VarSubserie.Edit;
-  UDM.cl_VarSubserie.FieldByName('IdVar').AsInteger := UDM.cl_variables.FieldByName('IdVar').AsInteger;
+  begin
+    if  UDM.VarDispPrj.RecordCount=0 then begin
+      UDM.sms('No existen variables disponibles para agregar a la estructura actual.', 3);
+      Exit;
+    end;
+    if (UDM.cl_VarProject.State = dsInsert) or (UDM.cl_VarProject.State = dsEdit) then
+    try
+      UDM.cl_VarProject.Post;
+    except
+      on E: EFDException do
+      begin
+        UDM.sms('No se pudo agregar la variable especificada. Motivo: ' + e.Message, 1);
+        UDM.cl_VarProject.cancel;
+      end;
+    end;
+    idvariable := UDM.VarDispPrj.FieldByName('IdVar').AsInteger;
+    if not UDM.cl_VarProject.Locate('idestructura;id;IdVar', VarArrayOf([UDM.tb_tree.FieldByName('idestructura').AsString, UDM.tb_tree.FieldByName('id').AsString, idvariable]), []) then
+    UDM.cl_VarProject.Append;
+    UDM.cl_VarProject.FieldByName('Orden').AsInteger := UDM.GetLastId('cl_VarProject', 'Orden');
+    UDM.cl_VarProject.FieldByName('IdVar').AsInteger := idvariable;
+    try
+      UDM.cl_VarProject.Post;
+    except
+      on E: EFDException do
+      begin
+        UDM.sms('No se pudo agregar la variable especificada. Motivo: ' + e.Message, 1);
+        UDM.cl_VarProject.cancel;
+      end;
+    end;
+  end;
 end;
 
 procedure TfrmVarVirtualVar.btnCloseClick(Sender: TObject);
@@ -94,64 +188,72 @@ begin
   Close;
 end;
 
-procedure TfrmVarVirtualVar.btnhlpClick(Sender: TObject);
+procedure TfrmVarVirtualVar.btnDelAsignVirtVarClick(Sender: TObject);
 begin
-  UDM.ManagementHLP(Caption, Self.Handle);
+  if TipoObj = 'S' then
+  begin
+    if UDM.cl_VarSubserie.RecordCount=0 then begin
+      UDM.sms('Debe especificar una variable válida. No existen variables que se puedan eliminar.', 3);
+      Exit;
+    end;
+    UDM.cl_VarSubserie.Delete;
+  end
+  else begin
+    if UDM.cl_VarProject.RecordCount=0 then begin
+      UDM.sms('Debe especificar una variable válida. No existen variables que se puedan eliminar.', 3);
+      Exit;
+    end;
+    UDM.cl_VarProject.Delete;
+  end;
 end;
 
-procedure TfrmVarVirtualVar.btnPropClick(Sender: TObject);
+procedure TfrmVarVirtualVar.dscl_VarProjectDataChange(Sender: TObject; Field: TField);
 begin
-  if jcpVarList.Visible then
-    Exit;
-  ActCmp(False);
-  Panel1.Visible:=False;
+  UDM.UpdateVarPrj(UDM.tb_tree.FieldByName('IdEstructura').AsString, UDM.tb_tree.FieldByName('Id').AsString);
+end;
+
+procedure TfrmVarVirtualVar.dscl_VarProjectUpdateData(Sender: TObject);
+begin
+  UDM.UpdateVarPrj(UDM.tb_tree.FieldByName('IdEstructura').AsString, UDM.tb_tree.FieldByName('Id').AsString);
+end;
+
+procedure TfrmVarVirtualVar.dsVarVirtSSDataChange(Sender: TObject; Field: TField);
+begin
+  UDM.UpdateVarSubS(UDM.cl_subseries.FieldByName('codsubs').AsString)
+end;
+
+procedure TfrmVarVirtualVar.DataSource1UpdateData(Sender: TObject);
+begin
+  UDM.UpdateVarSubS(UDM.cl_subseries.FieldByName('codsubs').AsString)
+end;
+
+procedure TfrmVarVirtualVar.FormActivate(Sender: TObject);
+begin
+  if TipoObj = 'S' then
+  begin
+    cxGrid3.Visible := False;
+    cxGrid1.Visible := True;
+  end
+  else
+  begin
+    cxGrid3.Visible := True;
+    cxGrid1.Visible := False
+  end;
+  Security.SetModSecurity(Self, acceso);
+end;
+
+procedure TfrmVarVirtualVar.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+begin
   with UDM.cl_variables do
   begin
     Active := False;
     SQL.Clear;
-    SQL.Add('select * from cl_variables where idvar=' + UDM.cl_VarSubserie.FieldByName('idVar').AsString);
+    SQL.Add('select * from cl_variables');
     try
       Active := True;
-      jcpVarList.Visible := True;
-      varMod:='E';
     except
     end;
   end;
-
-end;
-
-procedure TfrmVarVirtualVar.ActCmp(Action: boolean);
-begin
-  btnAddVar.Enabled := Action;
-  btnProp.Enabled := Action;
-end;
-
-procedure TfrmVarVirtualVar.jcpVarListButtonClick(Sender: TObject; Button: TJvCapBtnStyle);
-begin
-  if Button = capClose then
-  begin
-    TJvCaptionPanel(Sender).Visible := False;
-    with UDM.cl_variables do
-    begin
-      Active := False;
-      SQL.Clear;
-      SQL.Add('select * from cl_variables');
-      try
-        Active := True;
-        ActCmp(True);
-        Panel1.Visible:=True;
-      except
-      end;
-    end;
-  end;
-  if Button=capHelp then begin
-    UDM.ManagementHLP(jcpVarList.Caption, jcpVarList.Handle);
-  end;
-end;
-
-procedure TfrmVarVirtualVar.SpeedButton1Click(Sender: TObject);
-begin
-  jcpVarList.Visible:=False;
 end;
 
 end.

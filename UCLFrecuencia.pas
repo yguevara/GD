@@ -27,8 +27,16 @@ type
     Panel6: TPanel;
     cxDBNavigator3: TcxDBNavigator;
     DBNavigator3: TDBNavigator;
+    ToolButton1: TToolButton;
+    ToolButton2: TToolButton;
+    ToolButton4: TToolButton;
+    ToolButton5: TToolButton;
+    ToolButton6: TToolButton;
     procedure btnCloseClick(Sender: TObject);
     procedure btnhlpClick(Sender: TObject);
+    procedure DBNavigator3Click(Sender: TObject; Button: TNavigateBtn);
+    procedure ToolButton4Click(Sender: TObject);
+    procedure FormActivate(Sender: TObject);
   private
     { Private declarations }
   public
@@ -41,7 +49,7 @@ var
 implementation
 
 uses
-  UCapaDatos;
+  UCapaDatos, UExcelExport;
 
 {$R *.dfm}
 
@@ -53,6 +61,26 @@ end;
 procedure TfrmCLFrecuencia.btnhlpClick(Sender: TObject);
 begin
   UDM.ManagementHLP(Caption, Self.Handle);
+end;
+
+procedure TfrmCLFrecuencia.DBNavigator3Click(Sender: TObject;
+  Button: TNavigateBtn);
+begin
+  if Button = nbInsert then
+  begin
+    if (TDBNavigator(Sender).DataSource.DataSet.State = dsInsert) or (TDBNavigator(Sender).DataSource.DataSet.State = dsEdit) then
+      UDM.cl_frecuencia.FieldByName('Idfrecuencia').AsInteger:=UDM.GetLastId('cl_frecuencia', 'Idfrecuencia');
+  end;
+end;
+
+procedure TfrmCLFrecuencia.FormActivate(Sender: TObject);
+begin
+  Security.SetModSecurity(Self, acceso);
+end;
+
+procedure TfrmCLFrecuencia.ToolButton4Click(Sender: TObject);
+begin
+  ExcelExport(nil, cxGrid1);
 end;
 
 end.

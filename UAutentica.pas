@@ -15,8 +15,6 @@ type
     btnAcept: TButton;
     btnCancel: TButton;
     Image1: TImage;
-    CDSUser: TADOTable;
-    CDSRol: TADOTable;
     procedure FormActivate(Sender: TObject);
     procedure btnaceptClick(Sender: TObject);
     procedure btncancelClick(Sender: TObject);
@@ -50,15 +48,9 @@ begin
   with TfrmAutentica.create(nil) do
   try
     result := 'Visor';
-    {CDSUser.Connection := conn;
-    CDSRol.Connection := conn;
-    CDSUser.Active := True;
-    cdsrol.Active := True;}
     showmodal;
   finally
-    {result := DM.Rol;
-    CDSUser.Active := false;
-    cdsrol.Active := False;  }
+    result := UDM.Rol;
     free;
   end;
 end;
@@ -74,77 +66,88 @@ function TfrmAutentica.FormHelp(Command: Word; Data: NativeInt; var CallHelp: Bo
 var
   TopicID: integer;
 begin
-  TopicID :=0 {#?};
+  TopicID := 0 {#?};
   HelpFile := ExtractFilePath(Application.ExeName) + 'GeoDatoIC.chm';
   Application.HelpSystem.ShowContextHelp(TopicID, HelpFile);
 end;
 
 procedure TfrmAutentica.btnaceptClick(Sender: TObject);
- {
+
   function nombreuser(NU: string): Boolean;
   begin
     Result := False;
-    CDSUser.First;
-    while not CDSUser.Eof do
+    UDM.cl_Resp_Gest_Arch.First;
+    while not UDM.cl_Resp_Gest_Arch.Eof do
     begin
-      if AnsiLowerCase(CDSUser.FieldByName('NombreUser').AsString) = AnsiLowerCase(NU) then
+      if AnsiLowerCase(UDM.cl_Resp_Gest_Arch.FieldByName('usuario').AsString) = AnsiLowerCase(NU) then
       begin
-        if (cdsrol.Locate('idrol', CDSUser.FieldByName('rol').AsString, [])) then
+        if (UDM.Tb_Rol.Locate('idrol', UDM.cl_Resp_Gest_Arch.FieldByName('rol').AsString, [])) then
         begin
-          DM.ROL := CDSrol.FieldByName('rol').AsString;
+          UDM.ROL := UDM.Tb_Rol.FieldByName('rol').AsString;
           Result := True;
           Exit;
         end;
       end;
-      CDSUser.Next;
+      udm.cl_Resp_Gest_Arch.Next;
     end;
   end;
 
   function buscaUser(IdUser, IdPass: string): boolean;
   begin
     nombreuser(IdUser);
-    CDSUser.First;
+    UDM.cl_Resp_Gest_Arch.First;
     result := False;
-    if CDSUser.Locate('NombreUser;Pass', VarArrayOf([ansilowercase(IdUser), IdPass]), []) then
-      Result := IdPass = CDSUser.FieldByName('pass').AsString;
-  end; }
+    if UDM.cl_Resp_Gest_Arch.Locate('usuario;password', VarArrayOf([ansilowercase(IdUser), IdPass]), []) then
+      Result := IdPass = UDM.cl_Resp_Gest_Arch.FieldByName('password').AsString;
+  end;
 
 begin
-  {if trim(edtuser.Text) = '' then
+  if trim(edtuser.Text) = '' then
   begin
-    MessageDlg('Debe especificar un nombre de usuario válido.', mtWarning, [mbOK], 0);
+    UDM.sms('Debe especificar un nombre de usuario válido.', 2);
     edtuser.Focused;
     edtuser.SetFocus;
     Exit;
   end;
   if (Trim(edtpass.Text) = '') or (length(edtpass.Text) < 4) then
   begin
-    MessageDlg('Debe especificar una contraseña válida la cual no puede ser un caracter en blanco ni tener menos de cuatro caracteres de longitud.', mtWarning, [mbOK], 0);
+    UDM.sms('Debe especificar una contraseña válida la cual no puede ser un caracter en blanco ni tener menos de cuatro caracteres de longitud.', 2);
     edtpass.Focused;
     edtpass.SetFocus;
     Exit;
   end;
-  DM.Rol := Security.GetRol(DM.FDConn, AnsiLowerCase(trim(edtuser.Text)), trim(edtpass.Text), '');
-  if trim(DM.Rol) = '' then
+  if UDM.cl_Resp_Gest_Arch.Locate('usuario', trim(edtuser.Text), []) then
   begin
-    MessageDlg('El usuario y/o la contraseña son incorrectos. Por favor contacte con un administrador del sistema.', mtWarning, [mbOK], 0);
-    edtuser.Text := '';
-    edtpass.Text := '';
-    edtuser.SetFocus;
-    edtuser.Focused;
-    Exit
+
+    UDM.Rol := Security.GetRol(UDM.Conn, AnsiLowerCase(trim(edtuser.Text)), trim(edtpass.Text), '');
+    if trim(UDM.Rol) = '' then
+    begin
+      UDM.sms('El usuario y/o la contraseña son incorrectos. Por favor contacte con un administrador del sistema.', 2);
+      edtuser.Text := '';
+      edtpass.Text := '';
+      edtuser.SetFocus;
+      edtuser.Focused;
+      Exit
+    end
+    else
+    begin
+      UDM.UserName := trim(edtuser.Text);
+      Close;
+    end;
   end
   else
   begin
-    DM.UserName := trim(edtuser.Text);
-    Close;
-  end;}
+    UDM.sms('El usuario "' + edtuser.Text + '" no se encuentra en la base de datos.', 1);
+    edtuser.SetFocus;
+    edtuser.Focused;
+    Exit;
+  end;
 end;
 
 procedure TfrmAutentica.btncancelClick(Sender: TObject);
 begin
-  {UserROL := 'Visor';
-  DM.Username := 'Invitado'; }
+  UserROL := 'Visor';
+  UDM.Username := 'Invitado';
   Close;
 end;
 

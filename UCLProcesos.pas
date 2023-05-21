@@ -15,7 +15,8 @@ uses
   FireDAC.Stan.Option, FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS,
   FireDAC.Phys.Intf, FireDAC.DApt.Intf, FireDAC.Stan.Async, FireDAC.DApt,
   FireDAC.Comp.DataSet, FireDAC.Comp.Client, cxImage, cxMRUEdit, cxButtonEdit,
-  dxOfficeSearchBox, cxHyperLinkEdit, cxMemo;
+  dxOfficeSearchBox, cxHyperLinkEdit, cxMemo, JvExControls, JvButton,
+  JvTransparentButton;
 
 type
   TfrmCLprocesos = class(TForm)
@@ -72,10 +73,22 @@ type
     cxGrid3DBTableView1Nombresubproceso: TcxGridDBColumn;
     cxGrid3DBTableView1PDFSubproceso: TcxGridDBColumn;
     cxGrid3DBTableView1IDSistemaCalidad: TcxGridDBColumn;
+    ToolButton1: TToolButton;
+    ToolButton2: TToolButton;
+    ToolButton4: TToolButton;
+    JvTransparentButton2: TJvTransparentButton;
+    JvTransparentButton1: TJvTransparentButton;
+    JvTransparentButton3: TJvTransparentButton;
     procedure btnCloseClick(Sender: TObject);
     procedure cxGrid3DBTableView1PDFSubprocesoPropertiesButtonClick(Sender: TObject; AButtonIndex: Integer);
     procedure FormActivate(Sender: TObject);
     procedure btnhlpClick(Sender: TObject);
+    procedure DBNavigator3Click(Sender: TObject; Button: TNavigateBtn);
+    procedure DBNavigator2Click(Sender: TObject; Button: TNavigateBtn);
+    procedure DBNavigator1Click(Sender: TObject; Button: TNavigateBtn);
+    procedure JvTransparentButton2Click(Sender: TObject);
+    procedure JvTransparentButton1Click(Sender: TObject);
+    procedure JvTransparentButton3Click(Sender: TObject);
   private
     { Private declarations }
   public
@@ -89,7 +102,7 @@ var
 implementation
 
 uses
-  UCapaDatos, UManagementPDFFile;
+  UCapaDatos, UManagementPDFFile, UExcelExport;
 
 {$R *.dfm}
 
@@ -105,17 +118,60 @@ end;
 
 procedure TfrmCLprocesos.cxGrid3DBTableView1PDFSubprocesoPropertiesButtonClick(Sender: TObject; AButtonIndex: Integer);
 var
-  NombreProc:string;
+  NombreProc: string;
 begin
-  NombreProc:= tcl_ProcesoSubproceso.FieldByName('Nombresubproceso').AsString +' ID SGIC Calidad ('+ tcl_ProcesoSubproceso.FieldByName('IDSistemaCalidad').AsString+')';
-  ManagementPDF(@tcl_ProcesoSubproceso,'PDFSubproceso', NombreProc);
+  NombreProc := tcl_ProcesoSubproceso.FieldByName('Nombresubproceso').AsString + ' ID SGIC Calidad (' + tcl_ProcesoSubproceso.FieldByName('IDSistemaCalidad').AsString + ')';
+  ManagementPDF(@tcl_ProcesoSubproceso, 'PDFSubproceso', NombreProc, 'pdf');
+end;
+
+procedure TfrmCLprocesos.DBNavigator1Click(Sender: TObject; Button: TNavigateBtn);
+begin
+  if Button = nbInsert then
+  begin
+    if (TDBNavigator(Sender).DataSource.DataSet.State = dsInsert) or (TDBNavigator(Sender).DataSource.DataSet.State = dsEdit) then
+      UDM.tcl_ProcesoSubproceso.FieldByName('IdSubproceso').AsInteger := UDM.GetLastId('tcl_ProcesoSubproceso', 'IdSubproceso');
+  end;
+end;
+
+procedure TfrmCLprocesos.DBNavigator2Click(Sender: TObject; Button: TNavigateBtn);
+begin
+  if Button = nbInsert then
+  begin
+    if (TDBNavigator(Sender).DataSource.DataSet.State = dsInsert) or (TDBNavigator(Sender).DataSource.DataSet.State = dsEdit) then
+      UDM.tcl_Procesos.FieldByName('IdProceso').AsInteger := UDM.GetLastId('tcl_Procesos', 'IdProceso');
+  end;
+end;
+
+procedure TfrmCLprocesos.DBNavigator3Click(Sender: TObject; Button: TNavigateBtn);
+begin
+  if Button = nbInsert then
+  begin
+    if (TDBNavigator(Sender).DataSource.DataSet.State = dsInsert) or (TDBNavigator(Sender).DataSource.DataSet.State = dsEdit) then
+      UDM.tcl_procesosGrupos.FieldByName('IdGrupo').AsInteger := UDM.GetLastId('tcl_procesosGrupos', 'IdGrupo');
+  end;
 end;
 
 procedure TfrmCLprocesos.FormActivate(Sender: TObject);
 begin
-  tcl_procesosGrupos.Active:=True;
-  tcl_Procesos.Active:=True;
-  tcl_ProcesoSubproceso.Active:=True;
+  tcl_procesosGrupos.Active := True;
+  tcl_Procesos.Active := True;
+  tcl_ProcesoSubproceso.Active := True;
+  Security.SetModSecurity(Self, acceso);
+end;
+
+procedure TfrmCLprocesos.JvTransparentButton1Click(Sender: TObject);
+begin
+  ExcelExport(nil, cxGrid1);
+end;
+
+procedure TfrmCLprocesos.JvTransparentButton2Click(Sender: TObject);
+begin
+  ExcelExport(nil, cxGrid2);
+end;
+
+procedure TfrmCLprocesos.JvTransparentButton3Click(Sender: TObject);
+begin
+  ExcelExport(nil, cxGrid3);
 end;
 
 end.

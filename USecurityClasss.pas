@@ -18,17 +18,18 @@ uses
   dxSkinSevenClassic, dxSkinSharp, dxSkinSharpPlus, dxSkinSilver,
   dxSkinSpringTime, dxSkinStardust, dxSkinSummer2008, dxSkinTheAsphaltWorld,
   dxSkinsDefaultPainters, dxSkinValentine, dxSkinVS2010, dxSkinWhiteprint,
-  dxSkinXmas2008Blue, Vcl.Menus, cxLabel, cxDBLabel, Vcl.Grids, Vcl.DBGrids, Vcl.DBCtrls,
-  Vcl.ComCtrls, JvExComCtrls, JvDateTimePicker, JvDBDateTimePicker, cxButtons,
-  cxGroupBox, AdvOfficeStatusBar, Vcl.ExtCtrls, Vcl.ToolWin, System.StrUtils,
-  cxCustomData, cxFilter, cxData, cxDataStorage, cxNavigator, cxDBData,
-  cxGridLevel, cxClasses, cxGridCustomView, cxGridCustomTableView,
+  dxSkinXmas2008Blue, Vcl.Menus, cxLabel, cxDBLabel, Vcl.Grids, Vcl.DBGrids,
+  Vcl.DBCtrls, Vcl.ComCtrls, JvExComCtrls, JvDateTimePicker, JvDBDateTimePicker,
+  cxButtons, cxGroupBox, AdvOfficeStatusBar, Vcl.ExtCtrls, Vcl.ToolWin,
+  System.StrUtils, cxCustomData, cxFilter, cxData, cxDataStorage, cxNavigator,
+  cxDBData, cxGridLevel, cxClasses, cxGridCustomView, cxGridCustomTableView,
   cxGridTableView, cxGridDBTableView, cxGrid, cxDropDownEdit, cxDBLookupComboBox,
-  cxDBNavigator, System.UITypes, FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Error,
-  FireDAC.UI.Intf, FireDAC.Phys.Intf, FireDAC.Stan.Def, FireDAC.Stan.Pool,
-  FireDAC.Stan.Async, FireDAC.Phys, FireDAC.Stan.ExprFuncs, FireDAC.VCLUI.Wait,
-  FireDAC.Stan.Param, FireDAC.DatS, FireDAC.DApt.Intf, FireDAC.DApt, FireDAC.Comp.DataSet,
-  FireDAC.Comp.Client, FireDAC.Comp.UI, FireDAC.Phys.SQLite, cxDBEdit;
+  cxDBNavigator, System.UITypes, FireDAC.Stan.Intf, FireDAC.Stan.Option,
+  FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf, FireDAC.Stan.Def,
+  FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys, FireDAC.Stan.ExprFuncs,
+  FireDAC.VCLUI.Wait, FireDAC.Stan.Param, FireDAC.DatS, FireDAC.DApt.Intf,
+  FireDAC.DApt, FireDAC.Comp.DataSet, FireDAC.Comp.Client, FireDAC.Comp.UI,
+  FireDAC.Phys.SQLite, cxDBEdit, Winapi.Windows;
 
 type
   TSecurityClass = class
@@ -45,9 +46,10 @@ type
     procedure cxDBTextEditConfig(aff: TComponent; fat: Boolean; Acceso: string);
     procedure cxDBLookupComboBoxConfig(aff: TComponent; fat: Boolean; Acceso: string);
     procedure cxDBCheckBoxConfig(aff: TComponent; fat: Boolean; Acceso: string);
-    procedure cxDBDateEditConfig(aff: TComponent;fat: Boolean; Acceso: string);
+    procedure cxDBDateEditConfig(aff: TComponent; fat: Boolean; Acceso: string);
     procedure cxDBNavigatorConfig(fat: Boolean; aff: TComponent; Acceso: string);
     procedure cxGridDBTableViewConfig(fat: Boolean; aff: TComponent; Acceso: string);
+    function sms(aText: string; aTipo: Integer): integer;
     { Private declarations }
   public
     { Public declarations }
@@ -195,41 +197,85 @@ begin
   begin
     if aff.Tag <> 1 then
     begin
+      if aff.Tag <> 99 then
+      begin
+        TcxDBNavigator(aff as TcxDBNavigator).Buttons.First.Visible := fat;
+        TcxDBNavigator(aff as TcxDBNavigator).Buttons.Prior.Visible := fat;
+        TcxDBNavigator(aff as TcxDBNavigator).Buttons.Next.Visible := fat;
+        TcxDBNavigator(aff as TcxDBNavigator).Buttons.Last.Visible := fat;
+      //TcxDBNavigator(aff as TcxDBNavigator).Buttons.Append.Visible:=True;
+        TcxDBNavigator(aff as TcxDBNavigator).Buttons.Delete.Visible := fat;
+        TcxDBNavigator(aff as TcxDBNavigator).Buttons.Post.Visible := fat;
+        TcxDBNavigator(aff as TcxDBNavigator).Buttons.Cancel.Visible := fat;
+        TcxDBNavigator(aff as TcxDBNavigator).Buttons.Edit.Visible := fat;
+        TcxDBNavigator(aff as TcxDBNavigator).Buttons.Insert.Visible := fat;
+        TcxDBNavigator(aff as TcxDBNavigator).Buttons.Filter.Visible := fat;
+        TcxDBNavigator(aff as TcxDBNavigator).Buttons.GotoBookmark.Visible := not fat;
+        TcxDBNavigator(aff as TcxDBNavigator).Buttons.SaveBookmark.Visible := not fat;
+        TcxDBNavigator(aff as TcxDBNavigator).Buttons.PriorPage.Visible := not fat;
+        TcxDBNavigator(aff as TcxDBNavigator).Buttons.NextPage.Visible := not fat;
+      end
+      else
+      begin
+        TcxDBNavigator(aff as TcxDBNavigator).Buttons.First.Visible := not fat;
+        TcxDBNavigator(aff as TcxDBNavigator).Buttons.Prior.Visible := not fat;
+        TcxDBNavigator(aff as TcxDBNavigator).Buttons.Next.Visible := not fat;
+        TcxDBNavigator(aff as TcxDBNavigator).Buttons.Last.Visible := not fat;
+        TcxDBNavigator(aff as TcxDBNavigator).Buttons.Append.Visible := not fat;
+        TcxDBNavigator(aff as TcxDBNavigator).Buttons.Insert.Visible := not fat;
+        TcxDBNavigator(aff as TcxDBNavigator).Buttons.Delete.Visible := not fat;
+        TcxDBNavigator(aff as TcxDBNavigator).Buttons.Post.Visible := not fat;
+        TcxDBNavigator(aff as TcxDBNavigator).Buttons.Cancel.Visible := not fat;
+        TcxDBNavigator(aff as TcxDBNavigator).Buttons.Edit.Visible := not fat;
+        TcxDBNavigator(aff as TcxDBNavigator).Buttons.Filter.Visible := not fat;
+        TcxDBNavigator(aff as TcxDBNavigator).Buttons.Refresh.Visible := not fat;
+        TcxDBNavigator(aff as TcxDBNavigator).Buttons.GotoBookmark.Visible := not fat;
+        TcxDBNavigator(aff as TcxDBNavigator).Buttons.SaveBookmark.Visible := not fat;
+        TcxDBNavigator(aff as TcxDBNavigator).Buttons.PriorPage.Visible := not fat;
+        TcxDBNavigator(aff as TcxDBNavigator).Buttons.NextPage.Visible := not fat;
+      end;
+    end;
+  end
+  else if AnsiLowerCase(Acceso) = 'solo lectura' then
+  begin
+    if aff.Tag <> 99 then
+    begin
       TcxDBNavigator(aff as TcxDBNavigator).Buttons.First.Visible := fat;
       TcxDBNavigator(aff as TcxDBNavigator).Buttons.Prior.Visible := fat;
       TcxDBNavigator(aff as TcxDBNavigator).Buttons.Next.Visible := fat;
       TcxDBNavigator(aff as TcxDBNavigator).Buttons.Last.Visible := fat;
-      //TcxDBNavigator(aff as TcxDBNavigator).Buttons.Append.Visible:=True;
-      TcxDBNavigator(aff as TcxDBNavigator).Buttons.Delete.Visible := fat;
-      TcxDBNavigator(aff as TcxDBNavigator).Buttons.Post.Visible := fat;
-      TcxDBNavigator(aff as TcxDBNavigator).Buttons.Cancel.Visible := fat;
-      TcxDBNavigator(aff as TcxDBNavigator).Buttons.Edit.Visible := fat;
-      TcxDBNavigator(aff as TcxDBNavigator).Buttons.Insert.Visible := fat;
-      TcxDBNavigator(aff as TcxDBNavigator).Buttons.Filter.Visible := fat;
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.Append.Visible := not fat;
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.Insert.Visible := not fat;
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.Delete.Visible := not fat;
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.Post.Visible := not fat;
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.Cancel.Visible := not fat;
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.Edit.Visible := not fat;
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.Filter.Visible := not fat;
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.Refresh.Visible := not fat;
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.GotoBookmark.Visible := not fat;
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.SaveBookmark.Visible := not fat;
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.PriorPage.Visible := not fat;
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.NextPage.Visible := not fat;
+    end
+    else
+    begin
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.First.Visible := not fat;
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.Prior.Visible := not fat;
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.Next.Visible := not fat;
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.Last.Visible := not fat;
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.Append.Visible := not fat;
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.Insert.Visible := not fat;
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.Delete.Visible := not fat;
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.Post.Visible := not fat;
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.Cancel.Visible := not fat;
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.Edit.Visible := not fat;
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.Filter.Visible := not fat;
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.Refresh.Visible := not fat;
       TcxDBNavigator(aff as TcxDBNavigator).Buttons.GotoBookmark.Visible := not fat;
       TcxDBNavigator(aff as TcxDBNavigator).Buttons.SaveBookmark.Visible := not fat;
       TcxDBNavigator(aff as TcxDBNavigator).Buttons.PriorPage.Visible := not fat;
       TcxDBNavigator(aff as TcxDBNavigator).Buttons.NextPage.Visible := not fat;
     end;
-  end
-  else if AnsiLowerCase(Acceso) = 'solo lectura' then
-  begin
-    TcxDBNavigator(aff as TcxDBNavigator).Buttons.First.Visible := fat;
-    TcxDBNavigator(aff as TcxDBNavigator).Buttons.Prior.Visible := fat;
-    TcxDBNavigator(aff as TcxDBNavigator).Buttons.Next.Visible := fat;
-    TcxDBNavigator(aff as TcxDBNavigator).Buttons.Last.Visible := fat;
-    TcxDBNavigator(aff as TcxDBNavigator).Buttons.Append.Visible := not fat;
-    TcxDBNavigator(aff as TcxDBNavigator).Buttons.Insert.Visible := not fat;
-    TcxDBNavigator(aff as TcxDBNavigator).Buttons.Delete.Visible := not fat;
-    TcxDBNavigator(aff as TcxDBNavigator).Buttons.Post.Visible := not fat;
-    TcxDBNavigator(aff as TcxDBNavigator).Buttons.Cancel.Visible := not fat;
-    TcxDBNavigator(aff as TcxDBNavigator).Buttons.Edit.Visible := not fat;
-    TcxDBNavigator(aff as TcxDBNavigator).Buttons.Filter.Visible := not fat;
-    TcxDBNavigator(aff as TcxDBNavigator).Buttons.Refresh.Visible := not fat;
-    TcxDBNavigator(aff as TcxDBNavigator).Buttons.GotoBookmark.Visible := not fat;
-    TcxDBNavigator(aff as TcxDBNavigator).Buttons.SaveBookmark.Visible := not fat;
-    TcxDBNavigator(aff as TcxDBNavigator).Buttons.PriorPage.Visible := not fat;
-    TcxDBNavigator(aff as TcxDBNavigator).Buttons.NextPage.Visible := not fat;
   end;
 end;
 
@@ -251,32 +297,44 @@ end;
 
 procedure TSecurityClass.cxDBLookupComboBoxConfig(aff: TComponent; fat: Boolean; Acceso: string);
 begin
-  if AnsiLowerCase(Acceso) = 'acceso total' then
-    TcxDBLookupComboBox(aff as TcxDBLookupComboBox).Properties.ReadOnly := not fat
-  else if AnsiLowerCase(Acceso) = 'solo lectura' then
-    TcxDBLookupComboBox(aff as TcxDBLookupComboBox).Properties.ReadOnly := fat;
+  if TcxDBLookupComboBox(aff as TcxDBLookupComboBox).Tag <> 99 then
+  begin
+    if AnsiLowerCase(Acceso) = 'acceso total' then
+      TcxDBLookupComboBox(aff as TcxDBLookupComboBox).Properties.ReadOnly := not fat
+    else if AnsiLowerCase(Acceso) = 'solo lectura' then
+      TcxDBLookupComboBox(aff as TcxDBLookupComboBox).Properties.ReadOnly := fat;
+  end;
 end;
 
 procedure TSecurityClass.cxDBTextEditConfig(aff: TComponent; fat: Boolean; Acceso: string);
 begin
-  if AnsiLowerCase(Acceso) = 'acceso total' then
-    TcxDBTextEdit(aff as TcxDBTextEdit).Properties.ReadOnly := not fat
-  else if AnsiLowerCase(Acceso) = 'solo lectura' then
-    TcxDBTextEdit(aff as TcxDBTextEdit).Properties.ReadOnly := fat;
+  if TcxDBTextEdit(aff as TcxDBTextEdit).Tag <> 99 then
+  begin
+    if AnsiLowerCase(Acceso) = 'acceso total' then
+      TcxDBTextEdit(aff as TcxDBTextEdit).Properties.ReadOnly := not fat
+    else if AnsiLowerCase(Acceso) = 'solo lectura' then
+      TcxDBTextEdit(aff as TcxDBTextEdit).Properties.ReadOnly := fat;
+  end;
 end;
 
 procedure TSecurityClass.cxDBMemoConfig(aff: TComponent; fat: Boolean; Acceso: string);
 begin
-  if AnsiLowerCase(Acceso) = 'acceso total' then
-    TcxDBMemo(aff as TcxDBMemo).Properties.ReadOnly := not fat
-  else if AnsiLowerCase(Acceso) = 'solo lectura' then
-    TcxDBMemo(aff as TcxDBMemo).Properties.ReadOnly := fat;
+  if TcxDBMemo(aff as TcxDBMemo).Tag <> 99 then
+  begin
+    if AnsiLowerCase(Acceso) = 'acceso total' then
+      TcxDBMemo(aff as TcxDBMemo).Properties.ReadOnly := not fat
+    else if AnsiLowerCase(Acceso) = 'solo lectura' then
+      TcxDBMemo(aff as TcxDBMemo).Properties.ReadOnly := fat;
+  end;
 end;
 
 procedure TSecurityClass.DBNavigatorConfig(aff: TComponent; Acceso: string);
 begin
   if AnsiLowerCase(Acceso) = 'acceso total' then
-    TDBNavigator(aff as TDBNavigator).VisibleButtons := [nbFirst, nbPrior, nbNext, nbLast, nbInsert, nbDelete, nbEdit, nbPost, nbCancel, nbRefresh]
+  begin
+    if TDBNavigator(aff as TDBNavigator).Tag <> 99 then
+      TDBNavigator(aff as TDBNavigator).VisibleButtons := [nbFirst, nbPrior, nbNext, nbLast, nbInsert, nbDelete, nbEdit, nbPost, nbCancel, nbRefresh]
+  end
   else if AnsiLowerCase(Acceso) = 'solo lectura' then
     TDBNavigator(aff as TDBNavigator).VisibleButtons := [nbFirst, nbPrior, nbNext, nbLast, nbRefresh];
 end;
@@ -467,7 +525,7 @@ begin
     except
       on E: EDatabaseError do
       begin
-        MessageDlg('No se pudo acceder al listado de módulos disponibles para el usuario actual. Motivo: ' + e.Message, mtError, [mbOK], 0);
+        sms('No se pudo acceder al listado de módulos disponibles para el usuario actual. Motivo: ' + e.Message, 1);
         Exit;
       end;
     end;
@@ -486,7 +544,7 @@ begin
     except
       on E: EDatabaseError do
       begin
-        MessageDlg('No se pudo acceder al listado de módulos disponibles para el usuario actual. Motivo: ' + e.Message, mtError, [mbOK], 0);
+        sms('No se pudo acceder al listado de módulos disponibles para el usuario actual. Motivo: ' + e.Message, 1);
         Exit;
       end;
     end;
@@ -558,7 +616,7 @@ begin
       except
         on E: EDatabaseError do
         begin
-          MessageDlg('No se pudo obtener el grupo de usuarios al que pertenece el usuario especificado. Motivo: ' + e.Message, mtError, [mbOK], 0);
+          sms('No se pudo obtener el grupo de usuarios al que pertenece el usuario especificado. Motivo: ' + e.Message, 1);
           Exit;
         end;
       end;
@@ -583,8 +641,8 @@ var
 begin
   Result := '';
   CAD1 := MD5Print(MD5String(Pass));
-  CAD := 'SELECT tb_rol.rol FROM tb_user INNER JOIN tb_rol ON tb_user.rol = ';
-  CAD := CAD+'tb_rol.idrol WHERE tb_user.nombreuser =:pp AND tb_user.pass =:aa';
+  CAD := 'SELECT tb_rol.rol FROM cl_Resp_Gest_Arch INNER JOIN tb_rol ON cl_Resp_Gest_Arch.rol = ';
+  CAD := CAD + 'tb_rol.idrol WHERE cl_Resp_Gest_Arch.usuario =:pp AND cl_Resp_Gest_Arch.password =:aa';
   result := conn.ExecSQLScalar(CAD, [ansilowercase(UserName), CAD1]);
 end;
 
@@ -606,13 +664,35 @@ var
 begin
   if AnsiLowerCase(Acceso) = 'sin acceso' then
   begin
-    MessageDlg('No tiene acceso al módulo especificado. Por favor contacte con el administrador del sistema.', mtError, [mbOK], 0);
+    sms('No tiene acceso al módulo especificado. Por favor contacte con el administrador del sistema.', 1);
     Exit;
   end;
   for i := 0 to aFrm.ComponentCount - 1 do
   begin
     ActNoAct(aFrm.Components[i], Acceso);
     AgregaItems(aFrm.Components[i]);
+  end;
+end;
+
+function TSecurityClass.sms(aText: string; aTipo: Integer): integer;
+begin
+  case aTipo of
+    1:
+      begin
+        result:=Application.MessageBox(PChar(aText), PChar('¡Error!'), MB_OK + MB_ICONERROR + MB_DEFBUTTON1 + MB_APPLMODAL);
+      end;
+    2:
+      begin
+        result:=MessageBox(Application.Handle, PChar(aText), PChar('¡Alerta!'), MB_OK + MB_ICONEXCLAMATION + MB_DEFBUTTON1 + MB_APPLMODAL);
+      end;
+    3:
+      begin
+        result:=MessageBox(Application.Handle, PChar(aText), PChar('¡Información!'), MB_OK + MB_ICONINFORMATION + MB_DEFBUTTON1 + MB_APPLMODAL);
+      end;
+    4:
+      begin
+        result:=Application.MessageBox(PChar(aText), PChar('¡Confirmación!'), MB_YESNO+ MB_ICONQUESTION + MB_DEFBUTTON1 + MB_APPLMODAL);
+      end;
   end;
 end;
 

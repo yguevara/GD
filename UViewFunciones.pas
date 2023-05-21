@@ -44,6 +44,9 @@ type
     procedure eliminarfunClick(Sender: TObject);
     procedure btnCloseClick(Sender: TObject);
     procedure btnhlpClick(Sender: TObject);
+    procedure zDBTableView1funcionesPropertiesButtonClick(Sender: TObject;
+      AButtonIndex: Integer);
+    procedure FormActivate(Sender: TObject);
   private
     { Private declarations }
   public
@@ -58,7 +61,7 @@ type
 implementation
 
 uses
-  UCapaDatos;
+  UCapaDatos, UVeditor;
 
 {$R *.dfm}
 function GetIDFunctionValue:Integer;
@@ -90,12 +93,29 @@ begin
   jcpSelectCargo.Visible:=True;
 end;
 
+procedure TfrmSelectFuncionG.FormActivate(Sender: TObject);
+begin
+  Security.SetModSecurity(Self, acceso);
+end;
+
 procedure TfrmSelectFuncionG.jcpSelectCargoButtonClick(Sender: TObject;
   Button: TJvCapBtnStyle);
 begin
   if Button=capClose then begin
     jcpSelectCargo.Visible:=False;
   end;
+end;
+
+procedure TfrmSelectFuncionG.zDBTableView1funcionesPropertiesButtonClick(
+  Sender: TObject; AButtonIndex: Integer);
+begin
+ if ansilowercase(UDM.ROL) <> 'administradores' then
+    if (dscmdfun.DataSet.FieldByName('funciones').Value = null) or (trim(dscmdfun.DataSet.FieldByName('funciones').Value) = '') then
+    begin
+      UDM.sms('No se encontró contenido para mostrar.', 3);
+      Exit;
+    end;
+  CampoTexto(@dscmdfun, 'funciones', 'Funciones del cargo actual...');
 end;
 
 end.

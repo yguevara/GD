@@ -42,22 +42,23 @@ procedure TfrmChangePass.btnCreateUserClick(Sender: TObject);
 begin
   if Length(edtpass.Text) <= 4 then
   begin
-    MessageDlg('La longitud de la contraseña debe ser mayor de cuatro carácteres.', mtError, [mbOK], 0);
+    UDM.sms('No se pudo cambiar la contraseña.', 1);
+    UDM.sms('La longitud de la contraseña debe ser mayor de cuatro carácteres.', 3);
     Exit;
   end;
   if (edtpass.Text = edtconfirmpass.Text) and (edtpass.text <> '') then
   begin
 
-      UDM.Tb_User.Edit;
-      UDM.Tb_User.FieldByName('Pass').AsString := MD5Print(MD5String(edtpass.Text));
+      UDM.cl_Resp_Gest_Arch.Edit;
+      UDM.cl_Resp_Gest_Arch.FieldByName('password').AsString := MD5Print(MD5String(edtpass.Text));
       try
-        UDM.Tb_User.Post;
-        MessageDlg('¡La contraseña se ha cambiado satisfactoriamente!', mtInformation, [mbOK], 0);
+        UDM.cl_Resp_Gest_Arch.Post;
+        UDM.sms('¡La contraseña se ha cambiado satisfactoriamente!', 3);
         Close;
       except
         on E: EDataBaseError do
         begin
-          MessageDlg(E.Message, mtError, [mbOK], 0);
+          UDM.sms(E.Message, 1);
           Exit;
         end;
       end;
@@ -65,7 +66,7 @@ begin
   end
   else
   begin
-    MessageDlg('Por favor verifique la contraseña. Deben coincidir la contraseña y su confirmación para continuar.', mtError, [mbOK], 0);
+    UDM.sms('Por favor verifique la contraseña. Deben coincidir la contraseña y su confirmación para continuar.', 3);
     Exit;
   end;
 end;

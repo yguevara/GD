@@ -72,8 +72,8 @@ uses
 
 procedure TfrmNewUser.btnCloseClick(Sender: TObject);
 begin
-  if (UDM.Tb_User.State <> dsInsert) or (UDM.Tb_User.State <> dsEdit) then
-    UDM.Tb_User.Cancel;
+  if (UDM.cl_Resp_Gest_Arch.State <> dsInsert) or (UDM.cl_Resp_Gest_Arch.State <> dsEdit) then
+    UDM.cl_Resp_Gest_Arch.Cancel;
   Close;
 end;
 
@@ -83,34 +83,36 @@ procedure TfrmNewUser.btnCreateUserClick(Sender: TObject);
   var
     V: Variant;
   begin
-      V := UDM.Conn.ExecSQLScalar('SELECT Max(des_registrador.codregistrador) FROM des_registrador');
+      V := UDM.Conn.ExecSQLScalar('SELECT Max(Idresp) FROM cl_Resp_Gest_Arch');
     result := StrToInt(VarToStr(V)) + 1;
   end;
 
 begin
   if (LowerCase(edtUser.Text) = 'administrador') or (LowerCase(edtUser.Text) = 'administrator') then
   begin
-    MessageDlg('El nombre de usuario especificado está restringido por el sistema.', mtError, [mbOK], 0);
+   // udm.sms('`No se puede eliminar el usuario actual', 1);
+    UDM.sms('El nombre de usuario '+AnsiQuotedStr('administrador/administrator', '"')+' está restringido por el sistema.', 3);
     Exit;
   end;
   if (edtUser.Text = '') or (Length(edtUser.Text) <= 3) or (edtUser.Text = ' ') or (Length(edtpass.Text) <= 6) then
   begin
-    MessageDlg('Por favor debe verificar lo siguiente:' + #13 + '1- No se especificó el "Usuario".' + #13 + '2- La longitud del nombre especificado debe ser de al menos tres caracteres.' + #13 + '3- El nombre de usuario está formado por caracteres no admitidos.' + #13 + '4- La longitud de la contraseña debe ser mayor de seis caracteres.' + #13, mtError, [mbOK], 0);
+    UDM.sms('Por favor debe verificar lo siguiente:' + #13 + '1- No se especificó el "Usuario".' + #13 + '2- La longitud del nombre especificado debe ser de al menos tres caracteres.' + #13 + '3- El nombre de usuario está formado por caracteres no admitidos.' + #13 + '4- La longitud de la contraseña debe ser mayor de seis caracteres.' + #13, 1);
     edtUser.SetFocus;
     edtUser.Focused;
     Exit;
   end;
   if edtpass.Text = edtconfirmpass.Text then
   begin
-    if (UDM.Tb_User.State <> dsInsert) or (UDM.Tb_User.State <> dsEdit) then
-      UDM.Tb_User.Append;
-    with UDM.Tb_User do
+    if (UDM.cl_Resp_Gest_Arch.State <> dsInsert) or (UDM.cl_Resp_Gest_Arch.State <> dsEdit) then
+      UDM.cl_Resp_Gest_Arch.Append;
+    with UDM.cl_Resp_Gest_Arch do
     begin
-      FieldByName('NombreUser').AsString := AnsiLowerCase(trim(edtUser.Text));
-      FieldByName('NombreLUser').AsString := edtCompleteName.Text;
-      FieldByName('Pass').AsString := MD5Print(MD5String(edtpass.Text));
-      FieldByName('Empresa').AsString := edtEmpresa.Text;
-      FieldByName('Ministerio').AsString := edtMinisterio.Text;
+      FieldByName('Idresp').AsInteger := GetLastId;
+      FieldByName('usuario').AsString := AnsiLowerCase(trim(edtUser.Text));
+      FieldByName('NombreResponsable').AsString := edtCompleteName.Text;
+      FieldByName('password').AsString := MD5Print(MD5String(edtpass.Text));
+      FieldByName('Telefono').AsString := edtEmpresa.Text;
+      FieldByName('CorreoElect').AsString := edtMinisterio.Text;
       FieldByName('Habilitado').AsString := cbEnable.Text;
       FieldByName('Rol').AsInteger := lcbrol.KeyValue;
       try
@@ -123,12 +125,12 @@ begin
         lcbrol.KeyValue := Null;
         edtEmpresa.Text := '';
         edtMinisterio.Text := '';
-        MessageDlg('¡El usuario se ha creado satisfactoriamente!', mtInformation, [mbOK], 0);
+        udm.sms('¡El usuario se ha creado satisfactoriamente!', 3);
         Append;
       except
         on E: EDatabaseError do
         begin
-          MessageDlg('No se pudo agregar el usuario especificado.' + #13 + '1- Verifique que el usuario no exista.' + #13 + '2- Verifique que el nombre de usuario no contenga caráteres especiales.' + #13 + 'Motivo: ' + e.Message, mtError, [mbOK], 0);
+          UDM.sms('No se pudo agregar el usuario especificado.' + #13 + '1- Verifique que el usuario no exista.' + #13 + '2- Verifique que el nombre de usuario no contenga caráteres especiales.' + #13 + 'Motivo: ' + e.Message, 1);
           Exit;
         end;
       end;
@@ -138,13 +140,13 @@ end;
 
 procedure TfrmNewUser.btnHelpClick(Sender: TObject);
 begin
-  UDM.ManagementHLP(Caption, Self.Handle);
+  //UDM.ManagementHLP(Caption, Self.Handle);
 end;
 
 procedure TfrmNewUser.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
-  if (UDM.Tb_User.State <> dsInsert) or (UDM.Tb_User.State <> dsEdit) then
-    UDM.Tb_User.Cancel;
+  if (UDM.cl_Resp_Gest_Arch.State <> dsInsert) or (UDM.cl_Resp_Gest_Arch.State <> dsEdit) then
+    UDM.cl_Resp_Gest_Arch.Cancel;
   CanClose := True;
 end;
 

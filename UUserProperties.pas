@@ -25,7 +25,8 @@ uses
   dxSkinsDefaultPainters, dxSkinValentine, dxSkinVisualStudio2013Blue,
   dxSkinVisualStudio2013Dark, dxSkinVisualStudio2013Light, dxSkinVS2010,
   dxSkinWhiteprint, dxSkinXmas2008Blue, cxTextEdit, cxMaskEdit, cxDropDownEdit,
-  cxLookupEdit, cxDBLookupEdit, cxDBLookupComboBox;
+  cxLookupEdit, cxDBLookupEdit, cxDBLookupComboBox, Vcl.ComCtrls, Vcl.ToolWin,
+  JvExControls, JvButton, JvTransparentButton;
 
 type
   TfrmProperties = class(TForm)
@@ -42,10 +43,13 @@ type
     edtUser: TDBEdit;
     edtUserL: TDBEdit;
     edtEmpresa: TDBEdit;
-    btnCreateUser: TButton;
-    btnClose: TButton;
-    Button1: TButton;
     lcbrol: TDBLookupComboBox;
+    StatusBar1: TStatusBar;
+    pMainContainer: TPanel;
+    JvTransparentButton1: TJvTransparentButton;
+    btnusercontrol: TJvTransparentButton;
+    btnSystemHelp: TJvTransparentButton;
+    JvTransparentButton2: TJvTransparentButton;
     procedure btnCreateUserClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -71,30 +75,30 @@ uses
 
 procedure TfrmProperties.btnCloseClick(Sender: TObject);
 begin
+  if (UDM.cl_Resp_Gest_Arch.State=dsInsert)or(UDM.cl_Resp_Gest_Arch.State=dsEdit) then
   try
-    UDM.Tb_User.Cancel;
-    Close;
+    UDM.cl_Resp_Gest_Arch.Cancel;
   except
-    on E: EDatabaseError do
+    on E: EFDException do
     begin
       MessageDlg('No se pudieron realizar los cambios solicitados.' + E.Message, mtError, [mbOK], 0);
-      Exit;
     end;
   end;
+  Close;
 end;
 
 procedure TfrmProperties.btnCreateUserClick(Sender: TObject);
 var
   bm: TBookmark;
 begin
-  bm := UDM.Tb_User.GetBookmark;
-  if (UDM.Tb_User.State <> dsedit) and (UDM.Tb_User.State <> dsinsert) then
-    UDM.Tb_User.Edit;
+  bm := UDM.cl_Resp_Gest_Arch.GetBookmark;
+  if (UDM.cl_Resp_Gest_Arch.State <> dsedit) and (UDM.cl_Resp_Gest_Arch.State <> dsinsert) then
+    UDM.cl_Resp_Gest_Arch.Edit;
   if trim(cbEnable.Text) <> '' then
-    UDM.Tb_User.FieldByName('habilitado').AsString := cbEnable.Text;
+    UDM.cl_Resp_Gest_Arch.FieldByName('habilitado').AsString := cbEnable.Text;
   try
-    UDM.Tb_User.Post;
-    UDM.Tb_User.GotoBookmark(bm);
+    UDM.cl_Resp_Gest_Arch.Post;
+    UDM.cl_Resp_Gest_Arch.GotoBookmark(bm);
   except
     on E: EDatabaseError do
     begin
@@ -109,7 +113,7 @@ procedure TfrmProperties.Button1Click(Sender: TObject);
 begin
   with TfrmChangePass.Create(nil) do
   try
-    Caption := 'Establecer contraseña para el ususario ' + UDM.Tb_User.FieldByName('nombreuser').AsString;
+    Caption := 'Establecer contraseña para el ususario ' + UDM.cl_Resp_Gest_Arch.FieldByName('usuario').AsString;
     ShowModal;
   finally
     Free;
@@ -120,24 +124,24 @@ procedure TfrmProperties.FormActivate(Sender: TObject);
 begin
   edtUser.SetFocus;
   edtUser.Focused;
-  cbEnable.Text := UDM.Tb_User.FieldByName('habilitado').AsString;
+  cbEnable.Text := UDM.cl_Resp_Gest_Arch.FieldByName('habilitado').AsString;
 end;
 
 procedure TfrmProperties.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
-  if (UDM.Tb_User.State = dsEdit) or (UDM.Tb_User.State = dsInsert) then
-    UDM.Tb_User.Cancel;
+  if (UDM.cl_Resp_Gest_Arch.State = dsEdit) or (UDM.cl_Resp_Gest_Arch.State = dsInsert) then
+    UDM.cl_Resp_Gest_Arch.Cancel;
 end;
 
 procedure TfrmProperties.FormCreate(Sender: TObject);
 begin
   Rol := UDM.Tb_Rol.FieldByName('idrol').AsString;
-  cbEnable.Text := UDM.Tb_User.FieldByName('habilitado').AsString;
-  edtUser.DataSource := UDM.DSTb_User;
-  edtUserL.DataSource := UDM.DSTb_User;
-  edtEmpresa.DataSource := UDM.DSTb_User;
-  edtMinisterio.DataSource := UDM.DSTb_User;
-  lcbrol.DataSource := UDM.DSTb_User;
+  cbEnable.Text := UDM.cl_Resp_Gest_Arch.FieldByName('habilitado').AsString;
+  edtUser.DataSource := UDM.dscl_Resp_Gest_Arch;
+  edtUserL.DataSource := UDM.dscl_Resp_Gest_Arch;
+  edtEmpresa.DataSource := UDM.dscl_Resp_Gest_Arch;
+  edtMinisterio.DataSource := UDM.dscl_Resp_Gest_Arch;
+  lcbrol.DataSource := UDM.dscl_Resp_Gest_Arch;
   lcbrol.ListSource := UDM.DSTb_Rol;
 end;
 

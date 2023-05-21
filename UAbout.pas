@@ -65,7 +65,7 @@ begin
   end;
 end;
 begin
-  lblBuild.Caption:='Build: '+Sto_GetFmtFileVersion(Application.ExeName, '%.d.%.d.%.d.%.4d');
+  lblBuild.Caption:='Versión: '+Sto_GetFmtFileVersion(Application.ExeName, '%.d.%.d.%.d.%.4d');
 end;
 
 procedure TfrmAbout.Image1Click(Sender: TObject);

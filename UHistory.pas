@@ -17,6 +17,9 @@ type
     SaveDialog1: TSaveDialog;
     mhistory: TRichEdit;
     ILEdith: TImageList;
+    ToolButton1: TToolButton;
+    ToolButton2: TToolButton;
+    ToolButton3: TToolButton;
     procedure btncloseClick(Sender: TObject);
     procedure ToolButton4Click(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -47,7 +50,7 @@ begin
     if trim(JvSelectDirectory1.Directory) <> '' then
     begin
       mhistory.Lines.SaveToFile(JvSelectDirectory1.Directory + '\Leeme.txt');
-      MessageDlg('El historial ha sido guardado satisfactoriamente.', mtInformation, [mbOK], 0);
+      UDM.sms('El historial ha sido guardado satisfactoriamente.', 3);
     end;
 end;
 

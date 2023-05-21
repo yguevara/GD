@@ -9,7 +9,7 @@ uses
   FireDAC.Stan.Option, FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS,
   FireDAC.Phys.Intf, FireDAC.DApt.Intf, FireDAC.Stan.Async, FireDAC.DApt,
   Data.DB, FireDAC.Comp.DataSet, FireDAC.Comp.Client, Vcl.ExtCtrls,
-  Winapi.ShellAPI;
+  Winapi.ShellAPI, AdvOfficeStatusBar;
 
 type
   PQry = ^TFDQuery;
@@ -24,10 +24,11 @@ type
     btnViewInforme: TToolButton;
     btn2: TToolButton;
     btnhelp: TToolButton;
-    statInformesGeo: TStatusBar;
     edt1: TEdit;
-    dlgOpenOD: TOpenDialog;
+    dlgOpenODPDF: TOpenDialog;
+    dlgOpenODJPG: TOpenDialog;
     Timer1: TTimer;
+    sbAD: TAdvOfficeStatusBar;
     procedure btn3Click(Sender: TObject);
     procedure btnFindInformeClick(Sender: TObject);
     procedure btnViewInformeClick(Sender: TObject);
@@ -38,7 +39,7 @@ type
     { Private declarations }
   public
     { Public declarations }
-//    exten: string;
+    exten: string;
     Contenedor: PQry;
     NombreCampo, capt: string;
     function TamFichero(n: string): longint;
@@ -46,7 +47,7 @@ type
 
 {var
   frmManagementProc: TfrmManagementProc;    }
-procedure ManagementPDF(aDS: PQry; aFieldName, Etiq: string);
+procedure ManagementPDF(aDS: PQry; aFieldName, Etiq, extension: string);
 
 implementation
 
@@ -54,11 +55,12 @@ uses
   UCapaDatos;
 
 {$R *.dfm}
-procedure ManagementPDF(aDS: PQry; aFieldName, Etiq: string);
+procedure ManagementPDF(aDS: PQry; aFieldName, Etiq, extension: string);
 begin
   with TfrmManagementProc.Create(nil) do
   try
     Contenedor := aDS;
+    exten := extension;
     NombreCampo := aFieldName;
     capt := Etiq;
     ShowModal;
@@ -71,7 +73,11 @@ end;
 
 procedure TfrmManagementProc.btn3Click(Sender: TObject);
 begin
-  if MessageDlg('¿Está seguro de eliminar el procedimiento almacenado en el campo actual?', mtConfirmation, [mbYes, mbNo], 0) = mrYes then
+  if (Contenedor^.FieldByName(NombreCampo).Value=null)or(trim(Contenedor^.FieldByName(NombreCampo).asstring)=null) then begin
+    UDM.sms('Debe especificar un fichero válido para eliminar.', 3);
+    Exit;
+  end;
+  if udm.sms('¿Está seguro de eliminar el procedimiento almacenado en el campo actual?', 4) = 6 then
   begin
     Contenedor^.Edit;
     Contenedor^.FieldByName(NombreCampo).Clear;
@@ -88,19 +94,40 @@ var
   Stream: TMemoryStream;
 begin
   //Load PDF File into DB Field...
-  if (Contenedor^.State <> dsedit) or (Contenedor^.State <> dsinsert) then
-    Contenedor^.Edit;
-  Stream := TMemoryStream.Create;
-  if dlgOpenOD.Execute then
+  if exten = 'jpg' then
   begin
-    if dlgOpenOD.FileName <> '' then
-    try
-      Stream.LoadFromFile(dlgOpenOD.FileName);
-      Stream.Seek(0, soFromBeginning);
-      TBlobField(Contenedor^.FieldByName(NombreCampo)).LoadFromStream(Stream);
-      edt1.Text := dlgOpenOD.FileName;
-    finally
-      Stream.Free;
+    if (Contenedor^.State <> dsedit) or (Contenedor^.State <> dsinsert) then
+      Contenedor^.Edit;
+    Stream := TMemoryStream.Create;
+    if dlgOpenODJPG.Execute then
+    begin
+      if dlgOpenODJPG.FileName <> '' then
+      try
+        Stream.LoadFromFile(dlgOpenODJPG.FileName);
+        Stream.Seek(0, soFromBeginning);
+        TBlobField(Contenedor^.FieldByName(NombreCampo)).LoadFromStream(Stream);
+        edt1.Text := dlgOpenODJPG.FileName;
+      finally
+        Stream.Free;
+      end;
+    end;
+  end
+  else
+  begin
+    if (Contenedor^.State <> dsedit) or (Contenedor^.State <> dsinsert) then
+      Contenedor^.Edit;
+    Stream := TMemoryStream.Create;
+    if dlgOpenODPDF.Execute then
+    begin
+      if dlgOpenODPDF.FileName <> '' then
+      try
+        Stream.LoadFromFile(dlgOpenODPDF.FileName);
+        Stream.Seek(0, soFromBeginning);
+        TBlobField(Contenedor^.FieldByName(NombreCampo)).LoadFromStream(Stream);
+        edt1.Text := dlgOpenODPDF.FileName;
+      finally
+        Stream.Free;
+      end;
     end;
   end;
 
@@ -130,14 +157,18 @@ var
     except
       on E: EFilerError do
       begin
-        MessageDlg('No se pudo abrir el Informe especificado. Motivo:' + E.Message, mtError, [mbOK], 0);
+        UDM.sms('No se pudo abrir el Informe especificado. Motivo:' + E.Message, 1);
         Exit;
       end;
     end;
   end;
 
 begin
-  ext := 'pdf';
+  if (Contenedor^.FieldByName(NombreCampo).Value=null)or(trim(Contenedor^.FieldByName(NombreCampo).asstring)=null) then begin
+    UDM.sms('No existe ningún fichero almacenado que pueda ser visualizado.', 3);
+    Exit;
+  end;
+  ext := exten;
   Screen.Cursor := crSQLWait;
   try
     Path := PathTemp + capt + '.' + ext;
@@ -159,7 +190,8 @@ begin
       end;
     end;
     TBlobField(Contenedor^.FieldByName(NombreCampo)).SaveToFile(Path);
-    ejecutaPDF(Path);
+    UDM.ViewIMG(Path);
+    //ejecutaPDF(Path);
     BringToFront;
     Refresh;
   finally
@@ -181,15 +213,11 @@ procedure TfrmManagementProc.Timer1Timer(Sender: TObject);
 begin
   if (TBlobField(Contenedor^.FieldByName(NombreCampo)).Value = null) or (TBlobField(Contenedor^.FieldByName(NombreCampo)).AsString = '') then
   begin
-    btn3.Enabled := False;
-    btnViewInforme.Enabled := False;
     edt1.Text := '(<<Vacio>>)';
   end
   else
   begin
-    btn3.Enabled := True;
-    btnViewInforme.Enabled := True;
-    edt1.Text := '(<<Fichero PDF Alamacenado>>)';
+    edt1.Text := '(<<Fichero Alamacenado>>)';
   end;
 end;
 

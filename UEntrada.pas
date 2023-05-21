@@ -18,31 +18,11 @@ type
   TFEntrada = class(TForm)
     cxStyleRepository1: TcxStyleRepository;
     cxStyle1: TcxStyle;
-    Panel1: TPanel;
-    cxDBVerticalGrid1: TcxDBVerticalGrid;
-    iv1: TcxDBEditorRow;
-    iv2: TcxDBEditorRow;
-    iv3: TcxDBEditorRow;
-    iv4: TcxDBEditorRow;
-    iv5: TcxDBEditorRow;
-    iv6: TcxDBEditorRow;
-    iv7: TcxDBEditorRow;
-    iv8: TcxDBEditorRow;
-    iv9: TcxDBEditorRow;
-    iv10: TcxDBEditorRow;
-    iv11: TcxDBEditorRow;
-    Panel2: TPanel;
-    Splitter1: TSplitter;
-    Panel3: TPanel;
-    SpeedButton3: TSpeedButton;
-    DBGrid1: TDBGrid;
     QListaCodigo: TFDQuery;
     DQListaCodigo: TDataSource;
     AdvPopupMenu1: TAdvPopupMenu;
     G1: TMenuItem;
-    PanelCaption: TPanel;
     V1: TMenuItem;
-    Panel4: TPanel;
     cxStyleRepository2: TcxStyleRepository;
     cxStyle2: TcxStyle;
     cxStyle3: TcxStyle;
@@ -58,8 +38,27 @@ type
     ToolButton7: TToolButton;
     ToolButton8: TToolButton;
     StatusBar1: TStatusBar;
+    Panel1: TPanel;
+    Splitter1: TSplitter;
+    cxDBVerticalGrid1: TcxDBVerticalGrid;
+    iv1: TcxDBEditorRow;
+    iv2: TcxDBEditorRow;
+    iv3: TcxDBEditorRow;
+    iv4: TcxDBEditorRow;
+    iv5: TcxDBEditorRow;
+    iv6: TcxDBEditorRow;
+    iv7: TcxDBEditorRow;
+    iv8: TcxDBEditorRow;
+    iv9: TcxDBEditorRow;
+    iv10: TcxDBEditorRow;
+    iv11: TcxDBEditorRow;
+    Panel2: TPanel;
+    DBGrid1: TDBGrid;
+    Panel3: TPanel;
+    SpeedButton3: TSpeedButton;
     btnAddVar: TSpeedButton;
-    procedure FormCreate(Sender: TObject);
+    PanelCaption: TPanel;
+    Panel4: TPanel;
     procedure Button1Click(Sender: TObject);
     procedure SpeedButton1Click(Sender: TObject);
     procedure SpeedButtonayuda(Sender: TObject);
@@ -73,14 +72,17 @@ type
     procedure ToolButton8Click(Sender: TObject);
     procedure btnAddVarClick(Sender: TObject);
     procedure btnhlpClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure FormActivate(Sender: TObject);
   private
     { Private declarations }
     varUltimoQuery: string;
 
     iRow: integer; //Posicion en la fila de la VerticalGrid
+
   public
     { Public declarations }
-
+    procedure Rellena;
   end;
 
 var
@@ -111,7 +113,6 @@ var
 begin
   with TFEntrada.Create(nil) do
   try
-    //height := 15 * UDM.tb_SerieDatosVar.RECORDCOUNT;
     CantIndex := 0;
     if UDM.cl_subseries.Locate('codsubs', UDM.tb_SeriesDatos.FieldByName('codsubs').AsInteger) then
       s := s;
@@ -163,7 +164,7 @@ begin
   end;
   if not salvo then
   begin
-    if MessageDlg('Existen variables que no han tomado valor. ?Salvará de todas formas', mtConfirmation, [mbYes, mbNo], 0, mbYes) = mryes then
+    if UDM.sms('Existen variables que no han tomado valor. ?Salvará de todas formas', 4) = 6 then
       salvo := true;
   end;
   if salvo then
@@ -205,24 +206,70 @@ begin
     if UDM.cl_variables.locate('idvar', UDM.tb_SerieDatosVar.fieldbyname('IdVar').asinteger, []) then
     begin
       s := UDM.cl_variables.fields[1].value;
+      g1.Enabled := False;
       if UDM.cl_variables.fieldbyname('ListaDesplegable').value then
-      begin
         g1.Enabled := true;
-        AdvPopupMenu1.PopupAtCursor;
-      end
-      else
-      begin
-        //Panel2.Visible := False;
-        g1.Enabled := false;
-        AdvPopupMenu1.PopupAtCursor;
-      end;
+      AdvPopupMenu1.PopupAtCursor;
     end;
   end
   else
     s := s;
 end;
 
+procedure TFEntrada.FormActivate(Sender: TObject);
+begin
+  Security.SetModSecurity(Self, acceso);
+end;
+
 procedure TFEntrada.FormCreate(Sender: TObject);
+begin
+  Rellena;
+end;
+
+procedure TFEntrada.G1Click(Sender: TObject);
+var
+  Campo: string;
+begin
+  PanelCaption.Caption := ' Variable: ' + UDM.cl_Variables.fieldbyname('NomVariable').asstring;
+//********************************************************************************************
+  QListaCodigo.Active := false;
+  QListaCodigo.SQL.Clear;
+  if UDM.cl_Variables.fieldbyname('tipo').asstring = 'Entero' then
+    Campo := 'VarInteger'
+  else if UDM.cl_Variables.fieldbyname('tipo').asstring = 'Real' then
+    Campo := 'VarDouble'
+  else if UDM.cl_Variables.fieldbyname('tipo').asstring = 'Fecha' then
+    Campo := 'VarDate'
+  else
+    Campo := 'VarString255';
+  DBGrid1.Columns[0].FieldName := Campo;
+  QListaCodigo.SQL.Add('select ' + Campo + ' from tb_SerieDatosVar where ' + Campo + ' <> NULL  group by ' + Campo + ' order by ' + Campo);
+  //QListaCodigo.SQL.SaveToFile('c:\!a.txt');
+  QListaCodigo.Active := true;
+  panel4.Visible := false;
+  if QListaCodigo.RecordCount = 0 then
+    panel4.Visible := true;
+//********************************************************************************************
+  Panel2.Visible := true;
+  Splitter1.Visible := true;
+end;
+
+procedure TFEntrada.Panel2Resize(Sender: TObject);
+begin
+  panel4.Width := dbgrid1.Width;
+  panel4.Top := dbgrid1.height div 2 + panel4.height div 2;
+end;
+
+procedure TFEntrada.Panel3Resize(Sender: TObject);
+begin
+  with panel3 do
+  begin
+    SpeedButton3.left := panel3.width div 2 - SpeedButton3.width div 2;
+    SpeedButton3.top := panel3.height div 2 - SpeedButton3.height div 2;
+  end;
+end;
+
+procedure TFEntrada.Rellena;
 var
   i: integer;
   Qcl_Varsubserie: TFDQuery;
@@ -244,19 +291,17 @@ begin
   AbrirTabla(UDM.tb_SerieDatosVar);
   AbrirTabla(UDM.cl_subseries);
   Qcl_Varsubserie := TFDQuery.create(self);
-  with Qcl_Varsubserie do
-  begin
-    Active := False;
-    Connection := UDM.Conn;
+  with Qcl_Varsubserie do begin
+    Active:=False;
+    Connection:=UDM.Conn;
     SQL.Clear;
-    SQL.Add('select * from cl_varsubserie where codsubs=' + QuotedStr(UDM.tb_SeriesDatos.fieldbyname('codsubs').asstring));
+    SQL.Add('select * from cl_varsubserie where codsubs='+QuotedStr(UDM.tb_SeriesDatos.fieldbyname('codsubs').asstring));
     SQL.Add(' order by codsubs, orden');
     try
-      Active := True;
-    except
-      on E: EFDException do
+      Active:=True;
+    except on E: EFDException do
       begin
-        MessageDlg('No se pudo acceder al listado de variables asignadas a esta serie. Por favor intentelo de nuevo.', mtError, [mbOK], 0);
+        UDM.sms('No se pudo acceder al listado de variables asignadas a esta serie. Por favor intentelo de nuevo.',  1);
         Exit;
       end;
     end;
@@ -267,7 +312,14 @@ begin
     Qcl_Varsubserie.First;
     while not Qcl_Varsubserie.eof do
     begin
-      UDM.tb_SerieDatosVar.AppendRecord([UDM.tb_SeriesDatos.fieldbyname('id').value, UDM.tb_SeriesDatos.fieldbyname('codsubs').value, UDM.tb_SeriesDatos.fieldbyname('Fecha').value, UDM.tb_SeriesDatos.fieldbyname('Version').value, Qcl_Varsubserie.fieldbyname('orden').value, Qcl_Varsubserie.fieldbyname('idvar').value]);
+      UDM.tb_SerieDatosVar.AppendRecord([
+                                          UDM.tb_SeriesDatos.fieldbyname('id').value,
+                                          UDM.tb_SeriesDatos.fieldbyname('codsubs').value,
+                                          UDM.tb_SeriesDatos.fieldbyname('Fecha').value,
+                                          UDM.tb_SeriesDatos.fieldbyname('Version').value,
+                                          Qcl_Varsubserie.fieldbyname('orden').value,
+                                          Qcl_Varsubserie.fieldbyname('idvar').value
+                                        ]);
       Qcl_Varsubserie.next;
     end;
     UDM.tb_SerieDatosVar.Active := false;
@@ -325,6 +377,7 @@ begin
   UDM.tb_VirtualVar.CreateDataSet;
   if not UDM.tb_VirtualVar.active then
     UDM.tb_VirtualVar.Active := true;
+
  //**************** Adicionar los valores ***************************************
   UDM.tb_SerieDatosVar.First;
   while not UDM.tb_SerieDatosVar.eof do
@@ -347,49 +400,6 @@ begin
     UDM.tb_SerieDatosVar.next;
   end;
 //****************************************************************************
-end;
-
-procedure TFEntrada.G1Click(Sender: TObject);
-var
-  Campo: string;
-begin
-  PanelCaption.Caption := ' Variable: ' + UDM.cl_Variables.fieldbyname('NomVariable').asstring;
-//********************************************************************************************
-  QListaCodigo.Active := false;
-  QListaCodigo.SQL.Clear;
-  if UDM.cl_Variables.fieldbyname('tipo').asstring = 'Entero' then
-    Campo := 'VarInteger'
-  else if UDM.cl_Variables.fieldbyname('tipo').asstring = 'Real' then
-    Campo := 'VarDouble'
-  else if UDM.cl_Variables.fieldbyname('tipo').asstring = 'Fecha' then
-    Campo := 'VarDate'
-  else
-    Campo := 'VarString255';
-  DBGrid1.Columns[0].FieldName := Campo;
-  QListaCodigo.SQL.Add('select ' + Campo + ' from tb_SerieDatosVar where ' + Campo + ' <> NULL  group by ' + Campo + ' order by ' + Campo);
-  //QListaCodigo.SQL.SaveToFile('c:\!a.txt');
-  QListaCodigo.Active := true;
-  panel4.Visible := false;
-  if QListaCodigo.RecordCount = 0 then
-    panel4.Visible := true;
-//********************************************************************************************
-  Panel2.Visible := true;
-  Splitter1.Visible := true;
-end;
-
-procedure TFEntrada.Panel2Resize(Sender: TObject);
-begin
-  panel4.Width := dbgrid1.Width;
-  panel4.Top := dbgrid1.height div 2 + panel4.height div 2;
-end;
-
-procedure TFEntrada.Panel3Resize(Sender: TObject);
-begin
-  with panel3 do
-  begin
-    SpeedButton3.left := panel3.width div 2 - SpeedButton3.width div 2;
-    SpeedButton3.top := panel3.height div 2 - SpeedButton3.height div 2;
-  end;
 end;
 
 procedure TFEntrada.SpeedButton1Click(Sender: TObject);

@@ -12,8 +12,6 @@ uses
 
 type
   TFVariablesAyuda = class(TForm)
-    Panel1: TPanel;
-    Button1: TButton;
     cxDBVerticalGrid1: TcxDBVerticalGrid;
     cxDBVerticalGrid1IdVar: TcxDBEditorRow;
     cxDBVerticalGrid1NomVariable: TcxDBEditorRow;
@@ -28,10 +26,11 @@ type
     btnClose: TToolButton;
     ToolButton3: TToolButton;
     btnhlp: TToolButton;
-    procedure eesize(Sender: TObject);
     procedure SpeedButton2Click(Sender: TObject);
     procedure btnCloseClick(Sender: TObject);
     procedure btnhlpClick(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
+    procedure FormActivate(Sender: TObject);
   private
     { Private declarations }
   public
@@ -71,9 +70,14 @@ begin
   UDM.ManagementHLP(Caption, Self.Handle);
 end;
 
-procedure TFVariablesAyuda.eesize(Sender: TObject);
+procedure TFVariablesAyuda.Button1Click(Sender: TObject);
 begin
-  button1.Left := panel1.Width div 2 - button1.Width div 2;
+  Close;
+end;
+
+procedure TFVariablesAyuda.FormActivate(Sender: TObject);
+begin
+  Security.SetModSecurity(Self, acceso);
 end;
 
 procedure TFVariablesAyuda.SpeedButton2Click(Sender: TObject);

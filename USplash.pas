@@ -13,6 +13,7 @@ type
     Gauge1: TGauge;
     Label1: TLabel;
     Image1: TImage;
+    lblBuild: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
   private

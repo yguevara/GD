@@ -17,7 +17,8 @@ uses
   FireDAC.Stan.Option, FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS,
   FireDAC.Phys.Intf, FireDAC.DApt.Intf, FireDAC.Stan.Async, FireDAC.DApt,
   FireDAC.Comp.DataSet, FireDAC.Comp.Client, JvExControls, JvButton,
-  JvTransparentButton, Vcl.Menus, AdvMenus, cxMemo, cxRichEdit, cxDBRichEdit;
+  JvTransparentButton, Vcl.Menus, AdvMenus, cxMemo, cxRichEdit, cxDBRichEdit,
+  dxLayoutContainer, cxGridInplaceEditForm, AdvSplitter;
 
 type
   TfrmEstructura = class(TForm)
@@ -26,55 +27,48 @@ type
     ToolButton3: TToolButton;
     btnhlp: TToolButton;
     StatusBar1: TStatusBar;
-    pcTree: TcxPageControl;
-    tsAddNodo: TcxTabSheet;
-    Panel6: TPanel;
-    cxDBNavigator3: TcxDBNavigator;
-    DBNavigator3: TDBNavigator;
-    Panel1: TPanel;
-    Label2: TLabel;
-    edtCodigo: TcxDBTextEdit;
-    Label1: TLabel;
-    edtEtiqueta: TcxDBTextEdit;
-    SpeedButton1: TSpeedButton;
-    tseditNode: TcxTabSheet;
-    Panel2: TPanel;
-    cxDBNavigator1: TcxDBNavigator;
-    DBNavigator1: TDBNavigator;
-    Label3: TLabel;
-    edtCodigoMod: TcxDBTextEdit;
-    Label4: TLabel;
-    edtEtiquetaMod: TcxDBTextEdit;
-    lcbPadre: TcxDBLookupComboBox;
-    Label5: TLabel;
     cmdPadres: TFDQuery;
     dscmdPadres: TDataSource;
-    btnFacultades: TJvTransparentButton;
-    btnFunciones: TJvTransparentButton;
-    PMFunciones: TAdvPopupMenu;
-    agregarfun: TMenuItem;
-    eliminarfun: TMenuItem;
-    PMFacultades: TAdvPopupMenu;
-    agregarfac: TMenuItem;
-    eliminarfac: TMenuItem;
-    tsFuncionesEspecificas: TcxTabSheet;
-    Panel3: TPanel;
-    cxDBNavigator2: TcxDBNavigator;
-    DBNavigator2: TDBNavigator;
-    dbFunEsp: TcxDBRichEdit;
-    tsFacultades: TcxTabSheet;
-    Panel4: TPanel;
-    cxDBNavigator4: TcxDBNavigator;
-    DBNavigator4: TDBNavigator;
-    tsFunGen: TcxTabSheet;
-    Panel5: TPanel;
-    cxDBNavigator5: TcxDBNavigator;
-    dbreFacultades: TcxDBRichEdit;
-    cmdFunGen: TFDQuery;
-    dscmdFunGen: TDataSource;
     dstb_tree: TDataSource;
-    JvTransparentButton1: TJvTransparentButton;
-    cxDBRichEdit1: TcxDBRichEdit;
+    cxPageControl2: TcxPageControl;
+    tsNewStruct: TcxTabSheet;
+    Panel1: TPanel;
+    SpeedButton2: TSpeedButton;
+    cxDBNavigator6: TcxDBNavigator;
+    DBNavigator5: TDBNavigator;
+    Panel7: TPanel;
+    cxTabSheet1: TcxTabSheet;
+    GViewSeries: TcxGrid;
+    GViewSeriesDBTableView1: TcxGridDBTableView;
+    GViewSeriesDBTableView1RootGroup: TcxGridInplaceEditFormGroup;
+    GViewSeriesLevel1: TcxGridLevel;
+    GViewSeriesDBTableView1IdEstructura: TcxGridDBColumn;
+    GViewSeriesDBTableView1id: TcxGridDBColumn;
+    GViewSeriesDBTableView1etiqueta: TcxGridDBColumn;
+    GViewSeriesDBTableView1padre: TcxGridDBColumn;
+    GViewSeriesDBTableView1icono: TcxGridDBColumn;
+    GViewSeriesDBTableView1tipo: TcxGridDBColumn;
+    Label1: TLabel;
+    edtEtiqueta: TcxDBMemo;
+    spPerfilTrabProy: TAdvSplitter;
+    pPerfilTrabEstruct: TPanel;
+    cxPageControl1: TcxPageControl;
+    tsv1: TcxTabSheet;
+    cxVG1: TcxDBVerticalGrid;
+    iv1: TcxDBEditorRow;
+    iv2: TcxDBEditorRow;
+    iv3: TcxDBEditorRow;
+    iv4: TcxDBEditorRow;
+    iv5: TcxDBEditorRow;
+    iv6: TcxDBEditorRow;
+    iv7: TcxDBEditorRow;
+    iv8: TcxDBEditorRow;
+    iv9: TcxDBEditorRow;
+    iv10: TcxDBEditorRow;
+    iv11: TcxDBEditorRow;
+    ToolBar3: TToolBar;
+    ToolButton4: TToolButton;
+    ToolButton9: TToolButton;
     procedure btnCloseClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure lcbTipoNodoPropertiesCloseUp(Sender: TObject);
@@ -82,9 +76,6 @@ type
     procedure FormActivate(Sender: TObject);
     procedure edtEtiquetaKeyPress(Sender: TObject; var Key: Char);
     procedure agregarfunClick(Sender: TObject);
-    procedure eliminarfunClick(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
-    procedure dstb_treeDataChange(Sender: TObject; Field: TField);
     procedure btnhlpClick(Sender: TObject);
   private
     { Private declarations }
@@ -144,7 +135,7 @@ begin
   Result := TRUE;
   if (UDM.tb_tree.State = dsInsert) or (UDM.tb_tree.State = dsEdit) then
   begin
-    if MessageDlg('¿Está seguro de salir y cancelar las modificaciones que se encontraba realizando?', mtConfirmation, [mbYes, mbNo], 0) = mrYes then
+    if UDM.sms('¿Está seguro de salir y cancelar las modificaciones que se encontraba realizando?', 4)=6 then
     begin
       UDM.tb_tree.Cancel;
       Result := True;
@@ -155,24 +146,9 @@ begin
 
 end;
 
-procedure TfrmEstructura.dstb_treeDataChange(Sender: TObject; Field: TField);
-begin
-  if trim(UDM.tb_tree.FieldByName('IdfunGeneral').AsString) <> '' then
-    with cmdFunGen do
-    begin
-      Active := False;
-      SQL.Clear;
-      SQL.Add('select *  from cl_funcionesgen where idfunciones=' + UDM.tb_tree.FieldByName('IdfunGeneral').AsString);
-      try
-        Active := True;
-      except
-      end;
-    end;
-end;
-
 procedure TfrmEstructura.edtEtiquetaKeyPress(Sender: TObject; var Key: Char);
 begin
-  if Key = #13 then
+  {if Key = #13 then
   begin
     if (UDM.tb_tree.State = dsEdit) or (UDM.tb_tree.State = dsInsert) then
     begin
@@ -181,51 +157,25 @@ begin
       edtEtiqueta.SetFocus;
     end;
 
-  end;
-end;
-
-procedure TfrmEstructura.eliminarfunClick(Sender: TObject);
-begin
-  if MessageDlg('¿Está seguro que quiere eliminar las funciones generales asignadas?', mtConfirmation, [mbYes, mbNo], 0) = mrYes then
-  begin
-    UDM.tb_tree.Edit;
-    UDM.tb_tree.FieldByName('IdfunGeneral').Value := null;
-    UDM.tb_tree.Post;
-  end;
+  end;     }
 end;
 
 procedure TfrmEstructura.FormActivate(Sender: TObject);
 begin
-  if tsAddNodo.Visible then
-  begin
-    edtEtiqueta.Focused;
-    edtEtiqueta.SetFocus;
-  end;
-  if tseditNode.Visible then
-  begin
-    edtEtiquetaMod.Focused;
-    edtEtiquetaMod.SetFocus;
-  end;
-  {if (UDM.tb_tree.FieldByName('IdfunGeneral').AsString <> null) and (trim(UDM.tb_tree.FieldByName('IdfunGeneral').AsString) <> '') then
-  begin
-    with cmdFunGen do
-    begin
-      Active := False;
-      SQL.Clear;
-      SQL.Add('select * from cl_funcionesgen where idfunciones=' + UDM.tb_tree.FieldByName('IdfunGeneral').AsString);
+  Security.SetModSecurity(Self, acceso);
+  cxPageControl2.ActivePage:=tsNewStruct;
+  Width:=515;
+  Height:=290;
+{  if UDM.cl_tipoestructura.Locate('Idestructura', UDM.tb_tree.FieldByName('Idestructura').AsString, []) then begin
+    if UDM.cl_perfilvariablesvirtproy.RecordCount>0 then begin
+      Height:=560;
+      spPerfilTrabProy.Visible:=True;
+      spPerfilTrabProy.Align:=alTop;
+      pPerfilTrabEstruct.Visible:=True;
+      pPerfilTrabEstruct.Align:=alClient;
     end;
   end;  }
-  if Trim(UDM.tb_tree.FieldByName('IdfunGeneral').AsString) <> '' then
-    with cmdFunGen do
-    begin
-      Active := False;
-      SQL.Clear;
-      SQL.Add('select *  from cl_funcionesgen where idfunciones=' + UDM.tb_tree.FieldByName('IdfunGeneral').AsString);
-      try
-        Active := True;
-      except
-      end;
-    end;
+
 end;
 
 procedure TfrmEstructura.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -236,13 +186,6 @@ begin
     CanClose := False;
 end;
 
-procedure TfrmEstructura.FormCreate(Sender: TObject);
-begin
-  tsFunGen.TabVisible := False;
-  tsFuncionesEspecificas.TabVisible := False;
-  tsFacultades.TabVisible := False;
-end;
-
 procedure TfrmEstructura.lcbTipoNodoPropertiesCloseUp(Sender: TObject);
 begin
   UDM.tb_tree.FieldByName('icono').AsInteger := UDM.cl_tipoestructura.FieldByName('icon').AsInteger;
@@ -251,11 +194,6 @@ end;
 procedure TfrmEstructura.SpeedButton1Click(Sender: TObject);
 begin
   UDM.AddBlankNode;
-  if tsAddNodo.TabVisible then
-  begin
-    edtEtiqueta.Focused;
-    edtEtiqueta.SetFocus;
-  end;
 end;
 
 end.
