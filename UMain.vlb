@@ -154,9 +154,6 @@ Coordinates=795,727,77,36
 [cxStyle25]
 Coordinates=716,727,70,36
 
-[N4]
-Coordinates=0,233,40,36
-
 [cxStyle287]
 Coordinates=637,727,77,36
 
@@ -165,9 +162,6 @@ Coordinates=558,727,77,36
 
 [GridTableViewStyleSheetSpruce]
 Coordinates=1609,1,202,36
-
-[JvTransparentButton20]
-Coordinates=368,418,148,36
 
 [cxStyle66]
 Coordinates=479,727,70,36
@@ -427,9 +421,6 @@ Coordinates=448,875,77,36
 [cxStyle103]
 Coordinates=369,875,77,36
 
-[StatusBar1]
-Coordinates=444,78,78,58
-
 [cxStyle235]
 Coordinates=290,875,77,36
 
@@ -573,9 +564,6 @@ Coordinates=527,949,77,36
 
 [cxStyle170]
 Coordinates=448,949,77,36
-
-[pHeaderApp]
-Coordinates=638,78,86,58
 
 [cxStyle283]
 Coordinates=369,949,77,36
@@ -868,9 +856,6 @@ Coordinates=2219,1097,70,36
 [cxStyle50]
 Coordinates=2140,1097,70,36
 
-[JvTransparentButton17]
-Coordinates=280,350,148,36
-
 [cxStyle146]
 Coordinates=2061,1097,77,36
 
@@ -933,9 +918,6 @@ Coordinates=1917,900,230,36
 
 [cxStyle198]
 Coordinates=748,1097,77,36
-
-[JvTransparentButton1]
-Coordinates=10,510,141,36
 
 [UDM.cl_frecuencia]
 Coordinates=446,214,123,58
@@ -1107,12 +1089,6 @@ Coordinates=1596,1171,77,36
 
 [cxStyle285]
 Coordinates=1517,1171,77,36
-
-[JvTransparentButton21]
-Coordinates=620,418,148,36
-
-[PMNodeTree]
-Coordinates=1418,1171,90,36
 
 [cxStyle366]
 Coordinates=1339,1171,77,36
@@ -1411,9 +1387,6 @@ Coordinates=3784,111,70,36
 [cxStyle311]
 Coordinates=3784,166,77,36
 
-[lblProgressTitle]
-Coordinates=579,214,104,58
-
 [cxStyle68]
 Coordinates=3784,221,70,36
 
@@ -1482,17 +1455,17 @@ Coordinates=3784,1266,46,36
 Coordinates=3399,1319,46,36
 
 []
-Coordinates=252,418,106,36
+Coordinates=638,78,86,58
 
 [UDM.]
 Coordinates=246,214,82,58
 
-[eliminar]
-Coordinates=233,1245,40,36
+[btnHlp]
+Coordinates=368,418,148,36
 
-[modificar]
-Coordinates=905,1171,40,36
+[btnLC]
+Coordinates=280,350,148,36
 
-[agregar]
-Coordinates=843,949,40,36
+[btnPrint]
+Coordinates=620,418,148,36
 

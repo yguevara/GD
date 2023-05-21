@@ -13,7 +13,7 @@ uses
   dxSkinsDefaultPainters, cxNavigator, cxDBNavigator, cxStyles, cxCustomData,
   cxFilter, cxData, cxDataStorage, cxEdit, dxDateRanges, cxDBData, cxRichEdit,
   cxGridLevel, cxGridCustomTableView, cxGridTableView, cxGridDBTableView,
-  cxClasses, cxGridCustomView, cxGrid;
+  cxClasses, cxGridCustomView, cxGrid, cxDBLookupComboBox;
 
 type
   TfrmCLFacultades = class(TForm)
@@ -30,8 +30,10 @@ type
     cxGrid1DBTableView1idfacultades: TcxGridDBColumn;
     cxGrid1DBTableView1facultades: TcxGridDBColumn;
     cxGrid1DBTableView1IdCargo: TcxGridDBColumn;
+    StatusBar1: TStatusBar;
     procedure btnCloseClick(Sender: TObject);
     procedure btnSortClick(Sender: TObject);
+    procedure btnhlpClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -58,6 +60,11 @@ uses
 procedure TfrmCLFacultades.btnCloseClick(Sender: TObject);
 begin
   Close;
+end;
+
+procedure TfrmCLFacultades.btnhlpClick(Sender: TObject);
+begin
+  UDM.ManagementHLP(Caption, Self.Handle);
 end;
 
 procedure TfrmCLFacultades.btnSortClick(Sender: TObject);

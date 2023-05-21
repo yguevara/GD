@@ -1,0 +1,10 @@
+Para ejecutar esto en el Sistema EMSERGO SGD
+1- Copiar ReportApp.exe en el directorio al mismo nivel que Serpef.exe
+2-Copiar la Base de datos contenida en BD\ReportApp_DB.db en el mismo nivel que app\BD\SDbd.mdb
+3-Copiar la carpeta Report al mismo nivel que la carpeta \BD
+4-Copiar el Leeme_report.rtf al mismo nivel que \ReportApp.exe
+
+
+PD:Adicioanar esta vista a la Base de datos que no la contenga
+nombre:V_EtiquetaID
+consulta: SELECT id,etiqueta FROM tb_tree;

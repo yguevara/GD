@@ -13,7 +13,7 @@ uses
   dxSkinsCore, dxSkinsDefaultPainters, cxCustomData, cxFilter, cxData,
   cxDataStorage, cxEdit, cxNavigator, dxDateRanges, cxDBData, cxRichEdit,
   cxGridCustomTableView, cxGridTableView, cxGridDBTableView, cxGridLevel,
-  cxClasses, cxGridCustomView, cxGrid, cxDBNavigator;
+  cxClasses, cxGridCustomView, cxGrid, cxDBNavigator, cxBlobEdit;
 
 type
   TfrmCLFunciones = class(TForm)
@@ -30,10 +30,12 @@ type
     btnClose: TToolButton;
     ToolButton3: TToolButton;
     btnhlp: TToolButton;
+    StatusBar1: TStatusBar;
     procedure ToolButton1Click(Sender: TObject);
     procedure ToolButton4Click(Sender: TObject);
     procedure edtfindChange(Sender: TObject);
     procedure btnCloseClick(Sender: TObject);
+    procedure btnhlpClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -60,6 +62,11 @@ uses
 procedure TfrmCLFunciones.btnCloseClick(Sender: TObject);
 begin
   Close;
+end;
+
+procedure TfrmCLFunciones.btnhlpClick(Sender: TObject);
+begin
+  UDM.ManagementHLP(Caption, Self.Handle);
 end;
 
 procedure TfrmCLFunciones.edtfindChange(Sender: TObject);
