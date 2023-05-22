@@ -533,6 +533,8 @@ type
     procedure PLCCClick(Sender: TObject);
     procedure PLDSClick(Sender: TObject);
     procedure PLSDClick(Sender: TObject);
+    procedure GViewSeriesDBTableView1SelectionChanged(
+      Sender: TcxCustomGridTableView);
   private
     procedure PrepareSSDisp;
     procedure PrepareSSDetailView;
@@ -2644,6 +2646,10 @@ begin
     UDM.SalvaConfigGrid(cxGrid2DBTableView1, 'GDocumentos');
     UDM.SalvaConfigGrid(cxGrid1DBTableView1, 'GSeriesDisp');
     try
+      UDM.KillProcess('Visor.EXE');
+    except
+    end;
+    try
       UDM.KillProcess('EXCEL.EXE');
     except
     end;
@@ -2751,6 +2757,12 @@ begin
     end;
   NombreSerieDocAsig := VarToStr(UDM.Conn.ExecSQLScalar('select subserie from cl_subseries where codsubs=' + QuotedStr(UDM.tb_Serietree.FieldByName('codsubs').AsString)));
   CampoTexto(@UDM.dstb_Serietree, 'observacion', 'Observaciones sobre la serie ' + NombreSerieDocAsig);
+end;
+
+procedure TMAIN.GViewSeriesDBTableView1SelectionChanged(
+  Sender: TcxCustomGridTableView);
+begin
+  ShowMessage('customatizacion!!!');
 end;
 
 procedure TMAIN.I1Click(Sender: TObject);
