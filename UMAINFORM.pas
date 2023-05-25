@@ -25,7 +25,7 @@ uses
   Vcl.ImgList, Vcl.DBActns, System.Actions, Vcl.ActnList, dxDateTimeWheelPicker,
   JvBaseDlg, JvSelectDirectory, cxTL, cxTLdxBarBuiltInMenu, Vcl.Samples.Gauges,
   cxDBTL, cxTLData, System.StrUtils, JvDialogs, cxButtons, cxGridBandedTableView,
-  cxGridDBBandedTableView;
+  cxGridDBBandedTableView, AdvMenuStylers;
 
 type
   TMAIN = class(TForm)
@@ -113,7 +113,6 @@ type
     AdvPanel2: TAdvPanel;
     DBNavigator3: TDBNavigator;
     cxDBNavigator3: TcxDBNavigator;
-    SpeedButton3: TSpeedButton;
     PSeriesDatos: TAdvPanel;
     pVerticalTitle: TPanel;
     AdvPanel6: TAdvPanel;
@@ -132,7 +131,6 @@ type
     dstb_Serietree: TDataSource;
     cxStyleRepository1: TcxStyleRepository;
     Test: TcxStyle;
-    SpeedButton4: TSpeedButton;
     jvcpSSDetail: TJvCaptionPanel;
     AdvPanel5: TAdvPanel;
     pcDetalle: TcxPageControl;
@@ -185,7 +183,6 @@ type
     cxDBVerticalGrid5Descripcion: TcxDBEditorRow;
     Label3: TLabel;
     edtObs: TcxDBBlobEdit;
-    SpeedButton7: TSpeedButton;
     lblTitulo: TPanel;
     Timer1: TTimer;
     Label4: TLabel;
@@ -213,7 +210,6 @@ type
     cxGrid2DBTableView1observaciones: TcxGridDBColumn;
     cxGrid2DBTableView1IDExpediente: TcxGridDBColumn;
     cxGrid2DBTableView1namefile: TcxGridDBColumn;
-    SpeedButton9: TSpeedButton;
     SpeedButton10: TSpeedButton;
     dbnSeriesDatos: TDBNavigator;
     gProcess: TGauge;
@@ -263,10 +259,6 @@ type
     SpeedButton1: TSpeedButton;
     advtpSSDispo: TAdvToolPanel;
     AdvPanel1: TAdvPanel;
-    btnAsignVarVir: TSpeedButton;
-    SpeedButton2: TSpeedButton;
-    SpeedButton8: TSpeedButton;
-    btnAdjust: TSpeedButton;
     DBNavigator1: TDBNavigator;
     cxDBNavigator1: TcxDBNavigator;
     cxGrid1: TcxGrid;
@@ -430,9 +422,28 @@ type
     tsOtherData: TcxTabSheet;
     PMPL: TAdvPopupMenu;
     PLAD: TMenuItem;
-    PLCC: TMenuItem;
     PLDS: TMenuItem;
     PLSD: TMenuItem;
+    PAAD: TMenuItem;
+    VAD: TMenuItem;
+    PADS: TMenuItem;
+    VDSS: TMenuItem;
+    PASD: TMenuItem;
+    VSSD: TMenuItem;
+    PopupMenu1: TPopupMenu;
+    Archivos1: TMenuItem;
+    ServidoresFTP1: TMenuItem;
+    SeriesySubseriesDocumentales1: TMenuItem;
+    AdvMenuStyler2: TAdvMenuStyler;
+    B1: TMenuItem;
+    btnExportExcelCC: TJvTransparentButton;
+    btnAdjustColumnCC: TJvTransparentButton;
+    JvTransparentButton1: TJvTransparentButton;
+    JvTransparentButton2: TJvTransparentButton;
+    JvTransparentButton3: TJvTransparentButton;
+    btnAsignarSS: TJvTransparentButton;
+    btnExcelExportSSD: TJvTransparentButton;
+    btnAdjustColumnSSD: TJvTransparentButton;
     procedure btnCloseClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormCreate(Sender: TObject);
@@ -533,8 +544,8 @@ type
     procedure PLCCClick(Sender: TObject);
     procedure PLDSClick(Sender: TObject);
     procedure PLSDClick(Sender: TObject);
-    procedure GViewSeriesDBTableView1SelectionChanged(
-      Sender: TcxCustomGridTableView);
+    procedure GViewSeriesDBTableView1FilterControlDialogShow(Sender: TObject);
+    procedure GViewSeriesDBTableView1FilterDialogShow(Sender: TcxCustomGridTableView; AItem: TcxCustomGridTableItem; var ADone: Boolean);
   private
     procedure PrepareSSDisp;
     procedure PrepareSSDetailView;
@@ -1220,7 +1231,13 @@ end;
 
 procedure TMAIN.btnAdjustClick(Sender: TObject);
 begin
-  cxGrid1DBTableView1.ApplyBestFit();
+  if cxGrid1DBTableView1.DataController.DataSet.RecordCount > 0 then
+    cxGrid1DBTableView1.ApplyBestFit()
+  else
+  begin
+    UDM.sms('Esta función solo es aplicable cuando el conjunto de datos tiene al menos un registro.', 3);
+    Exit;
+  end;
 end;
 
 procedure TMAIN.btnAsignVarVirClick(Sender: TObject);
@@ -1409,13 +1426,13 @@ end;
 
 procedure TMAIN.btnHlpClick(Sender: TObject);
 begin
-  with TfrmsystemMSG.Create(nil) do
+{  with TfrmsystemMSG.Create(nil) do
   try
     ShowModal;
   finally
     Free;
   end;
-  exit;
+  exit;   }
   UDM.KillProcess('PRecovery.exe');
   udm.RunAndWaitShell(ExtractFilePath(Application.ExeName) + 'PRecovery.exe', UDM.UserName + ' ' + UDM.Rol, SW_SHOW);
 end;
@@ -2293,10 +2310,10 @@ begin
   if advtpDetalle.Visible then
   begin
 
-    advtpDetalle.Panels[advtpDetalle.PanelIndex(AdvToolPanel1)].Visible:=True;
+    advtpDetalle.Panels[advtpDetalle.PanelIndex(AdvToolPanel1)].Visible := True;
     advtpDetalle.Panels[advtpDetalle.PanelIndex(AdvToolPanel1)].Panel.Show;
-    advtpDetalle.Panels[advtpDetalle.PanelIndex(AdvToolPanel1)].Panel.Locked:=True;
-    advtpDetalle.Panels[advtpDetalle.PanelIndex(AdvToolPanel1)].Panel.Parent:=advtpDetalle;
+    advtpDetalle.Panels[advtpDetalle.PanelIndex(AdvToolPanel1)].Panel.Locked := True;
+    advtpDetalle.Panels[advtpDetalle.PanelIndex(AdvToolPanel1)].Panel.Parent := advtpDetalle;
     {AdvToolPanel1.Visible := True;
     AdvToolPanel1.Locked := True;
     AdvToolPanel1.Show;}
@@ -2745,6 +2762,16 @@ begin
   ManagementFileSeries(@UDM.tb_SeriesDatos, 'fichero', 'Gestión de serie documental');
 end;
 
+procedure TMAIN.GViewSeriesDBTableView1FilterControlDialogShow(Sender: TObject);
+begin
+  ShowMessage('customatizacion!!!');
+end;
+
+procedure TMAIN.GViewSeriesDBTableView1FilterDialogShow(Sender: TcxCustomGridTableView; AItem: TcxCustomGridTableItem; var ADone: Boolean);
+begin
+  ShowMessage('customatizacion 33333!!!');
+end;
+
 procedure TMAIN.GViewSeriesDBTableView1observacionPropertiesButtonClick(Sender: TObject; AButtonIndex: Integer);
 var
   NombreSerieDocAsig: string;
@@ -2757,12 +2784,6 @@ begin
     end;
   NombreSerieDocAsig := VarToStr(UDM.Conn.ExecSQLScalar('select subserie from cl_subseries where codsubs=' + QuotedStr(UDM.tb_Serietree.FieldByName('codsubs').AsString)));
   CampoTexto(@UDM.dstb_Serietree, 'observacion', 'Observaciones sobre la serie ' + NombreSerieDocAsig);
-end;
-
-procedure TMAIN.GViewSeriesDBTableView1SelectionChanged(
-  Sender: TcxCustomGridTableView);
-begin
-  ShowMessage('customatizacion!!!');
 end;
 
 procedure TMAIN.I1Click(Sender: TObject);
@@ -3283,9 +3304,17 @@ end;
 
 procedure TMAIN.SpeedButton9Click(Sender: TObject);
 begin
-  try
-    GViewSeriesDBTableView1.ApplyBestFit();
-  except
+  if GViewSeriesDBTableView1.DataController.RecordCount > 0 then
+  begin
+    try
+      GViewSeriesDBTableView1.ApplyBestFit();
+    except
+    end;
+  end
+  else
+  begin
+    UDM.sms('Esta función es recomendable utilizarla cuando existe al menos un registro inscrito.', 3);
+    Exit;
   end;
 end;
 
@@ -3355,7 +3384,7 @@ procedure TMAIN.Timer1Timer(Sender: TObject);
   begin
     if aValue then
     begin
-      btnViewPanel.Visible := True;{
+      btnViewPanel.Visible := True; {
       btnViewPanel.Left := btnTool.Left + btnTool.Width + 7;
       btnSystemHelp.Left := btnViewPanel.Left + btnViewPanel.Width + 7;}
     end
@@ -3387,10 +3416,6 @@ begin
   if not advtpCC.Visible then
     Exit;
   MuestraBTNEyes(true);
-  if not advtpCuadroClasif.Visible then
-    PLCC.Enabled := True
-  else
-    PLCC.Enabled := False;
 end;
 
 procedure TMAIN.tvTreeMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);

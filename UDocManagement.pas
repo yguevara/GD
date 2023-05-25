@@ -5,19 +5,20 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
   System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
-  Vcl.ComCtrls, Vcl.ToolWin, JvExComCtrls, JvListView;
+  Vcl.ComCtrls, Vcl.ToolWin, JvExComCtrls, JvListView, JvExControls, JvButton,
+  JvTransparentButton, Vcl.ExtCtrls;
 
 type
   TfrmDoc = class(TForm)
     StatusBar2: TStatusBar;
-    ToolBar1: TToolBar;
-    ToolButton2: TToolButton;
-    ToolButton1: TToolButton;
-    ToolButton3: TToolButton;
     lbDoc: TJvListView;
+    pMainContainer: TPanel;
+    JvTransparentButton1: TJvTransparentButton;
+    btnSystemHelp: TJvTransparentButton;
     procedure ToolButton1Click(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure lbDocDblClick(Sender: TObject);
+    procedure JvTransparentButton1Click(Sender: TObject);
   private
     { Private declarations }
   public
@@ -76,6 +77,11 @@ procedure TfrmDoc.FormActivate(Sender: TObject);
 
 begin
   RastreaDir(PathSys + 'DOC\');
+end;
+
+procedure TfrmDoc.JvTransparentButton1Click(Sender: TObject);
+begin
+  Close;
 end;
 
 procedure TfrmDoc.lbDocDblClick(Sender: TObject);

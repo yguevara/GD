@@ -18,14 +18,10 @@ uses
   FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf,
   FireDAC.DApt.Intf, FireDAC.Stan.Async, FireDAC.DApt, FireDAC.Comp.DataSet,
   FireDAC.Comp.Client, cxButtonEdit, JvBaseDlg, JvSelectDirectory, JvExExtCtrls,
-  JvExtComponent, JvCaptionPanel, AdvGroupBox, AdvPanel;
+  JvExtComponent, JvCaptionPanel, AdvGroupBox, AdvPanel, Vcl.Menus, AdvMenus;
 
 type
   TfrmCLSeries = class(TForm)
-    ToolBar1: TToolBar;
-    btnClose: TToolButton;
-    ToolButton3: TToolButton;
-    btnhlp: TToolButton;
     StatusBar1: TStatusBar;
     pSeries: TPanel;
     AdvSplitter1: TAdvSplitter;
@@ -55,15 +51,12 @@ type
     cxLong: TcxDBEditorRow;
     cxDBVerticalGrid6descripcion: TcxDBEditorRow;
     cxDBVerticalGrid6ListaDesplegable: TcxDBEditorRow;
-    cxTabSheet2: TcxTabSheet;
+    tsVTSS: TcxTabSheet;
     cxGrid2: TcxGrid;
     cxGridDBTableView1: TcxGridDBTableView;
     cxGridLevel1: TcxGridLevel;
     tsFormulario: TcxTabSheet;
-    ToolButton4: TToolButton;
-    SpeedButton2: TSpeedButton;
     SpeedButton1: TSpeedButton;
-    SpeedButton3: TSpeedButton;
     dsSeries: TDataSource;
     GroupBox3: TGroupBox;
     GroupBox2: TGroupBox;
@@ -190,19 +183,31 @@ type
     SpeedButton6: TSpeedButton;
     AdvPanel6: TAdvPanel;
     SpeedButton7: TSpeedButton;
-    ToolButton1: TToolButton;
     cxGridDBTableView1fechaaprov: TcxGridDBColumn;
     cxDBDateEdit1: TcxDBDateEdit;
     Label5: TLabel;
     lblTipoSerie: TLabel;
     lcbTipoSerie: TcxDBLookupComboBox;
+    pMainContainer: TPanel;
+    JvTransparentButton1: TJvTransparentButton;
+    btnExcelExport: TJvTransparentButton;
+    btnExpand: TJvTransparentButton;
+    btnSystemHelp: TJvTransparentButton;
+    advManagementDirectoryPath: TAdvPopupMenu;
+    S1: TMenuItem;
+    S2: TMenuItem;
+    AdvPopupMenu1: TAdvPopupMenu;
+    MenuItem1: TMenuItem;
+    MenuItem2: TMenuItem;
+    JvTransparentButton2: TJvTransparentButton;
+    JvTransparentButton3: TJvTransparentButton;
+    btnBestFitSS: TJvTransparentButton;
+    btnExportSSExcel: TJvTransparentButton;
     procedure btnCloseClick(Sender: TObject);
     procedure btnFuncionesClick(Sender: TObject);
     procedure DBNavigator1Click(Sender: TObject; Button: TNavigateBtn);
     procedure cxDBVerticalGrid6observacionEditPropertiesButtonClick(Sender: TObject; AButtonIndex: Integer);
     procedure cxGridDBTableView1observacionPropertiesButtonClick(Sender: TObject; AButtonIndex: Integer);
-    procedure JvTransparentButton2Click(Sender: TObject);
-    procedure JvTransparentButton1Click(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure dsSeriesDataChange(Sender: TObject; Field: TField);
     procedure edtObservacionesPropertiesButtonClick(Sender: TObject; AButtonIndex: Integer);
@@ -222,6 +227,19 @@ type
     procedure edtAnioKeyPress(Sender: TObject; var Key: Char);
     procedure edtArchCentralKeyPress(Sender: TObject; var Key: Char);
     procedure edtArchGestionKeyPress(Sender: TObject; var Key: Char);
+    procedure S1Click(Sender: TObject);
+    procedure btnExpandClick(Sender: TObject);
+    procedure S2Click(Sender: TObject);
+    procedure MenuItem1Click(Sender: TObject);
+    procedure MenuItem2Click(Sender: TObject);
+    procedure JvTransparentButton3Click(Sender: TObject);
+    procedure btnExportSSExcelClick(Sender: TObject);
+    procedure btnBestFitSSClick(Sender: TObject);
+    procedure JvTransparentButton2Click(Sender: TObject);
+    procedure tsVTSSEnter(Sender: TObject);
+    procedure tsVTSSExit(Sender: TObject);
+    procedure cxGrid2Enter(Sender: TObject);
+    procedure cxGrid2Exit(Sender: TObject);
   private
     { Private declarations }
   public
@@ -241,6 +259,15 @@ uses
 procedure TfrmCLSeries.btnCloseClick(Sender: TObject);
 begin
   Close;
+end;
+
+procedure TfrmCLSeries.btnExpandClick(Sender: TObject);
+begin
+  try
+    cxGrid1DBTableView1.ApplyBestFit();
+    UDM.SalvaConfigGrid(cxGrid1DBTableView1, 'cl_archivos');
+  except
+  end;
 end;
 
 procedure TfrmCLSeries.btnFuncionesClick(Sender: TObject);
@@ -354,6 +381,16 @@ begin
   CampoTexto(@UDM.dscl_subseries, 'observacion', 'Observaciones realizadas a la subserie ' + UDM.cl_subseries.FieldByName('subserie').AsString);
 end;
 
+procedure TfrmCLSeries.cxGrid2Enter(Sender: TObject);
+begin
+  btnBestFitSS.Visible:=True;
+end;
+
+procedure TfrmCLSeries.cxGrid2Exit(Sender: TObject);
+begin
+  btnBestFitSS.Visible:=False;
+end;
+
 procedure TfrmCLSeries.cxGridDBTableView1carpetaPropertiesButtonClick(Sender: TObject; AButtonIndex: Integer);
 begin
 // llamar lo mismo que en el formulario principal...
@@ -391,7 +428,7 @@ begin
     Panel3.Caption := 'Debe definir al menos una serie válida.';
     GroupBox3.Caption := '--';
   end;
-  if cxGrid1DBTableView1.DataController.DataSet.RecordCount>0 then
+  if cxGrid1DBTableView1.DataController.DataSet.RecordCount > 0 then
   try
     cxGrid1DBTableView1.ApplyBestFit();
   except
@@ -406,7 +443,8 @@ end;
 
 procedure TfrmCLSeries.edtAnioKeyPress(Sender: TObject; var Key: Char);
 begin
-  if length(TcxDBTextEdit(Sender).Text)>3 then begin
+  if length(TcxDBTextEdit(Sender).Text) > 3 then
+  begin
     UDM.sms('La longitud del año no puede ser mayor cuatro caracteres.', 1);
     TcxDBTextEdit(Sender).Focused;
     TcxDBTextEdit(Sender).SetFocus;
@@ -415,6 +453,7 @@ begin
   end;
 
   if (StrScan('0123456789', Key) <> nil) or (Key = Char(VK_BACK)) then { BackSpace Key }
+
   else
   begin
     UDM.sms('El año solo puede contener caracteres numéricos.', 3);
@@ -425,6 +464,7 @@ end;
 procedure TfrmCLSeries.edtArchCentralKeyPress(Sender: TObject; var Key: Char);
 begin
   if (StrScan('0123456789', Key) <> nil) or (Key = Char(VK_BACK)) then { BackSpace Key }
+
   else
   begin
     UDM.sms('El año solo puede contener caracteres numéricos.', 3);
@@ -435,6 +475,7 @@ end;
 procedure TfrmCLSeries.edtArchGestionKeyPress(Sender: TObject; var Key: Char);
 begin
   if (StrScan('0123456789', Key) <> nil) or (Key = Char(VK_BACK)) then { BackSpace Key }
+
   else
   begin
     UDM.sms('El año solo puede contener caracteres numéricos.', 3);
@@ -450,14 +491,16 @@ end;
 procedure TfrmCLSeries.FormActivate(Sender: TObject);
 begin
   Security.SetModSecurity(Self, acceso);
- { UDM.RestauraGrid(cxGrid1DBTableView1);
-  UDM.RestauraGrid(cxGridDBTableView1); }
+  UDM.RestauraGrid(cxGrid1DBTableView1, 'cl_series');
+  UDM.RestauraGrid(cxGridDBTableView1, 'cl_subseries');
 end;
 
 procedure TfrmCLSeries.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
 {  UDM.SalvaConfigGrid(cxGrid1DBTableView1);
   UDM.SalvaConfigGrid(cxGridDBTableView1);}
+  UDM.SalvaConfigGrid(cxGrid1DBTableView1, 'cl_series');
+  UDM.SalvaConfigGrid(cxGridDBTableView1, 'cl_subseries');
 end;
 
 procedure TfrmCLSeries.jvcpGestorButtonClick(Sender: TObject; Button: TJvCapBtnStyle);
@@ -466,14 +509,59 @@ begin
     TJvCaptionPanel(Sender).Visible := False;
 end;
 
-procedure TfrmCLSeries.JvTransparentButton1Click(Sender: TObject);
+procedure TfrmCLSeries.JvTransparentButton2Click(Sender: TObject);
+begin
+  if cxGrid1DBTableView1.DataController.DataSet.RecordCount > 0 then
+    cxGrid1DBTableView1.ApplyBestFit()
+  else
+    UDM.sms('Esta funcionalidad solo funciona cuando en la el conjunto de datos existe al menos un elemento.', 3);
+end;
+
+procedure TfrmCLSeries.JvTransparentButton3Click(Sender: TObject);
+begin
+  ExcelExport(nil, cxGrid1);
+end;
+
+procedure TfrmCLSeries.btnBestFitSSClick(Sender: TObject);
+begin
+  if cxGridDBTableView1.DataController.DataSet.RecordCount>0 then
+  cxGridDBTableView1.ApplyBestFit()
+  else begin
+
+  end;
+end;
+
+procedure TfrmCLSeries.btnExportSSExcelClick(Sender: TObject);
 begin
   ExcelExport(nil, cxGrid2);
 end;
 
-procedure TfrmCLSeries.JvTransparentButton2Click(Sender: TObject);
+procedure TfrmCLSeries.MenuItem1Click(Sender: TObject);
 begin
   ExcelExport(nil, cxGrid1);
+end;
+
+procedure TfrmCLSeries.MenuItem2Click(Sender: TObject);
+begin
+  ExcelExport(nil, cxGrid2);
+end;
+
+procedure TfrmCLSeries.S1Click(Sender: TObject);
+begin
+  try
+    cxGrid1DBTableView1.ApplyBestFit();
+    UDM.SalvaConfigGrid(cxGrid1DBTableView1, 'cl_series');
+  except
+  end;
+end;
+
+procedure TfrmCLSeries.S2Click(Sender: TObject);
+begin
+  try
+    cxGridDBTableView1.ApplyBestFit();
+    UDM.SalvaConfigGrid(cxGridDBTableView1, 'cl_subseries');
+  except
+  end;
 end;
 
 procedure TfrmCLSeries.SpeedButton4Click(Sender: TObject);
@@ -500,6 +588,22 @@ procedure TfrmCLSeries.ToolButton1Click(Sender: TObject);
 begin
   if cxGrid1DBTableView1.DataController.DataSet.RecordCount > 0 then
     cxGrid1DBTableView1.ApplyBestFit();
+end;
+
+procedure TfrmCLSeries.tsVTSSEnter(Sender: TObject);
+begin
+  DBNavigator1.Align:=alNone;
+  cxDBNavigator1.Align:=alNone;
+  btnExportSSExcel.Align:=alNone;
+  btnBestFitSS.Align:=alNone;
+  btnBestFitSS.Visible:=True;
+  btnBestFitSS.Align:=alRight;
+  btnExportSSExcel.Align:=alRight;
+end;
+
+procedure TfrmCLSeries.tsVTSSExit(Sender: TObject);
+begin
+  btnBestFitSS.Visible:=False;
 end;
 
 end.

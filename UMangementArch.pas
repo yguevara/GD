@@ -14,22 +14,17 @@ uses
   cxDropDownEdit, FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Param,
   FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf, FireDAC.DApt.Intf,
   FireDAC.Stan.Async, FireDAC.DApt, FireDAC.Comp.DataSet, FireDAC.Comp.Client,
-  Vcl.Menus, AdvMenus, Winapi.ShellAPI, AdvPanel;
+  Vcl.Menus, AdvMenus, Winapi.ShellAPI, AdvPanel, JvExControls, JvButton,
+  JvTransparentButton;
 
 type
   TConsultaFD = ^TFDQuery;
 
   TfrmManagemetArch = class(TForm)
-    ToolBar1: TToolBar;
-    btnClose: TToolButton;
-    ToolButton3: TToolButton;
-    btnhlp: TToolButton;
     StatusBar1: TStatusBar;
     cxGrid1: TcxGrid;
     cxGrid1DBTableView1: TcxGridDBTableView;
     cxGrid1Level1: TcxGridLevel;
-    ToolButton1: TToolButton;
-    ToolButton4: TToolButton;
     cxGrid1DBTableView1Cod: TcxGridDBColumn;
     cxGrid1DBTableView1nombreArchivo: TcxGridDBColumn;
     cxGrid1DBTableView1Tipo: TcxGridDBColumn;
@@ -51,10 +46,14 @@ type
     AdvPanel1: TAdvPanel;
     DBNavigator3: TDBNavigator;
     cxDBNavigator3: TcxDBNavigator;
+    pMainContainer: TPanel;
+    JvTransparentButton1: TJvTransparentButton;
+    btnExcelExport: TJvTransparentButton;
+    btnExpand: TJvTransparentButton;
+    btnSystemHelp: TJvTransparentButton;
     procedure btnCloseClick(Sender: TObject);
     procedure btnhlpClick(Sender: TObject);
     procedure DBNavigator3Click(Sender: TObject; Button: TNavigateBtn);
-    procedure ToolButton4Click(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure cxGrid1DBTableView1croquisPropertiesButtonClick(Sender: TObject; AButtonIndex: Integer);
     procedure cxGrid1DBTableView1DescripcionPropertiesButtonClick(Sender: TObject; AButtonIndex: Integer);
@@ -66,6 +65,8 @@ type
     procedure MenuItem3Click(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
     procedure MenuItem4Click(Sender: TObject);
+    procedure btnExcelExportClick(Sender: TObject);
+    procedure btnExpandClick(Sender: TObject);
   private
     { Private declarations }
     function DownloadImageFileToTMP(aName, aCampoName: string): string;
@@ -84,6 +85,20 @@ uses
   UCapaDatos, UExcelExport, UVeditor, UVisorTif, UManagementPDFFile;
 
 {$R *.dfm}
+
+procedure TfrmManagemetArch.btnExcelExportClick(Sender: TObject);
+begin
+  ExcelExport(nil, cxGrid1);
+end;
+
+procedure TfrmManagemetArch.btnExpandClick(Sender: TObject);
+begin
+  try
+    cxGrid1DBTableView1.ApplyBestFit();
+    UDM.SalvaConfigGrid(cxGrid1DBTableView1, 'cl_archivos');
+  except
+  end;
+end;
 
 procedure TfrmManagemetArch.btnCloseClick(Sender: TObject);
 begin
@@ -187,6 +202,8 @@ end;
 procedure TfrmManagemetArch.FormActivate(Sender: TObject);
 begin
   Security.SetModSecurity(Self, acceso);
+  //UDM.SalvaConfigGrid(cxGrid1DBTableView1.Name, 'cl_archivos');
+  UDM.RestauraGrid(cxGrid1DBTableView1, 'cl_archivos');
 end;
 
 procedure TfrmManagemetArch.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -194,6 +211,7 @@ begin
   UDM.cl_ArchivosGestion.Active := False;
   UDM.cl_ArchivosGestion.Active := True;
   UDM.KillProcess('JPEGViewPortable.exe');
+  UDM.SalvaConfigGrid(cxGrid1DBTableView1, 'cl_archivos');
 end;
 
 procedure TfrmManagemetArch.G1Click(Sender: TObject);
@@ -215,11 +233,6 @@ procedure TfrmManagemetArch.MenuItem4Click(Sender: TObject);
 begin
   if CleanFieldIMG('foto') then
     UDM.sms('La ' + AnsiQuotedStr('foto', '"') + ' del archivo fue eliminada satisfactoriamente.', 3);
-end;
-
-procedure TfrmManagemetArch.ToolButton4Click(Sender: TObject);
-begin
-  ExcelExport(nil, cxGrid1);
 end;
 
 procedure TfrmManagemetArch.V2Click(Sender: TObject);

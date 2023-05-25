@@ -122,6 +122,9 @@ end;
 procedure TfrmGestUser.FormActivate(Sender: TObject);
 begin
   UpdateUserList;
+
+  if lbUser.ItemIndex=-1 then
+    lbUser.Items[0].Selected:=True;
 end;
 
 procedure TfrmGestUser.lbUserDblClick(Sender: TObject);

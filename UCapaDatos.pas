@@ -882,6 +882,7 @@ type
     SudSDetailFoto: TBlobField;
     SudSDetailTipo: TIntegerField;
     SudSDetailespacial: TWideStringField;
+    ILClasif: TImageList;
     procedure DataModuleCreate(Sender: TObject);
     procedure tb_treeAfterPost(DataSet: TDataSet);
     procedure dstb_treeDataChange(Sender: TObject; Field: TField);

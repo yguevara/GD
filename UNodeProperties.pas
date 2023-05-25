@@ -139,6 +139,7 @@ type
     procedure edtCodEstructuraPropertiesValidate(Sender: TObject;
       var DisplayValue: Variant; var ErrorText: TCaption; var Error: Boolean);
   private
+    procedure ReActiveFather(aId:Integer);
     { Private declarations }
   public
     { Public declarations }
@@ -382,7 +383,7 @@ end;
 
 procedure TfrmPropiedadesNodo.DataSource1DataChange(Sender: TObject; Field: TField);
 begin
-  if UDM.cl_VarProject.RecordCount > 0 then
+ { if UDM.cl_VarProject.RecordCount > 0 then
   begin
     UDM.tb_VirtualVar.Active := False;
     UDM.tb_VirtualVar.FieldDefs.Clear;
@@ -393,7 +394,7 @@ begin
   else
   begin
     OcultaVGVardef;
-  end;
+  end;  }
 end;
 
 procedure TfrmPropiedadesNodo.DBNavigator1Click(Sender: TObject; Button: TNavigateBtn);
@@ -503,6 +504,7 @@ end;
 procedure TfrmPropiedadesNodo.FormActivate(Sender: TObject);
 begin
   UDM.tb_tree.Filtered := False;
+  ReActiveFather(UDM.tb_tree.FieldByName('id').Value);
 end;
 
 procedure TfrmPropiedadesNodo.FormCreate(Sender: TObject);
@@ -539,6 +541,13 @@ begin
   end;
 end;
 
+procedure TfrmPropiedadesNodo.ReActiveFather(aId:Integer);
+begin
+  Padres.Active := False;
+  Padres.Params[0].Value := aId;
+  Padres.Active := True;
+end;
+
 procedure TfrmPropiedadesNodo.MenuItem6Click(Sender: TObject);
 begin
   //eliminará el nodo y todos sus hijos...
@@ -565,12 +574,12 @@ var
   s: string;
 begin
  // UDM.tb_SeriesDatos.DisableControls;
-  for i := 1 to 10 do
+  {for i := 1 to 10 do
   begin
     s := 'iv' + inttostr(i);
     TcxDBEditorRow(FindComponent(s)).Visible := false;
     TcxDBEditorRow(FindComponent(s)).Properties.DataBinding.FieldName := '';
-  end;
+  end;  }
  // UDM.tb_SeriesDatos.EnableControls;
 end;
 
@@ -839,6 +848,7 @@ begin
         etiquetaNA := PDataRec(AnItem.data).Etiqueta;
         MB.Panels[1].Text:=etiquetaNA;
         id := PDataRec(AnItem.Data).id;
+        ReActiveFather(Id);
         IdSelectedNode := PDataRec(AnItem.Data).id;
         if UDM.tb_tree.Locate('id', id, []) then
         begin

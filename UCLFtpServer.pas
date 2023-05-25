@@ -10,14 +10,11 @@ uses
   cxNavigator, dxDateRanges, Data.DB, cxDBData, cxTextEdit,
   cxGridCustomTableView, cxGridTableView, cxGridDBTableView, Vcl.ComCtrls,
   cxGridLevel, cxClasses, cxGridCustomView, cxGrid, Vcl.ToolWin, Vcl.DBCtrls,
-  cxDBNavigator, Vcl.ExtCtrls, cxDropDownEdit;
+  cxDBNavigator, Vcl.ExtCtrls, cxDropDownEdit, JvExControls, JvButton,
+  JvTransparentButton;
 
 type
   TfrmListFTPServer = class(TForm)
-    ToolBar1: TToolBar;
-    btnClose: TToolButton;
-    ToolButton3: TToolButton;
-    btnhlp: TToolButton;
     cxGrid1: TcxGrid;
     cxGrid1DBTableView1: TcxGridDBTableView;
     cxGrid1Level1: TcxGridLevel;
@@ -32,16 +29,20 @@ type
     cxDBNavigator3: TcxDBNavigator;
     DBNavigator3: TDBNavigator;
     cxGrid1DBTableView1etiquetaServ: TcxGridDBColumn;
-    ToolButton1: TToolButton;
-    ToolButton2: TToolButton;
-    ToolButton4: TToolButton;
-    ToolButton5: TToolButton;
-    ToolButton6: TToolButton;
     dscl_ftp_Server: TDataSource;
+    pMainContainer: TPanel;
+    JvTransparentButton1: TJvTransparentButton;
+    btnExcelExport: TJvTransparentButton;
+    btnExpand: TJvTransparentButton;
+    btnSystemHelp: TJvTransparentButton;
     procedure btnCloseClick(Sender: TObject);
     procedure btnhlpClick(Sender: TObject);
     procedure DBNavigator3Click(Sender: TObject; Button: TNavigateBtn);
     procedure ToolButton2Click(Sender: TObject);
+    procedure btnExpandClick(Sender: TObject);
+    procedure btnExcelExportClick(Sender: TObject);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure FormActivate(Sender: TObject);
   private
     { Private declarations }
   public
@@ -61,6 +62,20 @@ uses
 procedure TfrmListFTPServer.btnCloseClick(Sender: TObject);
 begin
   Close;
+end;
+
+procedure TfrmListFTPServer.btnExcelExportClick(Sender: TObject);
+begin
+  ExcelExport(nil, cxGrid1);
+end;
+
+procedure TfrmListFTPServer.btnExpandClick(Sender: TObject);
+begin
+  try
+    cxGrid1DBTableView1.ApplyBestFit();
+    UDM.SalvaConfigGrid(cxGrid1DBTableView1, 'cl_servidoresFTP');
+  except
+  end;
 end;
 
 procedure TfrmListFTPServer.btnhlpClick(Sender: TObject);
@@ -91,9 +106,19 @@ begin
   end;
 end;
 
+procedure TfrmListFTPServer.FormActivate(Sender: TObject);
+begin
+  UDM.RestauraGrid(cxGrid1DBTableView1, 'cl_servidoresFTP');
+end;
+
+procedure TfrmListFTPServer.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+begin
+  UDM.SalvaConfigGrid(cxGrid1DBTableView1, 'cl_servidoresFTP');
+end;
+
 procedure TfrmListFTPServer.ToolButton2Click(Sender: TObject);
 begin
-  if cxGrid1DBTableView1.DataController.DataSet.RecordCount>0 then
+  if cxGrid1DBTableView1.DataController.DataSet.RecordCount > 0 then
     cxGrid1DBTableView1.ApplyBestFit();
 end;
 

@@ -5,21 +5,19 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ComCtrls, StdCtrls, ToolWin, JvBaseDlg, JvSelectDirectory,
-  System.ImageList, Vcl.ImgList;
+  System.ImageList, Vcl.ImgList, JvExControls, JvButton, JvTransparentButton,
+  Vcl.ExtCtrls;
 
 type
   TfrmHistory = class(TForm)
-    ToolBar2: TToolBar;
-    btnclose: TToolButton;
-    ToolButton4: TToolButton;
     StatusBar1: TStatusBar;
     JvSelectDirectory1: TJvSelectDirectory;
     SaveDialog1: TSaveDialog;
     mhistory: TRichEdit;
     ILEdith: TImageList;
-    ToolButton1: TToolButton;
-    ToolButton2: TToolButton;
-    ToolButton3: TToolButton;
+    pMainContainer: TPanel;
+    JvTransparentButton1: TJvTransparentButton;
+    btnSystemHelp: TJvTransparentButton;
     procedure btncloseClick(Sender: TObject);
     procedure ToolButton4Click(Sender: TObject);
     procedure FormActivate(Sender: TObject);

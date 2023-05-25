@@ -849,7 +849,6 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
     Height = 30
     Align = alTop
     TabOrder = 1
-    ExplicitTop = 41
     object SpeedButton1: TSpeedButton
       Left = 911
       Top = 1
@@ -1057,8 +1056,6 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
     Height = 348
     Align = alLeft
     TabOrder = 2
-    ExplicitTop = 71
-    ExplicitHeight = 347
     object tvTreeData: TTreeView
       Left = 1
       Top = 1
@@ -1070,7 +1067,6 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       ReadOnly = True
       TabOrder = 0
       OnMouseDown = tvTreeDataMouseDown
-      ExplicitHeight = 345
     end
   end
   object Panel4: TPanel
@@ -1082,8 +1078,6 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
     Color = 11105043
     ParentBackground = False
     TabOrder = 3
-    ExplicitTop = 71
-    ExplicitHeight = 347
     DesignSize = (
       635
       348)
@@ -1399,7 +1393,6 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       DataBinding.DataSource = UDM.dstb_tree
       Properties.ScrollBars = ssVertical
       TabOrder = 1
-      ExplicitTop = 208
       Height = 138
       Width = 633
     end
@@ -1414,8 +1407,6 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
     Visible = False
     Properties.ActivePage = tsVariable
     Properties.CustomButtons.Buttons = <>
-    ExplicitTop = 71
-    ExplicitHeight = 347
     ClientRectBottom = 344
     ClientRectLeft = 4
     ClientRectRight = 4
@@ -1423,7 +1414,6 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
     object tsVariable: TcxTabSheet
       Caption = 'Variables'
       ImageIndex = 2
-      ExplicitHeight = 340
       object cxDBVerticalGrid1: TcxDBVerticalGrid
         Left = 0
         Top = 161
@@ -1438,7 +1428,6 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
         Styles.StyleSheet = UDM.cxVerticalGridStyleSheetUserFormat4
         TabOrder = 0
         DataController.DataSource = UDM.dsVarEPCDetail
-        ExplicitHeight = 179
         Version = 1
         object cxCategoryRow1: TcxCategoryRow
           Properties.Caption = 'PROPIEDADES'
@@ -1883,8 +1872,8 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
     Version = '1.6.2.1'
   end
   object cpNewNode: TJvCaptionPanel
-    Left = 222
-    Top = 110
+    Left = 294
+    Top = 86
     Width = 592
     Height = 284
     Buttons = []
@@ -2245,7 +2234,6 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
     Color = 15780526
     ParentBackground = False
     TabOrder = 7
-    ExplicitTop = 41
     object btnadd: TJvTransparentButton
       Left = 56
       Top = 1
