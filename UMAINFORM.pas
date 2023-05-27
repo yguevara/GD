@@ -484,7 +484,6 @@ type
     procedure SpeedButton3Click(Sender: TObject);
     procedure dstb_SerietreeDataChange(Sender: TObject; Field: TField);
     procedure btnAsignVarVirClick(Sender: TObject);
-    procedure Ayuda1Click(Sender: TObject);
     procedure Acercade1Click(Sender: TObject);
     procedure ControldeVersiones1Click(Sender: TObject);
     procedure V2Click(Sender: TObject);
@@ -546,6 +545,7 @@ type
     procedure PLSDClick(Sender: TObject);
     procedure GViewSeriesDBTableView1FilterControlDialogShow(Sender: TObject);
     procedure GViewSeriesDBTableView1FilterDialogShow(Sender: TcxCustomGridTableView; AItem: TcxCustomGridTableItem; var ADone: Boolean);
+    procedure P1Click(Sender: TObject);
   private
     procedure PrepareSSDisp;
     procedure PrepareSSDetailView;
@@ -632,16 +632,6 @@ procedure TMAIN.advtpCuadroClasifResize(Sender: TObject);
 begin
   PageControl1.Align := alNone;
   PageControl1.Align := alClient;
-end;
-
-procedure TMAIN.Ayuda1Click(Sender: TObject);
-begin
-  with TfrmDoc.Create(nil) do
-  try
-    ShowModal;
-  finally
-    Free;
-  end;
 end;
 
 procedure TMAIN.btnaddfileClick(Sender: TObject);
@@ -2293,6 +2283,16 @@ begin
     end;
   NombreSerieDocAsig := VarToStr(UDM.Conn.ExecSQLScalar('select subserie from cl_subseries where codsubs=' + QuotedStr(UDM.tb_Serietree.FieldByName('codsubs').AsString)));
   CampoTexto(@UDM.dstb_Serietree, 'observacion', 'Observaciones sobre la serie ' + NombreSerieDocAsig);
+end;
+
+procedure TMAIN.P1Click(Sender: TObject);
+begin
+  with TfrmDoc.Create(nil) do
+  try
+    ShowModal;
+  finally
+    Free;
+  end;
 end;
 
 procedure TMAIN.P2Click(Sender: TObject);

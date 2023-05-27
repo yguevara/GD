@@ -35,6 +35,8 @@ type
     btnExcelExport: TJvTransparentButton;
     btnExpand: TJvTransparentButton;
     btnSystemHelp: TJvTransparentButton;
+    btnBestFitSS: TJvTransparentButton;
+    btnExportSSExcel: TJvTransparentButton;
     procedure btnCloseClick(Sender: TObject);
     procedure btnhlpClick(Sender: TObject);
     procedure DBNavigator3Click(Sender: TObject; Button: TNavigateBtn);

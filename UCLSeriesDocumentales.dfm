@@ -1164,7 +1164,7 @@ object frmCLSeries: TfrmCLSeries
         InfoPanel.Visible = True
         Align = alRight
         TabOrder = 0
-        ExplicitLeft = 327
+        Visible = False
       end
       object DBNavigator2: TDBNavigator
         Left = 1
@@ -1188,7 +1188,6 @@ object frmCLSeries: TfrmCLSeries
         ParentShowHint = False
         ShowHint = True
         TabOrder = 1
-        ExplicitWidth = 390
       end
     end
     object Panel4: TPanel
@@ -1215,8 +1214,6 @@ object frmCLSeries: TfrmCLSeries
       Height = 479
       Align = alClient
       TabOrder = 2
-      ExplicitLeft = -15
-      ExplicitTop = 65
       object cxGrid1DBTableView1: TcxGridDBTableView
         Navigator.Buttons.ConfirmDelete = True
         Navigator.Buttons.CustomButtons = <>
@@ -1739,7 +1736,7 @@ object frmCLSeries: TfrmCLSeries
         InfoPanel.Visible = True
         Align = alRight
         TabOrder = 0
-        ExplicitLeft = 694
+        Visible = False
       end
       object DBNavigator1: TDBNavigator
         Left = 1
@@ -1763,7 +1760,6 @@ object frmCLSeries: TfrmCLSeries
         ParentShowHint = False
         ShowHint = True
         TabOrder = 1
-        ExplicitWidth = 693
       end
     end
     object Panel3: TPanel
@@ -1797,7 +1793,7 @@ object frmCLSeries: TfrmCLSeries
         Height = 477
         Align = alClient
         TabOrder = 0
-        Properties.ActivePage = tsVTSS
+        Properties.ActivePage = tsFormulario
         Properties.CustomButtons.Buttons = <>
         Properties.Style = 8
         ClientRectBottom = 477
@@ -3427,7 +3423,7 @@ object frmCLSeries: TfrmCLSeries
               end
             end
             object jvcpGestor: TJvCaptionPanel
-              Left = 237
+              Left = 236
               Top = 114
               Width = 317
               Height = 221
@@ -3499,6 +3495,10 @@ object frmCLSeries: TfrmCLSeries
                 end
                 object cxDBVerticalGrid3password: TcxDBEditorRow
                   Properties.Caption = 'Contrase'#241'a'
+                  Properties.EditPropertiesClassName = 'TcxTextEditProperties'
+                  Properties.EditProperties.EchoMode = eemPassword
+                  Properties.EditProperties.PasswordChar = '*'
+                  Properties.EditProperties.ReadOnly = True
                   Properties.DataBinding.FieldName = 'password'
                   Properties.Options.Editing = False
                   ID = 4
@@ -4102,7 +4102,6 @@ object frmCLSeries: TfrmCLSeries
       StatusBar.Font.Name = 'Tahoma'
       StatusBar.Font.Style = []
       Text = ''
-      ExplicitLeft = 49
       FullHeight = 200
       object SpeedButton4: TSpeedButton
         Left = 243
@@ -4252,7 +4251,7 @@ object frmCLSeries: TfrmCLSeries
   end
   object jvcpServerDetail: TJvCaptionPanel
     Left = 752
-    Top = 241
+    Top = 240
     Width = 297
     Height = 226
     Buttons = []

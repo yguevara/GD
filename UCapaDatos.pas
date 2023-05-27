@@ -1433,12 +1433,14 @@ procedure TUDM.VerPDFF(aFileName: string);
   end;
 
 var
-  s, s1, s2: string;
+  s, s1, s2, cad: string;
 begin
-  s := ExtractFilePath(Application.ExeName) + 'foxit.exe '; //'SumatraPDF\SumatraPDF.exe ' ;
+//  s := ExtractFilePath(Application.ExeName) + 'foxit.exe '; //'SumatraPDF\SumatraPDF.exe ' ;
   s1 := aFileName;
-  s2 := Concat(s, '"' + s1 + '"');
-  WinExecAndWait32(s2, SW_HIDE);
+//  s2 := Concat(s, '"' + s1 + '"');
+  cad := QuotedStr('P') + ' ' + AnsiQuotedStr(s1, '"');
+  UDM.RunAndWaitShell(PathSys + 'Viewer.exe', cad, SW_SHOWMAXIMIZED);
+//  WinExecAndWait32(s2, SW_HIDE);
 end;
 
 function TUDM.ViewIMG(FilePath: string): Integer;

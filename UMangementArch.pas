@@ -51,6 +51,8 @@ type
     btnExcelExport: TJvTransparentButton;
     btnExpand: TJvTransparentButton;
     btnSystemHelp: TJvTransparentButton;
+    btnExportSSExcel: TJvTransparentButton;
+    btnBestFitSS: TJvTransparentButton;
     procedure btnCloseClick(Sender: TObject);
     procedure btnhlpClick(Sender: TObject);
     procedure DBNavigator3Click(Sender: TObject; Button: TNavigateBtn);
@@ -93,10 +95,16 @@ end;
 
 procedure TfrmManagemetArch.btnExpandClick(Sender: TObject);
 begin
-  try
-    cxGrid1DBTableView1.ApplyBestFit();
-    UDM.SalvaConfigGrid(cxGrid1DBTableView1, 'cl_archivos');
-  except
+  if cxGrid1DBTableView1.DataController.DataSet.RecordCount > 0 then
+  begin
+    try
+      cxGrid1DBTableView1.ApplyBestFit();
+      UDM.SalvaConfigGrid(cxGrid1DBTableView1, 'cl_archivos');
+    except
+    end;
+  end else begin
+    UDM.sms('Esta función es recomendable utilizarla cuando existe al menos un registro inscrito.', 3);
+    Exit;
   end;
 end;
 
