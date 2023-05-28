@@ -1190,6 +1190,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
             HeaderAlignment = taCenter
             FieldName = 'nombretipoobj'
           end>
+        Properties.ListOptions.ShowHeader = False
         Properties.ListSource = UDM.dscl_tipoobj
         Style.Font.Charset = DEFAULT_CHARSET
         Style.Font.Color = clBlack
@@ -1223,6 +1224,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
             HeaderAlignment = taCenter
             FieldName = 'NombreResponsable'
           end>
+        Properties.ListOptions.ShowHeader = False
         Properties.ListSource = UDM.dscl_Resp_Gest_Arch
         Style.Font.Charset = DEFAULT_CHARSET
         Style.Font.Color = clBlack
@@ -1366,6 +1368,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
             HeaderAlignment = taCenter
             FieldName = 'etiqueta'
           end>
+        Properties.ListOptions.ShowHeader = False
         Properties.ListSource = dsPadres
         Style.Font.Charset = DEFAULT_CHARSET
         Style.Font.Color = clBlack
@@ -1872,8 +1875,8 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
     Version = '1.6.2.1'
   end
   object cpNewNode: TJvCaptionPanel
-    Left = 294
-    Top = 86
+    Left = 230
+    Top = 78
     Width = 592
     Height = 284
     Buttons = []
@@ -1994,6 +1997,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
           HeaderAlignment = taCenter
           FieldName = 'NombreResponsable'
         end>
+      Properties.ListOptions.ShowHeader = False
       Properties.ListSource = UDM.dscl_Resp_Gest_Arch
       Style.Font.Charset = DEFAULT_CHARSET
       Style.Font.Color = clBlack
@@ -2088,7 +2092,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
           HeaderAlignment = taCenter
           FieldName = 'nombretipoobj'
         end>
-      Properties.ListOptions.SyncMode = True
+      Properties.ListOptions.ShowHeader = False
       Properties.ListSource = UDM.dscl_tipoobj
       Properties.OnChange = cxDBLookupComboBox2PropertiesChange
       Properties.OnCloseUp = cxDBLookupComboBox2PropertiesCloseUp

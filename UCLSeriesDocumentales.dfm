@@ -1962,6 +1962,7 @@ object frmCLSeries: TfrmCLSeries
                     HeaderAlignment = taCenter
                     FieldName = 'Nombresoporte'
                   end>
+                Properties.ListOptions.ShowHeader = False
                 Properties.ListSource = UDM.dscl_soporte
                 HeaderAlignmentHorz = taCenter
                 HeaderGlyphAlignmentHorz = taCenter
@@ -1977,6 +1978,7 @@ object frmCLSeries: TfrmCLSeries
                     HeaderAlignment = taCenter
                     FieldName = 'Tipodoc'
                   end>
+                Properties.ListOptions.ShowHeader = False
                 Properties.ListSource = UDM.dscl_tipodoc
                 HeaderAlignmentHorz = taCenter
                 HeaderGlyphAlignmentHorz = taCenter
@@ -2048,6 +2050,7 @@ object frmCLSeries: TfrmCLSeries
                   item
                     FieldName = 'Valordoc'
                   end>
+                Properties.ListOptions.ShowHeader = False
                 Properties.ListSource = UDM.dscl_valordoc
                 HeaderAlignmentHorz = taCenter
                 HeaderGlyphAlignmentHorz = taCenter
@@ -2062,6 +2065,7 @@ object frmCLSeries: TfrmCLSeries
                     HeaderAlignment = taCenter
                     FieldName = 'vigencia'
                   end>
+                Properties.ListOptions.ShowHeader = False
                 Properties.ListSource = UDM.dscl_vigencia
                 HeaderAlignmentHorz = taCenter
                 HeaderGlyphAlignmentHorz = taCenter
@@ -2095,6 +2099,7 @@ object frmCLSeries: TfrmCLSeries
                     HeaderAlignment = taCenter
                     FieldName = 'NombreDestino'
                   end>
+                Properties.ListOptions.ShowHeader = False
                 Properties.ListSource = UDM.dscl_destino
                 HeaderAlignmentHorz = taCenter
                 HeaderGlyphAlignmentHorz = taCenter
@@ -2110,6 +2115,7 @@ object frmCLSeries: TfrmCLSeries
                     HeaderAlignment = taCenter
                     FieldName = 'tipoarch'
                   end>
+                Properties.ListOptions.ShowHeader = False
                 Properties.ListSource = UDM.dscl_tipoarch
                 HeaderAlignmentHorz = taCenter
                 HeaderGlyphAlignmentHorz = taCenter
@@ -2172,6 +2178,7 @@ object frmCLSeries: TfrmCLSeries
                     HeaderAlignment = taCenter
                     FieldName = 'NombreAcceso'
                   end>
+                Properties.ListOptions.ShowHeader = False
                 Properties.ListSource = UDM.dscl_acceso
                 HeaderAlignmentHorz = taCenter
                 HeaderGlyphAlignmentHorz = taCenter
@@ -2187,6 +2194,7 @@ object frmCLSeries: TfrmCLSeries
                     HeaderAlignment = taCenter
                     FieldName = 'NombreFrecuencia'
                   end>
+                Properties.ListOptions.ShowHeader = False
                 Properties.ListSource = UDM.dscl_frecuencia
                 HeaderAlignmentHorz = taCenter
                 HeaderGlyphAlignmentHorz = taCenter
@@ -2346,6 +2354,7 @@ object frmCLSeries: TfrmCLSeries
                     HeaderAlignment = taCenter
                     FieldName = 'Nombresoporte'
                   end>
+                Properties.ListOptions.ShowHeader = False
                 Properties.ListSource = UDM.dscl_soporte
                 Properties.ValidationOptions = [evoShowErrorIcon]
                 Style.LookAndFeel.NativeStyle = True
@@ -2389,6 +2398,7 @@ object frmCLSeries: TfrmCLSeries
                     HeaderAlignment = taCenter
                     FieldName = 'Tipodoc'
                   end>
+                Properties.ListOptions.ShowHeader = False
                 Properties.ListSource = UDM.dscl_tipodoc
                 Properties.ValidationOptions = [evoShowErrorIcon]
                 Style.LookAndFeel.NativeStyle = True
@@ -2645,6 +2655,7 @@ object frmCLSeries: TfrmCLSeries
                       HeaderAlignment = taCenter
                       FieldName = 'NombreResponsable'
                     end>
+                  Properties.ListOptions.ShowHeader = False
                   Properties.ListSource = UDM.dscl_Resp_Gest_Arch
                   Properties.ValidationOptions = [evoShowErrorIcon]
                   Style.LookAndFeel.NativeStyle = True
@@ -2672,6 +2683,7 @@ object frmCLSeries: TfrmCLSeries
                     HeaderAlignment = taCenter
                     FieldName = 'NombreAcceso'
                   end>
+                Properties.ListOptions.ShowHeader = False
                 Properties.ListSource = UDM.dscl_acceso
                 Properties.ValidationOptions = [evoShowErrorIcon]
                 Style.LookAndFeel.NativeStyle = True
@@ -2698,6 +2710,7 @@ object frmCLSeries: TfrmCLSeries
                     HeaderAlignment = taCenter
                     FieldName = 'tiposerie'
                   end>
+                Properties.ListOptions.ShowHeader = False
                 Properties.ListSource = UDM.dscl_tiposerie
                 Properties.ValidationOptions = [evoShowErrorIcon]
                 Style.LookAndFeel.NativeStyle = True
@@ -2815,6 +2828,7 @@ object frmCLSeries: TfrmCLSeries
                     HeaderAlignment = taCenter
                     FieldName = 'NombreDestino'
                   end>
+                Properties.ListOptions.ShowHeader = False
                 Properties.ListSource = UDM.dscl_destino
                 Properties.ValidationOptions = [evoShowErrorIcon]
                 Style.LookAndFeel.NativeStyle = True
@@ -3152,6 +3166,7 @@ object frmCLSeries: TfrmCLSeries
                     HeaderAlignment = taCenter
                     FieldName = 'etiquetaServ'
                   end>
+                Properties.ListOptions.ShowHeader = False
                 Properties.ListSource = UDM.dscl_ftp_Server
                 Properties.ValidationOptions = [evoShowErrorIcon]
                 Style.LookAndFeel.NativeStyle = True
@@ -3234,6 +3249,7 @@ object frmCLSeries: TfrmCLSeries
                     HeaderAlignment = taCenter
                     FieldName = 'nombreArchivo'
                   end>
+                Properties.ListOptions.ShowHeader = False
                 Properties.ListSource = UDM.dscl_ArchivosGestion
                 Properties.ValidationOptions = [evoShowErrorIcon]
                 Style.LookAndFeel.NativeStyle = True
@@ -3309,6 +3325,7 @@ object frmCLSeries: TfrmCLSeries
                       HeaderAlignment = taCenter
                       FieldName = 'Valordoc'
                     end>
+                  Properties.ListOptions.ShowHeader = False
                   Properties.ListSource = UDM.dscl_valordoc
                   Properties.ValidationOptions = [evoShowErrorIcon]
                   Style.LookAndFeel.NativeStyle = True
@@ -3333,6 +3350,7 @@ object frmCLSeries: TfrmCLSeries
                       HeaderAlignment = taCenter
                       FieldName = 'vigencia'
                     end>
+                  Properties.ListOptions.ShowHeader = False
                   Properties.ListSource = UDM.dscl_vigencia
                   TabOrder = 1
                   Width = 174
@@ -3381,6 +3399,7 @@ object frmCLSeries: TfrmCLSeries
                       HeaderAlignment = taCenter
                       FieldName = 'NombreFrecuencia'
                     end>
+                  Properties.ListOptions.ShowHeader = False
                   Properties.ListSource = UDM.dscl_frecuencia
                   Properties.ValidationOptions = [evoShowErrorIcon]
                   Style.LookAndFeel.NativeStyle = True
@@ -3423,8 +3442,8 @@ object frmCLSeries: TfrmCLSeries
               end
             end
             object jvcpGestor: TJvCaptionPanel
-              Left = 236
-              Top = 114
+              Left = 252
+              Top = 98
               Width = 317
               Height = 221
               Buttons = []
@@ -3718,8 +3737,8 @@ object frmCLSeries: TfrmCLSeries
     end
   end
   object cpInfoPathSubSeries: TJvCaptionPanel
-    Left = 638
-    Top = 290
+    Left = 646
+    Top = 274
     Width = 524
     Height = 126
     Buttons = []
@@ -3940,8 +3959,8 @@ object frmCLSeries: TfrmCLSeries
     end
   end
   object jvcpArchivo: TJvCaptionPanel
-    Left = 752
-    Top = 240
+    Left = 768
+    Top = 224
     Width = 297
     Height = 226
     Buttons = []
@@ -4250,8 +4269,8 @@ object frmCLSeries: TfrmCLSeries
     end
   end
   object jvcpServerDetail: TJvCaptionPanel
-    Left = 752
-    Top = 240
+    Left = 768
+    Top = 224
     Width = 297
     Height = 226
     Buttons = []

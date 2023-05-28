@@ -895,6 +895,7 @@ object frmManagemetArch: TfrmManagemetArch
             HeaderAlignment = taCenter
             FieldName = 'NombreResponsable'
           end>
+        Properties.ListOptions.ShowHeader = False
         Properties.ListSource = UDM.dscl_Resp_Gest_Arch
         HeaderAlignmentHorz = taCenter
         HeaderGlyphAlignmentHorz = taCenter
@@ -1275,7 +1276,6 @@ object frmManagemetArch: TfrmManagemetArch
       ShowHint = True
       TabOrder = 0
       OnClick = DBNavigator3Click
-      ExplicitWidth = 789
     end
     object cxDBNavigator3: TcxDBNavigator
       Tag = 99
