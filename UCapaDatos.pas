@@ -17,7 +17,9 @@ uses
   IdFTP, Winapi.ShellAPI, USecurityClasss, dxtree, dxdbtree,
   FireDAC.Comp.ScriptCommands, FireDAC.Stan.Util, FireDAC.Comp.Script, cxDBData,
   cxGridLevel, cxGridCustomTableView, cxGridDBTableView, cxGridCustomView,
-  cxGrid, Winapi.TlHelp32, Winapi.ShlObj, Masks, Vcl.Forms, FireDAC.VCLUI.Script;
+  cxGrid, Winapi.TlHelp32, Winapi.ShlObj, Masks, Vcl.Forms, FireDAC.VCLUI.Script,
+  System.HelpIntfs, Vcl.HtmlHelpViewer, Vcl.AppEvnts, Winapi.Messages, ADOInt,
+  ActiveX, Winapi.OleDB,ComObj;
 
 type
 //==============================================================================
@@ -883,6 +885,22 @@ type
     SudSDetailTipo: TIntegerField;
     SudSDetailespacial: TWideStringField;
     ILClasif: TImageList;
+    dstb_sysconfig: TDataSource;
+    tb_sysconfig: TFDQuery;
+    tb_treeIdEstructura: TWideStringField;
+    tb_treeid: TIntegerField;
+    tb_treeetiqueta: TWideStringField;
+    tb_treepadre: TIntegerField;
+    tb_treeicono: TSmallintField;
+    tb_treetipo: TSmallintField;
+    tb_treevisible: TBooleanField;
+    tb_treeaowner: TWideStringField;
+    tb_treeAdministrador: TIntegerField;
+    tb_treedescripcion: TWideMemoField;
+    ListadoServidores: TFDMemTable;
+    ListadoServidoresIdServer: TStringField;
+    ListadoServidoresNombreServer: TStringField;
+    dsListadoServidores: TDataSource;
     procedure DataModuleCreate(Sender: TObject);
     procedure tb_treeAfterPost(DataSet: TDataSet);
     procedure dstb_treeDataChange(Sender: TObject; Field: TField);
@@ -940,12 +958,15 @@ type
     procedure RunAndWaitShell(Ejecutable, Argumentos: string; Visibilidad: integer);
     function Sto_GetFmtFileVersion(const FileName: string = ''; const Fmt: string = '%d.%d.%d.%d'): string;
     procedure CompletaNombreFile;
+    procedure Verayuda(TopicID: integer);
+    procedure ListAvailableSQLServers(Names: TStrings);
+    function PtCreateADOObject(const ClassID: TGUID): IUnknown;
   end;
 
 var
   UDM: TUDM;
   ItsWork: Boolean;
-  VersionProgram: string;
+  VersionProgram, helpfile, buildprogram: string;
   Carpeta: string;
   acceso: string;
   syshelpLeft: integer;
@@ -1406,6 +1427,12 @@ begin
     UDM.tb_VirtualVar.Append;
 end;
 
+procedure TUDM.Verayuda(TopicID: integer);
+begin
+  HelpFile := ExtractFilePath(Application.ExeName) + 'ArchiGenioPro.chm';
+  Application.HelpSystem.ShowContextHelp(TopicID, HelpFile);
+end;
+
 procedure TUDM.VerPDFF(aFileName: string);
 
   function WinExecAndWait32(FileName: string; Visibility: integer): integer;
@@ -1744,6 +1771,43 @@ begin
   CloseHandle(FSnapshotHandle);
 end;
 
+procedure TUDM.ListAvailableSQLServers(Names: TStrings);
+var
+  RSCon: ADORecordsetConstruction;
+  Rowset: IRowset;
+  SourcesRowset: ISourcesRowset;
+  SourcesRecordset: _Recordset;
+  SourcesName, SourcesType: TField;
+begin
+  //Lista los servidores SQL Server disponibles en la RED...
+  Screen.Cursor := crSQLWait;
+  SourcesRecordset := PtCreateADOObject(CLASS_Recordset) as _Recordset;
+  RSCon := SourcesRecordset as ADORecordsetConstruction;
+  SourcesRowset := CreateComObject(ProgIDToClassID('SQLOLEDB Enumerator')) as ISourcesRowset;
+  OleCheck(SourcesRowset.GetSourcesRowset(nil, IRowset, 0, nil, IUnknown(Rowset)));
+  RSCon.Rowset := Rowset;
+  with TADODataSet.Create(nil) do
+  try
+    Recordset := SourcesRecordset;
+    SourcesName := FieldByName('SOURCES_NAME'); { do not localize }
+    SourcesType := FieldByName('SOURCES_TYPE'); { do not localize }
+    Names.BeginUpdate;
+    try
+      while not EOF do
+      begin
+        if (SourcesType.AsInteger = DBSOURCETYPE_DATASOURCE) and (SourcesName.AsString <> '') then
+          Names.Add(SourcesName.AsString);
+        Next;
+      end;
+    finally
+      Names.EndUpdate;
+    end;
+  finally
+    Free;
+  end;
+  Screen.Cursor := crDefault;
+end;
+
 procedure TUDM.ManagementHLP(HLPName: string; WindowsHandle: HWND);
 var
   PathHLP: string;
@@ -1752,6 +1816,23 @@ begin
   if not FileExists(PathHLP + HLPName + '.docx') then
     CopyFile(PWideChar(PathHLP + 'plt.docx'), PWideChar(PathHLP + HLPName + '.docx'), False);
   ejecutaPDF(WindowsHandle, PathHLP + HLPName + '.docx');
+end;
+
+function TUDM.PtCreateADOObject(const ClassID: TGUID): IUnknown;
+var
+  Status: HRESULT;
+  FPUControlWord: Word;
+begin
+  //función utilizada para devolver los Servidores SQL Server disponibles en la RED...
+  asm
+        FNSTCW  FPUControlWord
+  end;
+  Status := CoCreateInstance(CLASS_Recordset, nil, CLSCTX_INPROC_SERVER or CLSCTX_LOCAL_SERVER, IUnknown, Result);
+  asm
+        FNCLEX
+        FLDCW   FPUControlWord
+  end;
+  OleCheck(Status);
 end;
 
 procedure TUDM.RestauraGrid(nombregrid: TcxGridDBTableView; NombreSalva: string);
@@ -1901,6 +1982,7 @@ end;
 procedure TUDM.ActivaDataLayer(aValue: boolean);
 begin
   //Activando tablas de la base de datos....
+  tb_sysconfig.Active := aValue;
   cl_tipoexp.Active := aValue;
   cl_expediente.Active := aValue;
   CL_ArchivoDpto.Active := aValue;
@@ -2206,10 +2288,16 @@ begin    //fuente varchar(1)
   execSQLUPD('INSERT INTO cl_frecuencia(Idfrecuencia, NombreFrecuencia)VALUES (9, ' + QuotedStr('') + ');');
   execSQLUPD('DROP TABLE cl_tiposerie');
   execSQLUPD('CREATE TABLE cl_tiposerie(idtiposerie int NOT NULL PRIMARY KEY, tiposerie varchar(50), espacial varchar(1));');
-  execSQLUPD('INSERT INTO cl_tiposerie(idtiposerie, tiposerie, espacial) VALUES(1, ' + QuotedStr('Documento') + ', '+ QuotedStr('N')+');');
-  execSQLUPD('INSERT INTO cl_tiposerie(idtiposerie, tiposerie, espacial) VALUES(2, ' + QuotedStr('Documento Espacial') + ', '+ QuotedStr('S')+');');
-  execSQLUPD('INSERT INTO cl_tiposerie(idtiposerie, tiposerie, espacial) VALUES(3, ' + QuotedStr('Expediente') + ', '+ QuotedStr('N')+');');
-  execSQLUPD('INSERT INTO cl_tiposerie(idtiposerie, tiposerie, espacial) VALUES(4, ' + QuotedStr('Expediente Espacial') + ', '+ QuotedStr('S')+');');
+  execSQLUPD('INSERT INTO cl_tiposerie(idtiposerie, tiposerie, espacial) VALUES(1, ' + QuotedStr('Documento') + ', ' + QuotedStr('N') + ');');
+  execSQLUPD('INSERT INTO cl_tiposerie(idtiposerie, tiposerie, espacial) VALUES(2, ' + QuotedStr('Documento Espacial') + ', ' + QuotedStr('S') + ');');
+  execSQLUPD('INSERT INTO cl_tiposerie(idtiposerie, tiposerie, espacial) VALUES(3, ' + QuotedStr('Expediente') + ', ' + QuotedStr('N') + ');');
+  execSQLUPD('INSERT INTO cl_tiposerie(idtiposerie, tiposerie, espacial) VALUES(4, ' + QuotedStr('Expediente Espacial') + ', ' + QuotedStr('S') + ');');
+  cad:='CREATE TABLE tb_sysconfig (idproducto varchar(255)NOT NULL, build varchar(255), ';
+  cad:=cad+'fecha datetime, version varchar(255), carpetabd varchar(255), ipservidorbd varchar(255),  ';
+  cad:=cad+'usuariobd varchar(255), passbd varchar(255), empresa varchar(255), direccion text, ';
+  cad:=cad+'logo image, directorempresacliente varchar(255), presidentecvdempresacliente varchar(255), ';
+  cad:=cad+'HID varchar(255), numeroserie varchar(255), licactiva int, CONSTRAINT PK_tb_sysconfig PRIMARY KEY(idproducto))';
+  execSQLUPD(cad);
 end;
 
 procedure TUDM.UpdateVarPrj(acodEE, acodNN: string);

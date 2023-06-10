@@ -29,6 +29,7 @@ type
     btnLC: TJvTransparentButton;
     btnSystemHelp: TJvTransparentButton;
     JvTransparentButton2: TJvTransparentButton;
+    Edit1: TEdit;
     procedure FormActivate(Sender: TObject);
     procedure Establecercontrasea1Click(Sender: TObject);
     procedure Agregar1Click(Sender: TObject);
@@ -36,6 +37,8 @@ type
     procedure Propiedades1Click(Sender: TObject);
     procedure lbUserDblClick(Sender: TObject);
     procedure btnCloseClick(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure btnSystemHelpClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -51,7 +54,7 @@ implementation
 {$R *.dfm}
 
 uses
-  UChangePass, UNewUser, UUserProperties;
+  UChangePass, UNewUser, UUserProperties, USystemMsg;
 
 procedure TfrmGestUser.Agregar1Click(Sender: TObject);
 var
@@ -73,6 +76,16 @@ begin
   Close;
 end;
 
+procedure TfrmGestUser.btnSystemHelpClick(Sender: TObject);
+begin
+  with TfrmsystemMSG.Create(nil) do
+  try
+    ShowModal;
+  finally
+    Free;
+  end;
+end;
+
 procedure TfrmGestUser.EliminarUsuario1Click(Sender: TObject);
 begin
   if lbUser.ItemIndex <> -1 then
@@ -82,14 +95,14 @@ begin
 
       if UDM.cl_Resp_Gest_Arch.Locate('usuario', lbUser.Items[lbUser.ItemIndex].Caption, []) then
       begin
-        if UDM.sms('¿Está seguro de querer borrar el usuario "'+lbUser.Items[lbUser.ItemIndex].Caption+'"?', 4)=6 then
+        if UDM.sms('¿Está seguro de querer borrar el usuario "' + lbUser.Items[lbUser.ItemIndex].Caption + '"?', 4) = 6 then
           UDM.cl_Resp_Gest_Arch.Delete;
       end;
 
     end
     else
     begin
-      UDM.sms('No puede eliminar el usuario "'+lbUser.Items[lbUser.ItemIndex].Caption+'". Verifique: ' + #13 + '1- Que el usuario especificado no sea el administrador del sistema.' + #13 + '2- Que el usuario especificado no sea el mismo con el que se encuentra autenticado en el sistema.', 2);
+      UDM.sms('No puede eliminar el usuario "' + lbUser.Items[lbUser.ItemIndex].Caption + '". Verifique: ' + #13 + '1- Que el usuario especificado no sea el administrador del sistema.' + #13 + '2- Que el usuario especificado no sea el mismo con el que se encuentra autenticado en el sistema.', 2);
       Exit;
     end;
   end
@@ -123,8 +136,24 @@ procedure TfrmGestUser.FormActivate(Sender: TObject);
 begin
   UpdateUserList;
 
-  if lbUser.ItemIndex=-1 then
-    lbUser.Items[0].Selected:=True;
+  if lbUser.ItemIndex = -1 then
+    lbUser.Items[0].Selected := True;
+  Edit1.Focused;
+  Edit1.SetFocus;
+end;
+
+procedure TfrmGestUser.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if Key = 112 then
+  begin
+    with TfrmsystemMSG.Create(nil) do
+    try
+      ShowModal;
+    finally
+      Free;
+    end;
+  end;
+
 end;
 
 procedure TfrmGestUser.lbUserDblClick(Sender: TObject);
@@ -158,7 +187,8 @@ begin
       end;
       UpdateUserList;
     end;
-  end else
+  end
+  else
     UDM.sms('Debe seleccionar un usuario válido.', 3);
 end;
 

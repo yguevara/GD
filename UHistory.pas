@@ -18,9 +18,12 @@ type
     pMainContainer: TPanel;
     JvTransparentButton1: TJvTransparentButton;
     btnSystemHelp: TJvTransparentButton;
+    Edit1: TEdit;
     procedure btncloseClick(Sender: TObject);
     procedure ToolButton4Click(Sender: TObject);
     procedure FormActivate(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure btnSystemHelpClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -33,7 +36,7 @@ var
 implementation
 
 uses
-  UCapaDatos;
+  UCapaDatos, USystemMsg;
 
 {$R *.dfm}
 
@@ -52,10 +55,35 @@ begin
     end;
 end;
 
+procedure TfrmHistory.btnSystemHelpClick(Sender: TObject);
+begin
+  with TfrmsystemMSG.Create(nil) do
+  try
+    ShowModal;
+  finally
+    Free;
+  end;
+end;
+
 procedure TfrmHistory.FormActivate(Sender: TObject);
 begin
+  Edit1.Focused;
+  Edit1.SetFocus;
   mhistory.Lines.Clear;
   mhistory.Lines.LoadFromFile(ExtractFilePath(Application.ExeName) + 'Leeme.rtf');
+end;
+
+procedure TfrmHistory.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if Key = 112 then
+  begin
+    with TfrmsystemMSG.Create(nil) do
+    try
+      ShowModal;
+    finally
+      Free;
+    end;
+  end;
 end;
 
 end.

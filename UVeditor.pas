@@ -25,7 +25,9 @@ uses
   FireDAC.DApt, FireDAC.Comp.DataSet, FireDAC.Comp.Client, DBAdvNavigator,
   cxNavigator, cxDBNavigator, dxSkinOffice2016Colorful, dxSkinOffice2016Dark,
   dxSkinTheBezier, dxSkinVisualStudio2013Blue, dxSkinVisualStudio2013Dark,
-  dxSkinVisualStudio2013Light, System.ImageList, UCapaDatos;
+  dxSkinVisualStudio2013Light, System.ImageList, UCapaDatos, JvExControls,
+  JvButton, JvTransparentButton, Vcl.ExtActns, cxMaskEdit, cxDropDownEdit,
+  cxBlobEdit, cxDBEdit, AdvPanel, JvExExtCtrls, JvExtComponent, JvCaptionPanel;
 
 resourcestring
   sSaveChanges = 'Save changes to %s?';
@@ -52,36 +54,31 @@ type
     RightInd: TLabel;
     Bevel1: TBevel;
     StatusBar: TStatusBar;
-    StandardToolBar: TToolBar;
-    PrintButton: TToolButton;
-    ToolButton5: TToolButton;
-    CutButton: TToolButton;
-    CopyButton: TToolButton;
-    PasteButton: TToolButton;
-    UndoButton: TToolButton;
-    ToolButton10: TToolButton;
-    FontName: TComboBox;
-    ToolButton11: TToolButton;
-    FontSize: TEdit;
-    UpDown1: TUpDown;
-    ToolButton2: TToolButton;
-    BoldButton: TToolButton;
-    ItalicButton: TToolButton;
-    UnderlineButton: TToolButton;
-    ToolButton16: TToolButton;
-    LeftAlign: TToolButton;
-    CenterAlign: TToolButton;
-    RightAlign: TToolButton;
-    ToolButton20: TToolButton;
-    BulletsButton: TToolButton;
     OpenDialog: TOpenDialog;
     SaveDialog: TSaveDialog;
     PrintDialog: TPrintDialog;
     FontDialog1: TFontDialog;
     ToolbarImages: TImageList;
+    DBNavigator1: TcxDBNavigator;
+    Editor: TDBRichEdit;
+    ImageList1: TImageList;
+    pMainContainer: TPanel;
+    JvTransparentButton1: TJvTransparentButton;
+    btnautentica: TJvTransparentButton;
+    btnusercontrol: TJvTransparentButton;
+    btnLC: TJvTransparentButton;
+    btnSystemHelp: TJvTransparentButton;
+    JvTransparentButton2: TJvTransparentButton;
+    Edit1: TEdit;
+    JvTransparentButton3: TJvTransparentButton;
+    UnderlineButton: TJvTransparentButton;
+    ItalicButton: TJvTransparentButton;
+    BoldButton: TJvTransparentButton;
+    JvTransparentButton7: TJvTransparentButton;
+    JvTransparentButton8: TJvTransparentButton;
+    JvTransparentButton9: TJvTransparentButton;
+    PrintDialog1: TPrintDialog;
     ActionList1: TActionList;
-    ToolButton1: TToolButton;
-    ToolButton3: TToolButton;
     EditCut1: TEditCut;
     EditCopy1: TEditCopy;
     EditPaste1: TEditPaste;
@@ -90,14 +87,28 @@ type
     EditDelete1: TEditDelete;
     FilePrintSetup1: TFilePrintSetup;
     PrintDlg1: TPrintDlg;
-    btn1: TToolButton;
-    btn2: TToolButton;
-    btn3: TToolButton;
-    ToolButton4: TToolButton;
-    ToolButton6: TToolButton;
-    DBNavigator1: TcxDBNavigator;
-    Editor: TDBRichEdit;
-    ImageList1: TImageList;
+    JvTransparentButton10: TJvTransparentButton;
+    Action1: TAction;
+    FormatRichEditBold1: TRichEditBold;
+    FormatRichEditItalic1: TRichEditItalic;
+    FormatRichEditUnderline1: TRichEditUnderline;
+    FormatRichEditAlignLeft1: TRichEditAlignLeft;
+    FormatRichEditAlignCenter1: TRichEditAlignCenter;
+    FormatRichEditAlignRight1: TRichEditAlignRight;
+    jvcpSSDetail: TJvCaptionPanel;
+    AdvPanel13: TAdvPanel;
+    Label4: TLabel;
+    edtCarpeta: TcxDBBlobEdit;
+    Panel2: TPanel;
+    JvTransparentButton11: TJvTransparentButton;
+    Edit3: TEdit;
+    JvTransparentButton12: TJvTransparentButton;
+    Panel1: TPanel;
+    Panel3: TPanel;
+    Panel4: TPanel;
+    FontName: TComboBox;
+    Panel5: TPanel;
+    FontSize: TEdit;
     procedure ShowHint(Sender: TObject);
     procedure CutButtonClick(Sender: TObject);
     procedure CopyButtonClick(Sender: TObject);
@@ -111,7 +122,6 @@ type
     procedure LeftAlignClick(Sender: TObject);
     procedure CenterAlignClick(Sender: TObject);
     procedure RightAlignClick(Sender: TObject);
-    procedure BulletsButtonClick(Sender: TObject);
     procedure miEditFontClick(Sender: TObject);
     procedure EditorChange(Sender: TObject);
     procedure RulerResize(Sender: TObject);
@@ -128,6 +138,9 @@ type
     procedure FontNameKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure ToolButton7Click(Sender: TObject);
     procedure FormActivate(Sender: TObject);
+    procedure JvTransparentButton1Click(Sender: TObject);
+    procedure JvTransparentButton11Click(Sender: TObject);
+    procedure JvTransparentButton12Click(Sender: TObject);
   private
     { Private declarations }
 //     Editorsalida:Trichedit;
@@ -288,7 +301,7 @@ var
   DC: HDC;
 begin
   DC := GetDC(0);
-  EnumFonts(DC, nil, @EnumFontsProc, Pointer(FontName.Items));
+  EnumFonts(DC, nil, @EnumFontsProc, Pointer( FontName.Items));
   ReleaseDC(0, DC);
   FontName.Sorted := True;
 end;
@@ -389,6 +402,8 @@ end;
 
 procedure TFVeditor.FontNameChange(Sender: TObject);
 begin
+  if FUpdating then Exit;
+  CurrText.Name := FontName.Items[FontName.ItemIndex];
   if FUpdating then
     Exit;
   CurrText.Name := FontName.Items[FontName.ItemIndex];
@@ -421,6 +436,21 @@ begin
     CurrText.Style := CurrText.Style - [fsItalic];
 end;
 
+procedure TFVeditor.JvTransparentButton11Click(Sender: TObject);
+begin
+  jvcpSSDetail.Visible:=false
+end;
+
+procedure TFVeditor.JvTransparentButton12Click(Sender: TObject);
+begin
+jvcpSSDetail.Visible:=True;
+end;
+
+procedure TFVeditor.JvTransparentButton1Click(Sender: TObject);
+begin
+  Close;
+end;
+
 procedure TFVeditor.UnderlineButtonClick(Sender: TObject);
 begin
   if FUpdating then
@@ -450,13 +480,6 @@ begin
   if FUpdating then
     Exit;
   Editor.Paragraph.Alignment := TAlignment(TControl(Sender).Tag);
-end;
-
-procedure TFVeditor.BulletsButtonClick(Sender: TObject);
-begin
-  if FUpdating then
-    Exit;
-  Editor.Paragraph.Numbering := TNumberingStyle(BulletsButton.Down);
 end;
 
 procedure TFVeditor.miEditFontClick(Sender: TObject);

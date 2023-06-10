@@ -15,7 +15,7 @@ uses
   FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf, FireDAC.DApt.Intf,
   FireDAC.Stan.Async, FireDAC.DApt, FireDAC.Comp.DataSet, FireDAC.Comp.Client,
   Vcl.Menus, AdvMenus, Winapi.ShellAPI, AdvPanel, JvExControls, JvButton,
-  JvTransparentButton;
+  JvTransparentButton, Vcl.StdCtrls;
 
 type
   TConsultaFD = ^TFDQuery;
@@ -53,6 +53,7 @@ type
     btnSystemHelp: TJvTransparentButton;
     btnExportSSExcel: TJvTransparentButton;
     btnBestFitSS: TJvTransparentButton;
+    Edit1: TEdit;
     procedure btnCloseClick(Sender: TObject);
     procedure btnhlpClick(Sender: TObject);
     procedure DBNavigator3Click(Sender: TObject; Button: TNavigateBtn);
@@ -69,6 +70,8 @@ type
     procedure MenuItem4Click(Sender: TObject);
     procedure btnExcelExportClick(Sender: TObject);
     procedure btnExpandClick(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure btnSystemHelpClick(Sender: TObject);
   private
     { Private declarations }
     function DownloadImageFileToTMP(aName, aCampoName: string): string;
@@ -84,7 +87,7 @@ var
 implementation
 
 uses
-  UCapaDatos, UExcelExport, UVeditor, UVisorTif, UManagementPDFFile;
+  UCapaDatos, UExcelExport, UVeditor, UVisorTif, UManagementPDFFile, USystemMsg;
 
 {$R *.dfm}
 
@@ -102,7 +105,9 @@ begin
       UDM.SalvaConfigGrid(cxGrid1DBTableView1, 'cl_archivos');
     except
     end;
-  end else begin
+  end
+  else
+  begin
     UDM.sms('Esta función es recomendable utilizarla cuando existe al menos un registro inscrito.', 3);
     Exit;
   end;
@@ -116,6 +121,16 @@ end;
 procedure TfrmManagemetArch.btnhlpClick(Sender: TObject);
 begin
   UDM.ManagementHLP(Caption, Self.Handle);
+end;
+
+procedure TfrmManagemetArch.btnSystemHelpClick(Sender: TObject);
+begin
+  with TfrmsystemMSG.Create(nil) do
+  try
+    ShowModal;
+  finally
+    Free;
+  end;
 end;
 
 function TfrmManagemetArch.CleanFieldIMG(NombreCampo: string): Boolean;
@@ -209,6 +224,8 @@ end;
 
 procedure TfrmManagemetArch.FormActivate(Sender: TObject);
 begin
+  Edit1.Focused;
+  Edit1.SetFocus;
   Security.SetModSecurity(Self, acceso);
   //UDM.SalvaConfigGrid(cxGrid1DBTableView1.Name, 'cl_archivos');
   UDM.RestauraGrid(cxGrid1DBTableView1, 'cl_archivos');
@@ -220,6 +237,19 @@ begin
   UDM.cl_ArchivosGestion.Active := True;
   UDM.KillProcess('JPEGViewPortable.exe');
   UDM.SalvaConfigGrid(cxGrid1DBTableView1, 'cl_archivos');
+end;
+
+procedure TfrmManagemetArch.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if Key = 112 then
+  begin
+    with TfrmsystemMSG.Create(nil) do
+    try
+      ShowModal;
+    finally
+      Free;
+    end;
+  end;
 end;
 
 procedure TfrmManagemetArch.G1Click(Sender: TObject);

@@ -805,6 +805,7 @@ object frmCLSeries: TfrmCLSeries
   Position = poScreenCenter
   OnActivate = FormActivate
   OnCloseQuery = FormCloseQuery
+  OnKeyDown = FormKeyDown
   PixelsPerInch = 96
   TextHeight = 13
   object AdvSplitter1: TAdvSplitter
@@ -853,7 +854,7 @@ object frmCLSeries: TfrmCLSeries
         Align = alRight
         AutoGray = False
         Color = 13135884
-        FrameStyle = fsLight
+        FrameStyle = fsIndent
         ParentShowHint = False
         ShowHint = True
         OnClick = JvTransparentButton2Click
@@ -1000,7 +1001,7 @@ object frmCLSeries: TfrmCLSeries
         Align = alRight
         AutoGray = False
         Color = 13135884
-        FrameStyle = fsLight
+        FrameStyle = fsIndent
         ParentShowHint = False
         ShowHint = True
         OnClick = JvTransparentButton3Click
@@ -1215,6 +1216,7 @@ object frmCLSeries: TfrmCLSeries
       Align = alClient
       TabOrder = 2
       object cxGrid1DBTableView1: TcxGridDBTableView
+        OnKeyDown = FormKeyDown
         Navigator.Buttons.ConfirmDelete = True
         Navigator.Buttons.CustomButtons = <>
         Navigator.Buttons.PriorPage.Visible = False
@@ -1426,7 +1428,7 @@ object frmCLSeries: TfrmCLSeries
         Align = alRight
         AutoGray = False
         Color = 13135884
-        FrameStyle = fsLight
+        FrameStyle = fsIndent
         ParentShowHint = False
         ShowHint = True
         OnClick = btnBestFitSSClick
@@ -1572,7 +1574,7 @@ object frmCLSeries: TfrmCLSeries
         Align = alRight
         AutoGray = False
         Color = 13135884
-        FrameStyle = fsLight
+        FrameStyle = fsIndent
         ParentShowHint = False
         ShowHint = True
         OnClick = btnExportSSExcelClick
@@ -1919,6 +1921,7 @@ object frmCLSeries: TfrmCLSeries
             OnEnter = cxGrid2Enter
             OnExit = cxGrid2Exit
             object cxGridDBTableView1: TcxGridDBTableView
+              OnKeyDown = FormKeyDown
               Navigator.Buttons.CustomButtons = <>
               DataController.DataSource = UDM.dscl_subseries
               DataController.Summary.DefaultGroupSummaryItems = <>
@@ -1928,6 +1931,7 @@ object frmCLSeries: TfrmCLSeries
               OptionsCustomize.ColumnsQuickCustomizationSorted = True
               OptionsView.GroupByBox = False
               OptionsView.Indicator = True
+              Styles.Background = UDM.cxStyle48
               Styles.StyleSheet = UDM.GridTableViewStyleSheetUserFormat4
               object cxGridDBTableView1codserie: TcxGridDBColumn
                 Caption = 'Cod. Serie'
@@ -2274,7 +2278,14 @@ object frmCLSeries: TfrmCLSeries
               Height = 170
               Align = alTop
               Caption = 'DATOS GENERALES'
+              Font.Charset = DEFAULT_CHARSET
+              Font.Color = clWindow
+              Font.Height = -13
+              Font.Name = 'Tahoma'
+              Font.Style = []
+              ParentFont = False
               TabOrder = 0
+              ExplicitLeft = -6
               object Label15: TLabel
                 Left = 18
                 Top = 24
@@ -2329,9 +2340,18 @@ object frmCLSeries: TfrmCLSeries
                 Top = 46
                 DataBinding.DataField = 'codsubs'
                 DataBinding.DataSource = UDM.dscl_subseries
+                ParentFont = False
                 Properties.ValidationOptions = [evoShowErrorIcon]
+                Style.BorderColor = clWindow
+                Style.Color = clWindow
+                Style.Font.Charset = DEFAULT_CHARSET
+                Style.Font.Color = clWindowText
+                Style.Font.Height = -11
+                Style.Font.Name = 'Tahoma'
+                Style.Font.Style = []
                 Style.LookAndFeel.NativeStyle = True
                 Style.LookAndFeel.SkinName = 'DevExpressDarkStyle'
+                Style.IsFontAssigned = True
                 StyleDisabled.LookAndFeel.NativeStyle = True
                 StyleDisabled.LookAndFeel.SkinName = 'DevExpressDarkStyle'
                 StyleFocused.LookAndFeel.NativeStyle = True
@@ -2339,6 +2359,7 @@ object frmCLSeries: TfrmCLSeries
                 StyleHot.LookAndFeel.NativeStyle = True
                 StyleHot.LookAndFeel.SkinName = 'DevExpressDarkStyle'
                 TabOrder = 0
+                OnKeyDown = FormKeyDown
                 Width = 150
               end
               object lcbSoporte: TcxDBLookupComboBox
@@ -2348,6 +2369,7 @@ object frmCLSeries: TfrmCLSeries
                 Hint = 'codidi'
                 DataBinding.DataField = 'soporte'
                 DataBinding.DataSource = UDM.dscl_subseries
+                ParentFont = False
                 Properties.KeyFieldNames = 'Idsoporte'
                 Properties.ListColumns = <
                   item
@@ -2357,8 +2379,16 @@ object frmCLSeries: TfrmCLSeries
                 Properties.ListOptions.ShowHeader = False
                 Properties.ListSource = UDM.dscl_soporte
                 Properties.ValidationOptions = [evoShowErrorIcon]
+                Style.BorderColor = clWindow
+                Style.Color = clWindow
+                Style.Font.Charset = DEFAULT_CHARSET
+                Style.Font.Color = clWindowText
+                Style.Font.Height = -11
+                Style.Font.Name = 'Tahoma'
+                Style.Font.Style = []
                 Style.LookAndFeel.NativeStyle = True
                 Style.LookAndFeel.SkinName = 'Office2010Blue'
+                Style.IsFontAssigned = True
                 StyleDisabled.LookAndFeel.NativeStyle = True
                 StyleDisabled.LookAndFeel.SkinName = 'Office2010Blue'
                 StyleFocused.LookAndFeel.NativeStyle = True
@@ -2366,6 +2396,7 @@ object frmCLSeries: TfrmCLSeries
                 StyleHot.LookAndFeel.NativeStyle = True
                 StyleHot.LookAndFeel.SkinName = 'Office2010Blue'
                 TabOrder = 1
+                OnKeyDown = FormKeyDown
                 Width = 170
               end
               object edtNombreSS: TcxDBTextEdit
@@ -2373,9 +2404,18 @@ object frmCLSeries: TfrmCLSeries
                 Top = 46
                 DataBinding.DataField = 'subserie'
                 DataBinding.DataSource = UDM.dscl_subseries
+                ParentFont = False
                 Properties.ValidationOptions = [evoShowErrorIcon]
+                Style.BorderColor = clWindow
+                Style.Color = clWindow
+                Style.Font.Charset = DEFAULT_CHARSET
+                Style.Font.Color = clWindowText
+                Style.Font.Height = -11
+                Style.Font.Name = 'Tahoma'
+                Style.Font.Style = []
                 Style.LookAndFeel.NativeStyle = True
                 Style.LookAndFeel.SkinName = 'DevExpressDarkStyle'
+                Style.IsFontAssigned = True
                 StyleDisabled.LookAndFeel.NativeStyle = True
                 StyleDisabled.LookAndFeel.SkinName = 'DevExpressDarkStyle'
                 StyleFocused.LookAndFeel.NativeStyle = True
@@ -2383,6 +2423,7 @@ object frmCLSeries: TfrmCLSeries
                 StyleHot.LookAndFeel.NativeStyle = True
                 StyleHot.LookAndFeel.SkinName = 'DevExpressDarkStyle'
                 TabOrder = 2
+                OnKeyDown = FormKeyDown
                 Width = 268
               end
               object lcbTipoDoc: TcxDBLookupComboBox
@@ -2392,6 +2433,7 @@ object frmCLSeries: TfrmCLSeries
                 Hint = 'codidi'
                 DataBinding.DataField = 'tipodoc'
                 DataBinding.DataSource = UDM.dscl_subseries
+                ParentFont = False
                 Properties.KeyFieldNames = 'Idtipodoc'
                 Properties.ListColumns = <
                   item
@@ -2401,8 +2443,16 @@ object frmCLSeries: TfrmCLSeries
                 Properties.ListOptions.ShowHeader = False
                 Properties.ListSource = UDM.dscl_tipodoc
                 Properties.ValidationOptions = [evoShowErrorIcon]
+                Style.BorderColor = clWindow
+                Style.Color = clWindow
+                Style.Font.Charset = DEFAULT_CHARSET
+                Style.Font.Color = clWindowText
+                Style.Font.Height = -11
+                Style.Font.Name = 'Tahoma'
+                Style.Font.Style = []
                 Style.LookAndFeel.NativeStyle = True
                 Style.LookAndFeel.SkinName = 'Office2010Blue'
+                Style.IsFontAssigned = True
                 StyleDisabled.LookAndFeel.NativeStyle = True
                 StyleDisabled.LookAndFeel.SkinName = 'Office2010Blue'
                 StyleFocused.LookAndFeel.NativeStyle = True
@@ -2410,6 +2460,7 @@ object frmCLSeries: TfrmCLSeries
                 StyleHot.LookAndFeel.NativeStyle = True
                 StyleHot.LookAndFeel.SkinName = 'Office2010Blue'
                 TabOrder = 3
+                OnKeyDown = FormKeyDown
                 Width = 150
               end
               object cxDBCheckBox1: TcxDBCheckBox
@@ -2418,6 +2469,7 @@ object frmCLSeries: TfrmCLSeries
                 Caption = 'Subserie Activa'
                 DataBinding.DataField = 'Activa'
                 DataBinding.DataSource = UDM.dscl_subseries
+                ParentFont = False
                 Properties.Glyph.SourceDPI = 96
                 Properties.Glyph.Data = {
                   89504E470D0A1A0A0000000D494844520000002000000010080600000077007D
@@ -2471,7 +2523,14 @@ object frmCLSeries: TfrmCLSeries
                   0FA6CF825D9F0C64780000000049454E44AE426082}
                 Properties.GlyphCount = 2
                 Properties.NullStyle = nssUnchecked
+                Style.Font.Charset = DEFAULT_CHARSET
+                Style.Font.Color = clWindow
+                Style.Font.Height = -11
+                Style.Font.Name = 'Tahoma'
+                Style.Font.Style = [fsBold]
+                Style.IsFontAssigned = True
                 TabOrder = 4
+                OnKeyDown = FormKeyDown
               end
               object edtObservaciones: TcxDBBlobEdit
                 Left = 150
@@ -2480,11 +2539,19 @@ object frmCLSeries: TfrmCLSeries
                 Margins.Right = 10
                 DataBinding.DataField = 'observacion'
                 DataBinding.DataSource = UDM.dscl_subseries
+                ParentFont = False
                 Properties.BlobEditKind = bekBlob
                 Properties.ReadOnly = False
                 Properties.OnButtonClick = edtObservacionesPropertiesButtonClick
+                Style.Color = 15453088
+                Style.Font.Charset = DEFAULT_CHARSET
+                Style.Font.Color = clWindowText
+                Style.Font.Height = -11
+                Style.Font.Name = 'Tahoma'
+                Style.Font.Style = []
                 Style.LookAndFeel.NativeStyle = True
                 Style.LookAndFeel.SkinName = 'DevExpressDarkStyle'
+                Style.IsFontAssigned = True
                 StyleDisabled.LookAndFeel.NativeStyle = True
                 StyleDisabled.LookAndFeel.SkinName = 'DevExpressDarkStyle'
                 StyleFocused.LookAndFeel.NativeStyle = True
@@ -2492,6 +2559,7 @@ object frmCLSeries: TfrmCLSeries
                 StyleHot.LookAndFeel.NativeStyle = True
                 StyleHot.LookAndFeel.SkinName = 'DevExpressDarkStyle'
                 TabOrder = 5
+                OnKeyDown = FormKeyDown
                 Width = 106
               end
               object AdvGroupBox1: TAdvGroupBox
@@ -2510,10 +2578,10 @@ object frmCLSeries: TfrmCLSeries
                   Caption = 'Nombre del Gestor o Productor'
                 end
                 object btnGestDetail: TJvTransparentButton
-                  Left = 193
-                  Top = 47
-                  Width = 24
-                  Height = 24
+                  Left = 186
+                  Top = 43
+                  Width = 32
+                  Height = 32
                   Hint = 'Ver detalles del Gestor de la serie documental'
                   AutoGray = False
                   HotTrackFont.Charset = DEFAULT_CHARSET
@@ -2526,8 +2594,8 @@ object frmCLSeries: TfrmCLSeries
                   ShowHint = True
                   OnClick = btnGestDetailClick
                   Glyph.Data = {
-                    460E0000424D460E00000000000036000000280000001E0000001E0000000100
-                    200000000000100E000000000000000000000000000000000000000000000000
+                    36100000424D3610000000000000360000002800000020000000200000000100
+                    2000000000000010000000000000000000000000000000000000000000000000
                     0000000000000000000000000000000000000000000000000000000000000000
                     0000000000000000000000000000000000000000000000000000000000000000
                     0000000000000000000000000000000000000000000000000000000000000000
@@ -2539,100 +2607,111 @@ object frmCLSeries: TfrmCLSeries
                     0000000000000000000000000000000000000000000000000000000000000000
                     0000000000000000000000000000000000000000000000000000000000000000
                     0000000000000000000000000000000000000000000000000000000000000000
-                    000000000000000000000000000000000000FFFFFF10FFFFFF27FFFFFF0A0000
                     0000000000000000000000000000000000000000000000000000000000000000
                     0000000000000000000000000000000000000000000000000000000000000000
                     0000000000000000000000000000000000000000000000000000000000000000
-                    00000000000000000000FFFFFF50FFFFFFFFFFFFFFFFFFFFFFDEFFFFFF87FFFF
-                    FF2B000000000000000000000000000000000000000000000000000000000000
-                    0000000000000000000000000000000000000000000000000000FFFFFF13FFFF
-                    FFB5FFFFFF270000000000000000000000000000000000000000000000000000
-                    0000FFFFFF35FFFFFFBCFFFFFFDCFFFFFFFFFFFFFFFFFFFFFFFCFFFFFF8FFFFF
-                    FF0B000000000000000000000000000000000000000000000000000000000000
-                    0000000000000000000000000000FFFFFF13FFFFFFCFFFFFFFFFFFFFFFA50000
                     0000000000000000000000000000000000000000000000000000000000000000
-                    000000000000FFFFFF24FFFFFF7DFFFFFFEFFFFFFFFFFFFFFFD9FFFFFF1EFFFF
-                    FF0BFFFFFF43FFFFFF60FFFFFF5EFFFFFF3DFFFFFF0700000000000000000000
-                    0000FFFFFF0FFFFFFFC9FFFFFFFFFFFFFFC4FFFFFF0D00000000000000000000
                     0000000000000000000000000000000000000000000000000000000000000000
-                    000000000000FFFFFF18FFFFFFB1FFFFFFFFFFFFFFF5FFFFFFF9FFFFFFFFFFFF
-                    FFFFFFFFFFFFFFFFFFFFFFFFFFF3FFFFFF99FFFFFF19FFFFFF10FFFFFFC9FFFF
-                    FFFFFFFFFFC4FFFFFF0D00000000000000000000000000000000000000000000
+                    00000000000000000000FFFFFFF3FFFFFFFFFFFFFF0C00000000000000000000
                     0000000000000000000000000000000000000000000000000000000000000000
-                    0000FFFFFF67FFFFFFFDFFFFFFFFFFFFFFEAFFFFFF9CFFFFFF7CFFFFFF7EFFFF
-                    FFA6FFFFFFF1FFFFFFFFFFFFFFEFFFFFFFDBFFFFFFFFFFFFFFBAFFFFFF090000
+                    000000000000FFFFFF0DFFFFFFFFFFFFFFF20000000000000000000000000000
                     0000000000000000000000000000000000000000000000000000000000000000
-                    00000000000000000000000000000000000000000000FFFFFF6AFFFFFFFFFFFF
-                    FFF8FFFFFF73FFFFFF0700000000000000000000000000000000FFFFFF0EFFFF
-                    FF89FFFFFFFDFFFFFFFEFFFFFFD2FFFFFF0D0000000000000000000000000000
+                    00000000000000000000FFFFFFD9FFFFFFFFFFFFFF2E00000000000000000000
                     0000000000000000000000000000000000000000000000000000000000000000
-                    00000000000000000000FFFFFF2FFFFFFFFAFFFFFFF8FFFFFF3E000000000000
-                    0000FFFFFF13FFFFFF9EFFFFFF92000000000000000000000000FFFFFF5AFFFF
-                    FFFEFFFFFFEFFFFFFF1700000000000000000000000000000000000000000000
+                    000000000000FFFFFF31FFFFFFFFFFFFFFD70000000000000000000000000000
                     0000000000000000000000000000000000000000000000000000000000000000
-                    0000FFFFFFB8FFFFFFFFFFFFFF6D000000000000000000000000FFFFFF01FFFF
-                    FFD7FFFFFFFFFFFFFF2B000000000000000000000000FFFFFF90FFFFFFFFFFFF
-                    FF95000000000000000000000000000000000000000000000000000000000000
-                    00000000000000000000000000000000000000000000FFFFFF18FFFFFFFDFFFF
-                    FFDFFFFFFF0400000000000000000000000000000000FFFFFF70FFFFFFFFFFFF
-                    FF7F000000000000000000000000FFFFFF10FFFFFFF6FFFFFFEEFFFFFF050000
+                    00000000000000000000FFFFFF9CFFFFFFFFFFFFFF7D00000000000000000000
                     0000000000000000000000000000000000000000000000000000000000000000
-                    0000000000000000000000000000FFFFFF58FFFFFFFFFFFFFF92000000000000
-                    0000000000000000000000000000FFFFFF35FFFFFFFFFFFFFFA6000000000000
-                    00000000000000000000FFFFFFB4FFFFFFFFFFFFFF3600000000000000000000
+                    000000000000FFFFFF80FFFFFFFFFFFFFF990000000000000000000000000000
                     0000000000000000000000000000000000000000000000000000000000000000
-                    000000000000FFFFFF74FFFFFFFFFFFFFF6B00000000FFFFFFB4FFFFFFF0FFFF
-                    FFF0FFFFFF0FFFFFFF19FFFFFFFFFFFFFFC20000000000000000000000000000
-                    0000FFFFFF8DFFFFFFFFFFFFFF53000000000000000000000000000000000000
+                    00000000000000000000FFFFFF45FFFFFFFFFFFFFFEAFFFFFF0E000000000000
+                    0000000000000000000000000000000000000000000000000000000000000000
+                    0000FFFFFF10FFFFFFECFFFFFFFFFFFFFF420000000000000000000000000000
+                    0000000000000000000000000000000000000000000000000000000000000000
+                    0000000000000000000000000000FFFFFFC1FFFFFFFFFFFFFFAAFFFFFF010000
                     000000000000000000000000000000000000000000000000000000000000FFFF
-                    FF74FFFFFFFFFFFFFF6C00000000FFFFFFB4FFFFFFF0FFFFFFF0FFFFFF0FFFFF
-                    FF19FFFFFFFFFFFFFFC100000000000000000000000000000000FFFFFF8DFFFF
-                    FFFFFFFFFF530000000000000000000000000000000000000000000000000000
-                    00000000000000000000000000000000000000000000FFFFFF58FFFFFFFFFFFF
-                    FF920000000000000000000000000000000000000000FFFFFF35FFFFFFFFFFFF
-                    FFA500000000000000000000000000000000FFFFFFB4FFFFFFFFFFFFFF350000
+                    FF01FFFFFFADFFFFFFFFFFFFFFBD000000000000000000000000000000000000
                     0000000000000000000000000000000000000000000000000000000000000000
-                    0000000000000000000000000000FFFFFF18FFFFFFFDFFFFFFDFFFFFFF040000
-                    0000000000000000000000000000FFFFFF70FFFFFFFFFFFFFF7F000000000000
-                    000000000000FFFFFF0FFFFFFFF6FFFFFFEEFFFFFF0500000000000000000000
+                    0000000000000000000000000000FFFFFF26FFFFFFEFFFFFFFFFFFFFFFA5FFFF
+                    FF0B000000000000000000000000000000000000000000000000FFFFFF0CFFFF
+                    FFA9FFFFFFFFFFFFFFEDFFFFFF24000000000000000000000000000000000000
                     0000000000000000000000000000000000000000000000000000000000000000
-                    00000000000000000000FFFFFFB8FFFFFFFFFFFFFF6C00000000000000000000
-                    000000000000FFFFFFCEFFFFFFFFFFFFFF30000000000000000000000000FFFF
-                    FF88FFFFFFFFFFFFFF9500000000000000000000000000000000000000000000
+                    000000000000000000000000000000000000FFFFFF40FFFFFFF0FFFFFFFFFFFF
+                    FFE9FFFFFF80FFFFFF35FFFFFF16FFFFFF16FFFFFF35FFFFFF81FFFFFFEAFFFF
+                    FFFFFFFFFFEFFFFFFF3D00000000000000000000000000000000000000000000
                     0000000000000000000000000000000000000000000000000000000000000000
-                    0000FFFFFF2FFFFFFFFAFFFFFFF7FFFFFF3E0000000000000000FFFFFF13FFFF
-                    FF9EFFFFFF92000000000000000000000000FFFFFF58FFFFFFFDFFFFFFEFFFFF
-                    FF17000000000000000000000000000000000000000000000000000000000000
+                    00000000000000000000000000000000000000000000FFFFFF2AFFFFFFC7FFFF
+                    FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+                    FFC5FFFFFF290000000000000000000000000000000000000000000000000000
+                    0000000000000000000000000000000000000000000000000000000000000000
+                    0000000000000000000000000000000000000000000000000000FFFFFF1BFFFF
+                    FFE6FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFE4FFFF
+                    FF1A000000000000000000000000000000000000000000000000000000000000
+                    0000000000000000000000000000000000000000000000000000000000000000
+                    00000000000000000000000000000000000000000000FFFFFF07FFFFFFD1FFFF
+                    FFFFFFFFFFD9FFFFFF50FFFFFF0DFFFFFF0DFFFFFF52FFFFFFDBFFFFFFFFFFFF
+                    FFCEFFFFFF060000000000000000000000000000000000000000000000000000
+                    0000000000000000000000000000000000000000000000000000000000000000
+                    00000000000000000000000000000000000000000000FFFFFF6CFFFFFFFFFFFF
+                    FFD7FFFFFF1000000000000000000000000000000000FFFFFF11FFFFFFD9FFFF
+                    FFFFFFFFFF690000000000000000000000000000000000000000000000000000
+                    0000000000000000000000000000000000000000000000000000000000000000
+                    00000000000000000000000000000000000000000000FFFFFFCAFFFFFFFFFFFF
+                    FF4F000000000000000000000000000000000000000000000000FFFFFF52FFFF
+                    FFFFFFFFFFC60000000000000000000000000000000000000000FFFFFFFFFFFF
+                    FFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000000000000000
+                    00000000000000000000000000000000000000000000FFFFFFF4FFFFFFFFFFFF
+                    FF0C000000000000000000000000000000000000000000000000FFFFFF0FFFFF
+                    FFFFFFFFFFF20000000000000000000000000000000000000000FFFFFFFFFFFF
+                    FFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000000000000000
+                    00000000000000000000000000000000000000000000FFFFFFF3FFFFFFFFFFFF
+                    FF0D000000000000000000000000000000000000000000000000FFFFFF0FFFFF
+                    FFFFFFFFFFF1000000000000000000000000000000000000000000000000FFFF
+                    FFFFFFFFFFFF0000000000000000000000000000000000000000000000000000
+                    00000000000000000000000000000000000000000000FFFFFFCBFFFFFFFFFFFF
+                    FF4F000000000000000000000000000000000000000000000000FFFFFF51FFFF
+                    FFFFFFFFFFC8000000000000000000000000000000000000000000000000FFFF
+                    FFFFFFFFFFFF0000000000000000000000000000000000000000000000000000
+                    00000000000000000000000000000000000000000000FFFFFF72FFFFFFFFFFFF
+                    FFD7FFFFFF1000000000000000000000000000000000FFFFFF11FFFFFFD9FFFF
+                    FFFFFFFFFF6E000000000000000000000000000000000000000000000000FFFF
+                    FFFFFFFFFFFF0000000000000000000000000000000000000000000000000000
+                    00000000000000000000000000000000000000000000FFFFFF08FFFFFFD1FFFF
+                    FFFFFFFFFFD9FFFFFF4FFFFFFF14FFFFFF14FFFFFF51FFFFFFDBFFFFFFFFFFFF
+                    FFCEFFFFFF07000000000000000000000000000000000000000000000000FFFF
+                    FFFFFFFFFFFF0000000000000000000000000000000000000000000000000000
+                    0000000000000000000000000000000000000000000000000000FFFFFF1BFFFF
+                    FFCEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFCCFFFF
+                    FF1A00000000000000000000000000000000000000000000000000000000FFFF
+                    FFFFFFFFFFFF0000000000000000000000000000000000000000000000000000
                     000000000000000000000000000000000000000000000000000000000000FFFF
-                    FF69FFFFFFFFFFFFFFF8FFFFFF73FFFFFF070000000000000000000000000000
-                    0000FFFFFF0EFFFFFF89FFFFFFFEFFFFFFFDFFFFFF4A00000000000000000000
-                    0000000000000000000000000000000000000000000000000000000000000000
-                    0000000000000000000000000000000000000000000000000000FFFFFF6CFFFF
-                    FFFEFFFFFFFFFFFFFFEAFFFFFF9CFFFFFF7CFFFFFF7EFFFFFFA5FFFFFFF0FFFF
-                    FFFFFFFFFFF0FFFFFF4B00000000000000000000000000000000000000000000
-                    0000000000000000000000000000000000000000000000000000000000000000
-                    0000000000000000000000000000FFFFFF18FFFFFFB0FFFFFFFFFFFFFFF5FFFF
-                    FFFBFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5FFFFFF99FFFFFF190000
-                    0000000000000000000000000000000000000000000000000000000000000000
-                    000000000000000000000000000000000000000000000000000000000000FFFF
-                    FF1BFFFFFF7BFFFFFFEFFFFFFFFFFFFFFFD8FFFFFF1EFFFFFF12FFFFFF50FFFF
-                    FF65FFFFFF62FFFFFF4CFFFFFF0B000000000000000000000000000000000000
-                    0000000000000000000000000000000000000000000000000000000000000000
-                    00000000000000000000FFFFFF35FFFFFFB4FFFFFFCEFFFFFFFCFFFFFFFFFFFF
-                    FFFCFFFFFF8FFFFFFF0B00000000000000000000000000000000000000000000
+                    FF07FFFFFF74FFFFFFD0FFFFFFEEFFFFFFEEFFFFFFCFFFFFFF73FFFFFF060000
+                    0000000000000000000000000000000000000000000000000000FFFFFFFFFFFF
+                    FFFFFFFFFFFF0000000000000000000000000000000000000000000000000000
                     0000000000000000000000000000000000000000000000000000000000000000
                     0000000000000000000000000000000000000000000000000000000000000000
-                    0000FFFFFF50FFFFFFFFFFFFFFFFFFFFFFDEFFFFFF87FFFFFF2B000000000000
-                    0000000000000000000000000000000000000000000000000000000000000000
-                    0000000000000000000000000000000000000000000000000000000000000000
-                    0000000000000000000000000000000000000000000000000000FFFFFF10FFFF
-                    FF27FFFFFF0A0000000000000000000000000000000000000000000000000000
+                    0000000000000000000000000000000000000000000000000000FFFFFFFFFFFF
+                    FFFFFFFFFFFF0000000000000000000000000000000000000000000000000000
                     0000000000000000000000000000000000000000000000000000000000000000
                     0000000000000000000000000000000000000000000000000000000000000000
                     0000000000000000000000000000000000000000000000000000000000000000
                     0000000000000000000000000000000000000000000000000000000000000000
                     0000000000000000000000000000000000000000000000000000000000000000
                     0000000000000000000000000000000000000000000000000000000000000000
+                    0000000000000000000000000000000000000000000000000000FFFFFF01FFFF
+                    FF58FFFFFF57FFFFFF0100000000000000000000000000000000000000000000
+                    0000000000000000000000000000000000000000000000000000000000000000
+                    0000000000000000000000000000000000000000000000000000000000000000
+                    0000000000000000000000000000000000000000000000000000FFFFFF5BFFFF
+                    FFFFFFFFFFFFFFFFFF5900000000000000000000000000000000000000000000
+                    0000000000000000000000000000000000000000000000000000000000000000
+                    0000000000000000000000000000000000000000000000000000000000000000
+                    0000000000000000000000000000000000000000000000000000FFFFFF5AFFFF
+                    FFFFFFFFFFFFFFFFFF5800000000000000000000000000000000000000000000
+                    0000000000000000000000000000000000000000000000000000000000000000
+                    0000000000000000000000000000000000000000000000000000000000000000
+                    0000000000000000000000000000000000000000000000000000FFFFFF01FFFF
+                    FF58FFFFFF57FFFFFF0100000000000000000000000000000000000000000000
                     0000000000000000000000000000000000000000000000000000000000000000
                     0000000000000000000000000000000000000000000000000000000000000000
                     0000000000000000000000000000000000000000000000000000000000000000
@@ -2640,7 +2719,11 @@ object frmCLSeries: TfrmCLSeries
                     0000000000000000000000000000000000000000000000000000000000000000
                     0000000000000000000000000000000000000000000000000000000000000000
                     0000000000000000000000000000000000000000000000000000000000000000
-                    00000000000000000000}
+                    0000000000000000000000000000000000000000000000000000000000000000
+                    0000000000000000000000000000000000000000000000000000000000000000
+                    0000000000000000000000000000000000000000000000000000000000000000
+                    0000000000000000000000000000000000000000000000000000000000000000
+                    0000000000000000000000000000000000000000000000000000}
                 end
                 object lcbGestor: TcxDBLookupComboBox
                   Tag = 1
@@ -2649,6 +2732,7 @@ object frmCLSeries: TfrmCLSeries
                   Hint = 'Listado de gestores de series documentales '
                   DataBinding.DataField = 'cargo'
                   DataBinding.DataSource = UDM.dscl_subseries
+                  ParentFont = False
                   Properties.KeyFieldNames = 'Idresp'
                   Properties.ListColumns = <
                     item
@@ -2658,8 +2742,15 @@ object frmCLSeries: TfrmCLSeries
                   Properties.ListOptions.ShowHeader = False
                   Properties.ListSource = UDM.dscl_Resp_Gest_Arch
                   Properties.ValidationOptions = [evoShowErrorIcon]
+                  Style.Color = clWindow
+                  Style.Font.Charset = DEFAULT_CHARSET
+                  Style.Font.Color = clWindowText
+                  Style.Font.Height = -11
+                  Style.Font.Name = 'Tahoma'
+                  Style.Font.Style = []
                   Style.LookAndFeel.NativeStyle = True
                   Style.LookAndFeel.SkinName = 'Office2010Blue'
+                  Style.IsFontAssigned = True
                   StyleDisabled.LookAndFeel.NativeStyle = True
                   StyleDisabled.LookAndFeel.SkinName = 'Office2010Blue'
                   StyleFocused.LookAndFeel.NativeStyle = True
@@ -2667,7 +2758,8 @@ object frmCLSeries: TfrmCLSeries
                   StyleHot.LookAndFeel.NativeStyle = True
                   StyleHot.LookAndFeel.SkinName = 'Office2010Blue'
                   TabOrder = 0
-                  Width = 177
+                  OnKeyDown = FormKeyDown
+                  Width = 169
                 end
               end
               object lcbAcceso: TcxDBLookupComboBox
@@ -2677,6 +2769,7 @@ object frmCLSeries: TfrmCLSeries
                 Hint = 'codidi'
                 DataBinding.DataField = 'acceso'
                 DataBinding.DataSource = UDM.dscl_subseries
+                ParentFont = False
                 Properties.KeyFieldNames = 'Idacceso'
                 Properties.ListColumns = <
                   item
@@ -2686,8 +2779,15 @@ object frmCLSeries: TfrmCLSeries
                 Properties.ListOptions.ShowHeader = False
                 Properties.ListSource = UDM.dscl_acceso
                 Properties.ValidationOptions = [evoShowErrorIcon]
+                Style.Color = clWindow
+                Style.Font.Charset = DEFAULT_CHARSET
+                Style.Font.Color = clWindowText
+                Style.Font.Height = -11
+                Style.Font.Name = 'Tahoma'
+                Style.Font.Style = []
                 Style.LookAndFeel.NativeStyle = True
                 Style.LookAndFeel.SkinName = 'Office2010Blue'
+                Style.IsFontAssigned = True
                 StyleDisabled.LookAndFeel.NativeStyle = True
                 StyleDisabled.LookAndFeel.SkinName = 'Office2010Blue'
                 StyleFocused.LookAndFeel.NativeStyle = True
@@ -2695,6 +2795,7 @@ object frmCLSeries: TfrmCLSeries
                 StyleHot.LookAndFeel.NativeStyle = True
                 StyleHot.LookAndFeel.SkinName = 'Office2010Blue'
                 TabOrder = 7
+                OnKeyDown = FormKeyDown
                 Width = 120
               end
               object lcbTipoSerie: TcxDBLookupComboBox
@@ -2704,6 +2805,7 @@ object frmCLSeries: TfrmCLSeries
                 Hint = 'codidi'
                 DataBinding.DataField = 'idtiposerie'
                 DataBinding.DataSource = UDM.dscl_subseries
+                ParentFont = False
                 Properties.KeyFieldNames = 'idtiposerie'
                 Properties.ListColumns = <
                   item
@@ -2713,8 +2815,15 @@ object frmCLSeries: TfrmCLSeries
                 Properties.ListOptions.ShowHeader = False
                 Properties.ListSource = UDM.dscl_tiposerie
                 Properties.ValidationOptions = [evoShowErrorIcon]
+                Style.Color = clWindow
+                Style.Font.Charset = DEFAULT_CHARSET
+                Style.Font.Color = clWindowText
+                Style.Font.Height = -11
+                Style.Font.Name = 'Tahoma'
+                Style.Font.Style = []
                 Style.LookAndFeel.NativeStyle = True
                 Style.LookAndFeel.SkinName = 'Office2010Blue'
+                Style.IsFontAssigned = True
                 StyleDisabled.LookAndFeel.NativeStyle = True
                 StyleDisabled.LookAndFeel.SkinName = 'Office2010Blue'
                 StyleFocused.LookAndFeel.NativeStyle = True
@@ -2722,6 +2831,7 @@ object frmCLSeries: TfrmCLSeries
                 StyleHot.LookAndFeel.NativeStyle = True
                 StyleHot.LookAndFeel.SkinName = 'Office2010Blue'
                 TabOrder = 8
+                OnKeyDown = FormKeyDown
                 Width = 169
               end
             end
@@ -2731,7 +2841,12 @@ object frmCLSeries: TfrmCLSeries
               Width = 786
               Height = 96
               Align = alClient
-              Caption = 'PLAZO DE PERMANENCIA'
+              Font.Charset = DEFAULT_CHARSET
+              Font.Color = clWindow
+              Font.Height = -13
+              Font.Name = 'Tahoma'
+              Font.Style = []
+              ParentFont = False
               TabOrder = 1
               object Label8: TLabel
                 Left = 17
@@ -2766,9 +2881,17 @@ object frmCLSeries: TfrmCLSeries
                 Top = 44
                 DataBinding.DataField = 'ayear'
                 DataBinding.DataSource = UDM.dscl_subseries
+                ParentFont = False
                 Properties.ValidationOptions = [evoShowErrorIcon]
+                Style.Color = clWindow
+                Style.Font.Charset = DEFAULT_CHARSET
+                Style.Font.Color = clWindowText
+                Style.Font.Height = -11
+                Style.Font.Name = 'Tahoma'
+                Style.Font.Style = []
                 Style.LookAndFeel.NativeStyle = True
                 Style.LookAndFeel.SkinName = 'DevExpressDarkStyle'
+                Style.IsFontAssigned = True
                 StyleDisabled.LookAndFeel.NativeStyle = True
                 StyleDisabled.LookAndFeel.SkinName = 'DevExpressDarkStyle'
                 StyleFocused.LookAndFeel.NativeStyle = True
@@ -2776,6 +2899,7 @@ object frmCLSeries: TfrmCLSeries
                 StyleHot.LookAndFeel.NativeStyle = True
                 StyleHot.LookAndFeel.SkinName = 'DevExpressDarkStyle'
                 TabOrder = 0
+                OnKeyDown = FormKeyDown
                 OnKeyPress = edtAnioKeyPress
                 Width = 81
               end
@@ -2784,9 +2908,17 @@ object frmCLSeries: TfrmCLSeries
                 Top = 44
                 DataBinding.DataField = 'tcentral'
                 DataBinding.DataSource = UDM.dscl_subseries
+                ParentFont = False
                 Properties.ValidationOptions = [evoShowErrorIcon]
+                Style.Color = clWindow
+                Style.Font.Charset = DEFAULT_CHARSET
+                Style.Font.Color = clWindowText
+                Style.Font.Height = -11
+                Style.Font.Name = 'Tahoma'
+                Style.Font.Style = []
                 Style.LookAndFeel.NativeStyle = True
                 Style.LookAndFeel.SkinName = 'DevExpressDarkStyle'
+                Style.IsFontAssigned = True
                 StyleDisabled.LookAndFeel.NativeStyle = True
                 StyleDisabled.LookAndFeel.SkinName = 'DevExpressDarkStyle'
                 StyleFocused.LookAndFeel.NativeStyle = True
@@ -2794,6 +2926,7 @@ object frmCLSeries: TfrmCLSeries
                 StyleHot.LookAndFeel.NativeStyle = True
                 StyleHot.LookAndFeel.SkinName = 'DevExpressDarkStyle'
                 TabOrder = 1
+                OnKeyDown = FormKeyDown
                 OnKeyPress = edtArchCentralKeyPress
                 Width = 114
               end
@@ -2802,9 +2935,17 @@ object frmCLSeries: TfrmCLSeries
                 Top = 44
                 DataBinding.DataField = 'tgestion'
                 DataBinding.DataSource = UDM.dscl_subseries
+                ParentFont = False
                 Properties.ValidationOptions = [evoShowErrorIcon]
+                Style.Color = clWindow
+                Style.Font.Charset = DEFAULT_CHARSET
+                Style.Font.Color = clWindowText
+                Style.Font.Height = -11
+                Style.Font.Name = 'Tahoma'
+                Style.Font.Style = []
                 Style.LookAndFeel.NativeStyle = True
                 Style.LookAndFeel.SkinName = 'DevExpressDarkStyle'
+                Style.IsFontAssigned = True
                 StyleDisabled.LookAndFeel.NativeStyle = True
                 StyleDisabled.LookAndFeel.SkinName = 'DevExpressDarkStyle'
                 StyleFocused.LookAndFeel.NativeStyle = True
@@ -2812,6 +2953,7 @@ object frmCLSeries: TfrmCLSeries
                 StyleHot.LookAndFeel.NativeStyle = True
                 StyleHot.LookAndFeel.SkinName = 'DevExpressDarkStyle'
                 TabOrder = 2
+                OnKeyDown = FormKeyDown
                 OnKeyPress = edtArchGestionKeyPress
                 Width = 129
               end
@@ -2822,6 +2964,7 @@ object frmCLSeries: TfrmCLSeries
                 Hint = 'codidi'
                 DataBinding.DataField = 'destino'
                 DataBinding.DataSource = UDM.dscl_subseries
+                ParentFont = False
                 Properties.KeyFieldNames = 'IdDestino'
                 Properties.ListColumns = <
                   item
@@ -2831,8 +2974,15 @@ object frmCLSeries: TfrmCLSeries
                 Properties.ListOptions.ShowHeader = False
                 Properties.ListSource = UDM.dscl_destino
                 Properties.ValidationOptions = [evoShowErrorIcon]
+                Style.Color = clWindow
+                Style.Font.Charset = DEFAULT_CHARSET
+                Style.Font.Color = clWindowText
+                Style.Font.Height = -11
+                Style.Font.Name = 'Tahoma'
+                Style.Font.Style = []
                 Style.LookAndFeel.NativeStyle = True
                 Style.LookAndFeel.SkinName = 'Office2010Blue'
+                Style.IsFontAssigned = True
                 StyleDisabled.LookAndFeel.NativeStyle = True
                 StyleDisabled.LookAndFeel.SkinName = 'Office2010Blue'
                 StyleFocused.LookAndFeel.NativeStyle = True
@@ -2840,6 +2990,7 @@ object frmCLSeries: TfrmCLSeries
                 StyleHot.LookAndFeel.NativeStyle = True
                 StyleHot.LookAndFeel.SkinName = 'Office2010Blue'
                 TabOrder = 3
+                OnKeyDown = FormKeyDown
                 Width = 170
               end
             end
@@ -2850,6 +3001,12 @@ object frmCLSeries: TfrmCLSeries
               Height = 86
               Align = alBottom
               Caption = 'TOPOGRAF'#205'A'
+              Font.Charset = DEFAULT_CHARSET
+              Font.Color = clWindow
+              Font.Height = -13
+              Font.Name = 'Tahoma'
+              Font.Style = []
+              ParentFont = False
               TabOrder = 2
               object Label21: TLabel
                 Left = 505
@@ -2859,7 +3016,7 @@ object frmCLSeries: TfrmCLSeries
                 Caption = 'Servidor'
               end
               object Label22: TLabel
-                Left = 192
+                Left = 216
                 Top = 24
                 Width = 49
                 Height = 16
@@ -2888,10 +3045,10 @@ object frmCLSeries: TfrmCLSeries
                 Caption = 'Archivo'
               end
               object btnViewDetailFile: TJvTransparentButton
-                Left = 156
-                Top = 46
-                Width = 24
-                Height = 24
+                Left = 172
+                Top = 42
+                Width = 32
+                Height = 32
                 Hint = 'Ver detalles del Archivo'
                 AutoGray = False
                 HotTrackFont.Charset = DEFAULT_CHARSET
@@ -2904,107 +3061,125 @@ object frmCLSeries: TfrmCLSeries
                 ShowHint = True
                 OnClick = btnViewDetailFileClick
                 Glyph.Data = {
-                  460E0000424D460E00000000000036000000280000001E0000001E0000000100
-                  200000000000100E000000000000000000000000000000000000000000000000
+                  36100000424D3610000000000000360000002800000020000000200000000100
+                  2000000000000010000000000000000000000000000000000000000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  00000000000000000000000000000000000000000000FFFFFFFFFFFFFFFF0000
                   0000000000000000000000000000000000000000000000000000000000000000
                   0000000000000000000000000000000000000000000000000000000000000000
                   0000000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  000000000000000000000000000000000000FFFFFF10FFFFFF27FFFFFF0A0000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  00000000000000000000FFFFFF50FFFFFFFFFFFFFFFFFFFFFFDEFFFFFF87FFFF
-                  FF2B000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000FFFFFF13FFFF
-                  FFB5FFFFFF270000000000000000000000000000000000000000000000000000
-                  0000FFFFFF35FFFFFFBCFFFFFFDCFFFFFFFFFFFFFFFFFFFFFFFCFFFFFF8FFFFF
-                  FF0B000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000FFFFFF13FFFFFFCFFFFFFFFFFFFFFFA50000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  000000000000FFFFFF24FFFFFF7DFFFFFFEFFFFFFFFFFFFFFFD9FFFFFF1EFFFF
-                  FF0BFFFFFF43FFFFFF60FFFFFF5EFFFFFF3DFFFFFF0700000000000000000000
-                  0000FFFFFF0FFFFFFFC9FFFFFFFFFFFFFFC4FFFFFF0D00000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  000000000000FFFFFF18FFFFFFB1FFFFFFFFFFFFFFF5FFFFFFF9FFFFFFFFFFFF
-                  FFFFFFFFFFFFFFFFFFFFFFFFFFF3FFFFFF99FFFFFF19FFFFFF10FFFFFFC9FFFF
-                  FFFFFFFFFFC4FFFFFF0D00000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000FFFFFF67FFFFFFFDFFFFFFFFFFFFFFEAFFFFFF9CFFFFFF7CFFFFFF7EFFFF
-                  FFA6FFFFFFF1FFFFFFFFFFFFFFEFFFFFFFDBFFFFFFFFFFFFFFBAFFFFFF090000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  00000000000000000000000000000000000000000000FFFFFF6AFFFFFFFFFFFF
-                  FFF8FFFFFF73FFFFFF0700000000000000000000000000000000FFFFFF0EFFFF
-                  FF89FFFFFFFDFFFFFFFEFFFFFFD2FFFFFF0D0000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  00000000000000000000FFFFFF2FFFFFFFFAFFFFFFF8FFFFFF3E000000000000
-                  0000FFFFFF13FFFFFF9EFFFFFF92000000000000000000000000FFFFFF5AFFFF
-                  FFFEFFFFFFEFFFFFFF1700000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000FFFFFFB8FFFFFFFFFFFFFF6D000000000000000000000000FFFFFF01FFFF
-                  FFD7FFFFFFFFFFFFFF2B000000000000000000000000FFFFFF90FFFFFFFFFFFF
-                  FF95000000000000000000000000000000000000000000000000000000000000
-                  00000000000000000000000000000000000000000000FFFFFF18FFFFFFFDFFFF
-                  FFDFFFFFFF0400000000000000000000000000000000FFFFFF70FFFFFFFFFFFF
-                  FF7F000000000000000000000000FFFFFF10FFFFFFF6FFFFFFEEFFFFFF050000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000FFFFFF58FFFFFFFFFFFFFF92000000000000
-                  0000000000000000000000000000FFFFFF35FFFFFFFFFFFFFFA6000000000000
-                  00000000000000000000FFFFFFB4FFFFFFFFFFFFFF3600000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  000000000000FFFFFF74FFFFFFFFFFFFFF6B00000000FFFFFFB4FFFFFFF0FFFF
-                  FFF0FFFFFF0FFFFFFF19FFFFFFFFFFFFFFC20000000000000000000000000000
-                  0000FFFFFF8DFFFFFFFFFFFFFF53000000000000000000000000000000000000
-                  000000000000000000000000000000000000000000000000000000000000FFFF
-                  FF74FFFFFFFFFFFFFF6C00000000FFFFFFB4FFFFFFF0FFFFFFF0FFFFFF0FFFFF
-                  FF19FFFFFFFFFFFFFFC100000000000000000000000000000000FFFFFF8DFFFF
-                  FFFFFFFFFF530000000000000000000000000000000000000000000000000000
-                  00000000000000000000000000000000000000000000FFFFFF58FFFFFFFFFFFF
-                  FF920000000000000000000000000000000000000000FFFFFF35FFFFFFFFFFFF
-                  FFA500000000000000000000000000000000FFFFFFB4FFFFFFFFFFFFFF350000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000FFFFFF18FFFFFFFDFFFFFFDFFFFFFF040000
-                  0000000000000000000000000000FFFFFF70FFFFFFFFFFFFFF7F000000000000
-                  000000000000FFFFFF0FFFFFFFF6FFFFFFEEFFFFFF0500000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  00000000000000000000FFFFFFB8FFFFFFFFFFFFFF6C00000000000000000000
-                  000000000000FFFFFFCEFFFFFFFFFFFFFF30000000000000000000000000FFFF
-                  FF88FFFFFFFFFFFFFF9500000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000FFFFFF2FFFFFFFFAFFFFFFF7FFFFFF3E0000000000000000FFFFFF13FFFF
-                  FF9EFFFFFF92000000000000000000000000FFFFFF58FFFFFFFDFFFFFFEFFFFF
-                  FF17000000000000000000000000000000000000000000000000000000000000
-                  000000000000000000000000000000000000000000000000000000000000FFFF
-                  FF69FFFFFFFFFFFFFFF8FFFFFF73FFFFFF070000000000000000000000000000
-                  0000FFFFFF0EFFFFFF89FFFFFFFEFFFFFFFDFFFFFF4A00000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000FFFFFF6CFFFF
-                  FFFEFFFFFFFFFFFFFFEAFFFFFF9CFFFFFF7CFFFFFF7EFFFFFFA5FFFFFFF0FFFF
-                  FFFFFFFFFFF0FFFFFF4B00000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000FFFFFF18FFFFFFB0FFFFFFFFFFFFFFF5FFFF
-                  FFFBFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5FFFFFF99FFFFFF190000
+                  0000FFFFFF12FFFFFF11000000000000000000000000FFFFFFFFFFFFFFFF0000
+                  00000000000000000000FFFFFF12FFFFFF120000000000000000000000000000
                   0000000000000000000000000000000000000000000000000000000000000000
                   000000000000000000000000000000000000000000000000000000000000FFFF
-                  FF1BFFFFFF7BFFFFFFEFFFFFFFFFFFFFFFD8FFFFFF1EFFFFFF12FFFFFF50FFFF
-                  FF65FFFFFF62FFFFFF4CFFFFFF0B000000000000000000000000000000000000
+                  FF17FFFFFFD1FFFFFFCEFFFFFF19FFFFFF63FFFFFFBEFFFFFFFFFFFFFFFFFFFF
+                  FFC5FFFFFF73FFFFFF1BFFFFFFCFFFFFFFD1FFFFFF1700000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFF
+                  FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFDFFFFFF2300000000FFFF
+                  FF12FFFFFFCFFFFFFFFFFFFFFFFCFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+                  FFFFFFFFFFFFFFFFFFFCFFFFFFFFFFFFFFCEFFFFFF1100000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFF
+                  FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFAA00000000000000000000
+                  0000FFFFFF1BFFFFFFFBFFFFFFFFFFFFFFE1FFFFFF53FFFFFF0DFFFFFF0EFFFF
+                  FF52FFFFFFDCFFFFFFFFFFFFFFFBFFFFFF190000000000000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFF000000000000
                   0000000000000000000000000000000000000000000000000000000000000000
-                  00000000000000000000FFFFFF35FFFFFFB4FFFFFFCEFFFFFFFCFFFFFFFFFFFF
-                  FFFCFFFFFF8FFFFFFF0B00000000000000000000000000000000000000000000
+                  0000FFFFFF6EFFFFFFFFFFFFFFD8FFFFFF110000000000000000000000000000
+                  0000FFFFFF11FFFFFFDAFFFFFFFFFFFFFF650000000000000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000FFFFFFC5FFFFFFFFFFFFFF5100000000FFFFFF4BFFFFFFE5FFFFFFE4FFFF
+                  FF4A00000000FFFFFF53FFFFFFFFFFFFFFC00000000000000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000FFFFFFFFFFFF
+                  FFFFFFFFFFFFFFFFFFFFFFFFFF0E00000000FFFFFFE4FFFFFFFFFFFFFFFFFFFF
+                  FFE200000000FFFFFF0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000FFFFFFFFFFFF
+                  FFFFFFFFFFFFFFFFFFFFFFFFFF0D00000000FFFFFFE2FFFFFFFFFFFFFFFFFFFF
+                  FFE000000000FFFFFF0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000FFFFFFBFFFFFFFFFFFFFFF5200000000FFFFFF4BFFFFFFDEFFFFFFDDFFFF
+                  FF4A00000000FFFFFF55FFFFFFFFFFFFFFC10000000000000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000FFFFFF67FFFFFFFFFFFFFFE2FFFFFF120000000000000000000000000000
+                  0000FFFFFF12FFFFFFE3FFFFFFFFFFFFFF6C0000000000000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000FFFFFF1DFFFFFFFBFFFFFFFFFFFFFFE1FFFFFF53FFFFFF14FFFFFF14FFFF
+                  FF52FFFFFFDCFFFFFFFFFFFFFFFBFFFFFF1B0000000000000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFF000000000000
+                  000000000000000000000000000000000000000000000000000000000000FFFF
+                  FF1CFFFFFFD9FFFFFFFFFFFFFFF5FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+                  FFFFFFFFFFFFFFFFFFFCFFFFFFFFFFFFFFD3FFFFFF1700000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFF000000000000
+                  000000000000000000000000000000000000000000000000000000000000FFFF
+                  FF0BFFFFFFC1FFFFFFC3FFFFFF0FFFFFFF56FFFFFFAEFFFFFFFFFFFFFFFFFFFF
+                  FFBDFFFFFF62FFFFFF19FFFFFFCFFFFFFFCCFFFFFF1100000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000FFFFFF0CFFFFFF0B000000000000000000000000FFFFFFFFFFFFFFFF0000
+                  00000000000000000000FFFFFF12FFFFFF110000000000000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  00000000000000000000000000000000000000000000FFFFFFFFFFFFFFFF0000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFF000000000000
                   0000000000000000000000000000000000000000000000000000000000000000
                   0000000000000000000000000000000000000000000000000000000000000000
-                  0000FFFFFF50FFFFFFFFFFFFFFFFFFFFFFDEFFFFFF87FFFFFF2B000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000000000000000000000000000000000000000000000000000FFFFFF11FFFF
+                  FF22000000000000000000000000000000000000000000000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000000000000000000000000000000000000000000000000000FFFFFFFFFFFF
+                  FFFF000000000000000000000000000000000000000000000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000000000000000000000000000000000000000000000000000FFFFFFFFFFFF
+                  FFFF000000000000000000000000000000000000000000000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000000000000000000000000000000000000000000000000000FFFFFFFFFFFF
+                  FFFF000000000000000000000000000000000000000000000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+                  FFFF000000000000000000000000000000000000000000000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+                  FFD6000000000000000000000000000000000000000000000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000FFFFFFFFFFFFFFFF00000000FFFFFF15FFFFFFD2FFFFFFFFFFFFFFDAFFFF
+                  FF1B000000000000000000000000000000000000000000000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000FFFFFFFFFFFFFFFFFFFFFF15FFFFFFD2FFFFFFFFFFFFFFD9FFFFFF1B0000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000FFFFFFFFFFFFFFFFFFFFFFD2FFFFFFFFFFFFFFD9FFFFFF1A000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFD1FFFFFF1400000000000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFF
+                  FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+                  FFFFFFFFFFFFFFFFFFFFFFFFFFD8FFFFFF1A0000000000000000000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFF
+                  FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+                  FFFFFFFFFFFFFFFFFFCEFFFFFF13000000000000000000000000000000000000
                   0000000000000000000000000000000000000000000000000000000000000000
                   0000000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000FFFFFF10FFFF
-                  FF27FFFFFF0A0000000000000000000000000000000000000000000000000000
                   0000000000000000000000000000000000000000000000000000000000000000
                   0000000000000000000000000000000000000000000000000000000000000000
                   0000000000000000000000000000000000000000000000000000000000000000
@@ -3015,17 +3190,14 @@ object frmCLSeries: TfrmCLSeries
                   0000000000000000000000000000000000000000000000000000000000000000
                   0000000000000000000000000000000000000000000000000000000000000000
                   0000000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  00000000000000000000}
+                  0000000000000000000000000000000000000000000000000000}
               end
               object btnServerDetailView: TJvTransparentButton
-                Left = 756
-                Top = 46
-                Width = 24
-                Height = 24
-                Hint = 'Ver detalles del Servidor seleccionado'
+                Left = 746
+                Top = 42
+                Width = 32
+                Height = 32
+                Hint = 'Detalles del servidor FTP'
                 AutoGray = False
                 HotTrackFont.Charset = DEFAULT_CHARSET
                 HotTrackFont.Color = clWindowText
@@ -3037,8 +3209,119 @@ object frmCLSeries: TfrmCLSeries
                 ShowHint = True
                 OnClick = btnServerDetailViewClick
                 Glyph.Data = {
-                  460E0000424D460E00000000000036000000280000001E0000001E0000000100
-                  200000000000100E000000000000000000000000000000000000000000000000
+                  36100000424D3610000000000000360000002800000020000000200000000100
+                  2000000000000010000000000000000000000000000000000000000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+                  FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+                  FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000FFFFFFFFFFFFFFFF00000000000000000000000000000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000FFFFFFFFFFFFFFFF00000000000000000000000000000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000FFFFFFFFFFFF
+                  FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000
+                  0000FFFFFFFFFFFFFFFF00000000000000000000000000000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000FFFFFFFFFFFF
+                  FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000
+                  0000FFFFFFFFFFFFFFFF00000000000000000000000000000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000FFFFFFFFFFFF
+                  FFFF000000000000000000000000000000000000000000000000000000000000
+                  0000FFFFFFFFFFFFFFFF00000000000000000000000000000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000FFFFFFFFFFFF
+                  FFFF000000000000000000000000000000000000000000000000000000000000
+                  0000FFFFFFFFFFFFFFFF00000000000000000000000000000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000FFFFFFFFFFFF
+                  FFFF000000000000000000000000000000000000000000000000000000000000
+                  0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF6FFFFFF480000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000FFFFFFFFFFFF
+                  FFFF000000000000000000000000000000000000000000000000000000000000
+                  0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+                  FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000FFFFFFFFFFFF
+                  FFFF0000000000000000000000000000000000000000FFFFFFC3FFFFFFC10000
+                  0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+                  FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000FFFFFFFFFFFF
+                  FFFF0000000000000000000000000000000000000000FFFFFFBFFFFFFFBD0000
+                  0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF3FFFFFF420000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000000000000000000000000000000000000000000000000000FFFFFFFFFFFF
+                  FFFF000000000000000000000000000000000000000000000000000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000000000000000000000000000000000000000000000000000FFFFFFFFFFFF
+                  FFFF000000000000000000000000000000000000000000000000000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000000000000000000000000000000000000000000000000000FFFFFFFFFFFF
+                  FFFF000000000000000000000000000000000000000000000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000000000000000000000000000000000000000000000000000FFFFFFFFFFFF
+                  FFFF000000000000000000000000000000000000000000000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000000000000000000000000000000000000000000000000000FFFFFFFFFFFF
+                  FFFF000000000000000000000000000000000000000000000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000000000000000000000000000000000000000000000000000FFFFFFFFFFFF
+                  FFFF000000000000000000000000000000000000000000000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000000000000000000000000000000000000000000000000000FFFFFFFFFFFF
+                  FFFF0000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+                  FFFFFFFFFFFFFFFFFFFF0000000000000000FFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000000000000000000000000000000000000000000000000000FFFFFFFFFFFF
+                  FFFF0000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+                  FFFFFFFFFFFFFFFFFFFF0000000000000000FFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000000000000000000000000000000000000000000000000000FFFFFFFFFFFF
+                  FFFF000000000000000000000000000000000000000000000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000000000000000000000000000000000000000000000000000FFFFFFFFFFFF
+                  FFFF000000000000000000000000000000000000000000000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000000000000000000000000000000000000000000000000000FFFFFFFFFFFF
+                  FFFF0000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+                  FFFFFFFFFFFFFFFFFFFF0000000000000000FFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000000000000000000000000000000000000000000000000000FFFFFFFFFFFF
+                  FFFF0000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+                  FFFFFFFFFFFFFFFFFFFF0000000000000000FFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000000000000000000000000000000000000000000000000000FFFFFFFFFFFF
+                  FFFF000000000000000000000000000000000000000000000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000000000000000000000000000000000000000000000000000FFFFFFFFFFFF
+                  FFFF000000000000000000000000000000000000000000000000000000000000
+                  000000000000000000000000000000000000FFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000000000000000000000000000000000000000000000000000FFFFFFFFFFFF
+                  FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+                  FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000
+                  0000000000000000000000000000000000000000000000000000000000000000
+                  0000000000000000000000000000000000000000000000000000FFFFFFFFFFFF
+                  FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+                  FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000
                   0000000000000000000000000000000000000000000000000000000000000000
                   0000000000000000000000000000000000000000000000000000000000000000
                   0000000000000000000000000000000000000000000000000000000000000000
@@ -3050,108 +3333,12 @@ object frmCLSeries: TfrmCLSeries
                   0000000000000000000000000000000000000000000000000000000000000000
                   0000000000000000000000000000000000000000000000000000000000000000
                   0000000000000000000000000000000000000000000000000000000000000000
-                  000000000000000000000000000000000000FFFFFF10FFFFFF27FFFFFF0A0000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  00000000000000000000FFFFFF50FFFFFFFFFFFFFFFFFFFFFFDEFFFFFF87FFFF
-                  FF2B000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000FFFFFF13FFFF
-                  FFB5FFFFFF270000000000000000000000000000000000000000000000000000
-                  0000FFFFFF35FFFFFFBCFFFFFFDCFFFFFFFFFFFFFFFFFFFFFFFCFFFFFF8FFFFF
-                  FF0B000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000FFFFFF13FFFFFFCFFFFFFFFFFFFFFFA50000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  000000000000FFFFFF24FFFFFF7DFFFFFFEFFFFFFFFFFFFFFFD9FFFFFF1EFFFF
-                  FF0BFFFFFF43FFFFFF60FFFFFF5EFFFFFF3DFFFFFF0700000000000000000000
-                  0000FFFFFF0FFFFFFFC9FFFFFFFFFFFFFFC4FFFFFF0D00000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  000000000000FFFFFF18FFFFFFB1FFFFFFFFFFFFFFF5FFFFFFF9FFFFFFFFFFFF
-                  FFFFFFFFFFFFFFFFFFFFFFFFFFF3FFFFFF99FFFFFF19FFFFFF10FFFFFFC9FFFF
-                  FFFFFFFFFFC4FFFFFF0D00000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000FFFFFF67FFFFFFFDFFFFFFFFFFFFFFEAFFFFFF9CFFFFFF7CFFFFFF7EFFFF
-                  FFA6FFFFFFF1FFFFFFFFFFFFFFEFFFFFFFDBFFFFFFFFFFFFFFBAFFFFFF090000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  00000000000000000000000000000000000000000000FFFFFF6AFFFFFFFFFFFF
-                  FFF8FFFFFF73FFFFFF0700000000000000000000000000000000FFFFFF0EFFFF
-                  FF89FFFFFFFDFFFFFFFEFFFFFFD2FFFFFF0D0000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  00000000000000000000FFFFFF2FFFFFFFFAFFFFFFF8FFFFFF3E000000000000
-                  0000FFFFFF13FFFFFF9EFFFFFF92000000000000000000000000FFFFFF5AFFFF
-                  FFFEFFFFFFEFFFFFFF1700000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000FFFFFFB8FFFFFFFFFFFFFF6D000000000000000000000000FFFFFF01FFFF
-                  FFD7FFFFFFFFFFFFFF2B000000000000000000000000FFFFFF90FFFFFFFFFFFF
-                  FF95000000000000000000000000000000000000000000000000000000000000
-                  00000000000000000000000000000000000000000000FFFFFF18FFFFFFFDFFFF
-                  FFDFFFFFFF0400000000000000000000000000000000FFFFFF70FFFFFFFFFFFF
-                  FF7F000000000000000000000000FFFFFF10FFFFFFF6FFFFFFEEFFFFFF050000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000FFFFFF58FFFFFFFFFFFFFF92000000000000
-                  0000000000000000000000000000FFFFFF35FFFFFFFFFFFFFFA6000000000000
-                  00000000000000000000FFFFFFB4FFFFFFFFFFFFFF3600000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  000000000000FFFFFF74FFFFFFFFFFFFFF6B00000000FFFFFFB4FFFFFFF0FFFF
-                  FFF0FFFFFF0FFFFFFF19FFFFFFFFFFFFFFC20000000000000000000000000000
-                  0000FFFFFF8DFFFFFFFFFFFFFF53000000000000000000000000000000000000
-                  000000000000000000000000000000000000000000000000000000000000FFFF
-                  FF74FFFFFFFFFFFFFF6C00000000FFFFFFB4FFFFFFF0FFFFFFF0FFFFFF0FFFFF
-                  FF19FFFFFFFFFFFFFFC100000000000000000000000000000000FFFFFF8DFFFF
-                  FFFFFFFFFF530000000000000000000000000000000000000000000000000000
-                  00000000000000000000000000000000000000000000FFFFFF58FFFFFFFFFFFF
-                  FF920000000000000000000000000000000000000000FFFFFF35FFFFFFFFFFFF
-                  FFA500000000000000000000000000000000FFFFFFB4FFFFFFFFFFFFFF350000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000FFFFFF18FFFFFFFDFFFFFFDFFFFFFF040000
-                  0000000000000000000000000000FFFFFF70FFFFFFFFFFFFFF7F000000000000
-                  000000000000FFFFFF0FFFFFFFF6FFFFFFEEFFFFFF0500000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  00000000000000000000FFFFFFB8FFFFFFFFFFFFFF6C00000000000000000000
-                  000000000000FFFFFFCEFFFFFFFFFFFFFF30000000000000000000000000FFFF
-                  FF88FFFFFFFFFFFFFF9500000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000FFFFFF2FFFFFFFFAFFFFFFF7FFFFFF3E0000000000000000FFFFFF13FFFF
-                  FF9EFFFFFF92000000000000000000000000FFFFFF58FFFFFFFDFFFFFFEFFFFF
-                  FF17000000000000000000000000000000000000000000000000000000000000
-                  000000000000000000000000000000000000000000000000000000000000FFFF
-                  FF69FFFFFFFFFFFFFFF8FFFFFF73FFFFFF070000000000000000000000000000
-                  0000FFFFFF0EFFFFFF89FFFFFFFEFFFFFFFDFFFFFF4A00000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000FFFFFF6CFFFF
-                  FFFEFFFFFFFFFFFFFFEAFFFFFF9CFFFFFF7CFFFFFF7EFFFFFFA5FFFFFFF0FFFF
-                  FFFFFFFFFFF0FFFFFF4B00000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000FFFFFF18FFFFFFB0FFFFFFFFFFFFFFF5FFFF
-                  FFFBFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5FFFFFF99FFFFFF190000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  000000000000000000000000000000000000000000000000000000000000FFFF
-                  FF1BFFFFFF7BFFFFFFEFFFFFFFFFFFFFFFD8FFFFFF1EFFFFFF12FFFFFF50FFFF
-                  FF65FFFFFF62FFFFFF4CFFFFFF0B000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  00000000000000000000FFFFFF35FFFFFFB4FFFFFFCEFFFFFFFCFFFFFFFFFFFF
-                  FFFCFFFFFF8FFFFFFF0B00000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000FFFFFF50FFFFFFFFFFFFFFFFFFFFFFDEFFFFFF87FFFFFF2B000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000FFFFFF10FFFF
-                  FF27FFFFFF0A0000000000000000000000000000000000000000000000000000
                   0000000000000000000000000000000000000000000000000000000000000000
                   0000000000000000000000000000000000000000000000000000000000000000
                   0000000000000000000000000000000000000000000000000000000000000000
                   0000000000000000000000000000000000000000000000000000000000000000
                   0000000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  0000000000000000000000000000000000000000000000000000000000000000
-                  00000000000000000000}
+                  0000000000000000000000000000000000000000000000000000}
               end
               object lcbServer: TcxDBLookupComboBox
                 Tag = 1
@@ -3160,6 +3347,7 @@ object frmCLSeries: TfrmCLSeries
                 Hint = 'codidi'
                 DataBinding.DataField = 'pc'
                 DataBinding.DataSource = UDM.dscl_subseries
+                ParentFont = False
                 Properties.KeyFieldNames = 'Idservidor'
                 Properties.ListColumns = <
                   item
@@ -3169,8 +3357,15 @@ object frmCLSeries: TfrmCLSeries
                 Properties.ListOptions.ShowHeader = False
                 Properties.ListSource = UDM.dscl_ftp_Server
                 Properties.ValidationOptions = [evoShowErrorIcon]
+                Style.Color = clWindow
+                Style.Font.Charset = DEFAULT_CHARSET
+                Style.Font.Color = clWindowText
+                Style.Font.Height = -11
+                Style.Font.Name = 'Tahoma'
+                Style.Font.Style = []
                 Style.LookAndFeel.NativeStyle = True
                 Style.LookAndFeel.SkinName = 'Office2010Blue'
+                Style.IsFontAssigned = True
                 StyleDisabled.LookAndFeel.NativeStyle = True
                 StyleDisabled.LookAndFeel.SkinName = 'Office2010Blue'
                 StyleFocused.LookAndFeel.NativeStyle = True
@@ -3178,16 +3373,25 @@ object frmCLSeries: TfrmCLSeries
                 StyleHot.LookAndFeel.NativeStyle = True
                 StyleHot.LookAndFeel.SkinName = 'Office2010Blue'
                 TabOrder = 0
-                Width = 253
+                OnKeyDown = FormKeyDown
+                Width = 241
               end
               object cxDBTextEdit6: TcxDBTextEdit
-                Left = 192
+                Left = 216
                 Top = 46
                 DataBinding.DataField = 'deposito'
                 DataBinding.DataSource = UDM.dscl_subseries
+                ParentFont = False
                 Properties.ValidationOptions = [evoShowErrorIcon]
+                Style.Color = clWindow
+                Style.Font.Charset = DEFAULT_CHARSET
+                Style.Font.Color = clWindowText
+                Style.Font.Height = -11
+                Style.Font.Name = 'Tahoma'
+                Style.Font.Style = []
                 Style.LookAndFeel.NativeStyle = True
                 Style.LookAndFeel.SkinName = 'DevExpressDarkStyle'
+                Style.IsFontAssigned = True
                 StyleDisabled.LookAndFeel.NativeStyle = True
                 StyleDisabled.LookAndFeel.SkinName = 'DevExpressDarkStyle'
                 StyleFocused.LookAndFeel.NativeStyle = True
@@ -3195,16 +3399,25 @@ object frmCLSeries: TfrmCLSeries
                 StyleHot.LookAndFeel.NativeStyle = True
                 StyleHot.LookAndFeel.SkinName = 'DevExpressDarkStyle'
                 TabOrder = 1
-                Width = 150
+                OnKeyDown = FormKeyDown
+                Width = 126
               end
               object cxDBTextEdit7: TcxDBTextEdit
                 Left = 348
                 Top = 46
                 DataBinding.DataField = 'gaveta'
                 DataBinding.DataSource = UDM.dscl_subseries
+                ParentFont = False
                 Properties.ValidationOptions = [evoShowErrorIcon]
+                Style.Color = clWindow
+                Style.Font.Charset = DEFAULT_CHARSET
+                Style.Font.Color = clWindowText
+                Style.Font.Height = -11
+                Style.Font.Name = 'Tahoma'
+                Style.Font.Style = []
                 Style.LookAndFeel.NativeStyle = True
                 Style.LookAndFeel.SkinName = 'DevExpressDarkStyle'
+                Style.IsFontAssigned = True
                 StyleDisabled.LookAndFeel.NativeStyle = True
                 StyleDisabled.LookAndFeel.SkinName = 'DevExpressDarkStyle'
                 StyleFocused.LookAndFeel.NativeStyle = True
@@ -3212,6 +3425,7 @@ object frmCLSeries: TfrmCLSeries
                 StyleHot.LookAndFeel.NativeStyle = True
                 StyleHot.LookAndFeel.SkinName = 'DevExpressDarkStyle'
                 TabOrder = 2
+                OnKeyDown = FormKeyDown
                 Width = 150
               end
               object cxDBBlobEdit1: TcxDBBlobEdit
@@ -3243,6 +3457,7 @@ object frmCLSeries: TfrmCLSeries
                 Hint = 'codidi'
                 DataBinding.DataField = 'archivo'
                 DataBinding.DataSource = UDM.dscl_subseries
+                ParentFont = False
                 Properties.KeyFieldNames = 'Cod'
                 Properties.ListColumns = <
                   item
@@ -3252,8 +3467,15 @@ object frmCLSeries: TfrmCLSeries
                 Properties.ListOptions.ShowHeader = False
                 Properties.ListSource = UDM.dscl_ArchivosGestion
                 Properties.ValidationOptions = [evoShowErrorIcon]
+                Style.Color = clWindow
+                Style.Font.Charset = DEFAULT_CHARSET
+                Style.Font.Color = clWindowText
+                Style.Font.Height = -11
+                Style.Font.Name = 'Tahoma'
+                Style.Font.Style = []
                 Style.LookAndFeel.NativeStyle = True
                 Style.LookAndFeel.SkinName = 'Office2010Blue'
+                Style.IsFontAssigned = True
                 StyleDisabled.LookAndFeel.NativeStyle = True
                 StyleDisabled.LookAndFeel.SkinName = 'Office2010Blue'
                 StyleFocused.LookAndFeel.NativeStyle = True
@@ -3261,7 +3483,8 @@ object frmCLSeries: TfrmCLSeries
                 StyleHot.LookAndFeel.NativeStyle = True
                 StyleHot.LookAndFeel.SkinName = 'Office2010Blue'
                 TabOrder = 4
-                Width = 150
+                OnKeyDown = FormKeyDown
+                Width = 163
               end
             end
             object AdvPanel3: TAdvPanel
@@ -3297,6 +3520,13 @@ object frmCLSeries: TfrmCLSeries
                 Height = 75
                 Align = alLeft
                 Caption = 'VALOR DOCUMENTAL'
+                Font.Charset = DEFAULT_CHARSET
+                Font.Color = clWindow
+                Font.Height = -13
+                Font.Name = 'Tahoma'
+                Font.Style = []
+                Font.Quality = fqAntialiased
+                ParentFont = False
                 TabOrder = 0
                 object Label13: TLabel
                   Left = 19
@@ -3319,6 +3549,7 @@ object frmCLSeries: TfrmCLSeries
                   Hint = 'codidi'
                   DataBinding.DataField = 'Detalle'
                   DataBinding.DataSource = UDM.dscl_subseries
+                  ParentFont = False
                   Properties.KeyFieldNames = 'Idtipodoc'
                   Properties.ListColumns = <
                     item
@@ -3328,8 +3559,16 @@ object frmCLSeries: TfrmCLSeries
                   Properties.ListOptions.ShowHeader = False
                   Properties.ListSource = UDM.dscl_valordoc
                   Properties.ValidationOptions = [evoShowErrorIcon]
+                  Style.Color = clWindow
+                  Style.Font.Charset = DEFAULT_CHARSET
+                  Style.Font.Color = clWindowText
+                  Style.Font.Height = -11
+                  Style.Font.Name = 'Tahoma'
+                  Style.Font.Style = []
+                  Style.Font.Quality = fqAntialiased
                   Style.LookAndFeel.NativeStyle = True
                   Style.LookAndFeel.SkinName = 'Office2010Blue'
+                  Style.IsFontAssigned = True
                   StyleDisabled.LookAndFeel.NativeStyle = True
                   StyleDisabled.LookAndFeel.SkinName = 'Office2010Blue'
                   StyleFocused.LookAndFeel.NativeStyle = True
@@ -3337,6 +3576,7 @@ object frmCLSeries: TfrmCLSeries
                   StyleHot.LookAndFeel.NativeStyle = True
                   StyleHot.LookAndFeel.SkinName = 'Office2010Blue'
                   TabOrder = 0
+                  OnKeyDown = FormKeyDown
                   Width = 170
                 end
                 object lcbVigencia: TcxDBLookupComboBox
@@ -3344,6 +3584,7 @@ object frmCLSeries: TfrmCLSeries
                   Top = 38
                   DataBinding.DataField = 'Vigencia'
                   DataBinding.DataSource = UDM.dscl_subseries
+                  ParentFont = False
                   Properties.KeyFieldNames = 'idvigencia'
                   Properties.ListColumns = <
                     item
@@ -3352,7 +3593,16 @@ object frmCLSeries: TfrmCLSeries
                     end>
                   Properties.ListOptions.ShowHeader = False
                   Properties.ListSource = UDM.dscl_vigencia
+                  Style.Color = clWindow
+                  Style.Font.Charset = DEFAULT_CHARSET
+                  Style.Font.Color = clWindowText
+                  Style.Font.Height = -11
+                  Style.Font.Name = 'Tahoma'
+                  Style.Font.Style = []
+                  Style.Font.Quality = fqAntialiased
+                  Style.IsFontAssigned = True
                   TabOrder = 1
+                  OnKeyDown = FormKeyDown
                   Width = 174
                 end
               end
@@ -3363,6 +3613,12 @@ object frmCLSeries: TfrmCLSeries
                 Height = 75
                 Align = alRight
                 Caption = 'FRECUENCIA'
+                Font.Charset = DEFAULT_CHARSET
+                Font.Color = clWindow
+                Font.Height = -13
+                Font.Name = 'Tahoma'
+                Font.Style = []
+                ParentFont = False
                 TabOrder = 1
                 object Label16: TLabel
                   Left = 12
@@ -3393,6 +3649,7 @@ object frmCLSeries: TfrmCLSeries
                   Hint = 'codidi'
                   DataBinding.DataField = 'frecuencia'
                   DataBinding.DataSource = UDM.dscl_subseries
+                  ParentFont = False
                   Properties.KeyFieldNames = 'Idfrecuencia'
                   Properties.ListColumns = <
                     item
@@ -3402,8 +3659,15 @@ object frmCLSeries: TfrmCLSeries
                   Properties.ListOptions.ShowHeader = False
                   Properties.ListSource = UDM.dscl_frecuencia
                   Properties.ValidationOptions = [evoShowErrorIcon]
+                  Style.Color = clWindow
+                  Style.Font.Charset = DEFAULT_CHARSET
+                  Style.Font.Color = clWindowText
+                  Style.Font.Height = -11
+                  Style.Font.Name = 'Tahoma'
+                  Style.Font.Style = []
                   Style.LookAndFeel.NativeStyle = True
                   Style.LookAndFeel.SkinName = 'Office2010Blue'
+                  Style.IsFontAssigned = True
                   StyleDisabled.LookAndFeel.NativeStyle = True
                   StyleDisabled.LookAndFeel.SkinName = 'Office2010Blue'
                   StyleFocused.LookAndFeel.NativeStyle = True
@@ -3411,6 +3675,7 @@ object frmCLSeries: TfrmCLSeries
                   StyleHot.LookAndFeel.NativeStyle = True
                   StyleHot.LookAndFeel.SkinName = 'Office2010Blue'
                   TabOrder = 0
+                  OnKeyDown = FormKeyDown
                   Width = 173
                 end
                 object cxDBTextEdit3: TcxDBTextEdit
@@ -3436,19 +3701,28 @@ object frmCLSeries: TfrmCLSeries
                   Top = 38
                   DataBinding.DataField = 'fechaaprov'
                   DataBinding.DataSource = UDM.dscl_subseries
+                  ParentFont = False
+                  Style.Color = clWindow
+                  Style.Font.Charset = DEFAULT_CHARSET
+                  Style.Font.Color = clWindowText
+                  Style.Font.Height = -11
+                  Style.Font.Name = 'Tahoma'
+                  Style.Font.Style = []
+                  Style.IsFontAssigned = True
                   TabOrder = 2
+                  OnKeyDown = FormKeyDown
                   Width = 177
                 end
               end
             end
             object jvcpGestor: TJvCaptionPanel
-              Left = 252
-              Top = 98
+              Left = 236
+              Top = 109
               Width = 317
-              Height = 221
+              Height = 231
               Buttons = []
               Caption = 'Detalles del Gestor de la Serie'
-              CaptionColor = 5256970
+              CaptionColor = 11105043
               CaptionPosition = dpTop
               CaptionFont.Charset = DEFAULT_CHARSET
               CaptionFont.Color = clWhite
@@ -3457,7 +3731,13 @@ object frmCLSeries: TfrmCLSeries
               CaptionFont.Style = [fsBold]
               Color = 11105043
               FullRepaint = False
+              Font.Charset = DEFAULT_CHARSET
+              Font.Color = clBlack
+              Font.Height = -13
+              Font.Name = 'Tahoma'
+              Font.Style = []
               OutlookLook = False
+              ParentFont = False
               Resizable = False
               TabOrder = 4
               Visible = False
@@ -3466,7 +3746,7 @@ object frmCLSeries: TfrmCLSeries
                 Left = 1
                 Top = 26
                 Width = 309
-                Height = 155
+                Height = 157
                 Align = alClient
                 OptionsView.RowHeaderWidth = 149
                 OptionsView.RowHeight = 20
@@ -3475,6 +3755,7 @@ object frmCLSeries: TfrmCLSeries
                 Navigator.Buttons.CustomButtons = <>
                 Styles.StyleSheet = UDM.cxVerticalGridStyleSheetUserFormat4
                 TabOrder = 0
+                OnKeyDown = FormKeyDown
                 DataController.DataSource = dscmdGestor
                 Version = 1
                 object cxCategoryRow2: TcxCategoryRow
@@ -3553,45 +3834,33 @@ object frmCLSeries: TfrmCLSeries
                   Version = 1
                 end
               end
-              object AdvPanel6: TAdvPanel
+              object Panel8: TPanel
                 Left = 1
-                Top = 181
+                Top = 183
                 Width = 309
-                Height = 33
+                Height = 41
                 Align = alBottom
-                Color = 11105043
-                Font.Charset = DEFAULT_CHARSET
-                Font.Color = clBlack
-                Font.Height = -13
-                Font.Name = 'Tahoma'
-                Font.Style = []
-                ParentFont = False
+                Color = 15780526
+                ParentBackground = False
                 TabOrder = 1
-                UseDockManager = True
-                Version = '2.5.5.1'
-                Caption.Color = clHighlight
-                Caption.ColorTo = clNone
-                Caption.Font.Charset = DEFAULT_CHARSET
-                Caption.Font.Color = clWindowText
-                Caption.Font.Height = -11
-                Caption.Font.Name = 'Tahoma'
-                Caption.Font.Style = []
-                Caption.Indent = 0
-                DoubleBuffered = True
-                StatusBar.Font.Charset = DEFAULT_CHARSET
-                StatusBar.Font.Color = clWindowText
-                StatusBar.Font.Height = -11
-                StatusBar.Font.Name = 'Tahoma'
-                StatusBar.Font.Style = []
-                Text = ''
-                FullHeight = 200
-                object SpeedButton7: TSpeedButton
-                  Left = 263
+                object JvTransparentButton6: TJvTransparentButton
+                  Left = 253
                   Top = 1
-                  Width = 45
-                  Height = 31
+                  Width = 55
+                  Height = 39
                   Hint = 'Salir del panel informativo'
                   Align = alRight
+                  AutoGray = False
+                  Color = 13135884
+                  HotTrackFont.Charset = DEFAULT_CHARSET
+                  HotTrackFont.Color = clWindowText
+                  HotTrackFont.Height = -13
+                  HotTrackFont.Name = 'Tahoma'
+                  HotTrackFont.Style = []
+                  FrameStyle = fsIndent
+                  ParentShowHint = False
+                  ShowHint = True
+                  OnClick = SpeedButton7Click
                   Glyph.Data = {
                     36100000424D3610000000000000360000002800000020000000200000000100
                     2000000000000010000000000000000000000000000000000000000000000000
@@ -3723,11 +3992,17 @@ object frmCLSeries: TfrmCLSeries
                     0000000000000000000000000000000000000000000000000000000000000000
                     0000000000000000000000000000000000000000000000000000000000000000
                     0000000000000000000000000000000000000000000000000000}
-                  ParentShowHint = False
-                  ShowHint = True
-                  OnClick = SpeedButton7Click
-                  ExplicitLeft = 470
-                  ExplicitTop = -4
+                  ExplicitLeft = 14
+                  ExplicitTop = 4
+                  ExplicitHeight = 38
+                end
+                object Edit4: TEdit
+                  Left = 0
+                  Top = 0
+                  Width = 1
+                  Height = 24
+                  TabOrder = 0
+                  OnKeyDown = FormKeyDown
                 end
               end
             end
@@ -3737,13 +4012,13 @@ object frmCLSeries: TfrmCLSeries
     end
   end
   object cpInfoPathSubSeries: TJvCaptionPanel
-    Left = 646
-    Top = 274
+    Left = 638
+    Top = 286
     Width = 524
-    Height = 126
+    Height = 135
     Buttons = []
     Caption = 'Ruta a la carpeta de salvas '
-    CaptionColor = 5256970
+    CaptionColor = 11105043
     CaptionPosition = dpTop
     CaptionFont.Charset = DEFAULT_CHARSET
     CaptionFont.Color = clWhite
@@ -3752,14 +4027,20 @@ object frmCLSeries: TfrmCLSeries
     CaptionFont.Style = [fsBold]
     Color = 11105043
     FullRepaint = False
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
     OutlookLook = False
+    ParentFont = False
     Resizable = False
     TabOrder = 3
     Visible = False
     OnButtonClick = jvcpGestorButtonClick
     object lbl1: TLabel
-      Left = 13
-      Top = 36
+      Left = 42
+      Top = -30
       Width = 322
       Height = 14
       Caption = 'Ruta de almacenamiento de Subseries documentales'
@@ -3771,8 +4052,8 @@ object frmCLSeries: TfrmCLSeries
       ParentFont = False
     end
     object btnSelectDir: TSpeedButton
-      Left = 477
-      Top = 52
+      Left = 480
+      Top = 54
       Width = 23
       Height = 22
       Caption = '...'
@@ -3785,40 +4066,30 @@ object frmCLSeries: TfrmCLSeries
       Height = 21
       ReadOnly = True
       TabOrder = 0
+      OnKeyDown = FormKeyDown
     end
-    object AdvPanel1: TAdvPanel
+    object Panel9: TPanel
       Left = 1
-      Top = 86
+      Top = 87
       Width = 516
-      Height = 33
+      Height = 41
       Align = alBottom
-      Color = 11105043
+      Color = 15780526
+      ParentBackground = False
       TabOrder = 1
-      UseDockManager = True
-      Version = '2.5.5.1'
-      Caption.Color = clHighlight
-      Caption.ColorTo = clNone
-      Caption.Font.Charset = DEFAULT_CHARSET
-      Caption.Font.Color = clWindowText
-      Caption.Font.Height = -11
-      Caption.Font.Name = 'Tahoma'
-      Caption.Font.Style = []
-      Caption.Indent = 0
-      DoubleBuffered = True
-      StatusBar.Font.Charset = DEFAULT_CHARSET
-      StatusBar.Font.Color = clWindowText
-      StatusBar.Font.Height = -11
-      StatusBar.Font.Name = 'Tahoma'
-      StatusBar.Font.Style = []
-      Text = ''
-      FullHeight = 200
-      object SpeedButton6: TSpeedButton
-        Left = 470
+      object JvTransparentButton7: TJvTransparentButton
+        Left = 460
         Top = 1
-        Width = 45
-        Height = 31
+        Width = 55
+        Height = 39
         Hint = 'Salir del panel informativo'
         Align = alRight
+        AutoGray = False
+        Color = 13135884
+        FrameStyle = fsIndent
+        ParentShowHint = False
+        ShowHint = True
+        OnClick = SpeedButton6Click
         Glyph.Data = {
           36100000424D3610000000000000360000002800000020000000200000000100
           2000000000000010000000000000000000000000000000000000000000000000
@@ -3950,22 +4221,28 @@ object frmCLSeries: TfrmCLSeries
           0000000000000000000000000000000000000000000000000000000000000000
           0000000000000000000000000000000000000000000000000000000000000000
           0000000000000000000000000000000000000000000000000000}
-        ParentShowHint = False
-        ShowHint = True
-        OnClick = SpeedButton6Click
-        ExplicitLeft = 471
-        ExplicitTop = 2
+        ExplicitLeft = 14
+        ExplicitTop = 4
+        ExplicitHeight = 38
+      end
+      object Edit5: TEdit
+        Left = 0
+        Top = 0
+        Width = 1
+        Height = 21
+        TabOrder = 0
+        OnKeyDown = FormKeyDown
       end
     end
   end
   object jvcpArchivo: TJvCaptionPanel
-    Left = 768
-    Top = 224
+    Left = 752
+    Top = 237
     Width = 297
-    Height = 226
+    Height = 233
     Buttons = []
     Caption = 'Detalles del Archivo'
-    CaptionColor = 5256970
+    CaptionColor = 11105043
     CaptionPosition = dpTop
     CaptionFont.Charset = DEFAULT_CHARSET
     CaptionFont.Color = clWhite
@@ -3974,7 +4251,13 @@ object frmCLSeries: TfrmCLSeries
     CaptionFont.Style = [fsBold]
     Color = 11105043
     FullRepaint = False
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
     OutlookLook = False
+    ParentFont = False
     Resizable = False
     TabOrder = 4
     Visible = False
@@ -3983,7 +4266,7 @@ object frmCLSeries: TfrmCLSeries
       Left = 1
       Top = 26
       Width = 289
-      Height = 160
+      Height = 159
       Align = alClient
       OptionsView.RowHeaderWidth = 156
       OptionsView.RowHeight = 20
@@ -3992,6 +4275,7 @@ object frmCLSeries: TfrmCLSeries
       Navigator.Buttons.CustomButtons = <>
       Styles.StyleSheet = UDM.cxVerticalGridStyleSheetUserFormat4
       TabOrder = 0
+      OnKeyDown = FormKeyDown
       DataController.DataSource = dscmdArch
       Version = 1
       object cxDBVerticalGrid2CategoryRow6: TcxCategoryRow
@@ -4085,10 +4369,10 @@ object frmCLSeries: TfrmCLSeries
       end
       object cxDBVerticalGrid2Descripcion: TcxDBEditorRow
         Properties.EditPropertiesClassName = 'TcxBlobEditProperties'
-        Properties.EditProperties.BlobEditKind = bekMemo
-        Properties.EditProperties.BlobPaintStyle = bpsText
+        Properties.EditProperties.BlobEditKind = bekBlob
         Properties.EditProperties.MemoScrollBars = ssVertical
         Properties.EditProperties.ReadOnly = False
+        Properties.EditProperties.OnButtonClick = cxDBVerticalGrid2DescripcionEditPropertiesButtonClick
         Properties.DataBinding.FieldName = 'Descripcion'
         ID = 7
         ParentID = 0
@@ -4096,39 +4380,28 @@ object frmCLSeries: TfrmCLSeries
         Version = 1
       end
     end
-    object AdvPanel2: TAdvPanel
+    object Panel7: TPanel
       Left = 1
-      Top = 186
+      Top = 185
       Width = 289
-      Height = 33
+      Height = 41
       Align = alBottom
-      Color = 11105043
+      Color = 15780526
+      ParentBackground = False
       TabOrder = 1
-      UseDockManager = True
-      Version = '2.5.5.1'
-      Caption.Color = clHighlight
-      Caption.ColorTo = clNone
-      Caption.Font.Charset = DEFAULT_CHARSET
-      Caption.Font.Color = clWindowText
-      Caption.Font.Height = -11
-      Caption.Font.Name = 'Tahoma'
-      Caption.Font.Style = []
-      Caption.Indent = 0
-      DoubleBuffered = True
-      StatusBar.Font.Charset = DEFAULT_CHARSET
-      StatusBar.Font.Color = clWindowText
-      StatusBar.Font.Height = -11
-      StatusBar.Font.Name = 'Tahoma'
-      StatusBar.Font.Style = []
-      Text = ''
-      FullHeight = 200
-      object SpeedButton4: TSpeedButton
-        Left = 243
+      object JvTransparentButton5: TJvTransparentButton
+        Left = 233
         Top = 1
-        Width = 45
-        Height = 31
+        Width = 55
+        Height = 39
         Hint = 'Salir del panel informativo'
         Align = alRight
+        AutoGray = False
+        Color = 13135884
+        FrameStyle = fsIndent
+        ParentShowHint = False
+        ShowHint = True
+        OnClick = SpeedButton4Click
         Glyph.Data = {
           36100000424D3610000000000000360000002800000020000000200000000100
           2000000000000010000000000000000000000000000000000000000000000000
@@ -4260,22 +4533,28 @@ object frmCLSeries: TfrmCLSeries
           0000000000000000000000000000000000000000000000000000000000000000
           0000000000000000000000000000000000000000000000000000000000000000
           0000000000000000000000000000000000000000000000000000}
-        ParentShowHint = False
-        ShowHint = True
-        OnClick = SpeedButton4Click
-        ExplicitLeft = 470
-        ExplicitTop = -4
+        ExplicitLeft = 14
+        ExplicitTop = 4
+        ExplicitHeight = 38
+      end
+      object Edit3: TEdit
+        Left = 0
+        Top = 0
+        Width = 1
+        Height = 21
+        TabOrder = 0
+        OnKeyDown = FormKeyDown
       end
     end
   end
   object jvcpServerDetail: TJvCaptionPanel
-    Left = 768
-    Top = 224
+    Left = 752
+    Top = 237
     Width = 297
-    Height = 226
+    Height = 233
     Buttons = []
     Caption = 'Detalles del Servidor'
-    CaptionColor = 5256970
+    CaptionColor = 11105043
     CaptionPosition = dpTop
     CaptionFont.Charset = DEFAULT_CHARSET
     CaptionFont.Color = clWhite
@@ -4284,7 +4563,13 @@ object frmCLSeries: TfrmCLSeries
     CaptionFont.Style = [fsBold]
     Color = 11105043
     FullRepaint = False
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
     OutlookLook = False
+    ParentFont = False
     Resizable = False
     TabOrder = 5
     Visible = False
@@ -4293,15 +4578,22 @@ object frmCLSeries: TfrmCLSeries
       Left = 1
       Top = 26
       Width = 289
-      Height = 160
+      Height = 159
       Align = alClient
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = []
       OptionsView.RowHeaderWidth = 108
       OptionsView.RowHeight = 20
       OptionsBehavior.GoToNextCellOnEnter = True
       OptionsBehavior.FocusFirstCellOnNewRecord = True
       Navigator.Buttons.CustomButtons = <>
+      ParentFont = False
       Styles.StyleSheet = UDM.cxVerticalGridStyleSheetUserFormat4
       TabOrder = 0
+      OnKeyDown = FormKeyDown
       DataController.DataSource = dscmdServer
       Version = 1
       object cxCategoryRow1: TcxCategoryRow
@@ -4380,39 +4672,28 @@ object frmCLSeries: TfrmCLSeries
         Version = 1
       end
     end
-    object AdvPanel5: TAdvPanel
+    object Panel5: TPanel
       Left = 1
-      Top = 186
+      Top = 185
       Width = 289
-      Height = 33
+      Height = 41
       Align = alBottom
-      Color = 11105043
+      Color = 15780526
+      ParentBackground = False
       TabOrder = 1
-      UseDockManager = True
-      Version = '2.5.5.1'
-      Caption.Color = clHighlight
-      Caption.ColorTo = clNone
-      Caption.Font.Charset = DEFAULT_CHARSET
-      Caption.Font.Color = clWindowText
-      Caption.Font.Height = -11
-      Caption.Font.Name = 'Tahoma'
-      Caption.Font.Style = []
-      Caption.Indent = 0
-      DoubleBuffered = True
-      StatusBar.Font.Charset = DEFAULT_CHARSET
-      StatusBar.Font.Color = clWindowText
-      StatusBar.Font.Height = -11
-      StatusBar.Font.Name = 'Tahoma'
-      StatusBar.Font.Style = []
-      Text = ''
-      FullHeight = 200
-      object SpeedButton5: TSpeedButton
-        Left = 243
+      object JvTransparentButton4: TJvTransparentButton
+        Left = 233
         Top = 1
-        Width = 45
-        Height = 31
+        Width = 55
+        Height = 39
         Hint = 'Salir del panel informativo'
         Align = alRight
+        AutoGray = False
+        Color = 13135884
+        FrameStyle = fsIndent
+        ParentShowHint = False
+        ShowHint = True
+        OnClick = SpeedButton5Click
         Glyph.Data = {
           36100000424D3610000000000000360000002800000020000000200000000100
           2000000000000010000000000000000000000000000000000000000000000000
@@ -4544,11 +4825,17 @@ object frmCLSeries: TfrmCLSeries
           0000000000000000000000000000000000000000000000000000000000000000
           0000000000000000000000000000000000000000000000000000000000000000
           0000000000000000000000000000000000000000000000000000}
-        ParentShowHint = False
-        ShowHint = True
-        OnClick = SpeedButton5Click
-        ExplicitLeft = 470
-        ExplicitTop = -4
+        ExplicitLeft = 14
+        ExplicitTop = 4
+        ExplicitHeight = 38
+      end
+      object Edit2: TEdit
+        Left = 0
+        Top = 0
+        Width = 1
+        Height = 21
+        TabOrder = 0
+        OnKeyDown = FormKeyDown
       end
     end
   end
@@ -4570,7 +4857,7 @@ object frmCLSeries: TfrmCLSeries
       Align = alLeft
       AutoGray = False
       Color = 13135884
-      FrameStyle = fsLight
+      FrameStyle = fsIndent
       ParentShowHint = False
       ShowHint = True
       OnClick = btnCloseClick
@@ -4719,7 +5006,7 @@ object frmCLSeries: TfrmCLSeries
       AutoGray = False
       Color = 13135884
       DropDownMenu = AdvPopupMenu1
-      FrameStyle = fsLight
+      FrameStyle = fsIndent
       ParentShowHint = False
       ShowHint = True
       Visible = False
@@ -4868,7 +5155,7 @@ object frmCLSeries: TfrmCLSeries
       AutoGray = False
       Color = 13135884
       DropDownMenu = advManagementDirectoryPath
-      FrameStyle = fsLight
+      FrameStyle = fsIndent
       ParentShowHint = False
       ShowHint = True
       Visible = False
@@ -5015,9 +5302,10 @@ object frmCLSeries: TfrmCLSeries
       Align = alRight
       AutoGray = False
       Color = 13135884
-      FrameStyle = fsLight
+      FrameStyle = fsIndent
       ParentShowHint = False
       ShowHint = True
+      OnClick = btnSystemHelpClick
       Glyph.Data = {
         36100000424D3610000000000000360000002800000020000000200000000100
         2000000000000010000000000000000000000000000000000000000000000000
@@ -5152,6 +5440,14 @@ object frmCLSeries: TfrmCLSeries
       ExplicitLeft = 572
       ExplicitTop = 4
       ExplicitHeight = 38
+    end
+    object Edit1: TEdit
+      Left = 0
+      Top = 0
+      Width = 1
+      Height = 21
+      TabOrder = 0
+      OnKeyDown = FormKeyDown
     end
   end
   object Timer1: TTimer

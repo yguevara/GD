@@ -2,8 +2,8 @@ object frmAbout: TfrmAbout
   Left = 0
   Top = 0
   BorderStyle = bsNone
-  ClientHeight = 408
-  ClientWidth = 302
+  ClientHeight = 454
+  ClientWidth = 304
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -105,14 +105,14 @@ object frmAbout: TfrmAbout
     000000000000000000000000000000000000000000000000000000000000}
   OldCreateOrder = False
   Position = poScreenCenter
-  OnShow = FormShow
+  OnActivate = FormActivate
   PixelsPerInch = 96
   TextHeight = 13
   object Image1: TImage
     Left = 0
     Top = 0
-    Width = 302
-    Height = 408
+    Width = 304
+    Height = 454
     Align = alClient
     Picture.Data = {
       0D546478536D617274496D616765FFD8FFE000104A4649460001010100640064
@@ -874,10 +874,8 @@ object frmAbout: TfrmAbout
       2A999D0D317188DDE7751A9CCDE6365AE5D4FFD9}
     Stretch = True
     OnClick = Image1Click
-    ExplicitLeft = 160
-    ExplicitTop = 80
-    ExplicitWidth = 105
-    ExplicitHeight = 105
+    ExplicitWidth = 329
+    ExplicitHeight = 408
   end
   object lblBuild: TLabel
     Left = 8
@@ -892,5 +890,21 @@ object frmAbout: TfrmAbout
     Font.Style = [fsBold]
     ParentColor = False
     ParentFont = False
+  end
+  object mDatos: TcxMemo
+    Left = 0
+    Top = 24
+    ParentFont = False
+    Properties.ReadOnly = True
+    Style.Color = 11105043
+    Style.Font.Charset = DEFAULT_CHARSET
+    Style.Font.Color = clWindow
+    Style.Font.Height = -11
+    Style.Font.Name = 'Tahoma'
+    Style.Font.Style = [fsBold]
+    Style.IsFontAssigned = True
+    TabOrder = 0
+    Height = 137
+    Width = 304
   end
 end

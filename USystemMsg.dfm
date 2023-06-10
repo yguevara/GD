@@ -2417,30 +2417,8 @@ object frmsystemMSG: TfrmsystemMSG
       Stretch = True
       Transparent = True
       OnClick = Image1Click
-      ExplicitLeft = 152
-      ExplicitTop = 56
-      ExplicitWidth = 105
-      ExplicitHeight = 105
-    end
-    object ElURLLabel1: TElURLLabel
-      Left = 208
-      Top = 152
-      Width = 3
-      Height = 13
-      Cursor = crHandPoint
-      Hint = ''
-      ParentThemeMode = False
-      Caption = ''
-      URL = 'https://www.facebook.com/profile.php?id=100078959550201'
-      Visited = True
-      HyperLinkStyle = [fsUnderline]
-      DockOrientation = doNoOrient
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlue
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = [fsUnderline]
-      ParentFont = False
+      ExplicitLeft = 273
+      ExplicitTop = 129
     end
   end
   object Memo1: TMemo
@@ -2470,6 +2448,5 @@ object frmsystemMSG: TfrmsystemMSG
     ReadOnly = True
     TabOrder = 1
     OnClick = Image1Click
-    ExplicitHeight = 93
   end
 end

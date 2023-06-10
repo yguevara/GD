@@ -807,6 +807,7 @@ object frmDoc: TfrmDoc
   OldCreateOrder = False
   Position = poScreenCenter
   OnActivate = FormActivate
+  OnKeyDown = FormKeyDown
   PixelsPerInch = 96
   TextHeight = 13
   object StatusBar2: TStatusBar
@@ -833,6 +834,7 @@ object frmDoc: TfrmDoc
     TabOrder = 1
     ViewStyle = vsReport
     OnDblClick = lbDocDblClick
+    OnKeyDown = FormKeyDown
     ColumnsOrder = '0=575'
     SortMethod = smAlphabetic
     ExtendedColumns = <
@@ -851,8 +853,6 @@ object frmDoc: TfrmDoc
     Color = 15780526
     ParentBackground = False
     TabOrder = 2
-    ExplicitLeft = -67
-    ExplicitWidth = 646
     object JvTransparentButton1: TJvTransparentButton
       Left = 1
       Top = 1
@@ -862,7 +862,7 @@ object frmDoc: TfrmDoc
       Align = alLeft
       AutoGray = False
       Color = 13135884
-      FrameStyle = fsLight
+      FrameStyle = fsIndent
       ParentShowHint = False
       ShowHint = True
       OnClick = JvTransparentButton1Click
@@ -1010,9 +1010,10 @@ object frmDoc: TfrmDoc
       Align = alRight
       AutoGray = False
       Color = 13135884
-      FrameStyle = fsLight
+      FrameStyle = fsIndent
       ParentShowHint = False
       ShowHint = True
+      OnClick = btnSystemHelpClick
       Glyph.Data = {
         36100000424D3610000000000000360000002800000020000000200000000100
         2000000000000010000000000000000000000000000000000000000000000000
@@ -1147,6 +1148,14 @@ object frmDoc: TfrmDoc
       ExplicitLeft = 572
       ExplicitTop = 4
       ExplicitHeight = 38
+    end
+    object Edit1: TEdit
+      Left = 0
+      Top = 0
+      Width = 1
+      Height = 1
+      TabOrder = 0
+      OnKeyDown = FormKeyDown
     end
   end
 end

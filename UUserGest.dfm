@@ -802,6 +802,7 @@ object frmGestUser: TfrmGestUser
   OldCreateOrder = False
   Position = poScreenCenter
   OnActivate = FormActivate
+  OnKeyDown = FormKeyDown
   PixelsPerInch = 96
   TextHeight = 13
   object StatusBar1: TStatusBar
@@ -850,14 +851,21 @@ object frmGestUser: TfrmGestUser
             Caption = 'Tel'#233'fono'
             Width = 150
           end>
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = []
         LargeImages = UDM.ILEdith
         ReadOnly = True
+        ParentFont = False
         PopupMenu = PMUsuarios
         SmallImages = UDM.ILEdith
         SortType = stBoth
         TabOrder = 0
         ViewStyle = vsReport
         OnDblClick = lbUserDblClick
+        OnKeyDown = FormKeyDown
         ColumnsOrder = '0=187,1=186,2=150,3=150,4=150'
         SortMethod = smAlphabetic
         ExtendedColumns = <
@@ -899,7 +907,7 @@ object frmGestUser: TfrmGestUser
       Align = alLeft
       AutoGray = False
       Color = 13135884
-      FrameStyle = fsLight
+      FrameStyle = fsIndent
       ParentShowHint = False
       ShowHint = True
       OnClick = btnCloseClick
@@ -1047,7 +1055,7 @@ object frmGestUser: TfrmGestUser
       Align = alLeft
       AutoGray = False
       Color = 13135884
-      FrameStyle = fsLight
+      FrameStyle = fsIndent
       ParentShowHint = False
       ShowHint = True
       OnClick = Agregar1Click
@@ -1195,7 +1203,7 @@ object frmGestUser: TfrmGestUser
       Align = alLeft
       AutoGray = False
       Color = 13135884
-      FrameStyle = fsLight
+      FrameStyle = fsIndent
       ParentShowHint = False
       ShowHint = True
       OnClick = Establecercontrasea1Click
@@ -1341,7 +1349,7 @@ object frmGestUser: TfrmGestUser
       Align = alLeft
       AutoGray = False
       Color = 13135884
-      FrameStyle = fsLight
+      FrameStyle = fsIndent
       ParentShowHint = False
       ShowHint = True
       OnClick = Propiedades1Click
@@ -1489,9 +1497,10 @@ object frmGestUser: TfrmGestUser
       Align = alRight
       AutoGray = False
       Color = 13135884
-      FrameStyle = fsLight
+      FrameStyle = fsIndent
       ParentShowHint = False
       ShowHint = True
+      OnClick = btnSystemHelpClick
       Glyph.Data = {
         36100000424D3610000000000000360000002800000020000000200000000100
         2000000000000010000000000000000000000000000000000000000000000000
@@ -1636,7 +1645,7 @@ object frmGestUser: TfrmGestUser
       Align = alLeft
       AutoGray = False
       Color = 13135884
-      FrameStyle = fsLight
+      FrameStyle = fsIndent
       ParentShowHint = False
       ShowHint = True
       OnClick = EliminarUsuario1Click
@@ -1774,6 +1783,14 @@ object frmGestUser: TfrmGestUser
       ExplicitLeft = 139
       ExplicitTop = 4
       ExplicitHeight = 38
+    end
+    object Edit1: TEdit
+      Left = 0
+      Top = 0
+      Width = 1
+      Height = 21
+      TabOrder = 0
+      OnKeyDown = FormKeyDown
     end
   end
   object PMUsuarios: TPopupMenu

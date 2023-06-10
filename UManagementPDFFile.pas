@@ -9,7 +9,8 @@ uses
   FireDAC.Stan.Option, FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS,
   FireDAC.Phys.Intf, FireDAC.DApt.Intf, FireDAC.Stan.Async, FireDAC.DApt,
   Data.DB, FireDAC.Comp.DataSet, FireDAC.Comp.Client, Vcl.ExtCtrls,
-  Winapi.ShellAPI, AdvOfficeStatusBar;
+  Winapi.ShellAPI, AdvOfficeStatusBar, JvExControls, JvButton,
+  JvTransparentButton;
 
 type
   PQry = ^TFDQuery;
@@ -17,24 +18,26 @@ type
   TfrmManagementProc = class(TForm)
     btnFindInforme: TSpeedButton;
     lbl1: TLabel;
-    tlbObject: TToolBar;
-    btn1: TToolButton;
-    btntbtncerrar: TToolButton;
-    btn3: TToolButton;
-    btnViewInforme: TToolButton;
-    btn2: TToolButton;
-    btnhelp: TToolButton;
     edt1: TEdit;
     dlgOpenODPDF: TOpenDialog;
     dlgOpenODJPG: TOpenDialog;
     Timer1: TTimer;
     sbAD: TAdvOfficeStatusBar;
+    pMainContainer: TPanel;
+    btnClose: TJvTransparentButton;
+    btnautentica: TJvTransparentButton;
+    btnFileClean: TJvTransparentButton;
+    btnSystemHelp: TJvTransparentButton;
+    Edit1: TEdit;
     procedure btn3Click(Sender: TObject);
     procedure btnFindInformeClick(Sender: TObject);
     procedure btnViewInformeClick(Sender: TObject);
     procedure btntbtncerrarClick(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure btnhelpClick(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure btnSystemHelpClick(Sender: TObject);
+    procedure FormActivate(Sender: TObject);
   private
     { Private declarations }
   public
@@ -52,7 +55,7 @@ procedure ManagementPDF(aDS: PQry; aFieldName, Etiq, extension: string);
 implementation
 
 uses
-  UCapaDatos;
+  UCapaDatos, USystemMsg;
 
 {$R *.dfm}
 procedure ManagementPDF(aDS: PQry; aFieldName, Etiq, extension: string);
@@ -73,7 +76,8 @@ end;
 
 procedure TfrmManagementProc.btn3Click(Sender: TObject);
 begin
-  if (Contenedor^.FieldByName(NombreCampo).Value=null)or(trim(Contenedor^.FieldByName(NombreCampo).asstring)=null) then begin
+  if (Contenedor^.FieldByName(NombreCampo).Value = null) or (trim(Contenedor^.FieldByName(NombreCampo).asstring) = null) then
+  begin
     UDM.sms('Debe especificar un fichero válido para eliminar.', 3);
     Exit;
   end;
@@ -138,6 +142,16 @@ begin
   UDM.ManagementHLP(Caption, Self.Handle);
 end;
 
+procedure TfrmManagementProc.btnSystemHelpClick(Sender: TObject);
+begin
+  with TfrmsystemMSG.Create(nil) do
+  try
+    ShowModal;
+  finally
+    Free;
+  end;
+end;
+
 procedure TfrmManagementProc.btntbtncerrarClick(Sender: TObject);
 begin
   Close;
@@ -164,7 +178,8 @@ var
   end;
 
 begin
-  if (Contenedor^.FieldByName(NombreCampo).Value=null)or(trim(Contenedor^.FieldByName(NombreCampo).asstring)=null) then begin
+  if (Contenedor^.FieldByName(NombreCampo).Value = null) or (trim(Contenedor^.FieldByName(NombreCampo).asstring) = null) then
+  begin
     UDM.sms('No existe ningún fichero almacenado que pueda ser visualizado.', 3);
     Exit;
   end;
@@ -196,6 +211,25 @@ begin
     Refresh;
   finally
     Screen.Cursor := crDefault;
+  end;
+end;
+
+procedure TfrmManagementProc.FormActivate(Sender: TObject);
+begin
+  Edit1.Focused;
+  Edit1.SetFocus;
+end;
+
+procedure TfrmManagementProc.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if Key = 112 then
+  begin
+    with TfrmsystemMSG.Create(nil) do
+    try
+      ShowModal;
+    finally
+      Free;
+    end;
   end;
 end;
 

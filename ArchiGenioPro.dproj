@@ -103,9 +103,6 @@
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
-        <DCCReference Include="UMain.pas">
-            <Form>MAINFORM</Form>
-        </DCCReference>
         <DCCReference Include="UHistory.pas">
             <Form>frmHistory</Form>
         </DCCReference>
@@ -261,6 +258,11 @@
         </DCCReference>
         <DCCReference Include="UCL_TiposExp.pas">
             <Form>frmTiposExp</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="uiapp.pas"/>
+        <DCCReference Include="USysConfig.pas">
+            <Form>frmSysConfig</Form>
             <FormType>dfm</FormType>
         </DCCReference>
         <BuildConfiguration Include="Release">

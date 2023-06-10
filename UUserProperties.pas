@@ -50,12 +50,15 @@ type
     btnusercontrol: TJvTransparentButton;
     btnSystemHelp: TJvTransparentButton;
     JvTransparentButton2: TJvTransparentButton;
+    Edit1: TEdit;
     procedure btnCreateUserClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnCloseClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure btnSystemHelpClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -69,13 +72,13 @@ var
 implementation
 
 uses
-  UCapaDatos, UChangePass;
+  UCapaDatos, UChangePass, USystemMsg;
 
 {$R *.dfm}
 
 procedure TfrmProperties.btnCloseClick(Sender: TObject);
 begin
-  if (UDM.cl_Resp_Gest_Arch.State=dsInsert)or(UDM.cl_Resp_Gest_Arch.State=dsEdit) then
+  if (UDM.cl_Resp_Gest_Arch.State = dsInsert) or (UDM.cl_Resp_Gest_Arch.State = dsEdit) then
   try
     UDM.cl_Resp_Gest_Arch.Cancel;
   except
@@ -107,6 +110,16 @@ begin
     end;
   end;
 
+end;
+
+procedure TfrmProperties.btnSystemHelpClick(Sender: TObject);
+begin
+  with TfrmsystemMSG.Create(nil) do
+  try
+    ShowModal;
+  finally
+    Free;
+  end;
 end;
 
 procedure TfrmProperties.Button1Click(Sender: TObject);
@@ -143,6 +156,19 @@ begin
   edtMinisterio.DataSource := UDM.dscl_Resp_Gest_Arch;
   lcbrol.DataSource := UDM.dscl_Resp_Gest_Arch;
   lcbrol.ListSource := UDM.DSTb_Rol;
+end;
+
+procedure TfrmProperties.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if Key = 112 then
+  begin
+    with TfrmsystemMSG.Create(nil) do
+    try
+      ShowModal;
+    finally
+      Free;
+    end;
+  end;
 end;
 
 end.

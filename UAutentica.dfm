@@ -322,6 +322,13 @@ object frmAutentica: TfrmAutentica
     Top = 97
     Width = 264
     Height = 21
+    Color = 15453088
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    Font.Style = []
+    ParentFont = False
     TabOrder = 0
     OnKeyDown = edtuserKeyDown
     OnKeyPress = edtuserKeyPress
@@ -331,6 +338,13 @@ object frmAutentica: TfrmAutentica
     Top = 144
     Width = 264
     Height = 21
+    Color = 15453088
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    Font.Style = []
+    ParentFont = False
     PasswordChar = '*'
     TabOrder = 1
     OnKeyDown = edtuserKeyDown

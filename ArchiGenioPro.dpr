@@ -4,7 +4,6 @@ uses
   Vcl.Forms,
   Winapi.Windows,
   System.SysUtils,
-  UMain in 'UMain.pas' {MAINFORM},
   UHistory in 'UHistory.pas' {frmHistory},
   USplash in 'USplash.pas' {frmSplash},
   UAbout in 'UAbout.pas' {frmAbout},
@@ -57,11 +56,13 @@ uses
   UNodeProperties in 'UNodeProperties.pas' {frmPropiedadesNodo},
   UMAINFORM in 'UMAINFORM.pas' {MAIN},
   UCL_Expediente in 'UCL_Expediente.pas' {frmExpediente},
-  UCL_TiposExp in 'UCL_TiposExp.pas' {frmTiposExp};
+  UCL_TiposExp in 'UCL_TiposExp.pas' {frmTiposExp},
+  uiapp in 'uiapp.pas',
+  USysConfig in 'USysConfig.pas' {frmSysConfig};
 
 {$R *.res}
 VAR
-  cad:string;
+  cad, build:string;
 
 procedure TrimAppMemorySize;
 var
@@ -119,6 +120,7 @@ begin
   Application.Initialize;
   Application.MainFormOnTaskbar := True;                                       //%.d.
   cad:='Versión: '+Sto_GetFmtFileVersion(Application.ExeName, '%.d.%.d.%.d.%.4d');
+  build:= Sto_GetFmtFileVersion(Application.ExeName, '%.d.%.d.%.d.%.4d');
  // TStyleManager.TrySetStyle('Windows10 Blue');
   TStyleManager.TrySetStyle('Metropolis UI Blue');
   Application.Title := 'ArchiGenioPro';
@@ -134,8 +136,10 @@ begin
   Application.CreateForm(TUDM, UDM);
   // Application.CreateForm(TMAINFORM, MAINFORM);
   // Application.CreateForm(TMAINFORM, MAINFORM);
+  // Application.CreateForm(TMAINFORM, MAINFORM);
   Application.CreateForm(TMAIN, MAIN);
   VersionProgram:=cad;
+  buildprogram:=build;
   //Application.CreateForm(TMAINFORM, MAINFORM);
   //Application.CreateForm(TfrmManagementFile, frmManagementFile);
   Sleep(2000);

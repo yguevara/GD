@@ -6,7 +6,7 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
   System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
   Vcl.ComCtrls, Vcl.ToolWin, JvExComCtrls, JvListView, JvExControls, JvButton,
-  JvTransparentButton, Vcl.ExtCtrls;
+  JvTransparentButton, Vcl.ExtCtrls, Vcl.StdCtrls;
 
 type
   TfrmDoc = class(TForm)
@@ -15,10 +15,13 @@ type
     pMainContainer: TPanel;
     JvTransparentButton1: TJvTransparentButton;
     btnSystemHelp: TJvTransparentButton;
+    Edit1: TEdit;
     procedure ToolButton1Click(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure lbDocDblClick(Sender: TObject);
     procedure JvTransparentButton1Click(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure btnSystemHelpClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -31,9 +34,19 @@ var
 implementation
 
 uses
-  UCapaDatos;
+  UCapaDatos, USystemMsg;
 
 {$R *.dfm}
+
+procedure TfrmDoc.btnSystemHelpClick(Sender: TObject);
+begin
+  with TfrmsystemMSG.Create(nil) do
+  try
+    ShowModal;
+  finally
+    Free;
+  end;
+end;
 
 procedure TfrmDoc.FormActivate(Sender: TObject);
 
@@ -76,7 +89,22 @@ procedure TfrmDoc.FormActivate(Sender: TObject);
   end;
 
 begin
+  Edit1.Focused;
+  Edit1.SetFocus;
   RastreaDir(PathSys + 'DOC\');
+end;
+
+procedure TfrmDoc.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if Key = 112 then
+  begin
+    with TfrmsystemMSG.Create(nil) do
+    try
+      ShowModal;
+    finally
+      Free;
+    end;
+  end;
 end;
 
 procedure TfrmDoc.JvTransparentButton1Click(Sender: TObject);
@@ -86,8 +114,8 @@ end;
 
 procedure TfrmDoc.lbDocDblClick(Sender: TObject);
 begin
-  if lbDoc.ItemIndex<>-1 then
-    UDM.VerPDFF(PathSys+'DOC\'+lbDoc.Items[lbDoc.ItemIndex].Caption);
+  if lbDoc.ItemIndex <> -1 then
+    UDM.VerPDFF(PathSys + 'DOC\' + lbDoc.Items[lbDoc.ItemIndex].Caption);
 end;
 
 procedure TfrmDoc.ToolButton1Click(Sender: TObject);

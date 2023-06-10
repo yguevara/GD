@@ -11,7 +11,7 @@ uses
   cxGridCustomTableView, cxGridTableView, cxGridDBTableView, Vcl.ComCtrls,
   cxGridLevel, cxClasses, cxGridCustomView, cxGrid, Vcl.ToolWin, Vcl.DBCtrls,
   cxDBNavigator, Vcl.ExtCtrls, cxDropDownEdit, JvExControls, JvButton,
-  JvTransparentButton;
+  JvTransparentButton, Vcl.StdCtrls;
 
 type
   TfrmListFTPServer = class(TForm)
@@ -37,6 +37,7 @@ type
     btnSystemHelp: TJvTransparentButton;
     btnBestFitSS: TJvTransparentButton;
     btnExportSSExcel: TJvTransparentButton;
+    Edit1: TEdit;
     procedure btnCloseClick(Sender: TObject);
     procedure btnhlpClick(Sender: TObject);
     procedure DBNavigator3Click(Sender: TObject; Button: TNavigateBtn);
@@ -45,6 +46,8 @@ type
     procedure btnExcelExportClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormActivate(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure btnSystemHelpClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -57,7 +60,7 @@ var
 implementation
 
 uses
-  UCapaDatos, UExcelExport;
+  UCapaDatos, UExcelExport, USystemMsg;
 
 {$R *.dfm}
 
@@ -99,6 +102,17 @@ begin
   UDM.ManagementHLP(Caption, Self.Handle);
 end;
 
+procedure TfrmListFTPServer.btnSystemHelpClick(Sender: TObject);
+begin
+  with TfrmsystemMSG.Create(nil) do
+  try
+    ShowModal;
+  finally
+    Free;
+  end;
+
+end;
+
 procedure TfrmListFTPServer.DBNavigator3Click(Sender: TObject; Button: TNavigateBtn);
 begin
   if Button = nbInsert then
@@ -110,12 +124,27 @@ end;
 
 procedure TfrmListFTPServer.FormActivate(Sender: TObject);
 begin
+  Edit1.Focused;
+  Edit1.SetFocus;
   UDM.RestauraGrid(cxGrid1DBTableView1, 'cl_servidoresFTP');
 end;
 
 procedure TfrmListFTPServer.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
   UDM.SalvaConfigGrid(cxGrid1DBTableView1, 'cl_servidoresFTP');
+end;
+
+procedure TfrmListFTPServer.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if Key = 112 then
+  begin
+    with TfrmsystemMSG.Create(nil) do
+    try
+      ShowModal;
+    finally
+      Free;
+    end;
+  end;
 end;
 
 procedure TfrmListFTPServer.ToolButton2Click(Sender: TObject);

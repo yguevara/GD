@@ -7803,6 +7803,53 @@ object UDM: TUDM
       'select * from tb_tree  Order by id ASC')
     Left = 216
     Top = 8
+    object tb_treeIdEstructura: TWideStringField
+      FieldName = 'IdEstructura'
+      Origin = 'IdEstructura'
+      ProviderFlags = [pfInUpdate, pfInWhere, pfInKey]
+      Size = 50
+    end
+    object tb_treeid: TIntegerField
+      FieldName = 'id'
+      Origin = 'id'
+      ProviderFlags = [pfInUpdate, pfInWhere, pfInKey]
+    end
+    object tb_treeetiqueta: TWideStringField
+      FieldName = 'etiqueta'
+      Origin = 'etiqueta'
+      Size = 100
+    end
+    object tb_treepadre: TIntegerField
+      FieldName = 'padre'
+      Origin = 'padre'
+    end
+    object tb_treeicono: TSmallintField
+      FieldName = 'icono'
+      Origin = 'icono'
+    end
+    object tb_treetipo: TSmallintField
+      FieldName = 'tipo'
+      Origin = 'tipo'
+    end
+    object tb_treevisible: TBooleanField
+      FieldName = 'visible'
+      Origin = 'visible'
+      Required = True
+    end
+    object tb_treeaowner: TWideStringField
+      FieldName = 'aowner'
+      Origin = 'aowner'
+      Size = 255
+    end
+    object tb_treeAdministrador: TIntegerField
+      FieldName = 'Administrador'
+      Origin = 'Administrador'
+    end
+    object tb_treedescripcion: TWideMemoField
+      FieldName = 'descripcion'
+      Origin = 'descripcion'
+      BlobType = ftWideMemo
+    end
   end
   object ImageList1: TImageList
     Left = 16
@@ -11111,7 +11158,7 @@ object UDM: TUDM
     end
     object cxStyle48: TcxStyle
       AssignedValues = [svColor, svFont, svTextColor]
-      Color = clWhite
+      Color = clWindow
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -13
@@ -11121,12 +11168,12 @@ object UDM: TUDM
     end
     object cxStyle49: TcxStyle
       AssignedValues = [svColor, svTextColor]
-      Color = clWhite
+      Color = 15982791
       TextColor = clBlack
     end
     object cxStyle50: TcxStyle
       AssignedValues = [svColor, svTextColor]
-      Color = 15461355
+      Color = clWindow
       TextColor = clBlack
     end
     object cxStyle51: TcxStyle
@@ -17011,8 +17058,8 @@ object UDM: TUDM
   end
   object dstb_SeriesDatos: TDataSource
     DataSet = tb_SeriesDatos
-    Left = 400
-    Top = 80
+    Left = 408
+    Top = 88
   end
   object cl_variables: TFDQuery
     OnPostError = cl_expedientePostError
@@ -28499,7 +28546,7 @@ object UDM: TUDM
     Left = 44
     Top = 576
     Bitmap = {
-      494C01010F003800040020002000FFFFFFFFFF00FFFFFFFFFFFFFFFF424D3600
+      494C01010F003800040020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000800000008000000001002000000000000000
       0100000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -30615,6 +30662,61 @@ object UDM: TUDM
       FCFFFF3FF8007F9FFCFFC1FFF9FFFF9FFC00003FFFFE001FFCFFC3FFF9FFFF9F
       FC00003FFFFE001FFC0007FFF800001FFFFFFFFFFFFFFFFFFC000FFFF800001F
       FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
-      FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF}
+      FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000
+      000000000000}
+  end
+  object dstb_sysconfig: TDataSource
+    DataSet = tb_sysconfig
+    OnDataChange = dstb_treeDataChange
+    Left = 1368
+    Top = 440
+  end
+  object tb_sysconfig: TFDQuery
+    AfterPost = tb_treeAfterPost
+    OnPostError = tb_SerietreePostError
+    AggregatesActive = True
+    Connection = Conn
+    SQL.Strings = (
+      'select * from tb_sysconfig')
+    Left = 1368
+    Top = 392
+  end
+  object ListadoServidores: TFDMemTable
+    Active = True
+    FieldDefs = <
+      item
+        Name = 'IdServer'
+        DataType = ftString
+        Size = 50
+      end
+      item
+        Name = 'NombreServer'
+        DataType = ftString
+        Size = 100
+      end>
+    IndexDefs = <>
+    FetchOptions.AssignedValues = [evMode]
+    FetchOptions.Mode = fmAll
+    ResourceOptions.AssignedValues = [rvSilentMode]
+    ResourceOptions.SilentMode = True
+    UpdateOptions.AssignedValues = [uvCheckRequired, uvAutoCommitUpdates]
+    UpdateOptions.CheckRequired = False
+    UpdateOptions.AutoCommitUpdates = True
+    StoreDefs = True
+    Left = 880
+    Top = 600
+    object ListadoServidoresIdServer: TStringField
+      FieldName = 'IdServer'
+      Size = 50
+    end
+    object ListadoServidoresNombreServer: TStringField
+      FieldName = 'NombreServer'
+      Size = 100
+    end
+  end
+  object dsListadoServidores: TDataSource
+    DataSet = ListadoServidores
+    Left = 880
+    Top = 648
   end
 end

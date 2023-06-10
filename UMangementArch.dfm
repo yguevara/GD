@@ -806,6 +806,7 @@ object frmManagemetArch: TfrmManagemetArch
   Position = poScreenCenter
   OnActivate = FormActivate
   OnCloseQuery = FormCloseQuery
+  OnKeyDown = FormKeyDown
   PixelsPerInch = 96
   TextHeight = 13
   object StatusBar1: TStatusBar
@@ -834,6 +835,7 @@ object frmManagemetArch: TfrmManagemetArch
     Align = alClient
     TabOrder = 1
     object cxGrid1DBTableView1: TcxGridDBTableView
+      OnKeyDown = FormKeyDown
       Navigator.Buttons.ConfirmDelete = True
       Navigator.Buttons.CustomButtons = <>
       Navigator.Buttons.PriorPage.Visible = False
@@ -1327,7 +1329,7 @@ object frmManagemetArch: TfrmManagemetArch
       Align = alLeft
       AutoGray = False
       Color = 13135884
-      FrameStyle = fsLight
+      FrameStyle = fsIndent
       ParentShowHint = False
       ShowHint = True
       OnClick = btnCloseClick
@@ -1475,7 +1477,7 @@ object frmManagemetArch: TfrmManagemetArch
       Align = alLeft
       AutoGray = False
       Color = 13135884
-      FrameStyle = fsLight
+      FrameStyle = fsIndent
       ParentShowHint = False
       ShowHint = True
       Visible = False
@@ -1624,7 +1626,7 @@ object frmManagemetArch: TfrmManagemetArch
       Align = alLeft
       AutoGray = False
       Color = 13135884
-      FrameStyle = fsLight
+      FrameStyle = fsIndent
       ParentShowHint = False
       ShowHint = True
       Visible = False
@@ -1771,9 +1773,10 @@ object frmManagemetArch: TfrmManagemetArch
       Align = alRight
       AutoGray = False
       Color = 13135884
-      FrameStyle = fsLight
+      FrameStyle = fsIndent
       ParentShowHint = False
       ShowHint = True
+      OnClick = btnSystemHelpClick
       Glyph.Data = {
         36100000424D3610000000000000360000002800000020000000200000000100
         2000000000000010000000000000000000000000000000000000000000000000
@@ -1908,6 +1911,14 @@ object frmManagemetArch: TfrmManagemetArch
       ExplicitLeft = 572
       ExplicitTop = 4
       ExplicitHeight = 38
+    end
+    object Edit1: TEdit
+      Left = 0
+      Top = 0
+      Width = 1
+      Height = 21
+      TabOrder = 0
+      OnKeyDown = FormKeyDown
     end
   end
   object FDQuery1: TFDQuery

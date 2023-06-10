@@ -806,6 +806,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
   Position = poScreenCenter
   OnActivate = FormActivate
   OnCreate = FormCreate
+  OnKeyDown = FormKeyDown
   OnResize = FormResize
   PixelsPerInch = 96
   TextHeight = 13
@@ -1021,6 +1022,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       InfoPanel.Visible = True
       Align = alRight
       TabOrder = 0
+      Visible = False
     end
     object DBNavigator1: TDBNavigator
       Tag = 99
@@ -1062,10 +1064,12 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       Width = 315
       Height = 346
       Align = alClient
+      Color = 15453088
       Images = UDM.ImageList2
       Indent = 27
       ReadOnly = True
       TabOrder = 0
+      OnKeyDown = FormKeyDown
       OnMouseDown = tvTreeDataMouseDown
     end
   end
@@ -1088,7 +1092,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       Height = 13
       Caption = 'Descripci'#243'n'
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlack
+      Font.Color = clWindow
       Font.Height = -11
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
@@ -1102,10 +1106,10 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       Anchors = [akTop]
       Color = 11105043
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlack
+      Font.Color = clWindow
       Font.Height = -13
       Font.Name = 'Tahoma'
-      Font.Style = []
+      Font.Style = [fsBold]
       ParentBackground = False
       ParentColor = False
       ParentFont = False
@@ -1117,7 +1121,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
         Height = 13
         Caption = 'Tipo de Objeto'
         Font.Charset = DEFAULT_CHARSET
-        Font.Color = clBlack
+        Font.Color = clWindow
         Font.Height = -11
         Font.Name = 'Tahoma'
         Font.Style = [fsBold]
@@ -1130,7 +1134,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
         Height = 13
         Caption = 'Administrador del '#193'rea'
         Font.Charset = DEFAULT_CHARSET
-        Font.Color = clBlack
+        Font.Color = clWindow
         Font.Height = -11
         Font.Name = 'Tahoma'
         Font.Style = [fsBold]
@@ -1143,7 +1147,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
         Height = 13
         Caption = 'Nombre'
         Font.Charset = DEFAULT_CHARSET
-        Font.Color = clBlack
+        Font.Color = clWindow
         Font.Height = -11
         Font.Name = 'Tahoma'
         Font.Style = [fsBold]
@@ -1156,7 +1160,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
         Height = 13
         Caption = 'C'#243'digo de la estructura'
         Font.Charset = DEFAULT_CHARSET
-        Font.Color = clBlack
+        Font.Color = clWindow
         Font.Height = -11
         Font.Name = 'Tahoma'
         Font.Style = [fsBold]
@@ -1169,7 +1173,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
         Height = 13
         Caption = 'Padre'
         Font.Charset = DEFAULT_CHARSET
-        Font.Color = clBlack
+        Font.Color = clWindow
         Font.Height = -11
         Font.Name = 'Tahoma'
         Font.Style = [fsBold]
@@ -1192,6 +1196,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
           end>
         Properties.ListOptions.ShowHeader = False
         Properties.ListSource = UDM.dscl_tipoobj
+        Style.Color = 15453088
         Style.Font.Charset = DEFAULT_CHARSET
         Style.Font.Color = clBlack
         Style.Font.Height = -12
@@ -1207,6 +1212,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
         StyleHot.LookAndFeel.NativeStyle = True
         StyleHot.LookAndFeel.SkinName = 'Office2010Blue'
         TabOrder = 0
+        OnKeyDown = FormKeyDown
         Width = 234
       end
       object lcbRepresentante: TcxDBLookupComboBox
@@ -1226,6 +1232,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
           end>
         Properties.ListOptions.ShowHeader = False
         Properties.ListSource = UDM.dscl_Resp_Gest_Arch
+        Style.Color = 15453088
         Style.Font.Charset = DEFAULT_CHARSET
         Style.Font.Color = clBlack
         Style.Font.Height = -12
@@ -1241,6 +1248,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
         StyleHot.LookAndFeel.NativeStyle = True
         StyleHot.LookAndFeel.SkinName = 'Office2010Blue'
         TabOrder = 1
+        OnKeyDown = FormKeyDown
         Width = 204
       end
       object edtEtiqueta: TcxDBTextEdit
@@ -1250,6 +1258,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
         DataBinding.DataSource = UDM.dstb_tree
         ParentFont = False
         Properties.ValidationOptions = [evoShowErrorIcon]
+        Style.Color = 15453088
         Style.Font.Charset = DEFAULT_CHARSET
         Style.Font.Color = clBlack
         Style.Font.Height = -12
@@ -1265,6 +1274,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
         StyleHot.LookAndFeel.NativeStyle = True
         StyleHot.LookAndFeel.SkinName = 'DevExpressDarkStyle'
         TabOrder = 2
+        OnKeyDown = FormKeyDown
         Width = 377
       end
       object edtdeposito: TcxDBTextEdit
@@ -1274,6 +1284,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
         DataBinding.DataSource = UDM.dstb_tree
         ParentFont = False
         Properties.ValidationOptions = [evoShowErrorIcon]
+        Style.Color = 15453088
         Style.Font.Charset = DEFAULT_CHARSET
         Style.Font.Color = clBlack
         Style.Font.Height = -12
@@ -1289,6 +1300,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
         StyleHot.LookAndFeel.NativeStyle = True
         StyleHot.LookAndFeel.SkinName = 'DevExpressDarkStyle'
         TabOrder = 3
+        OnKeyDown = FormKeyDown
         Width = 162
       end
       object cxDBCheckBox1: TcxDBCheckBox
@@ -1370,6 +1382,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
           end>
         Properties.ListOptions.ShowHeader = False
         Properties.ListSource = dsPadres
+        Style.Color = 15453088
         Style.Font.Charset = DEFAULT_CHARSET
         Style.Font.Color = clBlack
         Style.Font.Height = -12
@@ -1385,6 +1398,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
         StyleHot.LookAndFeel.NativeStyle = True
         StyleHot.LookAndFeel.SkinName = 'Office2010Blue'
         TabOrder = 5
+        OnKeyDown = FormKeyDown
         Width = 204
       end
     end
@@ -1394,8 +1408,17 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       Align = alBottom
       DataBinding.DataField = 'descripcion'
       DataBinding.DataSource = UDM.dstb_tree
+      ParentFont = False
       Properties.ScrollBars = ssVertical
+      Style.Color = 15453088
+      Style.Font.Charset = DEFAULT_CHARSET
+      Style.Font.Color = clWindowText
+      Style.Font.Height = -11
+      Style.Font.Name = 'Tahoma'
+      Style.Font.Style = []
+      Style.IsFontAssigned = True
       TabOrder = 1
+      OnKeyDown = FormKeyDown
       Height = 138
       Width = 633
     end
@@ -1875,13 +1898,13 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
     Version = '1.6.2.1'
   end
   object cpNewNode: TJvCaptionPanel
-    Left = 230
-    Top = 78
+    Left = 182
+    Top = 77
     Width = 592
     Height = 284
     Buttons = []
     Caption = 'Adicionar un nuevo nodo'
-    CaptionColor = clNavy
+    CaptionColor = 11105043
     CaptionPosition = dpTop
     CaptionFont.Charset = DEFAULT_CHARSET
     CaptionFont.Color = clWhite
@@ -1899,7 +1922,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       Height = 13
       Caption = 'C'#243'digo de la estructura'
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlack
+      Font.Color = clWindow
       Font.Height = -11
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
@@ -1912,7 +1935,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       Height = 13
       Caption = 'Administrador del '#193'rea'
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlack
+      Font.Color = clWindow
       Font.Height = -11
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
@@ -1925,7 +1948,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       Height = 13
       Caption = 'Tipo de Objeto'
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlack
+      Font.Color = clWindow
       Font.Height = -11
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
@@ -1938,7 +1961,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       Height = 13
       Caption = 'Nombre'
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlack
+      Font.Color = clWindow
       Font.Height = -11
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
@@ -1951,7 +1974,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       Height = 13
       Caption = 'Descripci'#243'n'
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlack
+      Font.Color = clWindow
       Font.Height = -11
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
@@ -1965,9 +1988,10 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       ParentFont = False
       Properties.ValidationOptions = [evoShowErrorIcon]
       Properties.OnValidate = edtCodEstructuraPropertiesValidate
+      Style.Color = 15453088
       Style.Font.Charset = DEFAULT_CHARSET
-      Style.Font.Color = clBlack
-      Style.Font.Height = -12
+      Style.Font.Color = clWindowText
+      Style.Font.Height = -11
       Style.Font.Name = 'Tahoma'
       Style.Font.Style = []
       Style.LookAndFeel.NativeStyle = True
@@ -1980,6 +2004,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       StyleHot.LookAndFeel.NativeStyle = True
       StyleHot.LookAndFeel.SkinName = 'DevExpressDarkStyle'
       TabOrder = 0
+      OnKeyDown = FormKeyDown
       Width = 162
     end
     object cxDBLookupComboBox1: TcxDBLookupComboBox
@@ -1999,9 +2024,10 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
         end>
       Properties.ListOptions.ShowHeader = False
       Properties.ListSource = UDM.dscl_Resp_Gest_Arch
+      Style.Color = 15453088
       Style.Font.Charset = DEFAULT_CHARSET
-      Style.Font.Color = clBlack
-      Style.Font.Height = -12
+      Style.Font.Color = clWindowText
+      Style.Font.Height = -11
       Style.Font.Name = 'Tahoma'
       Style.Font.Style = []
       Style.LookAndFeel.NativeStyle = True
@@ -2014,6 +2040,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       StyleHot.LookAndFeel.NativeStyle = True
       StyleHot.LookAndFeel.SkinName = 'Office2010Blue'
       TabOrder = 1
+      OnKeyDown = FormKeyDown
       Width = 204
     end
     object cxDBCheckBox2: TcxDBCheckBox
@@ -2022,6 +2049,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       Caption = 'Visible'
       DataBinding.DataField = 'visible'
       DataBinding.DataSource = UDM.dstb_tree
+      ParentFont = False
       Properties.Glyph.SourceDPI = 96
       Properties.Glyph.Data = {
         89504E470D0A1A0A0000000D494844520000002000000010080600000077007D
@@ -2075,6 +2103,12 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
         0FA6CF825D9F0C64780000000049454E44AE426082}
       Properties.GlyphCount = 2
       Properties.NullStyle = nssUnchecked
+      Style.Font.Charset = DEFAULT_CHARSET
+      Style.Font.Color = clWindowText
+      Style.Font.Height = -11
+      Style.Font.Name = 'Tahoma'
+      Style.Font.Style = []
+      Style.IsFontAssigned = True
       TabOrder = 2
     end
     object cxDBLookupComboBox2: TcxDBLookupComboBox
@@ -2096,9 +2130,10 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       Properties.ListSource = UDM.dscl_tipoobj
       Properties.OnChange = cxDBLookupComboBox2PropertiesChange
       Properties.OnCloseUp = cxDBLookupComboBox2PropertiesCloseUp
+      Style.Color = 15453088
       Style.Font.Charset = DEFAULT_CHARSET
-      Style.Font.Color = clBlack
-      Style.Font.Height = -12
+      Style.Font.Color = clWindowText
+      Style.Font.Height = -11
       Style.Font.Name = 'Tahoma'
       Style.Font.Style = []
       Style.LookAndFeel.NativeStyle = True
@@ -2111,6 +2146,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       StyleHot.LookAndFeel.NativeStyle = True
       StyleHot.LookAndFeel.SkinName = 'Office2010Blue'
       TabOrder = 3
+      OnKeyDown = FormKeyDown
       Width = 234
     end
     object edtNombreEstructura: TcxDBTextEdit
@@ -2120,9 +2156,10 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       DataBinding.DataSource = UDM.dstb_tree
       ParentFont = False
       Properties.ValidationOptions = [evoShowErrorIcon]
+      Style.Color = 15453088
       Style.Font.Charset = DEFAULT_CHARSET
-      Style.Font.Color = clBlack
-      Style.Font.Height = -12
+      Style.Font.Color = clWindowText
+      Style.Font.Height = -11
       Style.Font.Name = 'Tahoma'
       Style.Font.Style = []
       Style.LookAndFeel.NativeStyle = True
@@ -2135,6 +2172,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       StyleHot.LookAndFeel.NativeStyle = True
       StyleHot.LookAndFeel.SkinName = 'DevExpressDarkStyle'
       TabOrder = 4
+      OnKeyDown = FormKeyDown
       Width = 377
     end
     object cxDBRichEdit1: TcxDBRichEdit
@@ -2143,8 +2181,17 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       Align = alBottom
       DataBinding.DataField = 'descripcion'
       DataBinding.DataSource = UDM.dstb_tree
+      ParentFont = False
       Properties.ScrollBars = ssVertical
+      Style.Color = 15453088
+      Style.Font.Charset = DEFAULT_CHARSET
+      Style.Font.Color = clWindowText
+      Style.Font.Height = -11
+      Style.Font.Name = 'Tahoma'
+      Style.Font.Style = []
+      Style.IsFontAssigned = True
       TabOrder = 5
+      OnKeyDown = FormKeyDown
       Height = 77
       Width = 574
     end
@@ -2184,7 +2231,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
         AutoGray = False
         Caption = 'Cancelar'
         Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
+        Font.Color = clWindow
         Font.Height = -13
         Font.Name = 'Tahoma'
         Font.Style = [fsBold]
@@ -2193,7 +2240,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
         HotTrackFont.Height = -13
         HotTrackFont.Name = 'Tahoma'
         HotTrackFont.Style = []
-        FrameStyle = fsLight
+        FrameStyle = fsIndent
         ParentFont = False
         ParentShowHint = False
         ShowHint = True
@@ -2210,7 +2257,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
         AutoGray = False
         Caption = 'OK'
         Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
+        Font.Color = clWindow
         Font.Height = -13
         Font.Name = 'Tahoma'
         Font.Style = [fsBold]
@@ -2219,7 +2266,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
         HotTrackFont.Height = -13
         HotTrackFont.Name = 'Tahoma'
         HotTrackFont.Style = []
-        FrameStyle = fsLight
+        FrameStyle = fsIndent
         ParentFont = False
         ParentShowHint = False
         ShowHint = True
@@ -2247,7 +2294,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       Align = alLeft
       AutoGray = False
       Color = 13135884
-      FrameStyle = fsLight
+      FrameStyle = fsIndent
       ParentShowHint = False
       ShowHint = True
       OnClick = A2Click
@@ -2394,7 +2441,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       Align = alLeft
       AutoGray = False
       Color = 13135884
-      FrameStyle = fsLight
+      FrameStyle = fsIndent
       ParentShowHint = False
       ShowHint = True
       OnClick = v1Click
@@ -2541,7 +2588,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       Align = alLeft
       AutoGray = False
       Color = 13135884
-      FrameStyle = fsLight
+      FrameStyle = fsIndent
       ParentShowHint = False
       ShowHint = True
       OnClick = O1Click
@@ -2688,7 +2735,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       Align = alLeft
       AutoGray = False
       Color = 13135884
-      FrameStyle = fsLight
+      FrameStyle = fsIndent
       ParentShowHint = False
       ShowHint = True
       Glyph.Data = {
@@ -2825,17 +2872,18 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       ExplicitLeft = 317
     end
     object btnSystemHelp: TJvTransparentButton
-      Left = 326
+      Left = 901
       Top = 1
       Width = 55
       Height = 38
       Hint = 'Ayuda '
-      Align = alLeft
+      Align = alRight
       AutoGray = False
       Color = 13135884
-      FrameStyle = fsLight
+      FrameStyle = fsIndent
       ParentShowHint = False
       ShowHint = True
+      OnClick = btnSystemHelpClick
       Glyph.Data = {
         36100000424D3610000000000000360000002800000020000000200000000100
         2000000000000010000000000000000000000000000000000000000000000000
@@ -2978,7 +3026,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       Align = alLeft
       AutoGray = False
       Color = 13135884
-      FrameStyle = fsLight
+      FrameStyle = fsIndent
       ParentShowHint = False
       ShowHint = True
       OnClick = MenuItem6Click
@@ -3125,7 +3173,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       Align = alLeft
       AutoGray = False
       Color = 13135884
-      FrameStyle = fsLight
+      FrameStyle = fsIndent
       ParentShowHint = False
       ShowHint = True
       OnClick = btnCloseClick
@@ -3262,6 +3310,14 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
         0000000000000000000000000000000000000000000000000000}
       ExplicitLeft = 14
       ExplicitTop = 4
+    end
+    object Edit1: TEdit
+      Left = 0
+      Top = 0
+      Width = 1
+      Height = 19
+      TabOrder = 0
+      OnKeyDown = FormKeyDown
     end
   end
   object Padres: TFDQuery

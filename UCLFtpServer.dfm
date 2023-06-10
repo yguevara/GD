@@ -806,6 +806,7 @@ object frmListFTPServer: TfrmListFTPServer
   Position = poScreenCenter
   OnActivate = FormActivate
   OnCloseQuery = FormCloseQuery
+  OnKeyDown = FormKeyDown
   PixelsPerInch = 96
   TextHeight = 13
   object cxGrid1: TcxGrid
@@ -816,6 +817,7 @@ object frmListFTPServer: TfrmListFTPServer
     Align = alClient
     TabOrder = 0
     object cxGrid1DBTableView1: TcxGridDBTableView
+      OnKeyDown = FormKeyDown
       Navigator.Buttons.ConfirmDelete = True
       Navigator.Buttons.CustomButtons = <>
       Navigator.Buttons.PriorPage.Visible = False
@@ -1231,7 +1233,6 @@ object frmListFTPServer: TfrmListFTPServer
       ShowHint = True
       TabOrder = 0
       Visible = False
-      ExplicitLeft = 657
     end
     object DBNavigator3: TDBNavigator
       Left = 1
@@ -1256,7 +1257,6 @@ object frmListFTPServer: TfrmListFTPServer
       ShowHint = True
       TabOrder = 1
       OnClick = DBNavigator3Click
-      ExplicitWidth = 656
     end
   end
   object pMainContainer: TPanel
@@ -1277,7 +1277,7 @@ object frmListFTPServer: TfrmListFTPServer
       Align = alLeft
       AutoGray = False
       Color = 13135884
-      FrameStyle = fsLight
+      FrameStyle = fsIndent
       ParentShowHint = False
       ShowHint = True
       OnClick = btnCloseClick
@@ -1425,7 +1425,7 @@ object frmListFTPServer: TfrmListFTPServer
       Align = alLeft
       AutoGray = False
       Color = 13135884
-      FrameStyle = fsLight
+      FrameStyle = fsIndent
       ParentShowHint = False
       ShowHint = True
       Visible = False
@@ -1574,7 +1574,7 @@ object frmListFTPServer: TfrmListFTPServer
       Align = alLeft
       AutoGray = False
       Color = 13135884
-      FrameStyle = fsLight
+      FrameStyle = fsIndent
       ParentShowHint = False
       ShowHint = True
       Visible = False
@@ -1721,9 +1721,10 @@ object frmListFTPServer: TfrmListFTPServer
       Align = alRight
       AutoGray = False
       Color = 13135884
-      FrameStyle = fsLight
+      FrameStyle = fsIndent
       ParentShowHint = False
       ShowHint = True
+      OnClick = btnSystemHelpClick
       Glyph.Data = {
         36100000424D3610000000000000360000002800000020000000200000000100
         2000000000000010000000000000000000000000000000000000000000000000
@@ -1858,6 +1859,14 @@ object frmListFTPServer: TfrmListFTPServer
       ExplicitLeft = 572
       ExplicitTop = 4
       ExplicitHeight = 38
+    end
+    object Edit1: TEdit
+      Left = 0
+      Top = 0
+      Width = 1
+      Height = 21
+      TabOrder = 0
+      OnKeyDown = FormKeyDown
     end
   end
   object dscl_ftp_Server: TDataSource

@@ -115,6 +115,7 @@ type
     btnPrint: TJvTransparentButton;
     btnSystemHelp: TJvTransparentButton;
     btndel: TJvTransparentButton;
+    Edit1: TEdit;
     procedure btnCloseClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure DBNavigator1Click(Sender: TObject; Button: TNavigateBtn);
@@ -136,10 +137,11 @@ type
     procedure cxDBLookupComboBox2PropertiesChange(Sender: TObject);
     procedure v1Click(Sender: TObject);
     procedure O1Click(Sender: TObject);
-    procedure edtCodEstructuraPropertiesValidate(Sender: TObject;
-      var DisplayValue: Variant; var ErrorText: TCaption; var Error: Boolean);
+    procedure edtCodEstructuraPropertiesValidate(Sender: TObject; var DisplayValue: Variant; var ErrorText: TCaption; var Error: Boolean);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure btnSystemHelpClick(Sender: TObject);
   private
-    procedure ReActiveFather(aId:Integer);
+    procedure ReActiveFather(aId: Integer);
     { Private declarations }
   public
     { Public declarations }
@@ -166,7 +168,7 @@ var
 implementation
 
 uses
-  UCapaDatos, UAddNewNode, UVarVirtualVar;
+  UCapaDatos, UAddNewNode, UVarVirtualVar, USystemMsg;
 
 {$R *.dfm}
 
@@ -216,7 +218,7 @@ end;
 
 procedure TfrmPropiedadesNodo.btnOKClick(Sender: TObject);
 begin
-  if trim(edtCodEstructura.Text)='' then
+  if trim(edtCodEstructura.Text) = '' then
   begin
     UDM.sms('Debe especificar un identificador de estructura válido.', 1);
     edtCodEstructura.Focused;
@@ -240,6 +242,16 @@ begin
       UDM.sms('No se pudieron salvar los cambios solicitados. Motivo: ' + E.Message, 1);
       exit;
     end;
+  end;
+end;
+
+procedure TfrmPropiedadesNodo.btnSystemHelpClick(Sender: TObject);
+begin
+  with TfrmsystemMSG.Create(nil) do
+  try
+    ShowModal;
+  finally
+    Free;
   end;
 end;
 
@@ -399,30 +411,32 @@ end;
 
 procedure TfrmPropiedadesNodo.DBNavigator1Click(Sender: TObject; Button: TNavigateBtn);
 var
-  bm:TBookmark;
-  idNodoActual:Integer;
-  etiqueta:string;
-  function FindNode(aId:integer): TTreeNode;
+  bm: TBookmark;
+  idNodoActual: Integer;
+  etiqueta: string;
+
+  function FindNode(aId: integer): TTreeNode;
   var
     j: integer;
   begin
     result := nil;
     for j := 0 to tvTreeData.Items.Count - 1 do
-      if (PDataRec(tvTreeData.Items[j]).Id = aId)or (tvTreeData.Items[j].Text = etiqueta) then
+      if (PDataRec(tvTreeData.Items[j]).Id = aId) or (tvTreeData.Items[j].Text = etiqueta) then
       begin
-        tvTreeData.Items[j].Selected:=True;
+        tvTreeData.Items[j].Selected := True;
         Result := tvTreeData.Items[j];
         Break;
       end;
   end;
+
 begin
   if Button = nbPost then
   begin
-    bm:=UDM.tb_tree.GetBookmark;
+    bm := UDM.tb_tree.GetBookmark;
     SaveTreeStateNode;
     UDM.tb_tree.DisableControls;
-    idNodoActual:=PDataRec(AnItem.Data).id;
-    etiqueta:=pdatarec(AnItem.Data).Etiqueta;
+    idNodoActual := PDataRec(AnItem.Data).id;
+    etiqueta := pdatarec(AnItem.Data).etiqueta;
 
     UDM.VisualizaOneNodeAndParent(UDM.conn, IntToStr(IdSelectedNode), UDM.tb_tree.FieldByName('visible').AsBoolean);
     UDM.CreaTreeDB(UDM.Conn, @tvTreeData, True);
@@ -433,13 +447,12 @@ begin
   end;
 end;
 
-procedure TfrmPropiedadesNodo.edtCodEstructuraPropertiesValidate(
-  Sender: TObject; var DisplayValue: Variant; var ErrorText: TCaption;
-  var Error: Boolean);
+procedure TfrmPropiedadesNodo.edtCodEstructuraPropertiesValidate(Sender: TObject; var DisplayValue: Variant; var ErrorText: TCaption; var Error: Boolean);
 begin
-  if trim(VarToStr(DisplayValue))='' then begin
-    ERROR:=False;
-    ErrorText:='Este campo no debe ser vacio.'
+  if trim(VarToStr(DisplayValue)) = '' then
+  begin
+    Error := False;
+    ErrorText := 'Este campo no debe ser vacio.'
   end;
 end;
 
@@ -503,6 +516,8 @@ end;
 
 procedure TfrmPropiedadesNodo.FormActivate(Sender: TObject);
 begin
+  Edit1.Focused;
+  Edit1.SetFocus;
   UDM.tb_tree.Filtered := False;
   ReActiveFather(UDM.tb_tree.FieldByName('id').Value);
 end;
@@ -510,6 +525,19 @@ end;
 procedure TfrmPropiedadesNodo.FormCreate(Sender: TObject);
 begin
   UDM.CreaTreeDB(UDM.Conn, @tvTreeData, True);
+end;
+
+procedure TfrmPropiedadesNodo.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if Key = 112 then
+  begin
+    with TfrmsystemMSG.Create(nil) do
+    try
+      ShowModal;
+    finally
+      Free;
+    end;
+  end;
 end;
 
 procedure TfrmPropiedadesNodo.FormResize(Sender: TObject);
@@ -541,7 +569,7 @@ begin
   end;
 end;
 
-procedure TfrmPropiedadesNodo.ReActiveFather(aId:Integer);
+procedure TfrmPropiedadesNodo.ReActiveFather(aId: Integer);
 begin
   Padres.Active := False;
   Padres.Params[0].Value := aId;
@@ -845,10 +873,10 @@ begin
     begin
       if AnItem.Text <> '' then
       begin
-        etiquetaNA := PDataRec(AnItem.data).Etiqueta;
-        MB.Panels[1].Text:=etiquetaNA;
+        etiquetaNA := PDataRec(AnItem.data).etiqueta;
+        MB.Panels[1].Text := etiquetaNA;
         id := PDataRec(AnItem.Data).id;
-        ReActiveFather(Id);
+        ReActiveFather(id);
         IdSelectedNode := PDataRec(AnItem.Data).id;
         if UDM.tb_tree.Locate('id', id, []) then
         begin

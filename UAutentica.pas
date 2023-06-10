@@ -38,7 +38,7 @@ function autenticar(conn: TadoConnection): string;
 implementation
 
 uses
-  md5, DBClient, USecurityClasss, UCapaDatos;
+  md5, DBClient, USecurityClasss, UCapaDatos, USystemMsg;
 
 
 {$R *.dfm}
@@ -191,7 +191,13 @@ end;
 procedure TfrmAutentica.edtuserKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
   if Key = 112 then
-    Application.HelpContext(40);
+    with TfrmsystemMSG.Create(nil) do
+    try
+      ShowModal;
+    finally
+      Free;
+    end;
+//    Application.HelpContext(40);
 end;
 
 end.

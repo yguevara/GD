@@ -28,13 +28,6 @@ type
   end;
 
   TfrmManagementFile = class(TForm)
-    tlbObject: TToolBar;
-    btntbtncerrar: TToolButton;
-    btn3: TToolButton;
-    btn1: TToolButton;
-    btnViewInforme: TToolButton;
-    btn2: TToolButton;
-    btnhelp: TToolButton;
     lbl1: TLabel;
     edt1: TEdit;
     dlgOpenOD: TOpenDialog;
@@ -42,11 +35,23 @@ type
     btnFindInforme: TSpeedButton;
     FDQuery1: TFDQuery;
     sbAD: TAdvOfficeStatusBar;
+    pMainContainer: TPanel;
+    btnClose: TJvTransparentButton;
+    btnautentica: TJvTransparentButton;
+    btnFileClean: TJvTransparentButton;
+    btnSystemHelp: TJvTransparentButton;
+    Edit1: TEdit;
     procedure btntbtncerrarClick(Sender: TObject);
     procedure btn3Click(Sender: TObject);
     procedure btnFindInformeClick(Sender: TObject);
     procedure btnViewInformeClick(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
+    procedure btnCloseClick(Sender: TObject);
+    procedure btnautenticaClick(Sender: TObject);
+    procedure btnFileCleanClick(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure btnSystemHelpClick(Sender: TObject);
+    procedure FormActivate(Sender: TObject);
   private
     { Private declarations }
   public
@@ -71,7 +76,7 @@ procedure ManagementFileSeries(aDS: PQry; aFieldName, Etiq: string);
 implementation
 
 uses
-  UCapaDatos;
+  UCapaDatos, USystemMsg;
 
 {$R *.dfm}
 
@@ -92,6 +97,22 @@ begin
 end;
 
 procedure TfrmManagementFile.btn3Click(Sender: TObject);
+begin
+  if (Contenedor^.FieldByName(NombreCampo).Value = null) or (trim(Contenedor^.FieldByName(NombreCampo).asstring) = null) then
+  begin
+    UDM.sms('Debe especificar un fichero válido para eliminar.', 3);
+    Exit;
+  end;
+  if UDM.sms('¿Está seguro de eliminar el procedimiento almacenado en el campo actual?', 4) = 6 then
+  begin
+    Contenedor^.Edit;
+    Contenedor^.FieldByName(NombreCampo).Clear;
+    Contenedor^.Post;
+    edt1.Text := '(Vacio)';
+  end;
+end;
+
+procedure TfrmManagementFile.btnFileCleanClick(Sender: TObject);
 begin
   if (Contenedor^.FieldByName(NombreCampo).Value = null) or (trim(Contenedor^.FieldByName(NombreCampo).asstring) = null) then
   begin
@@ -312,6 +333,16 @@ begin
   end;
 end;
 
+procedure TfrmManagementFile.btnSystemHelpClick(Sender: TObject);
+begin
+  with TfrmsystemMSG.Create(nil) do
+  try
+    ShowModal;
+  finally
+    Free;
+  end;
+end;
+
 procedure TfrmManagementFile.btntbtncerrarClick(Sender: TObject);
 begin
   Close;
@@ -358,7 +389,7 @@ var
   flag: Boolean;
   cont: Integer;
   TFBD, TFTMP: Int64;
-  cad:string;
+  cad: string;
 
   procedure ejecutaPDF(Path: string);
   begin
@@ -379,9 +410,10 @@ begin
     TBlobField(UDM.tb_SeriesDatos.FieldByName('fichero')).SaveToFile(PathTemp + 'tmpfile.txt');
     List := TStringList.Create;
     List.LoadFromFile(PathTemp + 'tmpfile.txt');
-    if FileExists(List[0]) then begin
-      ext:=ExtractFileExt(List[0]);
-      if AnsiLowerCase(ext)='.pdf' then
+    if FileExists(List[0]) then
+    begin
+      ext := ExtractFileExt(List[0]);
+      if AnsiLowerCase(ext) = '.pdf' then
       begin
         cad := QuotedStr('P') + ' ' + AnsiQuotedStr(List[0], '"');
         UDM.RunAndWaitShell(PathSys + 'Viewer.exe', cad, SW_SHOWMAXIMIZED);
@@ -394,6 +426,25 @@ begin
   else
   begin
     UDM.sms('Error se encontró un documento para visualizar. Especifique un documento válido para visualizar.', 3);
+  end;
+end;
+
+procedure TfrmManagementFile.FormActivate(Sender: TObject);
+begin
+  Edit1.Focused;
+  Edit1.SetFocus;
+end;
+
+procedure TfrmManagementFile.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if Key = 112 then
+  begin
+    with TfrmsystemMSG.Create(nil) do
+    try
+      ShowModal;
+    finally
+      Free;
+    end;
   end;
 end;
 
@@ -450,6 +501,92 @@ begin
   fe := AnsiReplaceStr(fe, ' ', '_');
   fe := AnsiReplaceStr(fe, ':', '_');
   result := fe;
+end;
+
+procedure TfrmManagementFile.btnautenticaClick(Sender: TObject);
+{var
+  List: TStringList;
+  Path, ext: string;
+  flag: Boolean;
+  cont: Integer;
+  TFBD, TFTMP: Int64;
+
+  procedure ejecutaPDF(Path: string);
+  begin
+    try
+      ShellExecute(Handle, nil, PChar(Path), '', '', SW_SHOWNORMAL);
+    except
+      on E: EFilerError do
+      begin
+        UDM.sms('No se pudo abrir el Informe especificado. Motivo:' + E.Message, 1);
+        Exit;
+      end;
+    end;
+  end;
+
+begin
+  if (Contenedor^.FieldByName(NombreCampo).Value = null) or (trim(Contenedor^.FieldByName(NombreCampo).asstring) = null) then
+  begin
+    UDM.sms('No existe ningún fichero almacenado que pueda ser visualizado.', 3);
+    Exit;
+  end;
+  if (UDM.tb_SeriesDatos.FieldByName('fichero').Value <> null) and (trim(UDM.tb_SeriesDatos.FieldByName('fichero').AsString) <> '') then
+  begin
+    TBlobField(UDM.tb_SeriesDatos.FieldByName('fichero')).SaveToFile(PathTemp + 'tmpfile.txt');
+    List := TStringList.Create;
+    List.LoadFromFile(PathTemp + 'tmpfile.txt');
+    UDM.ViewPDF(List[0]);
+  end;
+end; }
+var
+  List: TStringList;
+  Path, ext: string;
+  flag: Boolean;
+  cont: Integer;
+  TFBD, TFTMP: Int64;
+  cad: string;
+
+  procedure ejecutaPDF(Path: string);
+  begin
+    try
+      ShellExecute(Handle, nil, PChar(Path), '', '', SW_SHOWNORMAL);
+    except
+      on E: EFilerError do
+      begin
+        UDM.sms('No se pudo abrir el Informe especificado. Motivo:' + E.Message, 1);
+        Exit;
+      end;
+    end;
+  end;
+
+begin
+  if (UDM.tb_SeriesDatos.FieldByName('fichero').Value <> null) and (trim(UDM.tb_SeriesDatos.FieldByName('fichero').AsString) <> '') then
+  begin
+    TBlobField(UDM.tb_SeriesDatos.FieldByName('fichero')).SaveToFile(PathTemp + 'tmpfile.txt');
+    List := TStringList.Create;
+    List.LoadFromFile(PathTemp + 'tmpfile.txt');
+    if FileExists(List[0]) then
+    begin
+      ext := ExtractFileExt(List[0]);
+      if AnsiLowerCase(ext) = '.pdf' then
+      begin
+        cad := QuotedStr('P') + ' ' + AnsiQuotedStr(List[0], '"');
+        UDM.RunAndWaitShell(PathSys + 'Viewer.exe', cad, SW_SHOWMAXIMIZED);
+      end;
+      //UDM.ViewPDF(List[0]);
+    end
+    else
+      UDM.sms('No existe el fichero especificado.', 1);
+  end
+  else
+  begin
+    UDM.sms('Error se encontró un documento para visualizar. Especifique un documento válido para visualizar.', 3);
+  end;
+end;
+
+procedure TfrmManagementFile.btnCloseClick(Sender: TObject);
+begin
+  Close;
 end;
 
 function TfrmManagementFile.TamFichero(n: string): longint;

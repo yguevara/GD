@@ -16,6 +16,7 @@ object frmProperties: TfrmProperties
   OnActivate = FormActivate
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
+  OnKeyDown = FormKeyDown
   PixelsPerInch = 96
   TextHeight = 13
   object lblGrupo: TLabel
@@ -100,6 +101,7 @@ object frmProperties: TfrmProperties
     Font.Style = []
     ParentFont = False
     TabOrder = 2
+    OnKeyDown = FormKeyDown
     Items.Strings = (
       ''
       'S'
@@ -118,6 +120,7 @@ object frmProperties: TfrmProperties
     Font.Style = []
     ParentFont = False
     TabOrder = 3
+    OnKeyDown = FormKeyDown
   end
   object edtUser: TDBEdit
     Left = 128
@@ -133,6 +136,7 @@ object frmProperties: TfrmProperties
     ParentFont = False
     ReadOnly = True
     TabOrder = 4
+    OnKeyDown = FormKeyDown
   end
   object edtUserL: TDBEdit
     Left = 128
@@ -147,6 +151,7 @@ object frmProperties: TfrmProperties
     Font.Style = []
     ParentFont = False
     TabOrder = 5
+    OnKeyDown = FormKeyDown
   end
   object edtEmpresa: TDBEdit
     Left = 129
@@ -161,6 +166,7 @@ object frmProperties: TfrmProperties
     Font.Style = []
     ParentFont = False
     TabOrder = 6
+    OnKeyDown = FormKeyDown
   end
   object lcbrol: TDBLookupComboBox
     Left = 128
@@ -168,9 +174,16 @@ object frmProperties: TfrmProperties
     Width = 312
     Height = 21
     DataField = 'Rol'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
     KeyField = 'idrol'
     ListField = 'rol'
+    ParentFont = False
     TabOrder = 7
+    OnKeyDown = FormKeyDown
   end
   object StatusBar1: TStatusBar
     Left = 0
@@ -197,7 +210,7 @@ object frmProperties: TfrmProperties
       Align = alLeft
       AutoGray = False
       Color = 13135884
-      FrameStyle = fsLight
+      FrameStyle = fsIndent
       ParentShowHint = False
       ShowHint = True
       OnClick = btnCloseClick
@@ -345,7 +358,7 @@ object frmProperties: TfrmProperties
       Align = alLeft
       AutoGray = False
       Color = 13135884
-      FrameStyle = fsLight
+      FrameStyle = fsIndent
       ParentShowHint = False
       ShowHint = True
       OnClick = Button1Click
@@ -493,9 +506,10 @@ object frmProperties: TfrmProperties
       Align = alRight
       AutoGray = False
       Color = 13135884
-      FrameStyle = fsLight
+      FrameStyle = fsIndent
       ParentShowHint = False
       ShowHint = True
+      OnClick = btnSystemHelpClick
       Glyph.Data = {
         36100000424D3610000000000000360000002800000020000000200000000100
         2000000000000010000000000000000000000000000000000000000000000000
@@ -640,7 +654,7 @@ object frmProperties: TfrmProperties
       Align = alLeft
       AutoGray = False
       Color = 13135884
-      FrameStyle = fsLight
+      FrameStyle = fsIndent
       ParentShowHint = False
       ShowHint = True
       Visible = False
@@ -777,6 +791,16 @@ object frmProperties: TfrmProperties
         0000000000000000000000000000000000000000000000000000}
       ExplicitLeft = 176
       ExplicitTop = 9
+    end
+    object Edit1: TEdit
+      Left = 0
+      Top = 0
+      Width = 1
+      Height = 1
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 0
+      OnKeyDown = FormKeyDown
     end
   end
 end

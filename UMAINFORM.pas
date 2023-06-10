@@ -18,14 +18,15 @@ uses
   FireDAC.DatS, FireDAC.Phys.Intf, FireDAC.DApt.Intf, FireDAC.Stan.Async,
   FireDAC.DApt, FireDAC.Comp.DataSet, FireDAC.Comp.Client, cxBlobEdit,
   cxCheckBox, cxRichEdit, cxVGrid, cxDBVGrid, cxInplaceContainer,
-  cxDBLookupComboBox, cxImage, cxDropDownEdit, cxMaskEdit, cxLookupEdit,
-  cxDBLookupEdit, JvExExtCtrls, JvExtComponent, JvCaptionPanel,
-  dxLayoutContainer, cxGridInplaceEditForm, Winapi.ShellAPI, AdvSplitter,
-  cxCalendar, AdvLabel, AdvScrollBox, cxButtonEdit, cxLabel, System.ImageList,
-  Vcl.ImgList, Vcl.DBActns, System.Actions, Vcl.ActnList, dxDateTimeWheelPicker,
-  JvBaseDlg, JvSelectDirectory, cxTL, cxTLdxBarBuiltInMenu, Vcl.Samples.Gauges,
-  cxDBTL, cxTLData, System.StrUtils, JvDialogs, cxButtons, cxGridBandedTableView,
-  cxGridDBBandedTableView, AdvMenuStylers;
+  cxDBLookupComboBox, cxImage, cxDropDownEdit, cxLookupEdit, cxDBLookupEdit,
+  JvExExtCtrls, JvExtComponent, JvCaptionPanel, dxLayoutContainer,
+  cxGridInplaceEditForm, Winapi.ShellAPI, AdvSplitter, cxCalendar, AdvLabel,
+  AdvScrollBox, cxButtonEdit, cxLabel, System.ImageList, Vcl.ImgList,
+  Vcl.DBActns, System.Actions, Vcl.ActnList, dxDateTimeWheelPicker, JvBaseDlg,
+  JvSelectDirectory, cxTL, cxTLdxBarBuiltInMenu, Vcl.Samples.Gauges, cxDBTL,
+  cxTLData, System.StrUtils, JvDialogs, cxButtons, cxGridBandedTableView,
+  cxGridDBBandedTableView, AdvMenuStylers, System.HelpIntfs, Vcl.HtmlHelpViewer,
+  Vcl.AppEvnts, cxMaskEdit;
 
 type
   TMAIN = class(TForm)
@@ -94,21 +95,21 @@ type
     edtSubSerieDocumental: TcxDBMemo;
     cxTabSheet2: TcxTabSheet;
     GViewSeries: TcxGrid;
-    GViewSeriesDBTableView1: TcxGridDBTableView;
-    GViewSeriesDBTableView1IdEstructura: TcxGridDBColumn;
-    GViewSeriesDBTableView1id: TcxGridDBColumn;
-    GViewSeriesDBTableView1codsubs: TcxGridDBColumn;
+    zzzz: TcxGridDBTableView;
+    zzzzIdEstructura: TcxGridDBColumn;
+    zzzzid: TcxGridDBColumn;
+    zzzzcodsubs: TcxGridDBColumn;
     d: TcxGridDBColumn;
-    GViewSeriesDBTableView1tipoArchivo: TcxGridDBColumn;
-    GViewSeriesDBTableView1Archivo: TcxGridDBColumn;
-    GViewSeriesDBTableView1deposito: TcxGridDBColumn;
-    GViewSeriesDBTableView1gaveta: TcxGridDBColumn;
-    GViewSeriesDBTableView1usuario: TcxGridDBColumn;
-    GViewSeriesDBTableView1correo: TcxGridDBColumn;
-    GViewSeriesDBTableView1observacion: TcxGridDBColumn;
-    GViewSeriesDBTableView1Idservidor: TcxGridDBColumn;
-    GViewSeriesDBTableView1carpeta: TcxGridDBColumn;
-    GViewSeriesDBTableView1RootGroup: TcxGridInplaceEditFormGroup;
+    zzzztipoArchivo: TcxGridDBColumn;
+    zzzzArchivo: TcxGridDBColumn;
+    zzzzdeposito: TcxGridDBColumn;
+    zzzzgaveta: TcxGridDBColumn;
+    zzzzusuario: TcxGridDBColumn;
+    zzzzcorreo: TcxGridDBColumn;
+    zzzzobservacion: TcxGridDBColumn;
+    zzzzIdservidor: TcxGridDBColumn;
+    zzzzcarpeta: TcxGridDBColumn;
+    zzzzRootGroup: TcxGridInplaceEditFormGroup;
     GViewSeriesLevel1: TcxGridLevel;
     AdvPanel2: TAdvPanel;
     DBNavigator3: TDBNavigator;
@@ -132,7 +133,6 @@ type
     cxStyleRepository1: TcxStyleRepository;
     Test: TcxStyle;
     jvcpSSDetail: TJvCaptionPanel;
-    AdvPanel5: TAdvPanel;
     pcDetalle: TcxPageControl;
     tsTopo: TcxTabSheet;
     cmdArch: TFDQuery;
@@ -155,14 +155,10 @@ type
     cxDBVerticalGrid7path: TcxDBEditorRow;
     cxDBVerticalGrid7user: TcxDBEditorRow;
     cxDBVerticalGrid7puerto: TcxDBEditorRow;
-    btnDetalles: TSpeedButton;
-    SpeedButton6: TSpeedButton;
     ActionList1: TActionList;
     DatasetPost1: TDataSetPost;
     DatasetCancel1: TDataSetCancel;
     ImageList1: TImageList;
-    Button1: TButton;
-    Button2: TButton;
     AdvPanel13: TAdvPanel;
     Label9: TLabel;
     Label8: TLabel;
@@ -208,9 +204,6 @@ type
     cxGrid2DBTableView1FechaFin: TcxGridDBColumn;
     cxGrid2DBTableView1gestor: TcxGridDBColumn;
     cxGrid2DBTableView1observaciones: TcxGridDBColumn;
-    cxGrid2DBTableView1IDExpediente: TcxGridDBColumn;
-    cxGrid2DBTableView1namefile: TcxGridDBColumn;
-    SpeedButton10: TSpeedButton;
     dbnSeriesDatos: TDBNavigator;
     gProcess: TGauge;
     btnTool: TJvTransparentButton;
@@ -385,25 +378,6 @@ type
     cxGridDBTableView2nivel: TcxGridDBColumn;
     cxGridDBTableView2fuente: TcxGridDBColumn;
     cxGridLevel2: TcxGridLevel;
-    AdvPanel11: TAdvPanel;
-    cxDBTreeList2: TcxDBTreeList;
-    cxDBTreeList2IdEstructura: TcxDBTreeListColumn;
-    cxDBTreeList2id: TcxDBTreeListColumn;
-    cxDBTreeList2codsubs: TcxDBTreeListColumn;
-    cxDBTreeList2Fecha: TcxDBTreeListColumn;
-    cxDBTreeList2Version: TcxDBTreeListColumn;
-    cxDBTreeList2idhijo: TcxDBTreeListColumn;
-    cxDBTreeList2nombre: TcxDBTreeListColumn;
-    cxDBTreeList2ext: TcxDBTreeListColumn;
-    cxDBTreeList2extnombre: TcxDBTreeListColumn;
-    cxDBTreeList2Etiqueta: TcxDBTreeListColumn;
-    cxDBTreeList2comentario: TcxDBTreeListColumn;
-    cxDBTreeList2urlraiz: TcxDBTreeListColumn;
-    cxDBTreeList2path: TcxDBTreeListColumn;
-    cxDBTreeList2tamano: TcxDBTreeListColumn;
-    cxDBTreeList2padre: TcxDBTreeListColumn;
-    cxDBTreeList2nivel: TcxDBTreeListColumn;
-    cxDBTreeList2fuente: TcxDBTreeListColumn;
     tsCoord: TcxTabSheet;
     cxGrid6: TcxGrid;
     cxGridDBTableView3: TcxGridDBTableView;
@@ -444,6 +418,18 @@ type
     btnAsignarSS: TJvTransparentButton;
     btnExcelExportSSD: TJvTransparentButton;
     btnAdjustColumnSSD: TJvTransparentButton;
+    Edit1: TEdit;
+    Panel1: TPanel;
+    JvTransparentButton4: TJvTransparentButton;
+    JvTransparentButton8: TJvTransparentButton;
+    JvTransparentButton10: TJvTransparentButton;
+    Edit2: TEdit;
+    cxGrid2DBTableView1IDExpediente: TcxGridDBColumn;
+    cxGrid2DBTableView1namefile: TcxGridDBColumn;
+    JvTransparentButton5: TJvTransparentButton;
+    JvTransparentButton7: TJvTransparentButton;
+    JvTransparentButton9: TJvTransparentButton;
+    ApplicationEvents1: TApplicationEvents;
     procedure btnCloseClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormCreate(Sender: TObject);
@@ -543,9 +529,15 @@ type
     procedure PLCCClick(Sender: TObject);
     procedure PLDSClick(Sender: TObject);
     procedure PLSDClick(Sender: TObject);
-    procedure GViewSeriesDBTableView1FilterControlDialogShow(Sender: TObject);
-    procedure GViewSeriesDBTableView1FilterDialogShow(Sender: TcxCustomGridTableView; AItem: TcxCustomGridTableItem; var ADone: Boolean);
+    procedure zzzzFilterControlDialogShow(Sender: TObject);
+    procedure zzzzFilterDialogShow(Sender: TcxCustomGridTableView; AItem: TcxCustomGridTableItem; var ADone: Boolean);
     procedure P1Click(Sender: TObject);
+    function ApplicationEvents1Help(Command: Word; Data: NativeInt; var CallHelp: Boolean): Boolean;
+    procedure JvTransparentButton7Click(Sender: TObject);
+    procedure cxGridDBTableView1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure cxGridDBTableView2KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure B1Click(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   private
     procedure PrepareSSDisp;
     procedure PrepareSSDetailView;
@@ -568,6 +560,7 @@ type
     procedure RemoveMDSeriesSubSeriesDMDR;
     function TamFichero(n: string): longint;
     procedure ReactiveAnexos;
+    procedure CloseHelpWnd;
   end;
 
 var
@@ -585,7 +578,7 @@ uses
   UCLFunciones, UViewFunciones, UICSeriesDocumentales, UCLTipoEstructura,
   UCL_Depositos, UVeditor, UVarVirtualSeriesD, UExcelExport, UClTipoObjeto,
   UManagementNode, USystemMsg, UAddNewNode, UNodeProperties, UCL_Expediente,
-  UCL_TiposExp;
+  UCL_TiposExp, USysConfig;
 
 {$R *.dfm}
 
@@ -1411,7 +1404,9 @@ begin
   //UDM.CompletaNombreFile;                                                                                                               //nombre
   pathfile := UDM.qryFuentesDig.FieldByName('urlraiz').AsString + UDM.qryFuentesDig.FieldByName('path').AsString + UDM.qryFuentesDig.FieldByName('nombre').AsString;
   if FileExists(pathfile) then
-    ejecutaPDF(pathfile);
+    ejecutaPDF(pathfile)
+  else
+    udm.sms('No se encontró el fichero "' + UDM.qryFuentesDig.FieldByName('nombre').AsString + '" en la ruta especificada.', 1);
 end;
 
 procedure TMAIN.btnHlpClick(Sender: TObject);
@@ -1825,6 +1820,17 @@ begin
   FindClose(FileSearch);
 end;
 
+procedure TMAIN.CloseHelpWnd;
+var
+  HlpWind: HWND;
+const
+  HelpTitle = 'EMSERGO SGD';
+begin
+  HlpWind := FindWindow('HH Parent', HelpTitle);
+  if HlpWind <> 0 then
+    PostMessage(HlpWind, WM_Close, 0, 0);
+end;
+
 procedure TMAIN.ControldeVersiones1Click(Sender: TObject);
 begin
   with TfrmHistory.Create(nil) do
@@ -1975,6 +1981,14 @@ begin
   CampoTexto(@UDM.dsqryFuentesDig, 'comentario', 'Comentario sobre el fichero  ' + NombreSerieDocAsig);
 end;
 
+procedure TMAIN.cxGridDBTableView1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if Key = 113 then
+  begin
+    btnExecuteSourceFileClick(Sender);
+  end;
+end;
+
 procedure TMAIN.cxGridDBTableView2CellDblClick(Sender: TcxCustomGridTableView; ACellViewInfo: TcxGridTableDataCellViewInfo; AButton: TMouseButton; AShift: TShiftState; var AHandled: Boolean);
 var
   pathfile: string;
@@ -2012,6 +2026,14 @@ begin
   if NombreSerieDocAsig = '' then
     NombreSerieDocAsig := UDM.qryAnexosDig.FieldByName('nombre').AsString;
   CampoTexto(@UDM.dsqryAnexosDig, 'comentario', 'Comentario sobre el fichero  ' + NombreSerieDocAsig);
+end;
+
+procedure TMAIN.cxGridDBTableView2KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if Key = 113 then
+  begin
+    JvTransparentButton6Click(Sender);
+  end;
 end;
 
 procedure TMAIN.D1Click(Sender: TObject);
@@ -2546,6 +2568,20 @@ begin
   UDM.Tb_SeriesDispo.Active := True;
 end;
 
+function TMAIN.ApplicationEvents1Help(Command: Word; Data: NativeInt; var CallHelp: Boolean): Boolean;
+begin
+ { CloseHelpWnd;
+
+  Result := ShellExecute(0, 'open', 'hh.exe', PWideChar('-mapid ' + IntToStr(Data) + ' ms-its:' + Application.HelpFile), nil, SW_SHOW) = 32;
+
+  CallHelp := false;      }
+  CloseHelpWnd;
+
+  Result := ShellExecute(0, 'open', 'hh.exe', PWideChar('-mapid ' + IntToStr(Data) + ' ms-its:' + Application.HelpFile), nil, SW_SHOW) = 32;
+
+  CallHelp := false;
+end;
+
 procedure TMAIN.ArchivoActual;
 begin
   with cmdArch do
@@ -2592,12 +2628,28 @@ begin
   end;
 end;
 
+procedure TMAIN.B1Click(Sender: TObject);
+begin
+  with TfrmSysConfig.Create(nil) do
+  try
+    ShowModal;
+  finally
+    Free;
+  end;
+end;
+
 procedure TMAIN.PrepareSSDetailView;
 begin
   if UDM.tb_Serietree.RecordCount = 0 then
+  begin
+    UDM.SudSDetail.Active := False;
     Exit;
+  end;
   if UDM.tb_Serietree.FieldByName('codsubs').Value = null then
+  begin
+    UDM.SudSDetail.Active := False;
     Exit;
+  end;
   UDM.SudSDetail.DisableControls;
   try
     UDM.SudSDetail.Active := False;
@@ -2685,8 +2737,21 @@ begin
 end;
 
 procedure TMAIN.FormCreate(Sender: TObject);
+var
+  i: Integer;
+  ListServer: TStringList;
 begin
-
+  ListServer := TStringList.Create;
+  ListServer.Add('localhost');
+  UDM.ListAvailableSQLServers(ListServer);
+  for i := 0 to ListServer.Count - 1 do
+  begin
+    UDM.ListadoServidores.Append;
+    UDM.ListadoServidores.Fields[0].AsString := ListServer[0];
+    UDM.ListadoServidores.Fields[1].AsString := ListServer[0];
+    UDM.ListadoServidores.Post;
+  end;
+  ListServer.Free;
   syshelpLeft := btnSystemHelp.Left;
   if FileExists(ExtractFilePath(Application.ExeName) + '\SDTrad.ini') then
   begin
@@ -2700,6 +2765,7 @@ begin
   advtpDetalle.Panels[0].Free;
 //  AdvToolPanelTab2.Panels[0].Visible:=False;
   Caption := 'ArchiGenio Pro v' + VersionProgram;
+  HelpFile := ExtractFilePath(Application.ExeName) + 'EMSERGO_SGD_HELP.chm';
   UDM.CreaTreeDB(UDM.Conn, @tvTree, False);
   LoadTreeStateNode;
   CleanTMP(PathTemp);
@@ -2719,8 +2785,23 @@ begin
   Security.SetModSecurity(Self, acceso);}
 end;
 
+procedure TMAIN.FormDestroy(Sender: TObject);
+begin
+  CloseHelpWnd;
+end;
+
 procedure TMAIN.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
+  if Key = 112 then
+  begin
+    with TfrmsystemMSG.Create(nil) do
+    try
+      ShowModal;
+    finally
+      Free;
+    end;
+  end;
+
   if Key = 123 then
     if UDM.tb_Serietree.RecordCount > 0 then
       jvcpSSDetail.Visible := not jvcpSSDetail.Visible;
@@ -2752,9 +2833,7 @@ begin
     else
       nbMain.Show;
   end;
-  if Key = 112 then
-    UDM.sms('¡No se encontró ningún fichero de ayuda disponible!', 2);
-  cxGrid2DBTableView1.Columns[0].Focused;
+  //cxGrid2DBTableView1.Columns[0].Focused;
 end;
 
 procedure TMAIN.G1Click(Sender: TObject);
@@ -2762,12 +2841,12 @@ begin
   ManagementFileSeries(@UDM.tb_SeriesDatos, 'fichero', 'Gestión de serie documental');
 end;
 
-procedure TMAIN.GViewSeriesDBTableView1FilterControlDialogShow(Sender: TObject);
+procedure TMAIN.zzzzFilterControlDialogShow(Sender: TObject);
 begin
   ShowMessage('customatizacion!!!');
 end;
 
-procedure TMAIN.GViewSeriesDBTableView1FilterDialogShow(Sender: TcxCustomGridTableView; AItem: TcxCustomGridTableItem; var ADone: Boolean);
+procedure TMAIN.zzzzFilterDialogShow(Sender: TcxCustomGridTableView; AItem: TcxCustomGridTableItem; var ADone: Boolean);
 begin
   ShowMessage('customatizacion 33333!!!');
 end;
@@ -2872,7 +2951,15 @@ begin
 //  UDM.CompletaNombreFile;                                                                                                    //nombre
   pathfile := UDM.qryAnexosDig.FieldByName('urlraiz').AsString + UDM.qryAnexosDig.FieldByName('path').AsString + UDM.qryAnexosDig.FieldByName('nombre').AsString;
   if FileExists(pathfile) then
-    ejecutaPDF(pathfile);
+    ejecutaPDF(pathfile)
+  else
+    udm.sms('No se encontró el fichero "' + UDM.qryAnexosDig.FieldByName('nombre').AsString + '" en la ruta especificada.', 1);
+end;
+
+procedure TMAIN.JvTransparentButton7Click(Sender: TObject);
+begin
+  if UDM.sms('¿Desea exportar el listado de ficheos de la subserie actual?', 4) = 6 then
+    ExcelExport(nil, cxGrid2);
 end;
 
 procedure TMAIN.L1Click(Sender: TObject);
