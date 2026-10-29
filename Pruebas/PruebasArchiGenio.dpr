@@ -8,7 +8,9 @@ uses
   DUnitX.Loggers.Console,
   DUnitX.Loggers.Xml.NUnit,
   DUnitX.TestFramework,
-  UPruebaHumo in 'UPruebaHumo.pas';
+  UPruebaHumo in 'UPruebaHumo.pas',
+  UAlcance in '..\UAlcance.pas',
+  UPruebasAlcance in 'UPruebasAlcance.pas';
 
 var
   Corredor: ITestRunner;
