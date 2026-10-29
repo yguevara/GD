@@ -2255,6 +2255,10 @@ begin
         Acomoda;
         Acomoda2;
 
+        // Sin sesion: vuelve el alcance de Visor (solo publico)
+        UDM.EstablecerAlcance('Invitado', False);
+        UDM.CargarArbol(tvTree, UDM.tb_arbol, False);
+
         // Actualizar nivel de acceso
         acceso := 'solo lectura';
         Security.SetModSecurity(Self, acceso);
@@ -2300,6 +2304,9 @@ begin
 
     Acomoda;
     Acomoda2;
+
+    // El alcance del usuario ya esta cargado: recargar el arbol filtrado
+    UDM.CargarArbol(tvTree, UDM.tb_arbol, False);
 
     // Notificar autenticación
     UDM.sms(Format('Ud se ha autenticado al sistema con el Rol de %s', [AnsiQuotedStr(UDM.Rol, '"')]), 3);
@@ -7127,6 +7134,7 @@ begin
   Caption := 'ArchiGenio ' + VersionProgram; // + UDM.tb_sysconfig.FieldByName().AsString;
   HelpFile := ExtractFilePath(Application.ExeName) + 'ArchiGenioPro.chm';
   cxDBVerticalGrid3.OnClick := cxDBVerticalGridClick;
+  UDM.EstablecerAlcance('Invitado', False); // antes de autenticar solo ve lo publico
   UDM.CargarArbol(tvTree, UDM.tb_arbol, false);
   LoadTreeStateNode;
   CleanTMP(PathTemp);

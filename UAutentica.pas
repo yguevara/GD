@@ -157,6 +157,7 @@ begin
     end
     else
     begin
+      UDM.EstablecerAlcance(trim(edtuser.Text), SameText(UDM.Rol, 'Administrador'));
       UDM.UserName := trim(edtuser.Text);
       List := TStringList.Create;
       List.Add(trim(edtuser.Text));

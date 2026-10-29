@@ -31,7 +31,7 @@ uses
   frxExportXLSX, frxExportPPTX, frxExportDOCX, frxExportBIFF, frxChart,
   frxExportSVG, frxTableObject, frxMap, frxExportHelpers, frxExportBaseDialog,
   frxCellularTextObject, frxExportPPML, frxExportPS, frxExportZPL,
-  frxSaveFilterFRX, frxHTML, frxPDFViewer;
+  frxSaveFilterFRX, frxHTML, frxPDFViewer, UAlcance;
 
 const
   // Lista completa de palabras reservadas para SQL Server
@@ -922,11 +922,16 @@ type
     { Public declarations }
     Rol,                  // Rol del usuario logeado.
     UserName: string;     // Usuario logeado
+    // Alcance del usuario autenticado (nil en Access y sin cobertura previa a autenticar).
+    Alcance: TAlcanceUsuario;
 //    Responsable:
 //    FileList: TIdFTPListItems;
     function CarpetaGeodato: string;
     procedure ActivaDataLayer(aValue: boolean);
     procedure OverLoadADL;
+    destructor Destroy; override;
+    procedure EstablecerAlcance(const Usuario: string; EsAdministrador: Boolean);
+    procedure AplicarFiltrosAlcance;
 //------------------------------------------------------------------------------
 // Crear árbol de tablas...
 //------------------------------------------------------------------------------
@@ -1113,7 +1118,7 @@ var
 implementation
 
 uses
-  UEsquemaAlcance;
+  UEsquemaAlcance, UAlcanceDatos;
 
 
 {%CLASSGROUP 'Vcl.Controls.TControl'}
@@ -4253,6 +4258,72 @@ begin
     on E: Exception do
       Exit; // Si falla, devolvemos cadena vacía
   end;
+end;
+
+destructor TUDM.Destroy;
+begin
+  FreeAndNil(Alcance);
+  inherited;
+end;
+
+procedure TUDM.EstablecerAlcance(const Usuario: string; EsAdministrador: Boolean);
+begin
+  if TBD <> 'S' then
+    Exit; // Access: sin seguridad por alcance
+  FreeAndNil(Alcance);
+  Alcance := CargarAlcance(Conn, Usuario, EsAdministrador);
+  AplicarFiltrosAlcance;
+end;
+
+// Unico punto donde la seguridad por alcance toca las consultas: el arbol
+// (tb_tree y tb_arbol) y la lista de documentos (tb_SeriesDatos).
+procedure TUDM.AplicarFiltrosAlcance;
+const
+  SQL_ARBOL = 'select * from tb_tree  Order by id ASC';
+  SQL_DOCS = 'SELECT * FROM tb_SeriesDatos ORDER BY Codigodoc ASC';
+var
+  Consultas: array[0..5] of TFDQuery;
+  Activas: array[0..5] of Boolean;
+  I: Integer;
+  FArbol, FDocs: TFiltroSql;
+
+  procedure Poner(Q: TFDQuery; const Sql: string; const Filtro: TFiltroSql);
+  begin
+    Q.SQL.Text := Sql;
+    if Alcance <> nil then
+      AplicarParametros(Q, Filtro);
+  end;
+
+begin
+  // detalle -> maestro; se reabren en orden inverso
+  Consultas[0] := tb_ssArchdigital;
+  Consultas[1] := tb_DocCoord;
+  Consultas[2] := tb_SeriesDatos;
+  Consultas[3] := tb_Serietree;
+  Consultas[4] := tb_tree;
+  Consultas[5] := tb_arbol;
+  for I := 0 to High(Consultas) do
+  begin
+    Activas[I] := Consultas[I].Active;
+    Consultas[I].Active := False;
+  end;
+  if Alcance = nil then
+  begin
+    tb_tree.SQL.Text := SQL_ARBOL;
+    tb_arbol.SQL.Text := SQL_ARBOL;
+    tb_SeriesDatos.SQL.Text := SQL_DOCS;
+  end
+  else
+  begin
+    FArbol := FiltroNodosArbol(Alcance, '');
+    FDocs := FiltroDocumentos(Alcance, '');
+    Poner(tb_tree, 'select * from tb_tree where ' + FArbol.Condicion + '  Order by id ASC', FArbol);
+    Poner(tb_arbol, 'select * from tb_tree where ' + FArbol.Condicion + '  Order by id ASC', FArbol);
+    Poner(tb_SeriesDatos, 'SELECT * FROM tb_SeriesDatos WHERE ' + FDocs.Condicion + ' ORDER BY Codigodoc ASC', FDocs);
+  end;
+  for I := High(Consultas) downto 0 do
+    if Activas[I] then
+      Consultas[I].Active := True;
 end;
 
 procedure TUDM.OverLoadADL;
