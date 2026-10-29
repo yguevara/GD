@@ -36,6 +36,10 @@ type
     procedure Arbol_ClaveConEspacio_EsMismoNodo;
     [Test]
     procedure Arbol_PadreInexistente_SinHerencia;
+    [Test]
+    procedure Arbol_PadreIdDuplicado_ElijePorPrefijo;
+    [Test]
+    procedure Arbol_PadreIdDuplicado_SinPrefijo_SinPadre;
   end;
 
 implementation
@@ -130,6 +134,38 @@ begin
   Assert.IsFalse(FArbol.EsDescendiente(Clave('A', 1), Clave('A.6..3.3', 300)));
   Assert.IsFalse(FArbol.EsDescendiente(Clave('A.6', 200), Clave('A.6..3.3', 300)));
   Anc := FArbol.Ancestros(Clave('A.6..3.3', 300));
+  Assert.AreEqual(0, Integer(Length(Anc)));
+end;
+
+procedure TPruebasArbol.Arbol_PadreIdDuplicado_ElijePorPrefijo;
+var
+  Anc: TArray<TClaveNodo>;
+begin
+  // el hijo se inserta antes que los padres (orden inverso)
+  FArbol.Agregar(Clave('A.4.2', 300), 160);
+  FArbol.Agregar(Clave('A.3', 160), 1);
+  FArbol.Agregar(Clave('A.1', 160), 1);
+  FArbol.Agregar(Clave('A.4', 160), 1);
+  Assert.IsTrue(FArbol.EsDescendiente(Clave('A.4', 160), Clave('A.4.2', 300)));
+  Assert.IsFalse(FArbol.EsDescendiente(Clave('A.1', 160), Clave('A.4.2', 300)));
+  Assert.IsFalse(FArbol.EsDescendiente(Clave('A.3', 160), Clave('A.4.2', 300)));
+  Anc := FArbol.Ancestros(Clave('A.4.2', 300));
+  Assert.AreEqual(1, Integer(Length(Anc)));
+  Assert.AreEqual('A.4', Anc[0].IdEstructura);
+end;
+
+procedure TPruebasArbol.Arbol_PadreIdDuplicado_SinPrefijo_SinPadre;
+var
+  Anc: TArray<TClaveNodo>;
+begin
+  FArbol.Agregar(Clave('A.1', 160), 1);
+  FArbol.Agregar(Clave('A.3', 160), 1);
+  FArbol.Agregar(Clave('A.4', 160), 1);
+  FArbol.Agregar(Clave('B.9.1', 300), 160);
+  Assert.IsFalse(FArbol.EsDescendiente(Clave('A.1', 160), Clave('B.9.1', 300)));
+  Assert.IsFalse(FArbol.EsDescendiente(Clave('A.3', 160), Clave('B.9.1', 300)));
+  Assert.IsFalse(FArbol.EsDescendiente(Clave('A.4', 160), Clave('B.9.1', 300)));
+  Anc := FArbol.Ancestros(Clave('B.9.1', 300));
   Assert.AreEqual(0, Integer(Length(Anc)));
 end;
 
