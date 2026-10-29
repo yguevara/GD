@@ -10,6 +10,7 @@ uses
   USplash in 'USplash.pas' {frmSplash},
   UAbout in 'UAbout.pas' {frmAbout},
   UCapaDatos in 'UCapaDatos.pas' {UDM: TDataModule},
+  UEsquemaAlcance in 'UEsquemaAlcance.pas',
   UAutentica in 'UAutentica.pas' {frmAutentica},
   md5 in 'md5.pas',
   UUserGest in 'UUserGest.pas' {frmGestUser},

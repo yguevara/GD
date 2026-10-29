@@ -10,7 +10,9 @@ uses
   DUnitX.TestFramework,
   UPruebaHumo in 'UPruebaHumo.pas',
   UAlcance in '..\UAlcance.pas',
-  UPruebasAlcance in 'UPruebasAlcance.pas';
+  UEsquemaAlcance in '..\UEsquemaAlcance.pas',
+  UPruebasAlcance in 'UPruebasAlcance.pas',
+  UPruebasEsquema in 'UPruebasEsquema.pas';
 
 var
   Corredor: ITestRunner;

@@ -1112,6 +1112,9 @@ var
 
 implementation
 
+uses
+  UEsquemaAlcance;
+
 
 {%CLASSGROUP 'Vcl.Controls.TControl'}
 
@@ -5471,6 +5474,9 @@ begin              //
   cad := cad + ');';
   execSQLUPD(cad);
   cad := '';
+
+  // Seguridad por alcance y captura masiva (ver UEsquemaAlcance.pas)
+  CrearEsquemaAlcance(Conn, TBD = 'S');
 //  execSQLUPD('DELETE FROM tb_rol WHERE rol = ' + QuotedStr('Visor'));
   execSQLUPD('DELETE FROM tb_rol WHERE rol = ' + QuotedStr('Archivero'));
   if TBD = 'S' then
