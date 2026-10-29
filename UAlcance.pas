@@ -45,6 +45,46 @@ type
     function Contiene(const Nodo: TClaveNodo): Boolean;
     function EsDescendiente(const Raiz, Nodo: TClaveNodo): Boolean;
     function Ancestros(const Nodo: TClaveNodo): TArray<TClaveNodo>;
+    function Todos: TArray<TClaveNodo>;
+  end;
+
+  TAsignacionNodo = record
+    Nodo: TClaveNodo;
+    Rol: TRolNodo;   // rnDirector o rnEGD
+  end;
+
+  TSubserieAsignada = record
+    Nodo: TClaveNodo;
+    CodSubs: string;
+  end;
+
+  { Cobertura de un usuario. No es duena del arbol recibido (lo libera el
+    llamador); copia los arreglos. }
+  TAlcanceUsuario = class
+  private
+    FEsAdministrador: Boolean;
+    FArbol: TArbolNodos;
+    FNodos: TArray<TAsignacionNodo>;
+    FSubseries: TArray<TSubserieAsignada>;
+    FSubseriesPublicas: TArray<string>;
+    function MismoNodo(const A, B: TClaveNodo): Boolean;
+    function Permite(Accion: TAccion; const Nodo: TClaveNodo;
+      const CodSubs: string): Boolean;
+    procedure Acumular(Dic: TDictionary<string, TClaveNodo>;
+      const Nodo: TClaveNodo);
+    procedure AcumularConAncestros(Dic: TDictionary<string, TClaveNodo>;
+      const Nodo: TClaveNodo);
+  public
+    constructor Create(EsAdministrador: Boolean; Arbol: TArbolNodos;
+      const Nodos: TArray<TAsignacionNodo>;
+      const Subseries: TArray<TSubserieAsignada>;
+      const SubseriesPublicas: TArray<string>);
+    function PuedeVerDocumento(const Nodo: TClaveNodo; const CodSubs: string;
+      NivelAcceso: Integer): Boolean;
+    function PuedeRealizar(Accion: TAccion; const Nodo: TClaveNodo;
+      const CodSubs: string): Boolean;
+    function NodosVisibles: TArray<TClaveNodo>;
+    function NodosCompletos: TArray<TClaveNodo>;
   end;
 
 implementation
@@ -187,6 +227,21 @@ begin
   end;
 end;
 
+function TArbolNodos.Todos: TArray<TClaveNodo>;
+var
+  Lista: TList<TClaveNodo>;
+  Par: TPair<string, TInfoNodo>;
+begin
+  Lista := TList<TClaveNodo>.Create;
+  try
+    for Par in FNodos do
+      Lista.Add(Par.Value.Clave);
+    Result := Lista.ToArray;
+  finally
+    Lista.Free;
+  end;
+end;
+
 function TArbolNodos.EsDescendiente(const Raiz, Nodo: TClaveNodo): Boolean;
 var
   KR, K, P: string;
@@ -205,6 +260,154 @@ begin
       Exit(True);
     K := P;
     Inc(Pasos);
+  end;
+end;
+
+{ TAlcanceUsuario }
+
+constructor TAlcanceUsuario.Create(EsAdministrador: Boolean; Arbol: TArbolNodos;
+  const Nodos: TArray<TAsignacionNodo>;
+  const Subseries: TArray<TSubserieAsignada>;
+  const SubseriesPublicas: TArray<string>);
+begin
+  inherited Create;
+  FEsAdministrador := EsAdministrador;
+  FArbol := Arbol;
+  FNodos := Copy(Nodos);
+  FSubseries := Copy(Subseries);
+  FSubseriesPublicas := Copy(SubseriesPublicas);
+end;
+
+function TAlcanceUsuario.MismoNodo(const A, B: TClaveNodo): Boolean;
+begin
+  Result := (A.Id = B.Id) and
+    (NormalizaClave(A.IdEstructura) = NormalizaClave(B.IdEstructura));
+end;
+
+function TAlcanceUsuario.Permite(Accion: TAccion; const Nodo: TClaveNodo;
+  const CodSubs: string): Boolean;
+var
+  A: TAsignacionNodo;
+  S: TSubserieAsignada;
+begin
+  if FEsAdministrador then
+    Exit(RolPermite(rnAdministrador, Accion));
+  Result := False;
+  for A in FNodos do
+  begin
+    // un nodo asignado que no existe en el arbol no concede nada
+    if not FArbol.Contiene(A.Nodo) then
+      Continue;
+    if not RolPermite(A.Rol, Accion) then
+      Continue;
+    case A.Rol of
+      rnDirector:
+        if FArbol.EsDescendiente(A.Nodo, Nodo) then
+          Exit(True);
+      rnEGD:
+        if MismoNodo(A.Nodo, Nodo) then
+          Exit(True);
+    end;
+  end;
+  if not RolPermite(rnUsuario, Accion) then
+    Exit;
+  for S in FSubseries do
+    if FArbol.Contiene(S.Nodo) and MismoNodo(S.Nodo, Nodo) and
+      (NormalizaClave(S.CodSubs) = NormalizaClave(CodSubs)) then
+      Exit(True);
+end;
+
+function TAlcanceUsuario.PuedeVerDocumento(const Nodo: TClaveNodo;
+  const CodSubs: string; NivelAcceso: Integer): Boolean;
+begin
+  Result := (NivelAcceso = 1) or Permite(acVer, Nodo, CodSubs);
+end;
+
+function TAlcanceUsuario.PuedeRealizar(Accion: TAccion; const Nodo: TClaveNodo;
+  const CodSubs: string): Boolean;
+begin
+  Result := Permite(Accion, Nodo, CodSubs);
+end;
+
+procedure TAlcanceUsuario.Acumular(Dic: TDictionary<string, TClaveNodo>;
+  const Nodo: TClaveNodo);
+begin
+  Dic.AddOrSetValue(NormalizaClave(Nodo.IdEstructura) + '|' + IntToStr(Nodo.Id),
+    Nodo);
+end;
+
+procedure TAlcanceUsuario.AcumularConAncestros(
+  Dic: TDictionary<string, TClaveNodo>; const Nodo: TClaveNodo);
+var
+  Anc: TClaveNodo;
+begin
+  Acumular(Dic, Nodo);
+  for Anc in FArbol.Ancestros(Nodo) do
+    Acumular(Dic, Anc);
+end;
+
+function TAlcanceUsuario.NodosVisibles: TArray<TClaveNodo>;
+var
+  Dic: TDictionary<string, TClaveNodo>;
+  A: TAsignacionNodo;
+  S: TSubserieAsignada;
+  T: TClaveNodo;
+begin
+  if FEsAdministrador then
+    Exit(FArbol.Todos);
+  Dic := TDictionary<string, TClaveNodo>.Create;
+  try
+    for A in FNodos do
+    begin
+      if not FArbol.Contiene(A.Nodo) then
+        Continue;
+      case A.Rol of
+        rnDirector:
+          begin
+            for T in FArbol.Todos do
+              if FArbol.EsDescendiente(A.Nodo, T) then
+                AcumularConAncestros(Dic, T);
+            AcumularConAncestros(Dic, A.Nodo);
+          end;
+        rnEGD:
+          AcumularConAncestros(Dic, A.Nodo);
+      end;
+    end;
+    for S in FSubseries do
+      if FArbol.Contiene(S.Nodo) then
+        AcumularConAncestros(Dic, S.Nodo);
+    Result := Dic.Values.ToArray;
+  finally
+    Dic.Free;
+  end;
+end;
+
+function TAlcanceUsuario.NodosCompletos: TArray<TClaveNodo>;
+var
+  Dic: TDictionary<string, TClaveNodo>;
+  A: TAsignacionNodo;
+  T: TClaveNodo;
+begin
+  if FEsAdministrador then
+    Exit(nil);
+  Dic := TDictionary<string, TClaveNodo>.Create;
+  try
+    for A in FNodos do
+    begin
+      if not FArbol.Contiene(A.Nodo) then
+        Continue;
+      case A.Rol of
+        rnDirector:
+          for T in FArbol.Todos do
+            if FArbol.EsDescendiente(A.Nodo, T) then
+              Acumular(Dic, T);
+        rnEGD:
+          Acumular(Dic, A.Nodo);
+      end;
+    end;
+    Result := Dic.Values.ToArray;
+  finally
+    Dic.Free;
   end;
 end;
 
