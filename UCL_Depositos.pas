@@ -34,11 +34,8 @@ type
     ToolButton4: TToolButton;
     procedure btnCloseClick(Sender: TObject);
     procedure btnhlpClick(Sender: TObject);
-    procedure cxGrid1DBTableView1descripcionPropertiesButtonClick(
-      Sender: TObject; AButtonIndex: Integer);
     procedure ToolButton1Click(Sender: TObject);
     procedure FormActivate(Sender: TObject);
-    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
   private
     { Private declarations }
   public
@@ -65,27 +62,9 @@ begin
   UDM.ManagementHLP(Caption, Self.Handle);
 end;
 
-procedure TfrmDeposito.cxGrid1DBTableView1descripcionPropertiesButtonClick(
-  Sender: TObject; AButtonIndex: Integer);
-begin
-  if ansilowercase(UDM.ROL) <> 'administradores' then
-    if (UDM.cl_deposito.FieldByName('descripcion').Value = null) or (trim(UDM.cl_deposito.FieldByName('descripcion').Value) = '') then
-    begin
-      udm.sms('No se encontró contenido para mostrar.', 3);
-      Exit;
-    end;
-  CampoTexto(@UDM.dscl_deposito, 'descripcion', 'Descripción del depósito' + UDM.cl_deposito.FieldByName('coddep').AsString);
-end;
-
 procedure TfrmDeposito.FormActivate(Sender: TObject);
 begin
   Security.SetModSecurity(Self, acceso);
-end;
-
-procedure TfrmDeposito.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
-begin
-  UDM.cl_deposito.Active:=False;
-  UDM.cl_deposito.Active:=True;
 end;
 
 procedure TfrmDeposito.ToolButton1Click(Sender: TObject);

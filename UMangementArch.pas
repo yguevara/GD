@@ -15,7 +15,8 @@ uses
   FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf, FireDAC.DApt.Intf,
   FireDAC.Stan.Async, FireDAC.DApt, FireDAC.Comp.DataSet, FireDAC.Comp.Client,
   Vcl.Menus, AdvMenus, Winapi.ShellAPI, AdvPanel, JvExControls, JvButton,
-  JvTransparentButton, Vcl.StdCtrls;
+  JvTransparentButton, Vcl.StdCtrls, frxADOComponents, frxClass, frxGradient,
+  frxRich, frxDBSet;
 
 type
   TConsultaFD = ^TFDQuery;
@@ -54,8 +55,10 @@ type
     btnExportSSExcel: TJvTransparentButton;
     btnBestFitSS: TJvTransparentButton;
     Edit1: TEdit;
+    frxMain: TfrxReport;
+    btnPrint: TJvTransparentButton;
+    frxtb_sysconfig: TfrxDBDataset;
     procedure btnCloseClick(Sender: TObject);
-    procedure btnhlpClick(Sender: TObject);
     procedure DBNavigator3Click(Sender: TObject; Button: TNavigateBtn);
     procedure FormActivate(Sender: TObject);
     procedure cxGrid1DBTableView1croquisPropertiesButtonClick(Sender: TObject; AButtonIndex: Integer);
@@ -72,6 +75,8 @@ type
     procedure btnExpandClick(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure btnSystemHelpClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure btnPrintClick(Sender: TObject);
   private
     { Private declarations }
     function DownloadImageFileToTMP(aName, aCampoName: string): string;
@@ -79,6 +84,8 @@ type
     function CleanFieldIMG(NombreCampo: string): Boolean;
   public
     { Public declarations }
+    procedure CargaReporte(report: TfrxReport; pathreport, nameempresa, empresa, nameimagen, pathimagen: string);
+    procedure InsertConnection(report: TfrxReport; connection: string);
   end;
 
 var
@@ -87,7 +94,7 @@ var
 implementation
 
 uses
-  UCapaDatos, UExcelExport, UVeditor, UVisorTif, UManagementPDFFile, USystemMsg;
+  UCapaDatos, UExcelExport, UVeditor, UVisorTif, UManagementPDFFile, USystemMsg, UREditor;
 
 {$R *.dfm}
 
@@ -113,30 +120,88 @@ begin
   end;
 end;
 
+procedure TfrmManagemetArch.btnPrintClick(Sender: TObject);
+
+  function TamFichero(n: string): longint;
+  var
+    f: file of Byte;
+  begin
+    result := 0;
+    AssignFile(f, n);
+    Reset(f);
+    result := FileSize(f);
+    CloseFile(f);
+  end;
+
+begin
+  UDM.MostrarReporte('Archivo');{
+   //esta validacion la puse aqui pero puede ser en otro lugar si deseas
+  if ((UDM.tb_sysconfig.FieldByName('empresa').AsString <> '') and (not TBlobField(UDM.tb_sysconfig.FieldByName('logo')).IsNull)) then
+  begin
+     //salvar el logo que esta en la tabla de configuracion a la carpeta de reportes ,que ahora esta a nivel del mosulo
+     //principal
+    try
+      TBlobField(UDM.tb_sysconfig.FieldByName('logo')).SaveToFile(pathreport + 'logo.png');
+      if TamFichero(pathreport + 'logo.png') > 0 then
+     //todos los parametros para cargar el reporte
+        CargaReporte(frxMain, pathreport + 'rArchivo.fr3', 'empresa', UDM.tb_sysconfig.FieldByName('empresa').AsString, 'imagen', pathreport + 'logo.png')
+      else
+        UDM.sms('No se pudo cargar el logo de la empresa especificado. Por favor revise la configuración del sistema.', 1);
+    except
+      on E: EFilerError do
+      begin
+        UDM.sms('No se pudo cargar el logo de la empresa por favor revise la configuración del sistema. Motivo: '+e.Message, 1);
+      end;
+    end;
+
+  end
+  else
+  begin
+    udm.sms('Debe configurar los Datos de la Empresa. Diríjase a la configuración del Sistema', 1);
+  end;   }
+end;
+
 procedure TfrmManagemetArch.btnCloseClick(Sender: TObject);
 begin
   Close;
 end;
 
-procedure TfrmManagemetArch.btnhlpClick(Sender: TObject);
+procedure TfrmManagemetArch.btnSystemHelpClick(Sender: TObject);
+var
+  TopicID: integer;
 begin
-  UDM.ManagementHLP(Caption, Self.Handle);
+  TopicID := 17;
+  Application.HelpContext(TopicID);
 end;
 
-procedure TfrmManagemetArch.btnSystemHelpClick(Sender: TObject);
+procedure TfrmManagemetArch.CargaReporte(report: TfrxReport; pathreport, nameempresa, empresa, nameimagen, pathimagen: string);
+var
+  Component: TfrxComponent;
 begin
-  with TfrmsystemMSG.Create(nil) do
-  try
-    ShowModal;
-  finally
-    Free;
+  with report do
+  begin
+    LoadFromFile(pathreport);
+    InsertConnection(report, PathBD);
+    Component := FindObject(nameempresa);
+    if Component is TfrxRichView then
+
+      TfrxRichView(Component).DataSet:= frxtb_sysconfig;
+      TfrxRichView(Component).DataField:='empresa';
+    Component := FindObject(nameimagen);
+    if Component is TfrxPictureView then
+      TfrxPictureView(Component).Picture.LoadFromFile(pathimagen);
+    PrepareReport();
+    ShowReport();
   end;
 end;
 
 function TfrmManagemetArch.CleanFieldIMG(NombreCampo: string): Boolean;
 begin
   Result := False;
-  if UDM.sms('¿Realmente desea eliminar el contenido del campo ' + AnsiQuotedStr(NombreCampo, '"') + '?', 4) = 6 then
+  if udm.sms('Atención:' + sLineBreak +
+                'Está a punto de eliminar el fichero actual.' + sLineBreak +
+                '¿Desea continuar?', 4) = 6 then
+//  if UDM.sms('¿Realmente desea eliminar el contenido del campo ' + AnsiQuotedStr(NombreCampo, '"') + '?', 4) = 6 then
   begin
     UDM.cl_ArchivosGestion.Edit;
     TBlobField(UDM.cl_ArchivosGestion.FieldByName(NombreCampo)).Clear;
@@ -224,11 +289,8 @@ end;
 
 procedure TfrmManagemetArch.FormActivate(Sender: TObject);
 begin
-  Edit1.Focused;
-  Edit1.SetFocus;
-  Security.SetModSecurity(Self, acceso);
+//  Security.SetModSecurity(Self, acceso);
   //UDM.SalvaConfigGrid(cxGrid1DBTableView1.Name, 'cl_archivos');
-  UDM.RestauraGrid(cxGrid1DBTableView1, 'cl_archivos');
 end;
 
 procedure TfrmManagemetArch.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -240,21 +302,49 @@ begin
 end;
 
 procedure TfrmManagemetArch.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+var
+  TopicID: integer;
 begin
   if Key = 112 then
   begin
-    with TfrmsystemMSG.Create(nil) do
-    try
-      ShowModal;
-    finally
-      Free;
-    end;
+    TopicID := 17;
+    Application.HelpContext(TopicID);
   end;
+end;
+
+procedure TfrmManagemetArch.FormShow(Sender: TObject);
+begin
+  Edit1.Focused;
+  Edit1.SetFocus;
+  UDM.RestauraGrid(cxGrid1DBTableView1, 'cl_archivos');
 end;
 
 procedure TfrmManagemetArch.G1Click(Sender: TObject);
 begin
   ManagementPDF(@UDM.cl_ArchivosGestion, 'croquis', 'Gestionando el croquis del archivo.', 'jpg');
+end;
+
+procedure TfrmManagemetArch.InsertConnection(report: TfrxReport; connection: string);
+var
+  i: integer;
+begin
+  TfrxADODatabase(report.FindComponent('conn')).Connected := false;
+  if TBD = 'A' then
+    TfrxADODatabase(report.FindComponent('conn')).DatabaseName := 'Provider=Microsoft.Jet.OLEDB.4.0;Data Source=' + connection + ';Persist Security Info=False'
+  else
+    TfrxADODatabase(report.FindComponent('conn')).DatabaseName := 'Provider=SQLOLEDB.1;Password=geoconn;Persist Security Info=True;User ID=geoconn;Initial Catalog=SDbd;Data Source=' + UDM.tb_sysconfig.FieldByName('ipservidorbd').AsString;
+  TfrxADODatabase(report.FindComponent('conn')).Connected := True;
+  for i := 0 to report.ComponentCount - 1 do
+  begin
+    if report.Components[i] is TfrxADOQuery then
+    begin
+      if TfrxADOQuery(report.Components[i]).Params.Count = 0 then
+      begin
+        TfrxADOQuery(report.Components[i]).Active := True;
+      end;
+
+    end;
+  end
 end;
 
 procedure TfrmManagemetArch.MenuItem1Click(Sender: TObject);
@@ -327,7 +417,6 @@ begin
     end;
     TBlobField(UDM.cl_ArchivosGestion.FieldByName(NombreCampo)).SaveToFile(Path);
     UDM.ViewIMG(Path);
-//    ejecutaPDF(Path);
     BringToFront;
     Refresh;
   finally

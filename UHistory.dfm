@@ -838,7 +838,7 @@ object frmHistory: TfrmHistory
     Align = alTop
     Color = 15780526
     ParentBackground = False
-    TabOrder = 2
+    TabOrder = 0
     object JvTransparentButton1: TJvTransparentButton
       Left = 1
       Top = 1
@@ -1138,8 +1138,8 @@ object frmHistory: TfrmHistory
     object Edit1: TEdit
       Left = 0
       Top = 0
-      Width = 1
-      Height = 1
+      Width = 0
+      Height = 0
       TabOrder = 0
       OnKeyDown = FormKeyDown
     end

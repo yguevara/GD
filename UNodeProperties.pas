@@ -19,7 +19,8 @@ uses
   Vcl.StdCtrls, Vcl.DBCtrls, cxDBNavigator, Vcl.Buttons, dxtree, dxdbtree,
   AdvSplitter, Vcl.Menus, AdvMenus, dxBarBuiltInMenu, cxBlobEdit, cxPC,
   JvExControls, JvButton, JvTransparentButton, AdvPanel, JvExExtCtrls,
-  JvExtComponent, JvCaptionPanel, AdvOfficeStatusBar;
+  JvExtComponent, JvCaptionPanel, AdvOfficeStatusBar, frxClass, frxADOComponents,
+  frxRich, frxDBSet, frxExportXLS, frxExportBaseDialog, frxExportPDF;
 
 type
   TfrmPropiedadesNodo = class(TForm)
@@ -33,18 +34,6 @@ type
     Panel3: TPanel;
     Panel4: TPanel;
     AdvSplitter1: TAdvSplitter;
-    GroupBox3: TGroupBox;
-    Label5: TLabel;
-    Label3: TLabel;
-    Label1: TLabel;
-    Label4: TLabel;
-    Label2: TLabel;
-    lcbTipodeObjeto: TcxDBLookupComboBox;
-    lcbRepresentante: TcxDBLookupComboBox;
-    edtEtiqueta: TcxDBTextEdit;
-    edtdeposito: TcxDBTextEdit;
-    cxDBCheckBox1: TcxDBCheckBox;
-    lcbPadre: TcxDBLookupComboBox;
     APMArbol: TAdvPopupMenu;
     N3: TMenuItem;
     A2: TMenuItem;
@@ -91,21 +80,6 @@ type
     N4: TMenuItem;
     O1: TMenuItem;
     MB: TAdvOfficeStatusBar;
-    cpNewNode: TJvCaptionPanel;
-    Label7: TLabel;
-    Label8: TLabel;
-    Label10: TLabel;
-    Label9: TLabel;
-    Label11: TLabel;
-    edtCodEstructura: TcxDBTextEdit;
-    cxDBLookupComboBox1: TcxDBLookupComboBox;
-    cxDBCheckBox2: TcxDBCheckBox;
-    cxDBLookupComboBox2: TcxDBLookupComboBox;
-    edtNombreEstructura: TcxDBTextEdit;
-    cxDBRichEdit1: TcxDBRichEdit;
-    AdvPanel1: TAdvPanel;
-    btnCancel: TJvTransparentButton;
-    btnOK: TJvTransparentButton;
     Timer1: TTimer;
     pMainContainer: TPanel;
     btncerrar: TJvTransparentButton;
@@ -116,6 +90,49 @@ type
     btnSystemHelp: TJvTransparentButton;
     btndel: TJvTransparentButton;
     Edit1: TEdit;
+    Panel1: TPanel;
+    frxMain: TfrxReport;
+    frxtb_sysconfig: TfrxDBDataset;
+    frxPDFExport1: TfrxPDFExport;
+    frxXLSExport1: TfrxXLSExport;
+    cxPageControl2: TcxPageControl;
+    tsnode: TcxTabSheet;
+    tsmainNode: TcxTabSheet;
+    Panel6: TPanel;
+    GroupBox3: TGroupBox;
+    Label5: TLabel;
+    Label3: TLabel;
+    Label1: TLabel;
+    Label4: TLabel;
+    Label2: TLabel;
+    lcbTipodeObjeto: TcxDBLookupComboBox;
+    lcbRepresentante: TcxDBLookupComboBox;
+    edtEtiqueta: TcxDBTextEdit;
+    edtdeposito: TcxDBTextEdit;
+    cxDBCheckBox1: TcxDBCheckBox;
+    lcbPadre: TcxDBLookupComboBox;
+    Panel7: TPanel;
+    GroupBox1: TGroupBox;
+    Label9: TLabel;
+    Label10: TLabel;
+    cxDBTextEdit1: TcxDBTextEdit;
+    cxDBTextEdit2: TcxDBTextEdit;
+    cxDBCheckBox2: TcxDBCheckBox;
+    Label7: TLabel;
+    Label8: TLabel;
+    font: TJvTransparentButton;
+    FontDialog1: TFontDialog;
+    ppmtvTree: TAdvPopupMenu;
+    MtvFont: TMenuItem;
+    MenuItem1: TMenuItem;
+    pmtvReset: TMenuItem;
+    PPMDescript: TAdvPopupMenu;
+    MenuItem3: TMenuItem;
+    AdvPopupMenu1: TAdvPopupMenu;
+    MenuItem2: TMenuItem;
+    F1: TMenuItem;
+    C1: TMenuItem;
+    R1: TMenuItem;
     procedure btnCloseClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure DBNavigator1Click(Sender: TObject; Button: TNavigateBtn);
@@ -125,14 +142,10 @@ type
     procedure A2Click(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure SpeedButton1Click(Sender: TObject);
-    procedure DataSource1DataChange(Sender: TObject; Field: TField);
     procedure ToolButton9Click(Sender: TObject);
     procedure MenuItem6Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure tvTreeDataMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure cpNewNodeButtonClick(Sender: TObject; Button: TJvCapBtnStyle);
-    procedure btnOKClick(Sender: TObject);
-    procedure btnCancelClick(Sender: TObject);
     procedure cxDBLookupComboBox2PropertiesCloseUp(Sender: TObject);
     procedure cxDBLookupComboBox2PropertiesChange(Sender: TObject);
     procedure v1Click(Sender: TObject);
@@ -140,6 +153,21 @@ type
     procedure edtCodEstructuraPropertiesValidate(Sender: TObject; var DisplayValue: Variant; var ErrorText: TCaption; var Error: Boolean);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure btnSystemHelpClick(Sender: TObject);
+    procedure Panel3Resize(Sender: TObject);
+    procedure cpNewNodeEndAutoDrag(Sender: TObject);
+    procedure btnPrintClick(Sender: TObject);
+    procedure DataSource1DataChange(Sender: TObject; Field: TField);
+    procedure lcbTipodeObjetoPropertiesCloseUp(Sender: TObject);
+    procedure tvTreeDataCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode; State: TCustomDrawState; var DefaultDraw: Boolean);
+    procedure cxPageControl2Change(Sender: TObject);
+    procedure MtvFontClick(Sender: TObject);
+    procedure MenuItem3Click(Sender: TObject);
+    procedure pmtvResetClick(Sender: TObject);
+    procedure F1Click(Sender: TObject);
+    procedure C1Click(Sender: TObject);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure FormShow(Sender: TObject);
+    procedure R1Click(Sender: TObject);
   private
     procedure ReActiveFather(aId: Integer);
     { Private declarations }
@@ -154,11 +182,20 @@ type
     procedure OcultaVGVardef;
     procedure SaveTreeStateNode;
     procedure LoadTreeStateNode;
+    procedure CargaReporte(report: TfrxReport; pathreport, nameempresa, empresa, nameimagen, pathimagen: string);
+    procedure InsertConnection(report: TfrxReport; connection: string);
+    function FindNode(aId: integer; Etiqueta: string): TTreeNode;
+    procedure ValidateParentNode(Node: TTreeNode);
+    procedure RestrictMoveOrChangeParent(Node: TTreeNode);
+    procedure SaveTreeViewFont(TreeView: TTreeView; const FileName: string);
+    procedure LoadTreeViewFont(TreeView: TTreeView; const FileName: string);
+    procedure SaveRichEditFont(RichEdit: TcxDBRichEdit; const FileName: string);
+    procedure LoadRichEditFont(RichEdit: TcxDBRichEdit; const FileName: string);
   end;
 
 var
   frmPropiedadesNodo: TfrmPropiedadesNodo;
-  AnItem: TTreeNode;
+  AnItem1: TTreeNode;
   IdSelectedNode: integer;
   S: string;
   salvo: boolean;
@@ -168,47 +205,133 @@ var
 implementation
 
 uses
-  UCapaDatos, UAddNewNode, UVarVirtualVar, USystemMsg;
+  UCapaDatos, UVarVirtualVar, USystemMsg, UNewNodefrm;
 
 {$R *.dfm}
+procedure TfrmPropiedadesNodo.LoadRichEditFont(RichEdit: TcxDBRichEdit; const FileName: string);
+var
+  FileStream: TextFile;
+  Line, Value: string;
+begin
+  AssignFile(FileStream, FileName);
+  Reset(FileStream);
+  try
+    while not Eof(FileStream) do
+    begin
+      Readln(FileStream, Line);
+
+      // Leer y aplicar el nombre de la fuente
+      if Pos('FontName=', Line) = 1 then
+      begin
+        Value := Copy(Line, Length('FontName=') + 1, MaxInt);
+        RichEdit.Style.Font.Name := Value;
+      end;
+
+      // Leer y aplicar el tamaño de la fuente
+      if Pos('FontSize=', Line) = 1 then
+      begin
+        Value := Copy(Line, Length('FontSize=') + 1, MaxInt);
+        RichEdit.Style.Font.Size := StrToInt(Value);
+      end;
+
+      // Leer y aplicar el color de la fuente
+      if Pos('FontColor=', Line) = 1 then
+      begin
+        Value := Copy(Line, Length('FontColor=') + 1, MaxInt);
+        RichEdit.Style.Font.Color := StringToColor('$' + Value);
+      end;
+
+      // Leer y aplicar los estilos de la fuente
+      if Pos('FontStyle=', Line) = 1 then
+      begin
+        RichEdit.Style.Font.Style := [];
+        Readln(FileStream, Line);
+        if Line = 'Bold' then
+          RichEdit.Style.Font.Style := RichEdit.Style.Font.Style + [fsBold];
+        if Line = 'Italic' then
+          RichEdit.Style.Font.Style := RichEdit.Style.Font.Style + [fsItalic];
+        if Line = 'Underline' then
+          RichEdit.Style.Font.Style := RichEdit.Style.Font.Style + [fsUnderline];
+        if Line = 'StrikeOut' then
+          RichEdit.Style.Font.Style := RichEdit.Style.Font.Style + [fsStrikeOut];
+      end;
+    end;
+  finally
+    CloseFile(FileStream);
+  end;
+end;
+
+procedure TfrmPropiedadesNodo.SaveRichEditFont(RichEdit: TcxDBRichEdit; const FileName: string);
+var
+  FileStream: TextFile;
+begin
+  AssignFile(FileStream, FileName);
+  Rewrite(FileStream);
+  try
+    // Guardar nombre de la fuente
+    Writeln(FileStream, 'FontName=' + RichEdit.Style.Font.Name);
+
+    // Guardar tamaño de la fuente
+    Writeln(FileStream, 'FontSize=' + IntToStr(RichEdit.Style.Font.Size));
+
+    // Guardar color de la fuente en formato hexadecimal
+    Writeln(FileStream, 'FontColor=' + IntToHex(RichEdit.Style.Font.Color, 6));
+
+    // Guardar estilos de la fuente (Bold, Italic, etc.)
+    Writeln(FileStream, 'FontStyle=');
+    if fsBold in RichEdit.Style.Font.Style then
+      Writeln(FileStream, 'Bold');
+    if fsItalic in RichEdit.Style.Font.Style then
+      Writeln(FileStream, 'Italic');
+    if fsUnderline in RichEdit.Style.Font.Style then
+      Writeln(FileStream, 'Underline');
+    if fsStrikeOut in RichEdit.Style.Font.Style then
+      Writeln(FileStream, 'StrikeOut');
+  finally
+    CloseFile(FileStream);
+  end;
+end;
 
 procedure TfrmPropiedadesNodo.A2Click(Sender: TObject);
 var
   Idpp: Integer;
   Padre: string;
+  bm: TBookmark;
 begin
+  tvTreeData.Items.BeginUpdate;
+  bm := UDM.tb_tree.GetBookmark;
   SaveTreeStateNode;
   Idpp := UDM.tb_tree.FieldByName('id').AsInteger;
-  Padre := UDM.tb_tree.FieldByName('etiqueta').AsString;
-//  with TfrmNewNode.Create(nil) do
-  UDM.tb_tree.Append;
-  UDM.tb_tree.FieldByName('Id').AsInteger := UDM.GetLastId('tb_tree', 'id');
-  UDM.tb_tree.FieldByName('Padre').AsInteger := Idpp; //aowner
-  UDM.tb_tree.FieldByName('aowner').AsString := 'administrador';
-  UDM.tb_tree.FieldByName('visible').AsBoolean := True;
-  cpNewNode.Caption := 'Nuevo nodo hijo de ' + AnsiQuotedStr(Padre, '"');
-  cpNewNode.Visible := True;
-end;
-
-procedure TfrmPropiedadesNodo.btnCancelClick(Sender: TObject);
-begin
-  if (UDM.tb_tree.State = dsEdit) or (UDM.tb_tree.State = dsInsert) then
-  try
-    UDM.tb_tree.Cancel;
-    cpNewNode.Visible := False;
-    UDM.tb_tree.DisableControls;
-    UDM.tb_tree.Active := False;
-    UDM.tb_tree.Active := True;
-    UDM.tb_tree.EnableControls;
-    UDM.CreaTreeDB(UDM.Conn, @tvTreeData, True);
-    LoadTreeStateNode;
-  except
-    on E: EFDException do
-    begin
-      UDM.sms('No se pudieron salvar los cambios solicitados. Motivo: ' + E.Message, 1);
-      exit;
+  //
+  NombrePadreEditar := UDM.tb_tree.FieldByName('etiqueta').AsString; //UDM.Conn.ExecSQLScalar(Padre);
+  IdPadreEditar := Idpp;
+  administradornodoeditar := UDM.tb_tree.FieldByName('aowner').AsString;
+  Padre := UDM.Conn.ExecSQLScalar('SELECT tb_tree.etiqueta FROM tb_tree where id=' + inttostr(Idpp) + '  and visible=1 ORDER BY etiqueta ASC');
+  if UDM.sms('¿Desea agregar un hijo al nodo actual (' + NombrePadreEditar + ')?', 4) = 6 then
+  begin
+    UDM.tb_tree.Append;
+    UDM.tb_tree.FieldByName('Id').AsInteger := UDM.GetLastId('tb_tree', 'id');
+    UDM.tb_tree.FieldByName('Padre').AsInteger := IdPadreEditar; //aowner
+    UDM.tb_tree.FieldByName('aowner').AsString := administradornodoeditar;
+    UDM.tb_tree.FieldByName('visible').AsBoolean := True;
+    tvActivo := @tvTreeData;
+    with TfrmNewNodeform.Create(nil) do
+    try
+      Caption := 'Nuevo nodo hijo de ' + AnsiQuotedStr(Padre, '"');
+      ShowModal;
+    finally
+      Free;
+//      UDM.CreaTreeDB(UDM.Conn, @tvTreeData, True);
+      UDM.CargarArbol(tvTreeData, UDM.tb_arbol, true);
+      AnItem1 := FindNode(Udm.tb_tree.FieldByName('ID').AsInteger, Udm.tb_tree.FieldByName('Etiqueta').AsString);
+      LoadTreeStateNode;
+      UDM.tb_tree.EnableControls;
+      LoadTreeStateNode;
+      tvTreeData.Items.EndUpdate;
     end;
   end;
+//  cpNewNode.Caption := 'Nuevo nodo hijo de ' + AnsiQuotedStr(Padre, '"');
+//  cpNewNode.Visible := True;
 end;
 
 procedure TfrmPropiedadesNodo.btnCloseClick(Sender: TObject);
@@ -216,42 +339,39 @@ begin
   Close;
 end;
 
-procedure TfrmPropiedadesNodo.btnOKClick(Sender: TObject);
+procedure TfrmPropiedadesNodo.btnPrintClick(Sender: TObject);
 begin
-  if trim(edtCodEstructura.Text) = '' then
+  UDM.MostrarReporte('Cuadro_ClasificacionAdmin');
+  {
+    //esta validacion la puse aqui pero puede ser en otro lugar si deseas
+  if ((UDM.tb_sysconfig.FieldByName('empresa').AsString <> '') and (not TBlobField(UDM.tb_sysconfig.FieldByName('logo')).IsNull)) then
   begin
-    UDM.sms('Debe especificar un identificador de estructura válido.', 1);
-    edtCodEstructura.Focused;
-    edtCodEstructura.SetFocus;
-    Exit;
-  end;
-
-  if (UDM.tb_tree.State = dsEdit) or (UDM.tb_tree.State = dsInsert) then
-  try
-    UDM.tb_tree.Post;
-    cpNewNode.Visible := False;
-    UDM.tb_tree.DisableControls;
-    UDM.tb_tree.Active := False;
-    UDM.tb_tree.Active := True;
-    UDM.tb_tree.EnableControls;
-    UDM.CreaTreeDB(UDM.Conn, @tvTreeData, True);
-    LoadTreeStateNode;
-  except
-    on E: EFDException do
-    begin
-      UDM.sms('No se pudieron salvar los cambios solicitados. Motivo: ' + E.Message, 1);
-      exit;
-    end;
-  end;
+     //salvar el logo que esta en la tabla de configuracion a la carpeta de reportes ,que ahora esta a nivel del mosulo
+     //principal
+    TBlobField(UDM.tb_sysconfig.FieldByName('logo')).SaveToFile(pathreport + 'logo.png');
+    //todos los parametros para cargar el reporte
+    CargaReporte(frxMain, pathreport + 'rCuadro_ClasificacionAdmin.fr3', 'empresa', UDM.tb_sysconfig.FieldByName('empresa').AsString, 'imagen', pathreport + 'logo.png');
+  end
+  else
+  begin
+    udm.sms('Debe configurar los Datos de la Empresa. Diríjase a la configuración del Sistema', 1);
+  end;   }
 end;
 
 procedure TfrmPropiedadesNodo.btnSystemHelpClick(Sender: TObject);
+var
+  TopicID: integer;
 begin
-  with TfrmsystemMSG.Create(nil) do
-  try
-    ShowModal;
-  finally
-    Free;
+  TopicID := 21;
+  Application.HelpContext(TopicID);
+end;
+
+procedure TfrmPropiedadesNodo.C1Click(Sender: TObject);
+begin
+  if FontDialog1.Execute then
+  begin
+    // Asignar la fuente seleccionada al campo descripción...
+    edtDescripcion.Style.Font.Assign(FontDialog1.Font);
   end;
 end;
 
@@ -336,6 +456,26 @@ begin
   UDM.tb_tree.Open();
 end;
 
+procedure TfrmPropiedadesNodo.CargaReporte(report: TfrxReport; pathreport, nameempresa, empresa, nameimagen, pathimagen: string);
+var
+  Component: TfrxComponent;
+begin
+  with report do
+  begin
+    LoadFromFile(pathreport);
+    InsertConnection(report, PathBD);
+    Component := FindObject(nameempresa);
+    if Component is TfrxRichView then
+      TfrxRichView(Component).DataSet := frxtb_sysconfig;
+    TfrxRichView(Component).DataField := 'empresa';
+    Component := FindObject(nameimagen);
+    if Component is TfrxPictureView then
+      TfrxPictureView(Component).Picture.LoadFromFile(pathimagen);
+    PrepareReport();
+    ShowReport();
+  end;
+end;
+
 procedure TfrmPropiedadesNodo.ChangeParentState(State: boolean);
 begin
   {while UDM.tb_tree.FieldByName('id').Value<>null do begin
@@ -343,14 +483,9 @@ begin
   end;}
 end;
 
-procedure TfrmPropiedadesNodo.cpNewNodeButtonClick(Sender: TObject; Button: TJvCapBtnStyle);
+procedure TfrmPropiedadesNodo.cpNewNodeEndAutoDrag(Sender: TObject);
 begin
-  if Button = capClose then
-  begin
-    cpNewNode.Visible := False;
-    if (UDM.tb_tree.State = dsEdit) or (UDM.tb_tree.State = dsInsert) then
-      UDM.tb_tree.Cancel;
-  end;
+  UDM.Boundarys(Sender);
 end;
 
 procedure TfrmPropiedadesNodo.cxDBCheckBox1PropertiesEditValueChanged(Sender: TObject);
@@ -379,34 +514,16 @@ var
 begin
   if (UDM.tb_tree.State = dsInsert) or (UDM.tb_tree.State = dsedit) then
     UDM.tb_tree.FieldByName('Icono').Value := UDM.Conn.ExecSQLScalar('select icon from cl_tipoobj where idtipoobj=' + VarToStr(idelemento));
-    {with UDM.CMD do
-    begin
-      active := False;
-      SQL.Clear;
-      SQL.Add('select icon from cl_tipoobj where idtipoobj=' + IntToStr(UDM.VarToInt(lcbTipodeObjeto.EditValue)));
-      try
-        Active := True;
-        UDM.tb_tree.FieldByName('Icono').AsString := Fields[0].AsString;
-      except
-      end;
-    end; }
+end;
 
+procedure TfrmPropiedadesNodo.cxPageControl2Change(Sender: TObject);
+begin
+  edtDescripcion.Height := 100;
 end;
 
 procedure TfrmPropiedadesNodo.DataSource1DataChange(Sender: TObject; Field: TField);
 begin
- { if UDM.cl_VarProject.RecordCount > 0 then
-  begin
-    UDM.tb_VirtualVar.Active := False;
-    UDM.tb_VirtualVar.FieldDefs.Clear;
-    RellenaPrj;
-    ToolBar3.Visible := True;
-   // Panel4.Visible := True;
-  end
-  else
-  begin
-    OcultaVGVardef;
-  end;  }
+  Caption := 'Propiedades del nodo actual (' + UDM.tb_tree.FieldByName('etiqueta').AsString + ')';
 end;
 
 procedure TfrmPropiedadesNodo.DBNavigator1Click(Sender: TObject; Button: TNavigateBtn);
@@ -414,36 +531,32 @@ var
   bm: TBookmark;
   idNodoActual: Integer;
   etiqueta: string;
-
-  function FindNode(aId: integer): TTreeNode;
-  var
-    j: integer;
-  begin
-    result := nil;
-    for j := 0 to tvTreeData.Items.Count - 1 do
-      if (PDataRec(tvTreeData.Items[j]).Id = aId) or (tvTreeData.Items[j].Text = etiqueta) then
-      begin
-        tvTreeData.Items[j].Selected := True;
-        Result := tvTreeData.Items[j];
-        Break;
-      end;
-  end;
-
 begin
   if Button = nbPost then
   begin
+    tvTreeData.Items.BeginUpdate;
     bm := UDM.tb_tree.GetBookmark;
     SaveTreeStateNode;
     UDM.tb_tree.DisableControls;
-    idNodoActual := PDataRec(AnItem.Data).id;
-    etiqueta := pdatarec(AnItem.Data).etiqueta;
+    if AnItem1 <> nil then
+    begin
+      try
+        idNodoActual := PDataRec(AnItem1.Data).id;
+        etiqueta := PDataRec(AnItem1.Data).etiqueta;
+      except
+        on E: Exception do
 
+
+      end;
+    end;
     UDM.VisualizaOneNodeAndParent(UDM.conn, IntToStr(IdSelectedNode), UDM.tb_tree.FieldByName('visible').AsBoolean);
-    UDM.CreaTreeDB(UDM.Conn, @tvTreeData, True);
-    FindNode(idNodoActual);
+//    UDM.CreaTreeDB(UDM.Conn, @tvTreeData, True);
+    UDM.CargarArbol(tvTreeData, UDM.tb_arbol, true);
+    FindNode(idNodoActual, etiqueta);
     UDM.tb_tree.GotoBookmark(bm);
     LoadTreeStateNode;
     UDM.tb_tree.EnableControls;
+    tvTreeData.Items.EndUpdate;
   end;
 end;
 
@@ -478,7 +591,13 @@ var
         while not Eof do
         begin
           ChangeVisibleProp(FieldByName('id').AsString);
-          UDM.Conn.ExecSQL('delete from tb_tree where id=' + FieldByName('id').AsString);
+          try
+            UDM.Conn.StartTransaction;
+            UDM.Conn.ExecSQL('delete from tb_tree where id=' + FieldByName('id').AsString);
+            UDM.Conn.Commit;
+          except
+            UDM.Conn.Rollback;
+          end;
           Next;
         end;
       except
@@ -502,7 +621,14 @@ begin
       while not Eof do
       begin
         ChangeVisibleProp(FieldByName('id').AsString);
-        UDM.Conn.ExecSQL('delete from tb_tree where id=' + FieldByName('id').AsString);
+        try
+          UDM.Conn.StartTransaction;
+          UDM.Conn.ExecSQL('delete from tb_tree where id=' + FieldByName('id').AsString);
+          UDM.Conn.Commit;
+        except
+          UDM.Conn.Rollback;
+        end;
+
         Next;
       end;
     except
@@ -510,8 +636,34 @@ begin
   end;
   q.Free;
   UDM.Conn.ExecSQL('delete from tb_tree where id=' + IntToStr(IdPadre));
-  UDM.tb_tree.Close();
-  UDM.tb_tree.Open();
+  EstoyActualizando := True;
+  UDM.tb_tree.Refresh;
+  {UDM.tb_tree.Close();
+  UDM.tb_tree.Open();}
+  EstoyActualizando := False;
+end;
+
+procedure TfrmPropiedadesNodo.F1Click(Sender: TObject);
+begin
+  if FontDialog1.Execute then
+  begin
+    // Asignar la fuente seleccionada al TreeView
+    tvTreeData.Font.Assign(FontDialog1.Font);
+  end;
+end;
+
+function TfrmPropiedadesNodo.FindNode(aId: integer; Etiqueta: string): TTreeNode;
+var
+  j: integer;
+begin
+  result := nil;
+  for j := 0 to tvTreeData.Items.Count - 1 do
+    if (PDataRec(tvTreeData.Items[j]).Id = aId) or (tvTreeData.Items[j].Text = Etiqueta) then
+    begin
+      tvTreeData.Items[j].Selected := True;
+      Result := tvTreeData.Items[j];
+      Break;
+    end;
 end;
 
 procedure TfrmPropiedadesNodo.FormActivate(Sender: TObject);
@@ -522,28 +674,104 @@ begin
   ReActiveFather(UDM.tb_tree.FieldByName('id').Value);
 end;
 
+procedure TfrmPropiedadesNodo.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+begin
+  SaveTreeViewFont(tvTreeData, PathTemp + '\tvTreeData.ini');
+  SaveRichEditFont(edtDescripcion, PathTemp + '\ccDescript.ini');
+end;
+
 procedure TfrmPropiedadesNodo.FormCreate(Sender: TObject);
 begin
-  UDM.CreaTreeDB(UDM.Conn, @tvTreeData, True);
+  tvTreeData.Items.BeginUpdate;
+  UDM.CargarArbol(tvTreeData, UDM.tb_arbol, true);
+  udm.FindNode(tvTreeData, UDM.tb_tree.FieldByName('id').AsInteger, UDM.tb_tree.FieldByName('Etiqueta').AsString);
+  tvTreeData.Items.EndUpdate;
 end;
 
 procedure TfrmPropiedadesNodo.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+var
+  TopicID: integer;
 begin
   if Key = 112 then
   begin
-    with TfrmsystemMSG.Create(nil) do
-    try
-      ShowModal;
-    finally
-      Free;
-    end;
+    {TopicID := 21;
+    HelpFile := ExtractFilePath(Application.ExeName) + 'ArchiGenioPro.chm';          }
+    Application.HelpContext(21);
+    //Application.HelpSystem.ShowContextHelp(TopicID, HelpFile);
   end;
 end;
 
 procedure TfrmPropiedadesNodo.FormResize(Sender: TObject);
 begin
+  //Panel3.Width := Width - (GroupBox3.width + 76);
+  edtDescripcion.height := panel4.height - Label6.top - 30;
+
   tvTreeData.Align := alNone;
   tvTreeData.Align := alClient;
+end;
+
+procedure TfrmPropiedadesNodo.FormShow(Sender: TObject);
+begin
+  if FileExists(PathTemp + '\tvTreeData.ini') then
+    LoadTreeViewFont(tvTreeData, PathTemp + '\tvTreeData.ini');
+  if FileExists(PathTemp + '\ccDescript.ini') then
+    LoadRichEditFont(edtDescripcion, PathTemp + '\ccDescript.ini');
+end;
+
+procedure TfrmPropiedadesNodo.InsertConnection(report: TfrxReport; connection: string);
+var
+  i: integer;
+begin
+  TfrxADODatabase(report.FindComponent('conn')).Connected := false;
+  if TBD = 'A' then
+    TfrxADODatabase(report.FindComponent('conn')).DatabaseName := 'Provider=Microsoft.Jet.OLEDB.4.0;Data Source=' + connection + ';Persist Security Info=False'
+  else
+    TfrxADODatabase(report.FindComponent('conn')).DatabaseName := 'Provider=SQLOLEDB.1;Password=geoconn;Persist Security Info=True;User ID=geoconn;Initial Catalog=SDbd;Data Source=' + UDM.tb_sysconfig.FieldByName('ipservidorbd').AsString;
+  TfrxADODatabase(report.FindComponent('conn')).Connected := True;
+  for i := 0 to report.ComponentCount - 1 do
+  begin
+    if report.Components[i] is TfrxADOQuery then
+    begin
+      if TfrxADOQuery(report.Components[i]).Params.Count = 0 then
+      begin
+        TfrxADOQuery(report.Components[i]).Active := True;
+      end;
+
+    end;
+  end;
+end;
+
+procedure TfrmPropiedadesNodo.lcbTipodeObjetoPropertiesCloseUp(Sender: TObject);
+var
+  bm: TBookmark;
+  idNodoActual: Integer;
+  etiqueta: string;
+begin
+  bm := UDM.tb_tree.GetBookmark;
+  if (UDM.tb_tree.State = dsedit) or (UDM.tb_tree.State = dsInsert) then
+    UDM.tb_tree.Post;
+  tvTreeData.Items.BeginUpdate;
+  SaveTreeStateNode;
+  UDM.tb_tree.DisableControls;
+  if AnItem1 <> nil then
+  begin
+    try
+      idNodoActual := PDataRec(AnItem1.Data).id;
+      etiqueta := PDataRec(AnItem1.Data).etiqueta;
+    except
+      on E: Exception do
+
+
+    end;
+  end;
+  UDM.VisualizaOneNodeAndParent(UDM.conn, IntToStr(IdSelectedNode), UDM.tb_tree.FieldByName('visible').AsBoolean);
+//    UDM.CreaTreeDB(UDM.Conn, @tvTreeData, True);
+  UDM.CargarArbol(tvTreeData, UDM.tb_arbol, true);
+  FindNode(idNodoActual, etiqueta);
+  UDM.tb_tree.GotoBookmark(bm);
+  LoadTreeStateNode;
+  UDM.tb_tree.EnableControls;
+  tvTreeData.Items.EndUpdate;
 end;
 
 procedure TfrmPropiedadesNodo.LoadTreeStateNode;
@@ -569,31 +797,127 @@ begin
   end;
 end;
 
+procedure TfrmPropiedadesNodo.LoadTreeViewFont(TreeView: TTreeView; const FileName: string);
+var
+  FileStream: TextFile;
+  Line: string;
+begin
+  AssignFile(FileStream, FileName);
+  Reset(FileStream);
+  try
+    while not Eof(FileStream) do
+    begin
+      Readln(FileStream, Line);
+
+      // Cargar nombre de la fuente
+      if Pos('FontName=', Line) = 1 then
+        TreeView.Font.Name := Copy(Line, Length('FontName=') + 1, MaxInt);
+
+      // Cargar tamaño de la fuente
+      if Pos('FontSize=', Line) = 1 then
+        TreeView.Font.Size := StrToIntDef(Copy(Line, Length('FontSize=') + 1, MaxInt), TreeView.Font.Size);
+
+      // Cargar color de la fuente
+      if Pos('FontColor=', Line) = 1 then
+        TreeView.Font.Color := StrToInt('$' + Copy(Line, Length('FontColor=') + 1, MaxInt));
+
+      // Cargar estilos de la fuente
+      if Pos('FontStyle=', Line) = 1 then
+      begin
+        TreeView.Font.Style := [];
+        while not Eof(FileStream) do
+        begin
+          Readln(FileStream, Line);
+          if Line = 'Bold' then
+            TreeView.Font.Style := TreeView.Font.Style + [fsBold];
+          if Line = 'Italic' then
+            TreeView.Font.Style := TreeView.Font.Style + [fsItalic];
+          if Line = 'Underline' then
+            TreeView.Font.Style := TreeView.Font.Style + [fsUnderline];
+          if Line = 'StrikeOut' then
+            TreeView.Font.Style := TreeView.Font.Style + [fsStrikeOut];
+        end;
+      end;
+    end;
+  finally
+    CloseFile(FileStream);
+  end;
+end;
+
+procedure TfrmPropiedadesNodo.R1Click(Sender: TObject);
+begin
+  if UDM.sms('¿Realmente restablecer la fuente por defecto en el árbol del Cuadro de Clasificación Documental (CCD)?', 4) = 6 then
+  begin
+    LoadTreeViewFont(tvTreeData, PathSys + '\Resources\tvtree.ini');
+  end;
+end;
+
 procedure TfrmPropiedadesNodo.ReActiveFather(aId: Integer);
+var
+  cad: string;
 begin
   Padres.Active := False;
-  Padres.Params[0].Value := aId;
+  if TBD = 'A' then
+  begin
+    cad := 'SELECT tb_tree.id, tb_tree.etiqueta';
+    cad := cad + ' FROM tb_tree where id<>' + IntToStr(aId) + '  and visible=true ORDER BY etiqueta ASC';
+  end
+  else
+  begin
+    cad := 'SELECT tb_tree.id, tb_tree.etiqueta';
+    cad := cad + ' FROM tb_tree where id<>' + IntToStr(aId) + '  and visible=1 ORDER BY etiqueta ASC';
+  end;
+  Padres.SQL.Clear;
+  Padres.SQL.Add(cad);
   Padres.Active := True;
+end;
+
+procedure TfrmPropiedadesNodo.MenuItem3Click(Sender: TObject);
+begin
+  if FontDialog1.Execute then
+  begin
+    // Asignar la fuente seleccionada al TreeView
+    edtDescripcion.Style.Font.Assign(FontDialog1.Font);
+  end;
 end;
 
 procedure TfrmPropiedadesNodo.MenuItem6Click(Sender: TObject);
 begin
-  //eliminará el nodo y todos sus hijos...
+ //eliminará el nodo y todos sus hijos...
+  if UDM.tb_tree.FieldByName('padre').AsInteger = 0 then
+  begin
+    UDM.sms('¡EL NODO ACTUAL (' + UDM.tb_tree.FieldByName('etiqueta').AsString + ') NO SE PUEDE ELIMINAR!.', 1);
+    EXIT;
+  end;
   SaveTreeStateNode;
-  UDM.sms('La acción actual eliminará al nodo actual y a todos sus hijos.', 2);
-  if UDM.sms('¿Está seguro de continuar?. Se elimará le nodo actual y todos sus hijos', 4) = 6 then
+  UDM.sms('La acción actual eliminará al nodo actual (' + UDM.tb_tree.FieldByName('etiqueta').AsString + ') y a todos sus hijos.', 2);
+  if UDM.sms('¿Está seguro de continuar?. Se elimará el nodo actual (' + UDM.tb_tree.FieldByName('etiqueta').AsString + ') y todos sus hijos', 4) = 6 then
   begin
     EliminaPadreSon(UDM.tb_tree.FieldByName('id').AsInteger);
   end;
-  UDM.CreaTreeDB(UDM.Conn, @tvTreeData, True);
+  tvTreeData.Items.BeginUpdate;
+  //UDM.CreaTreeDB(UDM.Conn, @tvTreeData, True);
+  UDM.CargarArbol(tvTreeData, UDM.tb_arbol, True);
+  tvTreeData.Items.EndUpdate;
+  tvTreeData.Items.BeginUpdate;
   LoadTreeStateNode;
+  tvTreeData.Items.EndUpdate;
+end;
+
+procedure TfrmPropiedadesNodo.MtvFontClick(Sender: TObject);
+begin
+  if FontDialog1.Execute then
+  begin
+    // Asignar la fuente seleccionada al TreeView
+    tvTreeData.Font.Assign(FontDialog1.Font);
+  end;
 end;
 
 procedure TfrmPropiedadesNodo.O1Click(Sender: TObject);
 begin
-//  UDM.Visualiza(UDM.Conn, Inttostr(IdSelectedNode), False);
   UDM.VisualizaOneNodeAndParent(UDM.conn, IntToStr(IdSelectedNode), False);
-  UDM.CreaTreeDB(UDM.Conn, @tvTreeData, True);
+//  UDM.CreaTreeDB(UDM.Conn, @tvTreeData, True);
+  UDM.CargarArbol(tvTreeData, UDM.tb_arbol, True);
 end;
 
 procedure TfrmPropiedadesNodo.OcultaVGVardef;
@@ -609,6 +933,19 @@ begin
     TcxDBEditorRow(FindComponent(s)).Properties.DataBinding.FieldName := '';
   end;  }
  // UDM.tb_SeriesDatos.EnableControls;
+end;
+
+procedure TfrmPropiedadesNodo.Panel3Resize(Sender: TObject);
+begin
+  Width := Panel3.Width + (GroupBox3.width + 76);
+end;
+
+procedure TfrmPropiedadesNodo.pmtvResetClick(Sender: TObject);
+begin
+  if UDM.sms('¿Realmente restablecer la fuente por defecto en el árbol del Cuadro de Clasificación Documental (CCD)?', 4) = 6 then
+  begin
+    LoadTreeViewFont(tvTreeData, PathSys + '\Resources\tvtree.ini');
+  end;
 end;
 
 procedure TfrmPropiedadesNodo.RellenaPrj;
@@ -630,7 +967,7 @@ begin
   //tb_SeriesDatos.DisableControls;
   //salvo := false;
  //********************Abrit las tablas*****************************************
-  AbrirTabla(UDM.tb_tree);
+{  AbrirTabla(UDM.tb_tree);
   AbrirTabla(UDM.cl_VarProject);
   AbrirTabla(UDM.tb_VirtVarDataEstruct);
   //AbrirTabla(tb_VirtualVar);
@@ -740,9 +1077,24 @@ begin
       UDM.tb_VirtualVar.post;
     end;
     UDM.tb_VirtVarDataEstruct.next;
-  end;
+  end;                         }
  // tb_SeriesDatos.EnableControls;
 //****************************************************************************
+end;
+
+procedure TfrmPropiedadesNodo.RestrictMoveOrChangeParent(Node: TTreeNode);
+const
+  ProtectedNodes: array[0..2] of string = ('ESTRUCTURA EMPRESA', 'PROCESOS', 'CONTENIDOS');
+var
+  i: Integer;
+begin
+  for i := Low(ProtectedNodes) to High(ProtectedNodes) do
+  begin
+    if Node.Text = ProtectedNodes[i] then
+    begin
+      raise Exception.Create('No se puede mover o cambiar el padre del nodo "' + Node.Text + '".');
+    end;
+  end;
 end;
 
 procedure TfrmPropiedadesNodo.SaveTreeStateNode;
@@ -762,9 +1114,40 @@ begin
   List.Free;
 end;
 
+procedure TfrmPropiedadesNodo.SaveTreeViewFont(TreeView: TTreeView; const FileName: string);
+var
+  FileStream: TextFile;
+begin
+  AssignFile(FileStream, FileName);
+  Rewrite(FileStream);
+  try
+    // Guardar nombre de la fuente
+    Writeln(FileStream, 'FontName=' + TreeView.Font.Name);
+
+    // Guardar tamaño de la fuente
+    Writeln(FileStream, 'FontSize=' + IntToStr(TreeView.Font.Size));
+
+    // Guardar color de la fuente en formato hexadecimal
+    Writeln(FileStream, 'FontColor=' + IntToHex(TreeView.Font.Color, 6));
+
+    // Guardar estilos de la fuente (Bold, Italic, etc.)
+    Writeln(FileStream, 'FontStyle=');
+    if fsBold in TreeView.Font.Style then
+      Writeln(FileStream, 'Bold');
+    if fsItalic in TreeView.Font.Style then
+      Writeln(FileStream, 'Italic');
+    if fsUnderline in TreeView.Font.Style then
+      Writeln(FileStream, 'Underline');
+    if fsStrikeOut in TreeView.Font.Style then
+      Writeln(FileStream, 'StrikeOut');
+  finally
+    CloseFile(FileStream);
+  end;
+end;
+
 procedure TfrmPropiedadesNodo.SpeedButton1Click(Sender: TObject);
 begin
-  if (UDM.tb_tree.State = dsInsert) or (UDM.tb_tree.State = dsEdit) then
+{  if (UDM.tb_tree.State = dsInsert) or (UDM.tb_tree.State = dsEdit) then
   begin
     UDM.sms('Debe aceptar los cambios realizados en la estructura para entrar a gestionar sus variables.', 2);
     Exit;
@@ -799,7 +1182,7 @@ begin
   begin
     Filtered := False;
     Filter := '';
-  end;
+  end;     }
 end;
 
 procedure TfrmPropiedadesNodo.ToolButton9Click(Sender: TObject);
@@ -808,7 +1191,7 @@ var
   si: boolean;
   SCampo: string;
 begin
-  salvo := true;
+ { salvo := true;
   if (UDM.tb_VirtualVar.State <> dsedit) and (UDM.tb_VirtualVar.State <> dsinsert) then
     UDM.tb_VirtualVar.edit;
   for i := CantIndex to UDM.tb_VirtualVar.fieldcount - 1 do
@@ -844,7 +1227,7 @@ begin
     end;
    // close;
     UDM.sms('Los cambios se realizaron satisfactoriamente.', 3);
-  end;
+  end;     }
 end;
 
 procedure TfrmPropiedadesNodo.TvTreeChange(Sender: TObject; Node: TTreeNode);
@@ -852,35 +1235,74 @@ begin
   //TvTree.SelectedIndex := UDM.tb_tree.FieldByName('icono').AsInteger;
 end;
 
+procedure TfrmPropiedadesNodo.tvTreeDataCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode; State: TCustomDrawState; var DefaultDraw: Boolean);
+begin
+  if cdsSelected in State then
+  begin
+    // Mantén el nodo resaltado incluso si el TreeView pierde el foco
+    tvTreeData.Canvas.Brush.Color := $00EFCD85; //clHighlight;
+    tvTreeData.Canvas.Font.Style := [fsBold, fsUnderline];
+    tvTreeData.Canvas.Font.Color := clWindowText; //clHighlightText;
+  end
+  else
+  begin
+    // Dibuja los nodos no seleccionados con el color de fondo predeterminado
+    tvTreeData.Canvas.Brush.Color := clWindow;
+    tvTreeData.Canvas.Font.Style := [];
+    tvTreeData.Canvas.Font.Color := clWindowText;
+  end;
+
+  DefaultDraw := True; // Permite que Delphi dibuje el nodo con los colores establecidos
+end;
+
 procedure TfrmPropiedadesNodo.tvTreeDataMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+const
+  ProtectedNodes: array[0..2] of string = ('ESTRUCTURA EMPRESA', 'PROCESOS', 'CONTENIDOS');
 var
   HT: THitTests;
-  id: Integer;
+  ident, i: Integer;
 begin
   HT := tvTreeData.GetHitTestInfoAt(X, Y);
-  AnItem := tvTreeData.GetNodeAt(X, Y);
+  AnItem1 := tvTreeData.GetNodeAt(X, Y);
   if (HT - [htOnItem, htOnLabel] <> HT) then
   begin
     if Button = mbRight then
     begin
-      if (AnItem <> nil) and (trim(AnItem.Text) <> '') then
+      if (AnItem1 <> nil) and (trim(AnItem1.Text) <> '') then
       begin
-        IdSelectedNode := PDataRec(AnItem.Data).id;
+        IdSelectedNode := PDataRec(AnItem1.Data).id;
         APMArbol.PopupAtCursor;
       end;
     end
     else
     begin
-      if AnItem.Text <> '' then
+      if AnItem1.Text <> '' then
       begin
-        etiquetaNA := PDataRec(AnItem.data).etiqueta;
-        MB.Panels[1].Text := etiquetaNA;
-        id := PDataRec(AnItem.Data).id;
-        ReActiveFather(id);
-        IdSelectedNode := PDataRec(AnItem.Data).id;
-        if UDM.tb_tree.Locate('id', id, []) then
+        if AnItem1.Parent = nil then
         begin
-          s := s;
+          cxPageControl2.ActivePage := tsmainNode;
+          edtDescripcion.Height := 190;
+        end
+        else
+        begin
+          try
+            edtDescripcion.Height := 100;
+            cxPageControl2.ActivePage := tsnode;
+            etiquetaNA := PDataRec(AnItem1.data).etiqueta;
+            MB.Panels[1].Text := etiquetaNA;
+            ident := 0;
+            ident := PDataRec(AnItem1.Data).id;
+            ident := PDataRec(AnItem1.Data).id;
+            ReActiveFather(ident);
+            IdSelectedNode := PDataRec(AnItem1.Data).id;
+          except
+            on E: Exception do
+              showmessage(e.Message);
+          end;
+          if UDM.tb_tree.Locate('id', ident, []) then
+          begin
+            s := s;
+          end;
         end;
       end;
     end;
@@ -906,7 +1328,14 @@ procedure TfrmPropiedadesNodo.v1Click(Sender: TObject);
 begin
   UDM.Visualiza(UDM.Conn, Inttostr(IdSelectedNode), True);
   UDM.VisualizaOneNodeAndParent(UDM.conn, IntToStr(IdSelectedNode), True);
-  UDM.CreaTreeDB(UDM.Conn, @tvTreeData, True);
+//  UDM.CreaTreeDB(UDM.Conn, @tvTreeData, True);
+  UDM.CargarArbol(tvTreeData, UDM.tb_arbol, true);
+end;
+
+procedure TfrmPropiedadesNodo.ValidateParentNode(Node: TTreeNode);
+begin
+  if Node.Parent = nil then
+    raise Exception.Create('No se puede agregar un nodo sin un padre asignado.');
 end;
 
 end.

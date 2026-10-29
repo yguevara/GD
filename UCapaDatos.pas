@@ -19,7 +19,31 @@ uses
   cxGridLevel, cxGridCustomTableView, cxGridDBTableView, cxGridCustomView,
   cxGrid, Winapi.TlHelp32, Winapi.ShlObj, Masks, Vcl.Forms, FireDAC.VCLUI.Script,
   System.HelpIntfs, Vcl.HtmlHelpViewer, Vcl.AppEvnts, Winapi.Messages, ADOInt,
-  ActiveX, Winapi.OleDB,ComObj;
+  ActiveX, Winapi.OleDB, ComObj, WinInet, winsock, frxClass, frxADOComponents,
+  JvCaptionPanel, Vcl.Themes, FireDAC.Phys.MSSQL, FireDAC.Phys.MSSQLDef,
+  strutils, FireDAC.Stan.StorageXML, IdGlobal, IdFTPList, IdException,
+  Vcl.Samples.Gauges, IdFTPCommon, System.Zip, System.IOUtils, USysConfig,
+  IdHash, IdHashMessageDigest, Vcl.ExtCtrls, frxDBSet, cxDBVGrid, DateUtils,
+  System.RegularExpressions, System.IniFiles, frxRich, UMainForm, frxOLE,
+  frxCross, frxDMPExport, frxExportImage, frxExportRTF, frxExportXML,
+  frxExportHTML, frxGZip, frxExportPDF, frxChBox, frxExportText, frxExportCSV,
+  frxExportMail, frxCrypt, frxExportODF, frxPrinter, frxExportHTMLDiv,
+  frxExportXLSX, frxExportPPTX, frxExportDOCX, frxExportBIFF, frxChart,
+  frxExportSVG, frxTableObject, frxMap, frxExportHelpers, frxExportBaseDialog,
+  frxCellularTextObject, frxExportPPML, frxExportPS, frxExportZPL,
+  frxSaveFilterFRX, frxHTML, frxPDFViewer;
+
+const
+  // Lista completa de palabras reservadas para SQL Server
+  SQLServerReservadas: array[0..225] of string = ('ADD', 'ALL', 'ALTER', 'AND', 'ANY', 'AS', 'ASC', 'AUTHORIZATION', 'BACKUP', 'BEGIN', 'BETWEEN', 'BREAK', 'BROWSE', 'BULK', 'BY', 'CASCADE', 'CASE', 'CHECK', 'CLOSE', 'CLUSTERED', 'COALESCE', 'COLLATE', 'COLUMN', 'COMMIT', 'COMPUTE', 'CONSTRAINT', 'CONTAINS', 'CONTAINSTABLE', 'CONTINUE', 'CONVERT', 'CREATE', 'CROSS', 'CURRENT', 'CURRENT_DATE', 'CURRENT_TIME', 'CURRENT_TIMESTAMP', 'CURRENT_USER', 'CURSOR', 'DATABASE', 'DBCC', 'DEALLOCATE', 'DECLARE',
+    'DEFAULT', 'DELETE', 'DENY', 'DESC', 'DISK', 'DISTINCT', 'DISTRIBUTED', 'DOUBLE', 'DROP', 'DUMP', 'ELSE', 'END', 'ERRLVL', 'ESCAPE', 'EXCEPT', 'EXEC', 'EXECUTE', 'EXISTS', 'EXIT', 'EXTERNAL', 'FETCH', 'FILE', 'FILLFACTOR', 'FOR', 'FOREIGN', 'FREETEXT', 'FREETEXTTABLE', 'FROM', 'FULL', 'FUNCTION', 'GOTO', 'GRANT', 'GROUP', 'HAVING', 'HOLDLOCK', 'IDENTITY', 'IDENTITY_INSERT', 'IDENTITYCOL', 'IF', 'IN', 'INDEX', 'INNER', 'INSERT', 'INTERSECT', 'INTO', 'IS', 'JOIN', 'KEY', 'KILL', 'LEFT', 'LIKE', 'LINENO',
+    'LOAD', 'MERGE', 'NATIONAL', 'NOCHECK', 'NONCLUSTERED', 'NOT', 'NULL', 'NULLIF', 'OF', 'OFF', 'OFFSETS', 'ON', 'OPEN', 'OPENDATASOURCE', 'OPENQUERY', 'OPENROWSET', 'OPENXML', 'OPTION', 'OR', 'ORDER', 'OUTER', 'OVER', 'PERCENT', 'PIVOT', 'PLAN', 'PRIMARY', 'PRINT', 'PROC', 'PROCEDURE', 'PUBLIC', 'RAISERROR', 'READ', 'READTEXT', 'RECONFIGURE', 'REFERENCES', 'REPLICATION', 'RESTORE', 'RESTRICT', 'RETURN', 'REVERT', 'REVOKE', 'RIGHT', 'ROLLBACK', 'ROWCOUNT', 'ROWGUIDCOL', 'RULE', 'SAVE', 'SCHEMA',
+    'SECURITYAUDIT', 'SELECT', 'SEMANTICKEYPHRASETABLE', 'SEMANTICSIMILARITYDETAILSTABLE', 'SEMANTICSIMILARITYTABLE', 'SESSION_USER', 'SET', 'SETUSER', 'SHUTDOWN', 'SOME', 'STATISTICS', 'SYSTEM_USER', 'TABLE', 'TABLESAMPLE', 'TEXTSIZE', 'THEN', 'TO', 'TOP', 'TRAN', 'TRANSACTION', 'TRIGGER', 'TRUNCATE', 'TRY_CONVERT', 'TSEQUAL', 'UNION', 'UNIQUE', 'UNPIVOT', 'UPDATE', 'UPDATETEXT', 'USE', 'USER', 'VALUES', 'VARYING', 'VIEW', 'WAITFOR', 'WHEN', 'WHERE', 'WHILE', 'WITH', 'WITHIN GROUP', 'WRITETEXT', 'BIGINT',
+    'BINARY', 'BIT', 'CHAR', 'DATE', 'DATETIME', 'DATETIME2', 'DATETIMEOFFSET', 'DECIMAL', 'FLOAT', 'GEOGRAPHY', 'GEOMETRY', 'HIERARCHYID', 'IMAGE', 'INT', 'MONEY', 'NCHAR', 'NTEXT', 'NUMERIC', 'NVARCHAR', 'REAL', 'ROWVERSION', 'SMALLDATETIME', 'SMALLINT', 'SMALLMONEY', 'SQL_VARIANT', 'TEXT', 'TIME', 'TIMESTAMP', 'TINYINT', 'UNIQUEIDENTIFIER', 'VARBINARY', 'VARCHAR', 'XML', 'IDESTRUCTURA', 'ID', 'CODSUBS', 'FECHA', 'VERSION', 'CODIGODOC', 'YEAR', 'MONTH', 'DAY');
+
+  // Lista completa de palabras reservadas para MS Access
+  AccessReservadas: array[0..90] of string = ('ADD', 'ALL', 'ALTER', 'AND', 'ANY', 'AS', 'ASC', 'AUTOINCREMENT', 'BETWEEN', 'BY', 'CHAR', 'COLUMN', 'CONSTRAINT', 'COUNT', 'COUNTER', 'CREATE', 'CURRENCY', 'DATABASE', 'DATE', 'DATETIME', 'DELETE', 'DESC', 'DISTINCT', 'DISTINCTROW', 'DROP', 'ELSE', 'END', 'EXISTS', 'FLOAT', 'FOR', 'FOREIGN', 'FROM', 'GENERAL', 'GROUP', 'HAVING', 'INNER', 'INSERT', 'INT', 'INTEGER', 'INTO', 'IS', 'JOIN', 'KEY', 'LEFT', 'LEVEL', 'LIKE', 'LONG', 'MEMO', 'MOD', 'MONEY', 'NOT',
+    'NULL', 'NUMBER', 'OLEOBJECT', 'ON', 'OR', 'ORDER', 'OUTER', 'OWNERACCESS', 'PARAMETER', 'PERCENT', 'PIVOT', 'PRIMARY', 'PROCEDURE', 'REAL', 'REFERENCES', 'RIGHT', 'SELECT', 'SET', 'SHORT', 'SINGLE', 'SMALLINT', 'STDEV', 'SUM', 'TABLE', 'TEXT', 'TOP', 'TRANSFORM', 'UPDATE', 'VALUE', 'WHERE', 'YESNO', 'IDESTRUCTURA', 'ID', 'CODSUBS', 'FECHA', 'VERSION', 'CODIGODOC', 'YEAR', 'MONTH', 'DAY');
 
 type
 //==============================================================================
@@ -34,6 +58,10 @@ type
     PathServer: string;
   end;
 
+  TDatosPC = record
+    Nombre, IP, Usuario: string;
+  end;
+
   TNODOSD = record
     estructura: string;
     Id: integer;
@@ -45,30 +73,32 @@ type
   PDataRec = ^TDataRec; { RecordPointer }
 
   TDataRec = record
+    estruct: string;
     Id: Integer;
     Etiqueta: string;
     Padre: Integer;
     Icono: Integer;
+    Owner: string;
+    Tipo: string;
+    Descrip: string;
   end;
 
   PArbol = ^TTreeview;
 
   PArbolDB = ^tdxdbtreeview;
 
+  PBarra = ^TGauge;
+
   Tpdatasource = ^Tdatasource;
 
+  TDatabaseType = (dbAccess, dbSQLServer);
+
   TUDM = class(TDataModule)
-    cl_facultadesgen: TFDQuery;
-    dscl_facultadesgen: TDataSource;
-    cl_funcionesgen: TFDQuery;
-    dscl_funcionesgen: TDataSource;
     Conn: TFDConnection;
     FDM: TFDManager;
     WaitCursor: TFDGUIxWaitCursor;
     dstb_Serietree: TDataSource;
     ILEdith: TImageList;
-    cl_cargo: TFDQuery;
-    dscl_cargo: TDataSource;
     Tb_Rol: TFDTable;
     DSTb_Rol: TDataSource;
     cmdUser: TFDQuery;
@@ -79,7 +109,6 @@ type
     dscl_subseries: TDataSource;
     cl_subseries: TFDQuery;
     cl_series: TFDQuery;
-    ConnUser: TADOConnection;
     ILv4: TImageList;
     ILv1: TImageList;
     cl_destino: TFDQuery;
@@ -93,417 +122,6 @@ type
     cl_tipodoc: TFDQuery;
     dscl_tipodoc: TDataSource;
     cxStyleRepository1: TcxStyleRepository;
-    cxStyle1: TcxStyle;
-    cxStyle2: TcxStyle;
-    cxStyle3: TcxStyle;
-    cxStyle4: TcxStyle;
-    cxStyle5: TcxStyle;
-    cxStyle6: TcxStyle;
-    cxStyle7: TcxStyle;
-    cxStyle8: TcxStyle;
-    cxStyle9: TcxStyle;
-    cxStyle10: TcxStyle;
-    cxStyle11: TcxStyle;
-    cxStyle12: TcxStyle;
-    cxStyle13: TcxStyle;
-    cxStyle14: TcxStyle;
-    cxStyle15: TcxStyle;
-    cxStyle16: TcxStyle;
-    cxStyle17: TcxStyle;
-    cxStyle18: TcxStyle;
-    cxStyle19: TcxStyle;
-    cxStyle20: TcxStyle;
-    cxStyle21: TcxStyle;
-    cxStyle22: TcxStyle;
-    cxStyle23: TcxStyle;
-    cxStyle24: TcxStyle;
-    cxStyle25: TcxStyle;
-    cxStyle26: TcxStyle;
-    cxStyle27: TcxStyle;
-    cxStyle28: TcxStyle;
-    cxStyle29: TcxStyle;
-    cxStyle30: TcxStyle;
-    cxStyle31: TcxStyle;
-    cxStyle32: TcxStyle;
-    cxStyle33: TcxStyle;
-    cxStyle34: TcxStyle;
-    cxStyle35: TcxStyle;
-    cxStyle36: TcxStyle;
-    cxStyle37: TcxStyle;
-    cxStyle38: TcxStyle;
-    cxStyle39: TcxStyle;
-    cxStyle40: TcxStyle;
-    cxStyle41: TcxStyle;
-    cxStyle42: TcxStyle;
-    cxStyle43: TcxStyle;
-    cxStyle44: TcxStyle;
-    cxStyle45: TcxStyle;
-    cxStyle46: TcxStyle;
-    cxStyle47: TcxStyle;
-    cxStyle48: TcxStyle;
-    cxStyle49: TcxStyle;
-    cxStyle50: TcxStyle;
-    cxStyle51: TcxStyle;
-    cxStyle52: TcxStyle;
-    cxStyle53: TcxStyle;
-    cxStyle54: TcxStyle;
-    cxStyle55: TcxStyle;
-    cxStyle56: TcxStyle;
-    cxStyle57: TcxStyle;
-    cxStyle58: TcxStyle;
-    cxStyle59: TcxStyle;
-    cxStyle60: TcxStyle;
-    cxStyle61: TcxStyle;
-    cxStyle62: TcxStyle;
-    cxStyle63: TcxStyle;
-    cxStyle64: TcxStyle;
-    cxStyle65: TcxStyle;
-    cxStyle66: TcxStyle;
-    cxStyle67: TcxStyle;
-    cxStyle68: TcxStyle;
-    cxStyle69: TcxStyle;
-    cxStyle70: TcxStyle;
-    cxStyle71: TcxStyle;
-    cxStyle72: TcxStyle;
-    cxStyle73: TcxStyle;
-    cxStyle74: TcxStyle;
-    cxStyle75: TcxStyle;
-    cxStyle76: TcxStyle;
-    cxStyle77: TcxStyle;
-    cxStyle78: TcxStyle;
-    cxStyle79: TcxStyle;
-    cxStyle80: TcxStyle;
-    cxStyle81: TcxStyle;
-    cxStyle82: TcxStyle;
-    cxStyle83: TcxStyle;
-    cxStyle84: TcxStyle;
-    cxStyle85: TcxStyle;
-    cxStyle86: TcxStyle;
-    cxStyle87: TcxStyle;
-    cxStyle88: TcxStyle;
-    cxStyle89: TcxStyle;
-    cxStyle90: TcxStyle;
-    cxStyle91: TcxStyle;
-    cxStyle92: TcxStyle;
-    cxStyle93: TcxStyle;
-    cxStyle94: TcxStyle;
-    cxStyle95: TcxStyle;
-    cxStyle96: TcxStyle;
-    cxStyle97: TcxStyle;
-    cxStyle98: TcxStyle;
-    cxStyle99: TcxStyle;
-    cxStyle100: TcxStyle;
-    cxStyle101: TcxStyle;
-    cxStyle102: TcxStyle;
-    cxStyle103: TcxStyle;
-    cxStyle104: TcxStyle;
-    cxStyle105: TcxStyle;
-    cxStyle106: TcxStyle;
-    cxStyle107: TcxStyle;
-    cxStyle108: TcxStyle;
-    cxStyle109: TcxStyle;
-    cxStyle110: TcxStyle;
-    cxStyle111: TcxStyle;
-    cxStyle112: TcxStyle;
-    cxStyle113: TcxStyle;
-    cxStyle114: TcxStyle;
-    cxStyle115: TcxStyle;
-    cxStyle116: TcxStyle;
-    cxStyle117: TcxStyle;
-    cxStyle118: TcxStyle;
-    cxStyle119: TcxStyle;
-    cxStyle120: TcxStyle;
-    cxStyle121: TcxStyle;
-    cxStyle122: TcxStyle;
-    cxStyle123: TcxStyle;
-    cxStyle124: TcxStyle;
-    cxStyle125: TcxStyle;
-    cxStyle126: TcxStyle;
-    cxStyle127: TcxStyle;
-    cxStyle128: TcxStyle;
-    cxStyle129: TcxStyle;
-    cxStyle130: TcxStyle;
-    cxStyle131: TcxStyle;
-    cxStyle132: TcxStyle;
-    cxStyle133: TcxStyle;
-    cxStyle134: TcxStyle;
-    cxStyle135: TcxStyle;
-    cxStyle136: TcxStyle;
-    cxStyle137: TcxStyle;
-    cxStyle138: TcxStyle;
-    cxStyle139: TcxStyle;
-    cxStyle140: TcxStyle;
-    cxStyle141: TcxStyle;
-    cxStyle142: TcxStyle;
-    cxStyle143: TcxStyle;
-    cxStyle144: TcxStyle;
-    cxStyle145: TcxStyle;
-    cxStyle146: TcxStyle;
-    cxStyle147: TcxStyle;
-    cxStyle148: TcxStyle;
-    cxStyle149: TcxStyle;
-    cxStyle150: TcxStyle;
-    cxStyle151: TcxStyle;
-    cxStyle152: TcxStyle;
-    cxStyle153: TcxStyle;
-    cxStyle154: TcxStyle;
-    cxStyle155: TcxStyle;
-    cxStyle156: TcxStyle;
-    cxStyle157: TcxStyle;
-    cxStyle158: TcxStyle;
-    cxStyle159: TcxStyle;
-    cxStyle160: TcxStyle;
-    cxStyle161: TcxStyle;
-    cxStyle162: TcxStyle;
-    cxStyle163: TcxStyle;
-    cxStyle164: TcxStyle;
-    cxStyle165: TcxStyle;
-    cxStyle166: TcxStyle;
-    cxStyle167: TcxStyle;
-    cxStyle168: TcxStyle;
-    cxStyle169: TcxStyle;
-    cxStyle170: TcxStyle;
-    cxStyle171: TcxStyle;
-    cxStyle172: TcxStyle;
-    cxStyle173: TcxStyle;
-    cxStyle174: TcxStyle;
-    cxStyle175: TcxStyle;
-    cxStyle176: TcxStyle;
-    cxStyle177: TcxStyle;
-    cxStyle178: TcxStyle;
-    cxStyle179: TcxStyle;
-    cxStyle180: TcxStyle;
-    cxStyle181: TcxStyle;
-    cxStyle182: TcxStyle;
-    cxStyle183: TcxStyle;
-    cxStyle184: TcxStyle;
-    cxStyle185: TcxStyle;
-    cxStyle186: TcxStyle;
-    cxStyle187: TcxStyle;
-    cxStyle188: TcxStyle;
-    cxStyle189: TcxStyle;
-    cxStyle190: TcxStyle;
-    cxStyle191: TcxStyle;
-    cxStyle192: TcxStyle;
-    cxStyle193: TcxStyle;
-    cxStyle194: TcxStyle;
-    cxStyle195: TcxStyle;
-    cxStyle196: TcxStyle;
-    cxStyle197: TcxStyle;
-    cxStyle198: TcxStyle;
-    cxStyle199: TcxStyle;
-    cxStyle200: TcxStyle;
-    cxStyle201: TcxStyle;
-    cxStyle202: TcxStyle;
-    cxStyle203: TcxStyle;
-    cxStyle204: TcxStyle;
-    cxStyle205: TcxStyle;
-    cxStyle206: TcxStyle;
-    cxStyle207: TcxStyle;
-    cxStyle208: TcxStyle;
-    cxStyle209: TcxStyle;
-    cxStyle210: TcxStyle;
-    cxStyle211: TcxStyle;
-    cxStyle212: TcxStyle;
-    cxStyle213: TcxStyle;
-    cxStyle214: TcxStyle;
-    cxStyle215: TcxStyle;
-    cxStyle216: TcxStyle;
-    cxStyle217: TcxStyle;
-    cxStyle218: TcxStyle;
-    cxStyle219: TcxStyle;
-    cxStyle220: TcxStyle;
-    cxStyle221: TcxStyle;
-    cxStyle222: TcxStyle;
-    cxStyle223: TcxStyle;
-    cxStyle224: TcxStyle;
-    cxStyle225: TcxStyle;
-    cxStyle226: TcxStyle;
-    cxStyle227: TcxStyle;
-    cxStyle228: TcxStyle;
-    cxStyle229: TcxStyle;
-    cxStyle230: TcxStyle;
-    cxStyle231: TcxStyle;
-    cxStyle232: TcxStyle;
-    cxStyle233: TcxStyle;
-    cxStyle234: TcxStyle;
-    cxStyle235: TcxStyle;
-    cxStyle236: TcxStyle;
-    cxStyle237: TcxStyle;
-    cxStyle238: TcxStyle;
-    cxStyle239: TcxStyle;
-    cxStyle240: TcxStyle;
-    cxStyle241: TcxStyle;
-    cxStyle242: TcxStyle;
-    cxStyle243: TcxStyle;
-    cxStyle244: TcxStyle;
-    cxStyle245: TcxStyle;
-    cxStyle246: TcxStyle;
-    cxStyle247: TcxStyle;
-    cxStyle248: TcxStyle;
-    cxStyle249: TcxStyle;
-    cxStyle250: TcxStyle;
-    cxStyle251: TcxStyle;
-    cxStyle252: TcxStyle;
-    cxStyle253: TcxStyle;
-    cxStyle254: TcxStyle;
-    cxStyle255: TcxStyle;
-    cxStyle256: TcxStyle;
-    cxStyle257: TcxStyle;
-    cxStyle258: TcxStyle;
-    cxStyle259: TcxStyle;
-    cxStyle260: TcxStyle;
-    cxStyle261: TcxStyle;
-    cxStyle262: TcxStyle;
-    cxStyle263: TcxStyle;
-    cxStyle264: TcxStyle;
-    cxStyle265: TcxStyle;
-    cxStyle266: TcxStyle;
-    cxStyle267: TcxStyle;
-    cxStyle268: TcxStyle;
-    cxStyle269: TcxStyle;
-    cxStyle270: TcxStyle;
-    cxStyle271: TcxStyle;
-    cxStyle272: TcxStyle;
-    cxStyle273: TcxStyle;
-    cxStyle274: TcxStyle;
-    cxStyle275: TcxStyle;
-    cxStyle276: TcxStyle;
-    cxStyle277: TcxStyle;
-    cxStyle278: TcxStyle;
-    cxStyle279: TcxStyle;
-    cxStyle280: TcxStyle;
-    cxStyle281: TcxStyle;
-    cxStyle282: TcxStyle;
-    cxStyle283: TcxStyle;
-    cxStyle284: TcxStyle;
-    cxStyle285: TcxStyle;
-    cxStyle286: TcxStyle;
-    cxStyle287: TcxStyle;
-    cxStyle288: TcxStyle;
-    cxStyle289: TcxStyle;
-    cxStyle290: TcxStyle;
-    cxStyle291: TcxStyle;
-    cxStyle292: TcxStyle;
-    cxStyle293: TcxStyle;
-    cxStyle294: TcxStyle;
-    cxStyle295: TcxStyle;
-    cxStyle296: TcxStyle;
-    cxStyle297: TcxStyle;
-    cxStyle298: TcxStyle;
-    cxStyle299: TcxStyle;
-    cxStyle300: TcxStyle;
-    cxStyle301: TcxStyle;
-    cxStyle302: TcxStyle;
-    cxStyle303: TcxStyle;
-    cxStyle304: TcxStyle;
-    cxStyle305: TcxStyle;
-    cxStyle306: TcxStyle;
-    cxStyle307: TcxStyle;
-    cxStyle308: TcxStyle;
-    cxStyle309: TcxStyle;
-    cxStyle310: TcxStyle;
-    cxStyle311: TcxStyle;
-    cxStyle312: TcxStyle;
-    cxStyle313: TcxStyle;
-    cxStyle314: TcxStyle;
-    cxStyle315: TcxStyle;
-    cxStyle316: TcxStyle;
-    cxStyle317: TcxStyle;
-    cxStyle318: TcxStyle;
-    cxStyle319: TcxStyle;
-    cxStyle320: TcxStyle;
-    cxStyle321: TcxStyle;
-    cxStyle322: TcxStyle;
-    cxStyle323: TcxStyle;
-    cxStyle324: TcxStyle;
-    cxStyle325: TcxStyle;
-    cxStyle326: TcxStyle;
-    cxStyle327: TcxStyle;
-    cxStyle328: TcxStyle;
-    cxStyle329: TcxStyle;
-    cxStyle330: TcxStyle;
-    cxStyle331: TcxStyle;
-    cxStyle332: TcxStyle;
-    cxStyle333: TcxStyle;
-    cxStyle334: TcxStyle;
-    cxStyle335: TcxStyle;
-    cxStyle336: TcxStyle;
-    cxStyle337: TcxStyle;
-    cxStyle338: TcxStyle;
-    cxStyle339: TcxStyle;
-    cxStyle340: TcxStyle;
-    cxStyle341: TcxStyle;
-    cxStyle342: TcxStyle;
-    cxStyle343: TcxStyle;
-    cxStyle344: TcxStyle;
-    cxStyle345: TcxStyle;
-    cxStyle346: TcxStyle;
-    cxStyle347: TcxStyle;
-    cxStyle348: TcxStyle;
-    cxStyle349: TcxStyle;
-    cxStyle350: TcxStyle;
-    cxStyle351: TcxStyle;
-    cxStyle352: TcxStyle;
-    cxStyle353: TcxStyle;
-    cxStyle354: TcxStyle;
-    cxStyle355: TcxStyle;
-    cxStyle356: TcxStyle;
-    cxStyle357: TcxStyle;
-    cxStyle358: TcxStyle;
-    cxStyle359: TcxStyle;
-    cxStyle360: TcxStyle;
-    cxStyle361: TcxStyle;
-    cxStyle362: TcxStyle;
-    cxStyle363: TcxStyle;
-    cxStyle364: TcxStyle;
-    cxStyle365: TcxStyle;
-    cxStyle366: TcxStyle;
-    cxStyle367: TcxStyle;
-    cxStyle368: TcxStyle;
-    cxStyle369: TcxStyle;
-    cxStyle370: TcxStyle;
-    cxStyle371: TcxStyle;
-    cxStyle372: TcxStyle;
-    cxStyle373: TcxStyle;
-    cxStyle374: TcxStyle;
-    cxStyle375: TcxStyle;
-    cxStyle376: TcxStyle;
-    cxStyle377: TcxStyle;
-    GridTableViewStyleSheetDevExpress: TcxGridTableViewStyleSheet;
-    GridTableViewStyleSheetUserFormat1: TcxGridTableViewStyleSheet;
-    GridTableViewStyleSheetUserFormat2: TcxGridTableViewStyleSheet;
-    GridTableViewStyleSheetUserFormat3: TcxGridTableViewStyleSheet;
-    GridTableViewStyleSheetUserFormat4: TcxGridTableViewStyleSheet;
-    GridTableViewStyleSheetBrick: TcxGridTableViewStyleSheet;
-    GridTableViewStyleSheetDesert: TcxGridTableViewStyleSheet;
-    GridTableViewStyleSheetEggplant: TcxGridTableViewStyleSheet;
-    GridTableViewStyleSheetLilac: TcxGridTableViewStyleSheet;
-    GridTableViewStyleSheetMaple: TcxGridTableViewStyleSheet;
-    GridTableViewStyleSheetMarinehighcolor: TcxGridTableViewStyleSheet;
-    GridTableViewStyleSheetPlumhighcolor: TcxGridTableViewStyleSheet;
-    GridTableViewStyleSheetPumpkinlarge: TcxGridTableViewStyleSheet;
-    GridTableViewStyleSheetRainyDay: TcxGridTableViewStyleSheet;
-    GridTableViewStyleSheetRedWhiteandBlueVGA: TcxGridTableViewStyleSheet;
-    GridTableViewStyleSheetRose: TcxGridTableViewStyleSheet;
-    GridTableViewStyleSheetRoselarge: TcxGridTableViewStyleSheet;
-    GridTableViewStyleSheetSlate: TcxGridTableViewStyleSheet;
-    GridTableViewStyleSheetSpruce: TcxGridTableViewStyleSheet;
-    GridTableViewStyleSheetStormVGA: TcxGridTableViewStyleSheet;
-    GridTableViewStyleSheetTealVGA: TcxGridTableViewStyleSheet;
-    GridTableViewStyleSheetWheat: TcxGridTableViewStyleSheet;
-    GridTableViewStyleSheetWindowsClassic: TcxGridTableViewStyleSheet;
-    GridTableViewStyleSheetWindowsClassiclarge: TcxGridTableViewStyleSheet;
-    GridTableViewStyleSheetWindowsStandard: TcxGridTableViewStyleSheet;
-    GridTableViewStyleSheetWindowsStandardlarge: TcxGridTableViewStyleSheet;
-    GridTableViewStyleSheetHighContrast1: TcxGridTableViewStyleSheet;
-    GridTableViewStyleSheetHighContrast1large: TcxGridTableViewStyleSheet;
-    GridTableViewStyleSheetHighContrast2: TcxGridTableViewStyleSheet;
-    GridTableViewStyleSheetHighContrast2large: TcxGridTableViewStyleSheet;
-    GridTableViewStyleSheetHighContrastBlack: TcxGridTableViewStyleSheet;
-    GridTableViewStyleSheetHighContrastBlacklarge: TcxGridTableViewStyleSheet;
-    GridTableViewStyleSheetHighContrastWhite: TcxGridTableViewStyleSheet;
-    GridTableViewStyleSheetHighContrastWhitelarge: TcxGridTableViewStyleSheet;
     cxStyleRepository2: TcxStyleRepository;
     cxStyle378: TcxStyle;
     cxStyle379: TcxStyle;
@@ -522,21 +140,6 @@ type
     dscl_tipoestructura: TDataSource;
     AllFather: TFDQuery;
     dsAllFather: TDataSource;
-    tcl_procesosGrupos: TFDQuery;
-    tcl_procesosGruposIdGrupo: TSmallintField;
-    tcl_procesosGruposNombreGrupo: TWideStringField;
-    Dtcl_procesosGrupos: TDataSource;
-    tcl_Procesos: TFDQuery;
-    tcl_ProcesosIdGrupo: TSmallintField;
-    tcl_ProcesosIdProceso: TSmallintField;
-    tcl_ProcesosNombreProceso: TWideStringField;
-    Dtcl_Procesos: TDataSource;
-    tcl_ProcesoSubproceso: TFDQuery;
-    Dtcl_ProcesoSubproceso: TDataSource;
-    tb_mp: TFDQuery;
-    dstb_mp: TDataSource;
-    cl_categoria_ocupacional: TFDQuery;
-    dscl_categoria_ocupacional: TDataSource;
     cxVerticalGridStyleSheetDevExpress: TcxVerticalGridStyleSheet;
     cxStyle384: TcxStyle;
     cxStyle385: TcxStyle;
@@ -779,25 +382,13 @@ type
     cxVerticalGridStyleSheet1: TcxVerticalGridStyleSheet;
     tb_SeriesDatos: TFDQuery;
     dstb_SeriesDatos: TDataSource;
-    cl_variables: TFDQuery;
-    dscl_variables: TDataSource;
-    tb_SerieDatosVar: TFDQuery;
-    dstb_SerieDatosVar: TDataSource;
-    cl_VarSubserie: TFDQuery;
-    dscl_VarSubserie: TDataSource;
     cl_ArchivosGestion: TFDQuery;
     dscl_ArchivosGestion: TDataSource;
     dsTb_SeriesDispo: TDataSource;
     Tb_SeriesDispo: TFDQuery;
     dscl_especialista: TDataSource;
     cl_especialista: TFDQuery;
-    tb_VirtualVar: TFDMemTable;
-    Dtb_VirtualVar: TDataSource;
     IdFTP1: TIdFTP;
-    dscl_deposito: TDataSource;
-    cl_deposito: TFDQuery;
-    cl_VarProject: TFDQuery;
-    dscl_VarProject: TDataSource;
     ILv2: TImageList;
     tb_Serietree: TFDQuery;
     cl_tipoobj: TFDQuery;
@@ -816,30 +407,14 @@ type
     dscl_valordoc: TDataSource;
     cl_tipoarch: TFDQuery;
     dscl_tipoarch: TDataSource;
-    IDYONI: TcxStyle;
-    dsVarDispSubS: TDataSource;
-    VarDispSubS: TFDQuery;
     cl_vigencia: TFDQuery;
     dscl_vigencia: TDataSource;
     dsSudSDetail: TDataSource;
     SudSDetail: TFDQuery;
     dsCL_ArchivoDpto: TDataSource;
     CL_ArchivoDpto: TFDQuery;
-    dsVarSSDetail: TDataSource;
-    VarSSDetail: TFDQuery;
-    dsVarDispPrj: TDataSource;
-    VarDispPrj: TFDQuery;
     CMD: TFDQuery;
-    dsVarEPCDetail: TDataSource;
-    VarEPCDetail: TFDQuery;
-    dstb_VirtVarDataEstruct: TDataSource;
-    tb_VirtVarDataEstruct: TFDQuery;
-    tb_VirtualVarPrj: TFDMemTable;
-    dstb_VirtualVarPrj: TDataSource;
-    cl_vig: TFDQuery;
     MSAccessDriver: TFDPhysMSAccessDriverLink;
-    cl_expediente: TFDQuery;
-    dscl_expediente: TDataSource;
     cl_tipoexp: TFDQuery;
     dscl_tipoexp: TDataSource;
     tb_ssArchdigital: TFDQuery;
@@ -857,72 +432,509 @@ type
     FDGUIxScriptDialog1: TFDGUIxScriptDialog;
     cl_tiposerie: TFDQuery;
     dscl_tiposerie: TDataSource;
-    SudSDetailcodsubs: TWideStringField;
-    SudSDetailcodserie: TWideStringField;
-    SudSDetailserie: TWideStringField;
-    SudSDetailsubserie: TWideStringField;
-    SudSDetailValordoc: TWideStringField;
-    SudSDetailTipodoc: TWideStringField;
-    SudSDetailvigencia: TWideStringField;
-    SudSDetailayear: TSmallintField;
-    SudSDetailtgestion: TSmallintField;
-    SudSDetailtcentral: TSmallintField;
-    SudSDetailNombreDestino: TWideStringField;
-    SudSDetailNombreAcceso: TWideStringField;
-    SudSDetailNombreFrecuencia: TWideStringField;
-    SudSDetailNombresoporte: TWideStringField;
-    SudSDetailtiempo: TIntegerField;
-    SudSDetailnombreArchivo: TWideStringField;
-    SudSDetaildeposito: TWideStringField;
-    SudSDetailgaveta: TByteField;
-    SudSDetailGESTOR: TWideStringField;
-    SudSDetailCorreoElect: TWideStringField;
-    SudSDetailobservacion: TWideMemoField;
-    SudSDetailetiquetaServ: TWideStringField;
-    SudSDetailipserver: TWideStringField;
-    SudSDetailcroquis: TBlobField;
-    SudSDetailFoto: TBlobField;
-    SudSDetailTipo: TIntegerField;
-    SudSDetailespacial: TWideStringField;
     ILClasif: TImageList;
     dstb_sysconfig: TDataSource;
     tb_sysconfig: TFDQuery;
-    tb_treeIdEstructura: TWideStringField;
-    tb_treeid: TIntegerField;
-    tb_treeetiqueta: TWideStringField;
-    tb_treepadre: TIntegerField;
-    tb_treeicono: TSmallintField;
-    tb_treetipo: TSmallintField;
-    tb_treevisible: TBooleanField;
-    tb_treeaowner: TWideStringField;
-    tb_treeAdministrador: TIntegerField;
-    tb_treedescripcion: TWideMemoField;
     ListadoServidores: TFDMemTable;
     ListadoServidoresIdServer: TStringField;
     ListadoServidoresNombreServer: TStringField;
     dsListadoServidores: TDataSource;
+    dstb_log: TDataSource;
+    tb_log: TFDQuery;
+    frxMain: TfrxReport;
+    frxADOComponents1: TfrxADOComponents;
+    dstb_accionlog: TDataSource;
+    tb_accionlog: TFDQuery;
+    dstb_transferencia: TDataSource;
+    tb_transferencia: TFDQuery;
+    dsCodExpediente: TDataSource;
+    CodExpediente: TFDQuery;
+    FDPhysMSSQLDriverLink1: TFDPhysMSSQLDriverLink;
+    tb_indice: TFDQuery;
+    dstb_indice: TDataSource;
+    tb_expxseries: TFDQuery;
+    dstb_expxseries: TDataSource;
+    FDStanStorageXMLLink1: TFDStanStorageXMLLink;
+    cmdorig: TFDQuery;
+    cmddest: TFDQuery;
+    cmdServer: TFDQuery;
+    dscmdServer: TDataSource;
+    ServidoresDisponibles: TFDQuery;
+    dsServidoresDisponibles: TDataSource;
+    GridTableViewStyleSheetDevExpress: TcxGridTableViewStyleSheet;
+    cxStyle1: TcxStyle;
+    cxStyle2: TcxStyle;
+    cxStyle3: TcxStyle;
+    cxStyle4: TcxStyle;
+    cxStyle5: TcxStyle;
+    cxStyle6: TcxStyle;
+    cxStyle7: TcxStyle;
+    cxStyle8: TcxStyle;
+    cxStyle9: TcxStyle;
+    cxStyle10: TcxStyle;
+    cxStyle11: TcxStyle;
+    cxStyle12: TcxStyle;
+    cxStyle13: TcxStyle;
+    cxStyle14: TcxStyle;
+    GridTableViewStyleSheetUserFormat1: TcxGridTableViewStyleSheet;
+    cxStyle15: TcxStyle;
+    cxStyle16: TcxStyle;
+    cxStyle17: TcxStyle;
+    cxStyle18: TcxStyle;
+    cxStyle19: TcxStyle;
+    cxStyle20: TcxStyle;
+    cxStyle21: TcxStyle;
+    cxStyle22: TcxStyle;
+    cxStyle23: TcxStyle;
+    cxStyle24: TcxStyle;
+    cxStyle25: TcxStyle;
+    GridTableViewStyleSheetUserFormat2: TcxGridTableViewStyleSheet;
+    cxStyle26: TcxStyle;
+    cxStyle27: TcxStyle;
+    cxStyle28: TcxStyle;
+    cxStyle29: TcxStyle;
+    cxStyle30: TcxStyle;
+    cxStyle31: TcxStyle;
+    cxStyle32: TcxStyle;
+    cxStyle33: TcxStyle;
+    cxStyle34: TcxStyle;
+    cxStyle35: TcxStyle;
+    cxStyle36: TcxStyle;
+    GridTableViewStyleSheetUserFormat3: TcxGridTableViewStyleSheet;
+    cxStyle37: TcxStyle;
+    cxStyle38: TcxStyle;
+    cxStyle39: TcxStyle;
+    cxStyle40: TcxStyle;
+    cxStyle41: TcxStyle;
+    cxStyle42: TcxStyle;
+    cxStyle43: TcxStyle;
+    cxStyle44: TcxStyle;
+    cxStyle45: TcxStyle;
+    cxStyle46: TcxStyle;
+    cxStyle47: TcxStyle;
+    GridTableViewStyleSheetUserFormat4: TcxGridTableViewStyleSheet;
+    cxStyle48: TcxStyle;
+    cxStyle49: TcxStyle;
+    cxStyle50: TcxStyle;
+    cxStyle51: TcxStyle;
+    cxStyle52: TcxStyle;
+    cxStyle53: TcxStyle;
+    cxStyle54: TcxStyle;
+    cxStyle55: TcxStyle;
+    cxStyle56: TcxStyle;
+    cxStyle57: TcxStyle;
+    cxStyle58: TcxStyle;
+    GridTableViewStyleSheetBrick: TcxGridTableViewStyleSheet;
+    cxStyle59: TcxStyle;
+    cxStyle60: TcxStyle;
+    cxStyle61: TcxStyle;
+    cxStyle62: TcxStyle;
+    cxStyle63: TcxStyle;
+    cxStyle64: TcxStyle;
+    cxStyle65: TcxStyle;
+    cxStyle66: TcxStyle;
+    cxStyle67: TcxStyle;
+    cxStyle68: TcxStyle;
+    cxStyle69: TcxStyle;
+    GridTableViewStyleSheetDesert: TcxGridTableViewStyleSheet;
+    cxStyle70: TcxStyle;
+    cxStyle71: TcxStyle;
+    cxStyle72: TcxStyle;
+    cxStyle73: TcxStyle;
+    cxStyle74: TcxStyle;
+    cxStyle75: TcxStyle;
+    cxStyle76: TcxStyle;
+    cxStyle77: TcxStyle;
+    cxStyle78: TcxStyle;
+    cxStyle79: TcxStyle;
+    cxStyle80: TcxStyle;
+    GridTableViewStyleSheetEggplant: TcxGridTableViewStyleSheet;
+    cxStyle81: TcxStyle;
+    cxStyle82: TcxStyle;
+    cxStyle83: TcxStyle;
+    cxStyle84: TcxStyle;
+    cxStyle85: TcxStyle;
+    cxStyle86: TcxStyle;
+    cxStyle87: TcxStyle;
+    cxStyle88: TcxStyle;
+    cxStyle89: TcxStyle;
+    cxStyle90: TcxStyle;
+    cxStyle91: TcxStyle;
+    GridTableViewStyleSheetLilac: TcxGridTableViewStyleSheet;
+    cxStyle92: TcxStyle;
+    cxStyle93: TcxStyle;
+    cxStyle94: TcxStyle;
+    cxStyle95: TcxStyle;
+    cxStyle96: TcxStyle;
+    cxStyle97: TcxStyle;
+    cxStyle98: TcxStyle;
+    cxStyle99: TcxStyle;
+    cxStyle100: TcxStyle;
+    cxStyle101: TcxStyle;
+    cxStyle102: TcxStyle;
+    GridTableViewStyleSheetMaple: TcxGridTableViewStyleSheet;
+    cxStyle103: TcxStyle;
+    cxStyle104: TcxStyle;
+    cxStyle105: TcxStyle;
+    cxStyle106: TcxStyle;
+    cxStyle107: TcxStyle;
+    cxStyle108: TcxStyle;
+    cxStyle109: TcxStyle;
+    cxStyle110: TcxStyle;
+    cxStyle111: TcxStyle;
+    cxStyle112: TcxStyle;
+    cxStyle113: TcxStyle;
+    GridTableViewStyleSheetMarinehighcolor: TcxGridTableViewStyleSheet;
+    cxStyle114: TcxStyle;
+    cxStyle115: TcxStyle;
+    cxStyle116: TcxStyle;
+    cxStyle117: TcxStyle;
+    cxStyle118: TcxStyle;
+    cxStyle119: TcxStyle;
+    cxStyle120: TcxStyle;
+    cxStyle121: TcxStyle;
+    cxStyle122: TcxStyle;
+    cxStyle123: TcxStyle;
+    cxStyle124: TcxStyle;
+    GridTableViewStyleSheetPlumhighcolor: TcxGridTableViewStyleSheet;
+    cxStyle125: TcxStyle;
+    cxStyle126: TcxStyle;
+    cxStyle127: TcxStyle;
+    cxStyle128: TcxStyle;
+    cxStyle129: TcxStyle;
+    cxStyle130: TcxStyle;
+    cxStyle131: TcxStyle;
+    cxStyle132: TcxStyle;
+    cxStyle133: TcxStyle;
+    cxStyle134: TcxStyle;
+    cxStyle135: TcxStyle;
+    GridTableViewStyleSheetPumpkinlarge: TcxGridTableViewStyleSheet;
+    cxStyle136: TcxStyle;
+    cxStyle137: TcxStyle;
+    cxStyle138: TcxStyle;
+    cxStyle139: TcxStyle;
+    cxStyle140: TcxStyle;
+    cxStyle141: TcxStyle;
+    cxStyle142: TcxStyle;
+    cxStyle143: TcxStyle;
+    cxStyle144: TcxStyle;
+    cxStyle145: TcxStyle;
+    cxStyle146: TcxStyle;
+    GridTableViewStyleSheetRainyDay: TcxGridTableViewStyleSheet;
+    cxStyle147: TcxStyle;
+    cxStyle148: TcxStyle;
+    cxStyle149: TcxStyle;
+    cxStyle150: TcxStyle;
+    cxStyle151: TcxStyle;
+    cxStyle152: TcxStyle;
+    cxStyle153: TcxStyle;
+    cxStyle154: TcxStyle;
+    cxStyle155: TcxStyle;
+    cxStyle156: TcxStyle;
+    cxStyle157: TcxStyle;
+    GridTableViewStyleSheetRedWhiteandBlueVGA: TcxGridTableViewStyleSheet;
+    cxStyle158: TcxStyle;
+    cxStyle159: TcxStyle;
+    cxStyle160: TcxStyle;
+    cxStyle161: TcxStyle;
+    cxStyle162: TcxStyle;
+    cxStyle163: TcxStyle;
+    cxStyle164: TcxStyle;
+    cxStyle165: TcxStyle;
+    cxStyle166: TcxStyle;
+    cxStyle167: TcxStyle;
+    cxStyle168: TcxStyle;
+    GridTableViewStyleSheetRose: TcxGridTableViewStyleSheet;
+    cxStyle169: TcxStyle;
+    cxStyle170: TcxStyle;
+    cxStyle171: TcxStyle;
+    cxStyle172: TcxStyle;
+    cxStyle173: TcxStyle;
+    cxStyle174: TcxStyle;
+    cxStyle175: TcxStyle;
+    cxStyle176: TcxStyle;
+    cxStyle177: TcxStyle;
+    cxStyle178: TcxStyle;
+    cxStyle179: TcxStyle;
+    GridTableViewStyleSheetRoselarge: TcxGridTableViewStyleSheet;
+    cxStyle180: TcxStyle;
+    cxStyle181: TcxStyle;
+    cxStyle182: TcxStyle;
+    cxStyle183: TcxStyle;
+    cxStyle184: TcxStyle;
+    cxStyle185: TcxStyle;
+    cxStyle186: TcxStyle;
+    cxStyle187: TcxStyle;
+    cxStyle188: TcxStyle;
+    cxStyle189: TcxStyle;
+    cxStyle190: TcxStyle;
+    GridTableViewStyleSheetSlate: TcxGridTableViewStyleSheet;
+    cxStyle191: TcxStyle;
+    cxStyle192: TcxStyle;
+    cxStyle193: TcxStyle;
+    cxStyle194: TcxStyle;
+    cxStyle195: TcxStyle;
+    cxStyle196: TcxStyle;
+    cxStyle197: TcxStyle;
+    cxStyle198: TcxStyle;
+    cxStyle199: TcxStyle;
+    cxStyle200: TcxStyle;
+    cxStyle201: TcxStyle;
+    GridTableViewStyleSheetSpruce: TcxGridTableViewStyleSheet;
+    cxStyle202: TcxStyle;
+    cxStyle203: TcxStyle;
+    cxStyle204: TcxStyle;
+    cxStyle205: TcxStyle;
+    cxStyle206: TcxStyle;
+    cxStyle207: TcxStyle;
+    cxStyle208: TcxStyle;
+    cxStyle209: TcxStyle;
+    cxStyle210: TcxStyle;
+    cxStyle211: TcxStyle;
+    cxStyle212: TcxStyle;
+    GridTableViewStyleSheetStormVGA: TcxGridTableViewStyleSheet;
+    cxStyle213: TcxStyle;
+    cxStyle214: TcxStyle;
+    cxStyle215: TcxStyle;
+    cxStyle216: TcxStyle;
+    cxStyle217: TcxStyle;
+    cxStyle218: TcxStyle;
+    cxStyle219: TcxStyle;
+    cxStyle220: TcxStyle;
+    cxStyle221: TcxStyle;
+    cxStyle222: TcxStyle;
+    cxStyle223: TcxStyle;
+    GridTableViewStyleSheetTealVGA: TcxGridTableViewStyleSheet;
+    cxStyle224: TcxStyle;
+    cxStyle225: TcxStyle;
+    cxStyle226: TcxStyle;
+    cxStyle227: TcxStyle;
+    cxStyle228: TcxStyle;
+    cxStyle229: TcxStyle;
+    cxStyle230: TcxStyle;
+    cxStyle231: TcxStyle;
+    cxStyle232: TcxStyle;
+    cxStyle233: TcxStyle;
+    cxStyle234: TcxStyle;
+    GridTableViewStyleSheetWheat: TcxGridTableViewStyleSheet;
+    cxStyle235: TcxStyle;
+    cxStyle236: TcxStyle;
+    cxStyle237: TcxStyle;
+    cxStyle238: TcxStyle;
+    cxStyle239: TcxStyle;
+    cxStyle240: TcxStyle;
+    cxStyle241: TcxStyle;
+    cxStyle242: TcxStyle;
+    cxStyle243: TcxStyle;
+    cxStyle244: TcxStyle;
+    cxStyle245: TcxStyle;
+    GridTableViewStyleSheetWindowsClassic: TcxGridTableViewStyleSheet;
+    cxStyle246: TcxStyle;
+    cxStyle247: TcxStyle;
+    cxStyle248: TcxStyle;
+    cxStyle249: TcxStyle;
+    cxStyle250: TcxStyle;
+    cxStyle251: TcxStyle;
+    cxStyle252: TcxStyle;
+    cxStyle253: TcxStyle;
+    cxStyle254: TcxStyle;
+    cxStyle255: TcxStyle;
+    cxStyle256: TcxStyle;
+    GridTableViewStyleSheetWindowsClassiclarge: TcxGridTableViewStyleSheet;
+    cxStyle257: TcxStyle;
+    cxStyle258: TcxStyle;
+    cxStyle259: TcxStyle;
+    cxStyle260: TcxStyle;
+    cxStyle261: TcxStyle;
+    cxStyle262: TcxStyle;
+    cxStyle263: TcxStyle;
+    cxStyle264: TcxStyle;
+    cxStyle265: TcxStyle;
+    cxStyle266: TcxStyle;
+    cxStyle267: TcxStyle;
+    GridTableViewStyleSheetWindowsStandard: TcxGridTableViewStyleSheet;
+    cxStyle268: TcxStyle;
+    cxStyle269: TcxStyle;
+    cxStyle270: TcxStyle;
+    cxStyle271: TcxStyle;
+    cxStyle272: TcxStyle;
+    cxStyle273: TcxStyle;
+    cxStyle274: TcxStyle;
+    cxStyle275: TcxStyle;
+    cxStyle276: TcxStyle;
+    cxStyle277: TcxStyle;
+    cxStyle278: TcxStyle;
+    GridTableViewStyleSheetWindowsStandardlarge: TcxGridTableViewStyleSheet;
+    cxStyle279: TcxStyle;
+    cxStyle280: TcxStyle;
+    cxStyle281: TcxStyle;
+    cxStyle282: TcxStyle;
+    cxStyle283: TcxStyle;
+    cxStyle284: TcxStyle;
+    cxStyle285: TcxStyle;
+    cxStyle286: TcxStyle;
+    cxStyle287: TcxStyle;
+    cxStyle288: TcxStyle;
+    cxStyle289: TcxStyle;
+    GridTableViewStyleSheetHighContrast1: TcxGridTableViewStyleSheet;
+    cxStyle290: TcxStyle;
+    cxStyle291: TcxStyle;
+    cxStyle292: TcxStyle;
+    cxStyle293: TcxStyle;
+    cxStyle294: TcxStyle;
+    cxStyle295: TcxStyle;
+    cxStyle296: TcxStyle;
+    cxStyle297: TcxStyle;
+    cxStyle298: TcxStyle;
+    cxStyle299: TcxStyle;
+    cxStyle300: TcxStyle;
+    GridTableViewStyleSheetHighContrast1large: TcxGridTableViewStyleSheet;
+    cxStyle301: TcxStyle;
+    cxStyle302: TcxStyle;
+    cxStyle303: TcxStyle;
+    cxStyle304: TcxStyle;
+    cxStyle305: TcxStyle;
+    cxStyle306: TcxStyle;
+    cxStyle307: TcxStyle;
+    cxStyle308: TcxStyle;
+    cxStyle309: TcxStyle;
+    cxStyle310: TcxStyle;
+    cxStyle311: TcxStyle;
+    GridTableViewStyleSheetHighContrast2: TcxGridTableViewStyleSheet;
+    cxStyle312: TcxStyle;
+    cxStyle313: TcxStyle;
+    cxStyle314: TcxStyle;
+    cxStyle315: TcxStyle;
+    cxStyle316: TcxStyle;
+    cxStyle317: TcxStyle;
+    cxStyle318: TcxStyle;
+    cxStyle319: TcxStyle;
+    cxStyle320: TcxStyle;
+    cxStyle321: TcxStyle;
+    cxStyle322: TcxStyle;
+    GridTableViewStyleSheetHighContrast2large: TcxGridTableViewStyleSheet;
+    cxStyle323: TcxStyle;
+    cxStyle324: TcxStyle;
+    cxStyle325: TcxStyle;
+    cxStyle326: TcxStyle;
+    cxStyle327: TcxStyle;
+    cxStyle328: TcxStyle;
+    cxStyle329: TcxStyle;
+    cxStyle330: TcxStyle;
+    cxStyle331: TcxStyle;
+    cxStyle332: TcxStyle;
+    cxStyle333: TcxStyle;
+    GridTableViewStyleSheetHighContrastBlack: TcxGridTableViewStyleSheet;
+    cxStyle334: TcxStyle;
+    cxStyle335: TcxStyle;
+    cxStyle336: TcxStyle;
+    cxStyle337: TcxStyle;
+    cxStyle338: TcxStyle;
+    cxStyle339: TcxStyle;
+    cxStyle340: TcxStyle;
+    cxStyle341: TcxStyle;
+    cxStyle342: TcxStyle;
+    cxStyle343: TcxStyle;
+    cxStyle344: TcxStyle;
+    GridTableViewStyleSheetHighContrastBlacklarge: TcxGridTableViewStyleSheet;
+    cxStyle345: TcxStyle;
+    cxStyle346: TcxStyle;
+    cxStyle347: TcxStyle;
+    cxStyle348: TcxStyle;
+    cxStyle349: TcxStyle;
+    cxStyle350: TcxStyle;
+    cxStyle351: TcxStyle;
+    cxStyle352: TcxStyle;
+    cxStyle353: TcxStyle;
+    cxStyle354: TcxStyle;
+    cxStyle355: TcxStyle;
+    GridTableViewStyleSheetHighContrastWhite: TcxGridTableViewStyleSheet;
+    cxStyle356: TcxStyle;
+    cxStyle357: TcxStyle;
+    cxStyle358: TcxStyle;
+    cxStyle359: TcxStyle;
+    cxStyle360: TcxStyle;
+    cxStyle361: TcxStyle;
+    cxStyle362: TcxStyle;
+    cxStyle363: TcxStyle;
+    cxStyle364: TcxStyle;
+    cxStyle365: TcxStyle;
+    cxStyle366: TcxStyle;
+    GridTableViewStyleSheetHighContrastWhitelarge: TcxGridTableViewStyleSheet;
+    cxStyle367: TcxStyle;
+    cxStyle368: TcxStyle;
+    cxStyle369: TcxStyle;
+    cxStyle370: TcxStyle;
+    cxStyle371: TcxStyle;
+    cxStyle372: TcxStyle;
+    cxStyle373: TcxStyle;
+    cxStyle374: TcxStyle;
+    cxStyle375: TcxStyle;
+    cxStyle376: TcxStyle;
+    cxStyle377: TcxStyle;
+    Timer1: TTimer;
+    ImageList3: TImageList;
+    dstb_arbol: TDataSource;
+    tb_arbol: TFDQuery;
+    dscl_VarSubserie: TDataSource;
+    cl_VarSubserie: TFDQuery;
+    dsCL_SubseriesTipoVar: TDataSource;
+    CL_SubseriesTipoVar: TFDQuery;
+    dsAllSubSerie: TDataSource;
+    AllSubSerie: TFDQuery;
+    frxtb_sysconfig: TfrxDBDataset;
+    frxADOComponents2: TfrxADOComponents;
+    tb_expxtiposerie: TFDQuery;
+    dstb_expxtiposerie: TDataSource;
+    LookupSeriesDataSet: TFDMemTable;
+    dsLookupSeriesDataSet: TDataSource;
+    frxCaratula: TfrxReport;
+    DFDTPrestamos: TDataSource;
+    dFDTTB_PrestamosDocumentos: TDataSource;
+    TB_Prestamos: TFDQuery;
+    TB_PrestamosDocumentos: TFDQuery;
     procedure DataModuleCreate(Sender: TObject);
     procedure tb_treeAfterPost(DataSet: TDataSet);
-    procedure dstb_treeDataChange(Sender: TObject; Field: TField);
-    procedure tb_SerietreePostError(DataSet: TDataSet; E: EDatabaseError; var Action: TDataAction);
     procedure cl_expedientePostError(DataSet: TDataSet; E: EDatabaseError; var Action: TDataAction);
     procedure tb_SeriesDatosNewRecord(DataSet: TDataSet);
+    procedure tb_SeriesDatosAfterDelete(DataSet: TDataSet);
+    procedure tb_SeriesDatosAfterEdit(DataSet: TDataSet);
     procedure tb_SeriesDatosBeforeDelete(DataSet: TDataSet);
+    procedure cl_ftp_ServerBeforePost(DataSet: TDataSet);
+    procedure IdFTP1Work(ASender: TObject; AWorkMode: TWorkMode; AWorkCount: Int64);
+    procedure Timer1Timer(Sender: TObject);
+    procedure cl_VarSubserieBeforePost(DataSet: TDataSet);
+    procedure tb_treeBeforePost(DataSet: TDataSet);
+    procedure tb_SeriesDatosBeforePost(DataSet: TDataSet);
+    procedure cl_subseriesBeforePost(DataSet: TDataSet);
+    procedure cl_subseriesNewRecord(DataSet: TDataSet);
+    procedure tb_SeriesDatosAfterPost(DataSet: TDataSet);
+    procedure cl_VarSubserieNewRecord(DataSet: TDataSet);
+    procedure cl_VarSubserieBeforeInsert(DataSet: TDataSet);
   private
     procedure Inserta(aidObjeto, acodigoHijo, acodigoPadre, aicon: Integer; aetiq, NombreEntidad, aKeyDef, aKeyVal: string);
-    procedure ActivaDataLayer(aValue: boolean);
     procedure UpDateDB;
-
+    function IsValidFieldName(const FieldName: string): Boolean;
+    function IsReservedField(const FieldName: string): Boolean;
+    function IsLabelNoUnique(const LabelValue: string): Boolean;
     { Private declarations }
   public
     { Public declarations }
     Rol,                  // Rol del usuario logeado.
     UserName: string;     // Usuario logeado
+//    Responsable:
+//    FileList: TIdFTPListItems;
     function CarpetaGeodato: string;
+    procedure ActivaDataLayer(aValue: boolean);
+    procedure OverLoadADL;
 //------------------------------------------------------------------------------
 // Crear árbol de tablas...
 //------------------------------------------------------------------------------
     procedure CreaTreeDB(conn: TFdconnection; t: PArbol; ShowAll: Boolean);
+    procedure CargarArbol(TreeView: TTreeView; DataSet: TDataSet; opts: boolean);
+    //procedure CrearArbol(TreeView: TTreeView; DataSet: TDataSet; ParentNode: TTreeNode; ParentID: Integer);
+    procedure CrearArbol(TreeView: TTreeView; DataSet: TDataSet; ParentNode: TTreeNode; ParentID: Integer; MostrarNodosInvisibles: Boolean);
+    procedure AgregaData(Nodo: TTreeNode; aId, aPadre, aIcono, Tipo: Integer; aEtiqueta, aOwner, Estructura, descrip: string);
     procedure Visualiza(conn: TFDConnection; IdNodo: string; V: boolean);
     procedure VisualizaOneNodeAndParent(conn: TFDConnection; IdNodo: string; V: boolean);
     procedure VerPDFF(aFileName: string);
@@ -942,15 +954,15 @@ type
     procedure CreateFTPDirStructure(ListProccess: TStringList);
     procedure ejecutaPDF(WindowsID: HWND; Path: string);
     procedure ManagementHLP(HLPName: string; WindowsHandle: HWND);
-    function sms(aText: string; aTipo: Integer): integer;
-    procedure UpdateVarSubS(acod: string);
-    procedure UpdateVarPrj(acodEE, acodNN: string);
+    function sms(aText: string; aTipo: Integer; aTitle: string = ''): Integer;
     function VarToInt(const AVariant: Variant): integer;
     function WinExecAndWait32(FileName: string; Visibility: integer): integer;
     function ViewPDF(FilePath: string): Integer;
     function ViewIMG(FilePath: string): Integer;
     procedure SalvaConfigGrid(nombregrid: TcxGridDBTableView; NombreSalva: string);
     procedure RestauraGrid(nombregrid: TcxGridDBTableView; NombreSalva: string);
+    procedure GuardarConfiguracion(cxGrid: TcxGrid; const FileName: string);
+    procedure CargarConfiguracion(cxGrid: TcxGrid; const FileName: string);
     function KillProcess(ExeFileName: string): integer;
     function EsLocal(idServer: integer): Boolean;
     function GetFolder(idServer: integer): string;
@@ -961,19 +973,108 @@ type
     procedure Verayuda(TopicID: integer);
     procedure ListAvailableSQLServers(Names: TStrings);
     function PtCreateADOObject(const ClassID: TGUID): IUnknown;
+    procedure ObtenerDatosPC(var Datos: TDatosPC);
+    procedure log(Mensaje: string; acc: Integer; aSerie, aSSerie, aStructura: string);
+    procedure Boundarys(Sender: TObject);
+    procedure ViewHLP(ID: integer);
+    procedure DeleteDir(aPath: string);
+    function ConfigFTP(H, U, P: string): Boolean;
+    procedure TrimAppMemorySize;
+    procedure CopyFileToFtpServer(const AServer, AUsername, APassword, ALocalFile, ARemotePath, Opts: string; Puerto: integer);
+    function FileExistsOnFTP(const Host, Username, Password, puerto, FilePath: string): Boolean;
+    function CheckFTPConnection(const Host, Username, Password: string; Puerto: integer): Boolean;
+    procedure Inici(aBAR: PBarra; Min, Max: integer);
+    procedure MueveBar(aBAR: PBarra; increment: integer);
+    function DownloadFileFromFTP(const Host, Username, Password, RemoteFile, LocalFile: string; Puerto: Integer): boolean;
+    procedure DeleteFTPFile(const Host, UserName, Password, FileName: string; Puerto: Integer);
+    procedure DeleteFTPDirectoryRecursive(const Host, UserName, Password, Directory: string; Puerto: Integer);
+    procedure DeleteFTPDirectory(const Host, UserName, Password, Directory: string; Puerto: Integer);
+    //ZIP
+    procedure ZipDirectory(const Directory, ZipFileName: string);
+    procedure ActualizaConfig(aVER: string);
+    procedure EjecutaFichero(aPath: string);
+    function getFileMd5HashString(const vFileName: string): string;
+    function getMd5HashString(const vValue: string): string;
+    procedure InitializeConnection;
+    procedure LoadAndRunReport(const ReportFileName: string);
+    procedure CreateTableFromDefinitions(ATableName, ASubserieId: string);
+    function QuitaCaracter(Temp: string): string;
+    procedure ProponerValores(IdEstructura, codsubs: string; var Fecha: TDateTime; var Version: string; var Codigodoc: string);
+    function SubserieTieneVariables(codsubs: string): Boolean;
+    function GenerarConsultaSQL(ADataset: TDataSet; const TableName: string; const Subserie: string = ''): string;
+    procedure EjecutarCambiosBaseDatos(const SQLCommands: TArray<string>);
+    function TablaExiste(Connection: TFDConnection; const NombreTabla: string): Boolean;
+    function GetSeriesNameFile(aFecha: TDate): string;
+    procedure ApplyCustomBestFit(cxtvg: TcxGridDBTableView);
+    procedure CargaValoresCampo(Lista: TStringList; aFieldName, asql: string);
+    function FindNode(tv: TTreeView; aId: integer; Etiqueta: string): TTreeNode;
+    procedure SaveGridLayout(GridView: TcxGridTableView; const LayoutName: string);
+    procedure LoadGridLayout(GridView: TcxGridTableView; const LayoutName: string);
+    procedure SaveTreeViewState(TreeView: TTreeView; const FileName: string);
+    procedure LoadTreeViewState(TreeView: TTreeView; const FileName: string);
+    procedure SaveTreeViewState2(TreeView: TTreeView; const FileName: string; tb_tree, tb_seriestree, tb_seriesdatos: TDataSet);
+    procedure LoadTreeViewState2(TreeView: TTreeView; const FileName: string; tb_tree, tb_seriestree, tb_seriesdatos: TDataSet);
+    procedure ValidateParentNode(Node: TTreeNode);
+    function ValidateTablesForData: Boolean;
+    function EsNombreValido(const Nombre: string; const SGBD: char): Boolean;
+    procedure DataBasesOnServer(DataBases: TStrings; const ServerName: string);
+    function ConstructConnStr(const ServerName: string): WideString;
+    function ConstruirConsultaSQL(IdEstructura, CodSubs: string; FDConnection: TFDConnection): string;
+    procedure ConfigureMasterDetailRelation(Enable: Boolean; MasterQuery, DetailQuery: TFDQuery; MasterDataSource: TDataSource; MasterKeyFields, DetailKeyFields: string);
+    procedure MostrarReporte(const NombreReporte: string);
+    procedure StartTransaction;
+    procedure CommitTransaction;
+    procedure RollbackTransaction;
+    function ObtenerNombreTabla(const TableName: string): string;
+    procedure ExportarReporteAPDFyoyo(DatabaseType: TDatabaseType; const Params: array of string; const Fichero: string);
+    function ConstruirCadenaConexion(DatabaseType: TDatabaseType; const Params: array of string): string;
   end;
+
+const
+  // Lista de campos reservados que no se pueden usar como nombres de variables
+  ReservedFields: array[0..5] of string = ('IdEstructura', 'id', 'codsubs', 'Fecha', 'Version', 'Codigodoc');
+
+  // Conjunto de caracteres no permitidos en nombres de variables
+  InvalidChars: set of Char = [' ', 'á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ', 'Ñ', 'ä', 'ë', 'ï', 'ö', 'ü', '[', ']', '(', ')', '.', ',', ';', ':', '-', '+', '/', '\', '=', '!', '@', '#', '$', '%', '^', '&', '*', '<', '>', '|', '?'];
+
+  { Cadena de conexión para MS Access }
+  CONN_STR_ACCESS = 'Provider=Microsoft.Jet.OLEDB.4.0;User ID=Admin;Data Source=%s;' + 'Mode=Share Deny None;Jet OLEDB:System database="";Jet OLEDB:Registry Path="";' + 'Jet OLEDB:Database Password="";Jet OLEDB:Engine Type=5;Jet OLEDB:Database Locking Mode=1;' + 'Jet OLEDB:Global Partial Bulk Ops=2;Jet OLEDB:Global Bulk Transactions=1;' + 'Jet OLEDB:New Database Password="";Jet OLEDB:Create System Database=False;' + 'Jet OLEDB:Encrypt Database=False;Jet OLEDB:Don''t Copy Locale on Compact=False;' + 'Jet OLEDB:Compact Without Replica Repair=False;Jet OLEDB:SFP=False;';
+  { Cadena de conexión para SQL Server con autenticación SQL }
+  CONN_STR_SQL_SERVER = 'Provider=SQLOLEDB;Data Source=%s;Initial Catalog=%s;' + 'User ID=%s;Password=%s;Persist Security Info=True;';
+  { Cadena de conexión para SQL Server con autenticación de Windows }
+  CONN_STR_SQL_SERVER_WIN_AUTH = 'Provider=SQLOLEDB;Data Source=%s;Initial Catalog=%s;' + 'Integrated Security=SSPI;Persist Security Info=True;';
+  ID_EXTENSION_POR_DEFECTO = 102;
+  SEPARADOR_RUTA = '\';
+  SEPARADOR_FTP = '/';
+  EXTENSION_PDF = '.pdf';
+  ACCION_ERROR = 1; // Código de acción para errores en el log
+  ACCION_EXITO = 3; // Código de acción para operaciones exitosas
 
 var
   UDM: TUDM;
+  treeBM, subBM, datosBM: TBookmark;
+  EntraRecupera: Boolean;
+  LlaveTree, LlaveEstruct, LlaveDatos: Variant;
+  estadoC: boolean;
+  Conectado: Boolean;
+  programver: string;
+  TBD: string;
+  CAPP: boolean;
+  FicheroTama: Int64;
+  EsPropiedadesTopo: Boolean;
   ItsWork: Boolean;
+  DatosPC: TDatosPc;
+  NombreEstructura: string;
   VersionProgram, helpfile, buildprogram: string;
   Carpeta: string;
   acceso: string;
   syshelpLeft: integer;
   NombreFileSS: string;
-  PathTemp, PathBD, PathSys, PathSaveBinaryFile: WideString;
+  EstoyActualizando: Boolean;
+  PathTemp, PathBD, PathSys, PathSaveBinaryFile, Pathtransplt, PathCarat: WideString;
+  pathreport, pathdb: string;
   Rolactivo: string;
-  Security: TSecurityClass;
+//  Security: TSecurityClass;
   nombrecamp, valueSelectedFillD: string;
   valueSelectedFill: OleVariant;
   //Nodos
@@ -991,8 +1092,23 @@ var
   NodoActivo: string;
   SystemTree: PArbolDB;
   EsReadOnly: Boolean;
+  Security: TSecurityClass;
   //Tipo de objeto para la asignacion de variables virturales...
   TipoObj: string;
+  fdefaultStyleName: string;
+  //Tipo de objeto para la asignacion de variables virturales...
+  NombrePadreEditar: string;
+  IdPadreEditar: integer;
+  administradornodoeditar: string;
+  tvActivo: PArbol;
+  ReportConnection: TADOConnection;
+  dbname, servername: string;
+  CargandoEstado: Boolean;
+  NodoSel: string;
+  primeravez, flaginsert: boolean;
+  tiinsert, codinsert: string;
+  ListVarTmp: TStringList;
+  GestionFile: Boolean;
 
 implementation
 
@@ -1000,6 +1116,298 @@ implementation
 {%CLASSGROUP 'Vcl.Controls.TControl'}
 
 {$R *.dfm}
+
+function TUDM.ConfigFTP(H, U, P: string): Boolean;
+var
+  FileList: TIdFTPListItems;
+begin
+  result := False;
+  UDM.IdFTP1.Disconnect;
+  if UDM.IdFTP1.Connected then
+    UDM.IdFTP1.Disconnect;
+  UDM.IdFTP1.Host := H;
+  UDM.IdFTP1.Username := U;
+  UDM.IdFTP1.Password := P;
+  try
+    UDM.IdFTP1.Connect;
+    Result := True;
+  except
+    on E: EIdFTPException do
+      messagedlg(e.Message, mtError, [mbOK], 0);
+  end;
+
+end;
+
+procedure TUDM.ConfigureMasterDetailRelation(Enable: Boolean; MasterQuery, DetailQuery: TFDQuery; MasterDataSource: TDataSource; MasterKeyFields, DetailKeyFields: string);
+begin
+  if primeravez then
+    Exit;
+
+  DetailQuery.Close;
+  if Enable then
+  begin
+    // Asegurarse de que la consulta maestra esté abierta
+    MasterQuery.Close;
+    try
+      MasterQuery.Open;
+    except
+      on E: EFDException do
+      begin
+        UDM.sms(E.Message, 1);
+      end;
+    end;
+
+    // Configurar la consulta de la tabla detalle con la relación Master/Detail
+    DetailQuery.DisableControls;
+    try
+      DetailQuery.MasterSource := MasterDataSource;
+      DetailQuery.MasterFields := ansireplacestr(MasterKeyFields, ',', ';');
+      DetailQuery.IndexFieldNames := ansireplacestr(DetailKeyFields, ',', ';');
+    except
+      on E: EFDException do
+      begin
+        UDM.sms(e.Message, 1);
+      end;
+    end;
+    DetailQuery.EnableControls;
+  end
+  else
+  begin
+    // Destruir la relación Master/Detail
+    DetailQuery.MasterSource := nil;
+    DetailQuery.MasterFields := '';
+  end;
+  try
+    DetailQuery.Open();
+    DetailQuery.Refresh;
+  except
+    on E: EFDException do
+    begin
+      sms('No se pudieron realizar los cambios en la relación especificada. Motivo: ' + e.Message, 1);
+      Exit
+    end;
+  end;
+end;
+
+function TUDM.ConstructConnStr(const ServerName: string): WideString;
+begin
+  Result := 'Provider=SQLOLEDB.1;Password=geoconn;Persist Security Info=True;User ID=geoconn;Data Source=' + ServerName;
+end;
+
+function TUDM.ConstruirCadenaConexion(DatabaseType: TDatabaseType; const Params: array of string): string;
+begin
+  case DatabaseType of
+    dbAccess:
+      begin
+        if Length(Params) < 1 then
+          raise Exception.Create('Se requiere la ruta del archivo de base de datos para MS Access.');
+        if not TFile.Exists(Params[0]) then
+          raise Exception.Create('El archivo de base de datos no existe: ' + Params[0]);
+        Result := Format(CONN_STR_ACCESS, [Params[0]]);
+      end;
+    dbSQLServer:
+      begin
+        if Length(Params) < 2 then
+          raise Exception.Create('Se requiere el nombre del servidor y la base de datos para SQL Server.');
+        if Params[0].IsEmpty or Params[1].IsEmpty then
+          raise Exception.Create('El nombre del servidor y la base de datos son obligatorios.');
+        if (Length(Params) >= 4) and (not Params[2].IsEmpty) and (not Params[3].IsEmpty) then
+          Result := Format(CONN_STR_SQL_SERVER, [Params[0], Params[1], Params[2], Params[3]])
+        else
+          Result := Format(CONN_STR_SQL_SERVER_WIN_AUTH, [Params[0], Params[1]]);
+      end;
+  else
+    raise Exception.Create('Tipo de base de datos no soportado.');
+  end;
+end;
+
+function TUDM.ConstruirConsultaSQL(IdEstructura, CodSubs: string; FDConnection: TFDConnection): string;
+var
+  SQLQuery: string;
+  NombreTablaMetadatos, cadfields: string;
+  Query: TFDQuery;
+
+  function ObtenerCamposNoClaveOrdenados(const NombreTabla: string): string;
+  var
+    FDMetaInfoQuery: TFDMetaInfoQuery;
+    ListaCampos: TStringList;
+    i: integer;
+    cadena, cad: string;
+  begin
+    Result := '';
+    FDMetaInfoQuery := TFDMetaInfoQuery.Create(nil);
+    FDMetaInfoQuery.Active := False;
+    FDMetaInfoQuery.Connection := Conn;
+    FDMetaInfoQuery.MetaInfoKind := mkPrimaryKeyFields;
+    FDMetaInfoQuery.BaseObjectName := NombreTabla;
+
+    ListaCampos := TStringList.Create;
+    try
+      FDMetaInfoQuery.Open;
+    // Recorrer los campos de la tabla y verificar si son clave o no
+      FDMetaInfoQuery.Last;
+      while not FDMetaInfoQuery.Bof do
+      begin
+      // Solo agregamos los campos que no sean claves primarias y ordenamos por el campo 'Orden'
+        ListaCampos.Add(ansilowercase(FDMetaInfoQuery.FieldByName('COLUMN_NAME').AsString));
+        FDMetaInfoQuery.Prior;
+      end;
+
+      with TFDQuery.Create(nil) do
+      try
+        Active := False;
+        Connection := UDM.Conn;
+        SQL.Clear;
+        SQL.Add('select top 1 * from ' + NombreTabla);
+        try
+          Open();
+          cadena := '';
+          for i := 0 to fieldcount - 1 do
+          begin
+            cad := ansilowercase(Fields[i].FieldName);
+            if ListaCampos.IndexOf(cad) = -1 then
+            begin
+              if trim(cadena) = '' then
+                cadena := 'M.' + Fields[i].FieldName
+              else
+                cadena := cadena + ', M.' + Fields[i].FieldName;
+            end;
+          end;
+        except
+          on E: Exception do
+
+
+        end;
+      finally
+        Free;
+      end;
+    // Convertir la lista de campos a una cadena separada por comas
+      Result := cadena;
+    finally
+      FDMetaInfoQuery.Free;
+      ListaCampos.Free;
+    end;
+  end;
+
+begin
+  // Crear un query temporal para obtener el nombre de la tabla de metadatos
+  Query := TFDQuery.Create(nil);
+  try
+    Query.Connection := UDM.Conn;
+    Query.SQL.Text := 'SELECT NombreTablaMetadatos FROM cl_subseries WHERE CodSubs = ' + QuotedStr(CodSubs);
+    Query.Open;
+
+    // Obtener el nombre de la tabla de metadatos (si existe)
+    if not Query.IsEmpty then
+      NombreTablaMetadatos := Query.FieldByName('NombreTablaMetadatos').AsString;
+
+  finally
+    Query.Free;
+  end;
+
+  // Construir la consulta SQL en función de si hay o no metadatos asociados
+  if NombreTablaMetadatos <> '' then
+  begin
+    // Si hay una tabla de metadatos, realizar LEFT JOIN
+    cadfields := ObtenerCamposNoClaveOrdenados(NombreTablaMetadatos);
+    if trim(cadfields) <> '' then
+    begin
+      SQLQuery := 'SELECT S.*, ' + cadfields + ' FROM tb_SeriesDatos S ' + 'LEFT JOIN ' + NombreTablaMetadatos;
+      SQLQuery := SQLQuery + ' M ON S.IdEstructura = M.IdEstructura AND S.codsubs = M.codsubs ';
+      SQLQuery := SQLQuery + 'WHERE S.IdEstructura = ' + QuotedStr(IdEstructura) + ' AND S.codsubs = ' + QuotedStr(CodSubs);
+    end
+    else
+    begin
+      SQLQuery := 'SELECT * FROM tb_SeriesDatos WHERE IdEstructura = ' + QuotedStr(IdEstructura) + ' AND codsubs = ' + QuotedStr(CodSubs);
+    end;
+  end
+  else
+  begin
+    // Si no hay tabla de metadatos, seleccionar solo desde tb_SeriesDatos
+    SQLQuery := 'SELECT S.* ' + 'FROM tb_SeriesDatos S ' + 'WHERE S.IdEstructura = ' + QuotedStr(IdEstructura) + ' AND S.codsubs = ' + QuotedStr(CodSubs);
+  end;
+  // Crear y configurar el TFDQuery para ejecutar la consulta final
+
+  Result := SQLQuery;
+end;
+
+procedure TUDM.CopyFileToFtpServer(const AServer, AUsername, APassword, ALocalFile, ARemotePath, Opts: string; Puerto: integer);
+var
+  FTP: TIdFTP;
+  Path, NombreFichero: string;
+begin
+  FTP := TIdFTP.Create(nil);
+  try
+    FTP.Host := AServer;
+    FTP.Username := AUsername;
+    FTP.Password := APassword;
+    FTP.Port := Puerto;
+    FTP.Passive := True; // Modo pasivo para conexiones detrás de un firewall
+    FTP.Connect;
+    Path := Copy(ARemotePath, 1, LastDelimiter('/', ARemotePath));
+    NombreFichero := Copy(ARemotePath, LastDelimiter('/', ARemotePath) + 1, LastDelimiter('.', ARemotePath) - LastDelimiter('/', ARemotePath) - 1);
+    //CREAR ESTRUCTURA DE DIRECTORIOS...
+    try
+      FTP.MakeDir(Path);
+    except
+    end;
+    if Opts = 'O' then
+    begin
+      try
+        FTP.MakeDir(Path + NombreFichero + '/');
+      except
+      end;
+      try
+        FTP.MakeDir(Path + NombreFichero + '/Fuentes/');
+      except
+      end;
+      try
+        FTP.MakeDir(Path + NombreFichero + '/Anexos Digitales/');
+      except
+      end;
+    end;
+    try
+      FTP.Put(ALocalFile, ARemotePath, False);  //+ '/' + ExtractFileName(ALocalFile)
+      // El cuarto parámetro indica que se sobrescribirá el archivo si ya existe
+      FTP.Disconnect;
+    except
+      FTP.Disconnect;
+    end;
+  finally
+    FTP.Free;
+  end;
+end;
+
+procedure TUDM.ActualizaConfig(aVER: string);
+var
+  List: TStringList;
+begin
+  if trim(ansilowercase(aVER)) = 'profesional' then
+  begin
+    List := TStringList.Create;
+    List.LoadFromFile(PathSys + 'config.ini');
+    UDM.tb_sysconfig.Edit;
+    UDM.tb_sysconfig.FieldByName('ipservidorbd').AsString := List[1];
+    try
+      UDM.tb_sysconfig.Post;
+    except
+      on E: Exception do
+        UDM.tb_sysconfig.Cancel;
+    end;
+    List.Free;
+  end
+  else
+  begin
+    UDM.tb_sysconfig.Edit;
+    UDM.tb_sysconfig.FieldByName('ipservidorbd').AsString := '';
+    try
+      UDM.tb_sysconfig.Post;
+    except
+      on E: Exception do
+        UDM.tb_sysconfig.Cancel;
+    end;
+  end;
+end;
 
 procedure TUDM.AddBlankNode;
 var
@@ -1015,6 +1423,104 @@ begin
   UDM.tb_tree.FieldByName('icono').AsInteger := imagenactual;
   UDM.tb_tree.FieldByName('tipo').AsInteger := tipoestruc;
   UDM.tb_tree.Post;
+end;
+
+procedure TUDM.AgregaData(Nodo: TTreeNode; aId, aPadre, aIcono, Tipo: Integer; aEtiqueta, aOwner, Estructura, descrip: string);
+var
+  pData: PDataRec;
+
+  function RTFToPlainText(const RTFText: string): string;
+  var
+    InControlWord: Boolean;
+    InGroup: Boolean;
+    InText: Boolean;
+    i: Integer;
+    CurrentChar: Char;
+    ResultText: TStringBuilder;
+  begin
+    ResultText := TStringBuilder.Create;
+    try
+      InControlWord := False;
+      InGroup := False;
+      InText := False;
+
+      for i := 1 to Length(RTFText) do
+      begin
+        CurrentChar := RTFText[i];
+
+      // Detectar el inicio de un comando de control
+        if CurrentChar = '\' then
+        begin
+          InControlWord := True;
+          InText := False;
+        end
+      // Detectar el fin de un comando de control
+        else if ((CurrentChar = ' ') or (CurrentChar = '{') or (CurrentChar = '}')) and InControlWord then
+        begin
+          InControlWord := False;
+          InText := False;
+          if CurrentChar = '{' then
+            InGroup := True
+          else if CurrentChar = '}' then
+            InGroup := False;
+        end
+      // Guardar texto si no está en un comando de control o grupo
+        else if not InControlWord and not InGroup then
+        begin
+          if (CurrentChar <> '{') and (CurrentChar <> '}') then
+          begin
+            InText := True;
+            ResultText.Append(CurrentChar);
+          end;
+        end;
+      end;
+
+    // Eliminar caracteres especiales como CR (#13) y LF (#10)
+      Result := ResultText.ToString;
+      Result := Result.Replace(#13, '').Replace(#10, '').Trim;  // Eliminar saltos de línea, retorno de carro y espacios en blanco
+    finally
+      ResultText.Free;
+    end;
+  end;
+
+begin
+  New(pData);
+  pData.estruct := Estructura;
+  pData.Id := aId;
+  pData.Padre := aPadre;
+  pData.Icono := aIcono;
+  pData.Etiqueta := aEtiqueta;
+  pData.Owner := aOwner;
+  pData.Tipo := UDM.Conn.ExecSQLScalar('select nombretipoobj from cl_tipoobj where idtipoobj=' + IntToStr(Tipo));
+  if trim(descrip) <> '' then
+    pData.Descrip := RTFToPlainText(descrip);
+  Nodo.Data := pData;
+end;
+
+procedure TUDM.ApplyCustomBestFit(cxtvg: TcxGridDBTableView);
+var
+  i: Integer;
+  Field: TField;
+begin
+  // Itera sobre las columnas del cxGrid (TcxGridTableView)
+  for i := 0 to cxtvg.ColumnCount - 1 do
+  begin
+    // Obtiene el campo correspondiente a la columna
+    Field := cxtvg.Columns[i].DataBinding.Field;
+
+    if Assigned(Field) then
+    begin
+      // Si es de tipo cadena (ftString) ajusta el ancho a 100
+      if (Field.DataType in [ftString, ftWideString]) then
+      begin
+        if cxtvg.Columns[i].Width < 200 then
+          cxtvg.Columns[i].Width := 200
+      end      // Si es de tipo numérico ajusta el ancho a 85
+      else if (Field.DataType in [ftSmallint, ftInteger, ftWord, ftFloat, ftCurrency, ftBCD]) then
+        if cxtvg.Columns[i].Width < 85 then
+          cxtvg.Columns[i].Width := 85;
+    end;
+  end;
 end;
 
 function TUDM.BorrarCarpeta(const vOrigen: string): boolean;
@@ -1039,12 +1545,99 @@ begin
   Result := (ShFileOperation(vCarpetas) = 0);
 end;
 
+procedure TUDM.Boundarys(Sender: TObject);
+begin
+  TJvCaptionPanel(Sender).Focused;
+  TJvCaptionPanel(Sender).SetFocus;
+  if TJvCaptionPanel(Sender).Left < 0 then
+    TJvCaptionPanel(Sender).Left := 5;
+  if TJvCaptionPanel(Sender).Top < 0 then
+    TJvCaptionPanel(Sender).Top := 5;
+end;
+
 procedure TUDM.GetNodoPadreActual;
 begin
   NodoPadreActual.id := UDM.tb_tree.FieldByName('id').AsInteger;
   NodoPadreActual.Padre := UDM.tb_tree.FieldByName('Padre').AsInteger;
   NodoPadreActual.icono := UDM.tb_tree.FieldByName('icono').AsInteger;
   NodoPadreActual.tipo := UDM.tb_tree.FieldByName('tipo').AsInteger;
+end;
+
+function TUDM.GetSeriesNameFile(aFecha: TDate): string;
+var
+  fe: string;
+begin
+  fe := datetostr(aFecha) + '' + TimeToStr(Now);
+  fe := AnsiReplaceStr(fe, '/', '');
+  fe := AnsiReplaceStr(fe, ' ', '');
+  fe := AnsiReplaceStr(fe, ':', '');
+  result := fe;
+end;
+
+procedure TUDM.GuardarConfiguracion(cxGrid: TcxGrid; const FileName: string);
+var
+  Stream: TFileStream;
+begin
+  Stream := TFileStream.Create(FileName, fmCreate);
+  try
+    (cxGrid.Levels[0].GridView as TcxCustomGridTableView).StoreToStream(Stream);
+  finally
+    Stream.Free;
+  end;
+end;
+
+procedure TUDM.CargarArbol(TreeView: TTreeView; DataSet: TDataSet; opts: boolean);
+begin
+  TreeView.Items.BeginUpdate; // Mejora el rendimiento al construir el árbol
+  try
+    TreeView.Items.Clear; // Limpiar el TreeView antes de añadir los nodos
+    DataSet.Active := False;
+    DataSet.Active := True;
+    DataSet.First; // Asegurarse de que el DataSet esté en el primer registro
+    // Comenzar a crear el árbol desde los nodos raíz (padre = 0 o NULL)
+    CrearArbol(TreeView, DataSet, nil, 0, opts);
+  finally
+    TreeView.Items.EndUpdate;
+  end;
+end;
+
+procedure TUDM.CargarConfiguracion(cxGrid: TcxGrid; const FileName: string);
+var
+  Stream: TFileStream;
+begin
+  if FileExists(FileName) then
+  begin
+    Stream := TFileStream.Create(FileName, fmOpenRead);
+    try
+      (cxGrid.Levels[0].GridView as TcxCustomGridTableView).RestoreFromStream(Stream);
+    finally
+      Stream.Free;
+    end;
+  end;
+end;
+
+procedure TUDM.CargaValoresCampo(Lista: TStringList; aFieldName, asql: string);
+var
+  ComboQuery: TFDQuery;
+begin
+  ComboQuery := TFDQuery.Create(nil);
+  try
+    ComboQuery.Connection := UDM.Conn;
+    ComboQuery.SQL.Text := 'SELECT DISTINCT ' + aFieldName + ' FROM (' + asql + ') WHERE ' + aFieldName + ' IS NOT NULL ' + ' ORDER BY ' + aFieldName;
+    try
+      ComboQuery.Open;
+    except
+    end;
+              // Agregar los valores únicos al ComboBox
+    while not ComboQuery.Eof do
+    begin
+      Lista.Add(ComboQuery.Fields[0].AsString);
+      ComboQuery.Next;
+    end;
+
+  finally
+    ComboQuery.Free;
+  end;
 end;
 
 function TUDM.CarpetaGeodato: string;
@@ -1063,6 +1656,32 @@ begin
   Result := TempDir + 'GD_SERIES\';
 end;
 
+function TUDM.CheckFTPConnection(const Host, Username, Password: string; Puerto: integer): Boolean;
+var
+  FTPClient: TIdFTP;
+begin
+  FTPClient := TIdFTP.Create(nil);
+  try
+    FTPClient.Host := Host;
+    FTPClient.Username := Username;
+    FTPClient.Password := Password;
+    FTPClient.Port := Puerto;
+    try
+      FTPClient.Connect;
+      Result := True;
+    except
+      on E: EIdException do
+      begin
+        // Handle the exception if the connection attempt fails
+        Result := False;
+      end;
+    end;
+  finally
+    FTPClient.Disconnect;
+    FTPClient.Free;
+  end;
+end;
+
 function TUDM.CleanTableTree(aTableName: string): boolean;
 begin
   Result := false;
@@ -1078,50 +1697,478 @@ begin
   UDM.sms('Los cambios no se pudieron realizar. Motivo: ' + E.Message, 1);
 end;
 
-procedure TUDM.DataModuleCreate(Sender: TObject);
+procedure TUDM.cl_ftp_ServerBeforePost(DataSet: TDataSet);
+var
+  nombreoip: string;
 begin
+  nombreoip := UDM.cl_ftp_Server.FieldByName('ipserver').AsString;
+  if trim(nombreoip) = '' then
+    nombreoip := UDM.cl_ftp_Server.FieldByName('etiquetaServ').AsString;
+  if UDM.cl_ftp_Server.FieldByName('puerto').value = null then
+    UDM.cl_ftp_Server.FieldByName('puerto').AsInteger := 0;
+  DataSet.FieldByName('test').AsBoolean := CheckFTPConnection(nombreoip, UDM.cl_ftp_Server.FieldByName('usuarioftp').AsString, UDM.cl_ftp_Server.FieldByName('pass').AsString, UDM.cl_ftp_Server.FieldByName('puerto').AsInteger);
+end;
+
+procedure TUDM.cl_subseriesBeforePost(DataSet: TDataSet);
+var
+  codsubs, subserie: string;
+
+  function ExisteIdEstructura(const acodsubs: string): Boolean;
+  var
+    Query: TFDQuery;
+  begin
+    Result := False;
+    Query := TFDQuery.Create(nil);
+    try
+      Query.Connection := UDM.Conn; // Asegúrate de tener tu conexión configurada
+      Query.SQL.Text := 'SELECT COUNT(*) FROM cl_subseries WHERE codsubs = :acodsubs';
+      Query.ParamByName('acodsubs').AsString := acodsubs;
+      Query.Open;
+
+    // Si el resultado es mayor que 0, significa que ya existe
+      if Query.Fields[0].AsInteger > 0 then
+        Result := True;
+    finally
+      Query.Free;
+    end;
+  end;
+
+begin
+  if (DataSet.State = dsInsert) then
+  begin
+    codsubs := DataSet.FieldByName('codsubs').AsString;
+    subserie := DataSet.FieldByName('subserie').AsString;
+    if Trim(subserie) = '' then
+    begin
+      sms('El título de la subserie no puede estar vacío.', 2);
+//    DataSet.Cancel; // Cancela la operación de inserción o modificación
+      Abort;          // Evita que continúe la inserción
+      Exit;
+    end;
+  // Verifica si el campo está vacío
+    if Trim(codsubs) = '' then
+    begin
+      sms('El código de la subserie no puede estar vacío.', 2);
+      DataSet.Cancel; // Cancela la operación de inserción o modificación
+      Abort;          // Evita que continúe la inserción
+      Exit;
+    end;
+    if ExisteIdEstructura(codsubs) then
+    begin
+      sms('El código de la subserie ya existe. No se puede insertar un valor duplicado.', 2);
+      DataSet.Cancel; // Cancela la operación de inserción o modificación
+      Abort;          // Evita que continúe la inserción
+      Exit;
+    end;
+  end;
+end;
+
+procedure TUDM.cl_subseriesNewRecord(DataSet: TDataSet);
+
+  function GenerateUniqueCodSubs(codserie: string): string;
+  var
+    LastCodSubs: string;
+    NewCodSubs: string;
+    MaxCodSubsNumber: Integer;
+    Query: TFDQuery; // Asumimos que estás usando FireDAC
+  begin
+  // Inicializamos la consulta
+    Query := TFDQuery.Create(nil);
+    try
+      Query.Connection := udm.Conn; // Tu conexión a la base de datos
+
+    // Buscar el último código de subserie para el codserie dado
+      Query.SQL.Text := 'SELECT MAX(codsubs) AS LastCodSubs ' + 'FROM cl_subseries ' + 'WHERE codserie = :codserie';
+      Query.ParamByName('codserie').AsString := codserie;
+      Query.Open;
+
+      LastCodSubs := Query.FieldByName('LastCodSubs').AsString;
+
+      if LastCodSubs = '' then
+      begin
+      // Si no existe ningún codsubs para el codserie, empezamos desde '001'
+        NewCodSubs := '001';
+      end
+      else
+      begin
+      // Extraemos la parte numérica del último codsubs
+        MaxCodSubsNumber := StrToIntDef(Copy(LastCodSubs, Length(codserie) + 1, MaxInt), 0);
+
+      // Incrementamos el número
+        Inc(MaxCodSubsNumber);
+
+      // Generamos el nuevo código, con un formato fijo de longitud (e.g. 'codserie001')
+        NewCodSubs := codserie + FormatFloat('000', MaxCodSubsNumber);
+      end;
+
+      Result := NewCodSubs;
+    finally
+      Query.Free;
+    end;
+  end;
+
+begin
+  // Valores por defecto para el nuevo registro
+  DataSet.FieldByName('codsubs').AsString := GenerateUniqueCodSubs(DataSet.FieldByName('codserie').AsString);
+  DataSet.FieldByName('soporte').AsInteger := 3;
+  DataSet.FieldByName('tipodoc').AsInteger := 2;
+  DataSet.FieldByName('acceso').AsInteger := 1;
+  DataSet.FieldByName('idtiposerie').AsInteger := 1;
+  DataSet.FieldByName('Activa').AsBoolean := True;
+end;
+
+{procedure TUDM.cl_VarSubserieBeforePost(DataSet: TDataSet);
+const
+  ReservedFields: array[0..5] of string = ('IdEstructura', 'id', 'codsubs', 'Fecha', 'Version', 'Codigodoc');
+  CaracteresInvalidos: set of Char = [' ', 'á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ', 'Ñ', 'ä', 'ë', 'ï', 'ö', 'ü', '[', ']', '(', ')', '.', ',', ';', ':', '-', '+', '/', '\', '=', '!', '@', '#', '$', '%', '^', '&', '*', '<', '>', '|', '?'];
+
+  function ValidarNombreCampo(const NombreCampo: string): Boolean;
+  var
+    I: Integer;
+  begin
+    Result := True;
+    for I := 1 to Length(NombreCampo) do
+    begin
+      if NombreCampo[I] in CaracteresInvalidos then
+      begin
+        Result := False;
+        Break;
+      end;
+    end;
+  end;
+
+var
+  VariableName: string;
+  I: Integer;
+begin
+  // Obtener el valor del campo 'NomVariable' de la variable que se está intentando guardar
+  VariableName := DataSet.FieldByName('NomVariable').AsString;
+  if not ValidarNombreCampo(VariableName) then
+  begin
+      // Mostrar un mensaje de error
+    raise Exception.CreateFmt('El nombre de la variable "%s" contiene caractes no aceptados por el Gestor de Bases de Datos. Por favor especifique otro nombre de variable.', [VariableName]);
+
+      // Cancelar la operación
+    DataSet.Cancel;
+    Exit;
+  end;
+  if not EsNombreValido(VariableName, TBD[1]) then
+  begin
+      // Mostrar un mensaje de error
+    raise Exception.CreateFmt('El nombre de la variable "%s" coincide con una palabra reservada del Sistema de Gestión de Base de Datos. Por favor especifique otro nombre de variable.', [VariableName]);
+
+      // Cancelar la operación
+    DataSet.Cancel;
+    Exit;
+  end;
+
+end; }
+
+/// <summary>
+/// Valida el nombre de una variable antes de guardar el registro en el DataSet.
+/// Este método se ejecuta en el evento BeforePost del DataSet cl_VarSubserie.
+/// </summary>
+/// <param name="DataSet">El DataSet que contiene el registro a validar.</param>
+/// <remarks>
+/// - Verifica que el nombre de la variable (campo 'NomVariable') no contenga caracteres inválidos.
+/// - Asegura que el nombre no sea una palabra reservada del sistema de gestión de bases de datos.
+/// - Garantiza que el campo 'etiqueta' sea único en el DataSet.
+/// Si alguna validación falla, se lanza una excepción y se detiene el proceso de guardado.
+/// </remarks>
+/// <exception cref="Exception">
+/// - Si el nombre de la variable contiene caracteres inválidos.
+/// - Si el nombre de la variable es una palabra reservada.
+/// - Si el valor del campo 'etiqueta' no es único.
+/// </exception>
+procedure TUDM.cl_VarSubserieBeforeInsert(DataSet: TDataSet);
+var
+  VariableName: string;
+  LabelValue: string;
+begin
+  {// Obtener el valor del campo 'NomVariable'
+  VariableName := DataSet.FieldByName('NomVariable').AsString;
+
+  // Validar que el nombre no contenga caracteres inválidos
+  if not IsValidFieldName(VariableName) then
+    raise Exception.CreateFmt('El nombre de la variable "%s" contiene caracteres no aceptados por el Gestor de Bases de Datos. ' + 'Por favor, especifique otro nombre de variable.', [VariableName]);
+
+  // Validar que el nombre no sea una palabra reservada
+  if IsReservedField(VariableName) then
+    raise Exception.CreateFmt('El nombre de la variable "%s" coincide con una palabra reservada del Sistema de Gestión de Base de Datos. ' + 'Por favor, especifique otro nombre de variable.', [VariableName]);
+    }
+end;
+
+procedure TUDM.cl_VarSubserieBeforePost(DataSet: TDataSet);
+var
+  VariableName, TipoDat: string;
+  LabelValue: string;
+begin
+  // Obtener el valor del campo 'NomVariable'
+  VariableName := DataSet.FieldByName('NomVariable').AsString;
+  // Validar que el nombre no contenga caracteres inválidos
+  if Trim(VariableName) = '' then
+    raise Exception.CreateFmt('Debe especificar un nombre de variable "%s"  valido. ' + 'Por favor, especifique un nombre de variable.', [VariableName]);
+  if trim(DataSet.FieldByName('Etiqueta').AsString) = '' then
+  begin
+    if (DataSet.State <> dsedit) and (DataSet.State <> dsinsert) then
+      DataSet.Edit;
+    UDM.sms('No ha especificado una etiqueta valida. Esto no es aconsejable por lo que el sistema utilizará temporalmente el nombre de la variable especificada.', 3);
+    DataSet.FieldByName('Etiqueta').AsString := DataSet.FieldByName('NomVariable').AsString;
+  end;
+  if Trim(DataSet.FieldByName('tipo').AsString) = '' then
+    raise Exception.CreateFmt('Debe especificar un tipo datos valido para la variable "%s"  valido. ' + 'Por favor, especifique un tipo de datos valido.', [VariableName])
+  else
+  begin
+    TipoDat := UDM.Conn.ExecSQLScalar('SELECT CL_SubseriesTipoVar.tipo FROM CL_SubseriesTipoVar WHERE CL_SubseriesTipoVar.Idtipo=' + DataSet.FieldByName('tipo').AsString);
+    if SameText(TipoDat, 'Caracteres') then
+      if (DataSet.FieldByName('longitud').Value = null) or (trim(DataSet.FieldByName('longitud').AsString) = '') then
+        raise Exception.CreateFmt('Debe especificar la longitud para la variable "%s". ' + 'Las variables de tipo "Caracteres" exigen que se especifique su tamaño.', [VariableName]);
+  end;
+  // Validar que el nombre no contenga caracteres inválidos
+  if not IsValidFieldName(VariableName) then
+    raise Exception.CreateFmt('El nombre de la variable "%s" contiene caracteres no aceptados por el Gestor de Bases de Datos. ' + 'Por favor, especifique otro nombre de variable.', [VariableName]);
+
+
+  // Validar que el nombre no sea una palabra reservada
+  if IsReservedField(VariableName) then
+    raise Exception.CreateFmt('El nombre de la variable "%s" coincide con una palabra reservada del Sistema de Gestión de Base de Datos. ' + 'Por favor, especifique otro nombre de variable.', [VariableName]);
+  // Obtener el valor del campo 'etiqueta' y validar su unicidad
+  LabelValue := DataSet.FieldByName('etiqueta').AsString;
+  if IsLabelNoUnique(LabelValue) then
+    raise Exception.CreateFmt('El valor del campo "etiqueta" (%s) ya existe. Debe ser único. ' + 'Por favor, especifique un valor diferente.', [LabelValue]);
+end;
+
+procedure TUDM.cl_VarSubserieNewRecord(DataSet: TDataSet);
+begin
+  {}
+end;
+
+procedure TUDM.DataBasesOnServer(DataBases: TStrings; const ServerName: string);
+var
+  RecordS: _RecordSet;
+  flag: string;
+begin
+  //Devuelve las Bases de Datos existentes en un Servidor MS SQL Server...
+  //Expesificando un Prefijo el cual se utiliza para identificar las Bases de Datos...
+  //del Centro de Datos...
+  with TADOConnection.Create(nil) do
+  try
+    ConnectionString := ConstructConnStr(ServerName);
+    LoginPrompt := False;
+    try
+      Open;
+      RecordS := ConnectionObject.OpenSchema(adSchemaCatalogs, EmptyParam, EmptyParam); //more general approach in terms of ADO
+      with RecordS do
+      begin
+        while not Eof do
+        begin
+          flag := VarToStr(Fields['CATALOG_NAME'].Value);
+          DataBases.Add(flag);
+          MoveNext;
+        end;
+      end;
+      Close;
+    except
+      MessageDlg('No se pudo establecer la conexión con el servidor especificado. Motivos: ' + chr(13) + '1- Por favor verifique que el nombre del servidor sea correcto.' + chr(13) + '2- Verifique que se halla ejecutado el procedimiento de configuración de conexión para GeodatoIC v3.0.' + chr(13) + '3- Póngase en contacto con el administrador del GeoDato en su Empresa o con el Grupo de Desarrollo del Programa GeoDato. ', mtError, [mbOK], 0);
+      Exit;
+    end;
+  finally
+    Free;
+  end;
+end;
+
+procedure TUDM.DataModuleCreate(Sender: TObject);
+var
+  ListT: TStringList;
+begin
+  GestionFile := False;
+  ListVarTmp := TStringList.Create;
+  EntraRecupera := False;
+  flaginsert := False;
+  LlaveTree := VarArrayCreate([0, 1], varVariant);
+  LlaveEstruct := VarArrayCreate([0, 2], varVariant);
+  LlaveDatos := VarArrayCreate([0, 4], varVariant);
+  primeravez := True;
+  estadoC := True;
+  CargandoEstado := False;
+  CAPP := False;
+  Conectado := False;
+  EstoyActualizando := False;
+  EsPropiedadesTopo := False;
   TipoObj := 'S';
+  ObtenerDatosPC(DatosPC);
   ItsWork := False;
   EsReadOnly := False;
   PathTemp := CarpetaGeodato;
   cadcmd := '';
   PathSys := ExtractFilePath(Application.ExeName);
-  PathBD := PathSys + 'BD\SDbd.mdb';
   PathSaveBinaryFile := PathSys + 'bin\';
-  with conn do
+  PathCarat := PathSys + 'CARATULAS\';
+  pathreport := ExtractFilePath(Application.ExeName) + 'Report\';
+  //Pathtransplt:=PathSys
+  if FileExists(PathSys + 'config.ini') then
+  begin
+    ListT := TStringList.Create;
+    ListT.LoadFromFile(PathSys + 'config.ini');
+    TBD := ListT[0];
+    if TBD = 'S' then
+    begin
+      ServerName := ListT[1];
+      dbname := ListT[2];
+    end
+    else
+    begin
+      PathBD := ListT[1];
+    end;
+    ListT.Free;
+  end;
+  with Conn do
   begin
     Connected := False;
     with Params do
     begin
       Clear;
-      Add('Database=' + PathBD);
-      Add('DriverID=MSAcc');
+      if TBD = 'S' then
+      begin
+        Add('Database=' + dbname);
+        Add('User_Name=geoconn');
+        Add('Password=geoconn');
+        Add('Server=' + ServerName);
+        Add('DriverID=MSSQL');
+      end
+      else
+      begin
+        Add('Database=' + PathBD);
+        Add('DriverID=MSAcc');
+      end;
     end;
+//    ResourceOptions.SilentMode := True; // Desactiva cambios automáticos de cursor
+//    ResourceOptions.WaitCursor := crDefault; // Fuerza crDefault si se muestra un cursor
     try
+
       Connected := True;
-      //Agregue un fichero llamado Update.src que le permita modificar la base de datos...
+
+  // Ejecutar los cambios
       UpDateDB;
     except
       on E: EFDexception do
       begin
         sms('No se ha podido establecer comunicación con la base de datos. Motivo: ' + E.Message, 1);
+        if TBD = 'S' then
+          sms('No se pudo establecer la conexión con el servidor especificado.' + chr(13) + 'LA APLICACIÓN SE CERRARÁ!!!!. Por favor verifique los posibles motivos listados a continuación: ' + chr(13) + '1- Por favor verifique que el nombre o IP del servidor sean correctos.' + chr(13) + '2- Verifique que se haya ejecutado el procedimiento de configuración de conexión.' + chr(13) + '3- Verifique que su estación de trabajo este correctamente conectada a la red de la empresa.' + chr(13) + '4- Póngase en contacto con el administrador de la red en su Empresa o solicite ayuda a soporte técnico.', 3)
+        else
+          sms('No se pudo establecer la conexión con la base de datos especificada.' + chr(13) + 'Por favor verifique los posibles motivos listados a continuación: ' + chr(13) + '1- Verifique que la base de datos se encuentre en la ruta especificada.' + AnsiQuotedStr(PathBD, '"') + chr(13) + '2- Si el fichero de bases de datos esta disponible verifique que no este dañado, abrá el fichero access y reparelo.' + chr(13) + '3- Póngase en contacto con el administrador de la red en su Empresa o solicite ayuda a soporte técnico.', 3);
+        CAPP := True;
         Exit;
       end;
     end;
   end;
+
   ActivaDataLayer(true);
 end;
 
-procedure TUDM.dstb_treeDataChange(Sender: TObject; Field: TField);
+procedure TUDM.DeleteDir(aPath: string);
+var
+  sr: TSearchRec;
 begin
-  with UDM.VarEPCDetail do
-  begin
-    Active := False;
-    Params[0].Value := tb_tree.FieldByName('idestructura').AsString;
+  aPath := IncludeTrailingBackslash(aPath);
+  if FindFirst(aPath + '*.*', faAnyFile, sr) = 0 then
+    repeat
+      if (sr.Name <> '..') and (sr.Name <> '.') then
+      begin
+        if (sr.Attr = faDirectory) then
+          DeleteDir(aPath + sr.Name)
+        else
+          Win32Check(System.SysUtils.DeleteFile(pwidechar(aPath + sr.Name)));
+      end;
+    until FindNext(sr) <> 0;
+  System.SysUtils.FindClose(sr);
+  aPath := ExcludeTrailingBackslash(aPath);
+  Win32Check(RemoveDir(aPath));
+end;
+
+procedure TUDM.DeleteFTPDirectory(const Host, UserName, Password, Directory: string; Puerto: Integer);
+var
+  FTP: TIdFTP;
+begin
+  FTP := TIdFTP.Create(nil);
+  try
+    FTP.Host := Host;
+    FTP.Username := UserName;
+    FTP.Password := Password;
+    FTP.Port := Puerto;
+    FTP.Connect;
     try
-      Active := True;
-    except
+      try
+        FTP.ChangeDir(Directory);
+        FTP.RemoveDir(FTP.RetrieveCurrentDir);
+      except
+      end;
+    finally
+      FTP.Disconnect;
     end;
+  finally
+    FTP.Free;
+  end;
+end;
+
+procedure TUDM.DeleteFTPDirectoryRecursive(const Host, UserName, Password, Directory: string; Puerto: Integer);
+var
+  FTP: TIdFTP;
+  Files: TStringList;
+  I: Integer;
+begin
+  FTP := TIdFTP.Create(nil);
+  Files := TStringList.Create;
+  try
+    FTP.Host := Host;
+    FTP.Username := UserName;
+    FTP.Password := Password;
+    FTP.Port := Puerto;
+    FTP.Connect;
+    try
+      // Obtener la lista de archivos y subdirectorios del directorio
+      FTP.List(Files, '', False);
+      // Eliminar los archivos del directorio
+      for I := 0 to Files.Count - 1 do
+      begin
+        FTP.Delete(Files[I]);
+      end;
+      // Eliminar los subdirectorios de forma recursiva
+      for I := 0 to Files.Count - 1 do
+      begin
+        FTP.ChangeDir(Files[I]);
+        DeleteFTPDirectoryRecursive(Host, UserName, Password, Files[I], Puerto);
+        FTP.ChangeDirUp;
+        FTP.RemoveDir(Files[I]);
+      end;
+    finally
+      FTP.Disconnect;
+    end;
+  finally
+    Files.Free;
+    FTP.Free;
+  end;
+end;
+
+procedure TUDM.DeleteFTPFile(const Host, UserName, Password, FileName: string; Puerto: Integer);
+var
+  FTP: TIdFTP;
+begin
+  FTP := TIdFTP.Create(nil);
+  try
+    FTP.Host := Host;
+    FTP.Username := UserName;
+    FTP.Password := Password;
+    FTP.Port := Puerto;
+    FTP.Connect;
+    try
+      FTP.Delete(FileName);
+    finally
+      FTP.Disconnect;
+    end;
+  finally
+    FTP.Free;
   end;
 end;
 
@@ -1138,12 +2185,369 @@ begin
   end;
 end;
 
+procedure TUDM.EjecutarCambiosBaseDatos(const SQLCommands: TArray<string>);
+var
+  Query: TFDQuery;
+  i: Integer;
+begin
+  Query := TFDQuery.Create(nil);
+  try
+    Query.Connection := UDM.Conn;  // Conexión a la base de datos
+
+    // Iterar sobre cada comando SQL
+    for i := 0 to High(SQLCommands) do
+    begin
+      try
+        Query.SQL.Text := SQLCommands[i];
+        Query.ExecSQL;
+
+        // Opcional: Puedes mostrar un mensaje si el comando se ejecuta correctamente
+        // ShowMessage('Comando ejecutado: ' + SQLCommands[i]);
+      except
+        on E: Exception do
+        begin
+          // Si ocurre un error, se captura y se muestra o registra
+//          ShowMessage('Error al ejecutar comando: ' + SQLCommands[i] + #13#10 + 'Error: ' + E.Message);
+          // Puedes agregar registro en un archivo o log si es necesario
+          Continue;  // Continúa con el siguiente comando a pesar del error
+        end;
+      end;
+    end;
+  finally
+    Query.Free;
+  end;
+end;
+
 function TUDM.EsLocal(idServer: integer): Boolean;
 begin
   {Result := False;
   if UDM.cl_ftp_Server.Locate('Idservidor', idServer, []) then
     if (trim(UDM.cl_ftp_Server.FieldByName('user').AsString) = '') and (trim(UDM.cl_ftp_Server.FieldByName('pass').AsString) = '') and (trim(UDM.cl_ftp_Server.FieldByName('puerto').AsString) = '') then
       Result := True;}
+end;
+
+function TUDM.EsNombreValido(const Nombre: string; const SGBD: char): Boolean;
+var
+  i: Integer;
+  NombreUsuario: string;
+begin
+  Result := True;  // Asumimos que el nombre es válido hasta probar lo contrario
+  NombreUsuario := UpperCase(Nombre);  // Convertimos el nombre a mayúsculas para comparación insensible a mayúsculas/minúsculas
+
+  case SGBD of
+    'S':  // Para SQL Server
+      begin
+        for i := Low(SQLServerReservadas) to High(SQLServerReservadas) do
+        begin
+          if AnsiCompareText(NombreUsuario, SQLServerReservadas[i]) = 0 then
+          begin
+            Result := False;
+            Exit;
+          end;
+        end;
+      end;
+
+    'A':  // Para MS Access
+      begin
+        for i := Low(AccessReservadas) to High(AccessReservadas) do
+        begin
+          if AnsiCompareText(NombreUsuario, AccessReservadas[i]) = 0 then
+          begin
+            Result := False;
+            Exit;
+          end;
+        end;
+      end;
+
+  else
+    raise Exception.Create('SGBD no válido. Use "S" para SQL Server o "A" para MS Access.');
+  end;
+end;
+
+{ Exporta un reporte de FastReport a un archivo PDF, conectando a la base de datos especificada.
+  @param DatabaseType: Tipo de base de datos (dbAccess o dbSQLServer).
+  @param Params: Arreglo de parámetros para la conexión:
+                 - Para dbAccess: [0] = Ruta del archivo .mdb.
+                 - Para dbSQLServer: [0] = Servidor, [1] = Nombre de la base de datos,
+                                     [2] = Usuario (opcional), [3] = Contraseña (opcional).
+  @param Fichero: Ruta completa del archivo PDF de salida (incluye nombre y extensión).
+}
+procedure TUDM.ExportarReporteAPDFyoyo(DatabaseType: TDatabaseType; const Params: array of string; const Fichero: string);
+var
+  ExportadorPDF: TfrxPDFExport;
+  DatabaseObj: TfrxADODatabase;
+  consulta: TfrxADOQuery;
+  SerieValue: string;
+  Serie, SS, SD, tt: TfrxADOTable;
+{ Formatea una fecha para usarla en un filtro SQL según el tipo de base de datos.
+  @param Fecha: Valor de la fecha a formatear.
+  @param DatabaseType: Tipo de base de datos (dbAccess o dbSQLServer).
+  @return: Cadena con la fecha formateada (ej. '#06/04/2025#' para Access, '2025-04-06' para SQL Server).
+}
+
+  function FormatearFechaFiltro(const aFecha: TDateTime; DatabaseType: TDatabaseType): string;
+  begin
+    case DatabaseType of
+      dbAccess:
+        Result := '#' + FormatDateTime('mm/dd/yyyy', aFecha) + '#'; // Formato para MS Access
+      dbSQLServer:
+        Result := '''' + FormatDateTime('yyyy-mm-dd', aFecha) + ''''; // Formato para SQL Server
+    else
+      raise Exception.Create('Tipo de base de datos no soportado.');
+    end;
+  end;
+
+begin
+  // Validar parámetros de entrada
+  if Fichero.IsEmpty or not TPath.HasValidFileNameChars(TPath.GetFileName(Fichero), False) then
+    raise Exception.Create('Ruta o nombre de archivo PDF inválido.');
+
+  try
+    // 1. Configurar la conexión a la base de datos
+    DatabaseObj := TfrxADODatabase(frxCaratula.FindObject('ADObASICO'));
+    consulta := TfrxADOQuery(frxCaratula.FindObject('Qhijos'));
+    Serie := TfrxADOTable(frxCaratula.FindObject('CL_SERIE'));
+    SS := TfrxADOTable(frxCaratula.FindObject('cL_subserie'));
+    SD := TfrxADOTable(frxCaratula.FindObject('tb_SeriesDatos'));
+    tt := TfrxADOTable(frxCaratula.FindObject('Tb_tree'));
+    //expediente='P-001'
+    if not Assigned(DatabaseObj) then
+      raise Exception.Create('No se encontró el objeto de base de datos en la carátula.');
+
+    DatabaseObj.Connected := False;
+    DatabaseObj.DatabaseName := ConstruirCadenaConexion(DatabaseType, Params);
+    try
+      DatabaseObj.Connected := True;
+    except
+      raise Exception.Create('No se pudo generar la carátula especificada. Problema de conexión con la base de datos.');
+    end;
+    SerieValue := UDM.Conn.ExecSQLScalar('SELECT cl_subseries.codserie FROM cl_subseries WHERE cl_subseries.codsubs=' + QuotedStr(tb_SeriesDatos.FieldByName('codsubs').asstring));
+    if not Assigned(consulta) then
+      raise Exception.Create('No se encontró el listado de documentos que incluye este expediente');
+    try
+      consulta.Active := True;
+      consulta.Filter := 'expediente=' + QuotedStr(tb_SeriesDatos.FieldByName('Codigodoc').asstring);
+      consulta.Filtered := True;
+    except
+    end;
+    //Tb_tree
+    if not Assigned(tt) then
+      raise Exception.Create('No se encontró la estructura a la que pertenece el expediente seleccionado.');
+    try
+      tt.Active := True;
+      tt.Filtered := False;
+      tt.Filter := 'IdEstructura =' + QuotedStr(tb_SeriesDatos.FieldByName('IdEstructura').asstring);
+      tt.Filtered := True;
+    except
+    end;
+    //Series
+    if not Assigned(Serie) then
+      raise Exception.Create('No se encontró la serie a la que pertenece el documento especificado');
+    try
+      Serie.Active := True;
+      Serie.Filtered := False;
+      Serie.Filter := 'CODSERIE =' + QuotedStr(SerieValue);
+      Serie.Filtered := True;
+    except
+    end;
+    //Tb_SUBSERIES
+    if not Assigned(SS) then
+      raise Exception.Create('No se encontró la subserie a la que pertenece el documento especificado.');
+    try
+      SS.Active := True;
+      SS.Filtered := False;
+      SS.Filter := 'CODSERIE =' + QuotedStr(SerieValue) + 'and codsubs=' + QuotedStr(tb_SeriesDatos.FieldByName('codsubs').asstring);
+      SS.Filtered := True;
+    except
+    end;
+    //Tb_SeriesDatos...
+    if not Assigned(SD) then
+      raise Exception.Create('No se encontró el listado de documentos que incluye este expediente');
+    try
+      SD.Active := True;
+      SD.Filtered := False;
+//      sd.Filter := 'CODSERIE ='+QuotedStr(SerieValue)+'and codsubs='+QuotedStr(tb_SeriesDatos.FieldByName('codsubs').asstring);
+      SD.Filter := 'CodigoDoc = ' + QuotedStr(tb_SeriesDatos.FieldByName('CodigoDoc').asstring);
+      SD.Filtered := True;
+    except
+    end;
+    // 2. Preparar el reporte
+    frxCaratula.PrepareReport(True);
+
+    // 3. Configurar el exportador PDF
+    ExportadorPDF := TfrxPDFExport.Create(nil);
+    try
+      ExportadorPDF.FileName := Fichero;
+      ExportadorPDF.ShowDialog := False; // No mostrar diálogo de guardado
+      ExportadorPDF.ShowProgress := True; // Mostrar barra de progreso
+      ExportadorPDF.OverwritePrompt := True; // Preguntar si sobrescribir
+      ExportadorPDF.EmbeddedFonts := True; // Incrustar fuentes para compatibilidad
+      ExportadorPDF.Compressed := True; // Comprimir el archivo PDF
+      ExportadorPDF.PrintOptimized := True; // Optimizar para impresión
+
+      // 4. Exportar el reporte a PDF
+      frxCaratula.Export(ExportadorPDF);
+
+      // 5. Abrir el archivo PDF generado (opcional)
+//      ShellExecute(0, 'open', PChar(Fichero), nil, nil, SW_SHOWNORMAL);
+    finally
+      ExportadorPDF.Free;
+    end;
+
+    // 6. Desconectar la base de datos
+//    DatabaseObj.Connected := False;
+  except
+    on E: Exception do
+      ShowMessage('Error al generar el PDF: ' + E.Message);
+  end;
+end;
+
+function TUDM.DownloadFileFromFTP(const Host, Username, Password, RemoteFile, LocalFile: string; Puerto: Integer): boolean;
+var
+  FTP: TIdFTP;
+begin
+  result := False;
+  FTP := TIdFTP.Create(nil);
+  try
+    FTP.Host := Host;
+    FTP.Username := Username;
+    FTP.Password := Password;
+    FTP.Port := Puerto;
+    FTP.Connect;
+    try
+      FTP.Get(RemoteFile, LocalFile, True);
+      Result := True;
+    except
+      on E: EIdException do
+      begin
+        UDM.sms('No se puede descargar el fichero especificado. Motivo: ' + E.Message, 1);
+      end;
+
+    end;
+    FTP.Disconnect;
+  finally
+    FTP.Free;
+  end;
+end;
+
+procedure TUDM.EjecutaFichero(aPath: string);
+var
+  Msg: string;
+  Err: LongWord;
+
+  procedure OpenWith(const Filename: string);
+{ llama al cuadro de diálogo "Abrir con..." para el fichero pasado por parámetro }
+  begin
+    ShellExecute(0, 'open', 'rundll32.exe', PChar('shell32.dll,OpenAs_RunDLL ' + Filename), PChar(ExtractFilePath(Filename)), SW_SHOWNORMAL);
+  end;
+
+begin
+  Err := ShellExecute(Application.Handle, 'open', pchar(aPath), nil, nil, SW_SHOW);
+  if Err <= 32 then
+  begin
+    case Err of
+      2:
+        begin
+          Msg := 'Archivo no encontrado';
+          UDM.sms(Msg, 1);
+        end;
+      3:
+        begin
+          Msg := 'Ruta no encontrada';
+          UDM.sms(Msg, 1);
+        end;
+      5:
+        begin
+          Msg := 'Acceso denegado';
+          UDM.sms(Msg, 1);
+        end;
+      8:
+        begin
+          Msg := 'Memoria insuficiente';
+          UDM.sms(Msg, 1);
+        end;
+      26:
+        begin
+          Msg := 'No se puede compartir un archivo abierto';
+          UDM.sms(Msg, 1);
+        end;
+      27:
+        begin
+          Msg := 'Información de asociación de archivo no completa';
+          UDM.sms(Msg, 1);
+        end;
+      28:
+        begin
+          Msg := 'Se agotó el tiempo de espera de la operación DDE';
+          UDM.sms(Msg, 1);
+        end;
+      29:
+        begin
+          Msg := 'Operación DDE fallida';
+          UDM.sms(Msg, 1);
+        end;
+      30:
+        begin
+          Msg := 'La operación DDE está ocupada';
+          UDM.sms(Msg, 1);
+        end;
+      31:
+        begin
+          Msg := 'Asociación de archivo no disponible';
+          UDM.sms(Msg, 1);
+          OpenWith(aPath);
+          {JvOpenWithDialog1.FileName:=afn;
+          JvOpenWithDialog1.Execute;    }
+        end;
+    else
+      Msg := 'Error no especificado';
+
+    end;
+
+  end;
+end;
+
+function TUDM.FileExistsOnFTP(const Host, Username, Password, puerto, FilePath: string): Boolean;
+var
+  FTP: TIdFTP;
+  i: integer;
+  DIR: string;
+begin
+  Result := False;
+  FTP := TIdFTP.Create(nil);
+  try
+    FTP.Host := Host;
+    FTP.Username := Username;
+    FTP.Password := Password;
+    FTP.Port := StrToInt(puerto);
+    FTP.Connect;
+    FTP.Passive := true;
+    try
+      FTP.List;
+      for i := 0 to FTP.DirectoryListing.Count - 1 do
+        if FTP.DirectoryListing[i].DisplayName = FilePath then
+          Result := True;
+    except
+
+    end;
+    FTP.Disconnect;
+  finally
+    FTP.Free;
+  end;
+end;
+
+function TUDM.FindNode(tv: TTreeView; aId: integer; Etiqueta: string): TTreeNode;
+var
+  j: integer;
+begin
+  result := nil;
+  for j := 0 to tv.Items.Count - 1 do
+    if (PDataRec(tv.Items[j]).Id = aId) or (tv.Items[j].Text = Etiqueta) then
+    begin
+      tv.Items[j].Selected := True;
+      Result := tv.Items[j];
+      Break;
+    end;
 end;
 
 procedure TUDM.FTPconnect(aHost, auser, apass, aport: string);
@@ -1161,6 +2565,165 @@ end;
 procedure TUDM.FTPDisconnect;
 begin
   UDM.IdFTP1.Disconnect;
+end;
+
+function TUDM.GenerarConsultaSQL(ADataset: TDataSet; const TableName: string; const Subserie: string = ''): string;
+var
+  SQLBuilder: TStringBuilder;
+  NomVariable, Etiqueta, Tipo, Longitud: string;
+  QueryResult: string;
+  IsAccess: Boolean;
+begin
+  SQLBuilder := TStringBuilder.Create;
+  try
+    // Determinar si la base de datos es MS Access o SQL Server usando TBD
+    IsAccess := (TBD = 'A');
+
+    // Iniciar la consulta con las columnas fijas
+    SQLBuilder.Append('SELECT IdEstructura, id, codsubs, Fecha, Version, Codigodoc, ');
+
+    // Filtrar ADataset por la subserie seleccionada si se proporciona Subserie
+    if (Subserie <> '') and (ADataset.FieldDefs.IndexOf('codsubs') >= 0) then
+    begin
+      ADataset.Filter := 'codsubs = ' + QuotedStr(Subserie);
+      ADataset.Filtered := True;
+    end;
+
+    // Verificar si hay registros después del filtrado
+    if ADataset.IsEmpty then
+    begin
+      Result := ''; // No hay variables para la subserie
+      Exit;
+    end;
+
+    // Recorrer el DataSet filtrado para construir las columnas dinámicas
+    ADataset.First;
+    while not ADataset.Eof do
+    begin
+      NomVariable := ADataset.FieldByName('NomVariable').AsString;
+      Etiqueta := ADataset.FieldByName('Etiqueta').AsString;
+      Tipo := LowerCase(ADataset.FieldByName('tipo').AsString);
+      Longitud := ADataset.FieldByName('longitud').AsString;
+
+      // Ajustar la sintaxis según la base de datos
+      if Tipo = 'int' then
+        SQLBuilder.Append(NomVariable + ', ')
+      else if Tipo = 'varchar' then
+      begin
+        if IsAccess then
+          SQLBuilder.Append('CStr(' + NomVariable + ') AS ' + NomVariable + ', ') // MS Access
+        else
+          SQLBuilder.Append('CAST(' + NomVariable + ' AS VARCHAR(' + Longitud + ')) AS ' + NomVariable + ', '); // SQL Server
+      end
+      else
+        SQLBuilder.Append(NomVariable + ', ');
+
+      ADataset.Next;
+    end;
+
+    // Eliminar la última coma y espacio si hay columnas
+    if SQLBuilder.Length > 7 then
+      SQLBuilder.Length := SQLBuilder.Length - 2
+    else
+    begin
+      Result := ''; // No se generó ninguna columna válida
+      Exit;
+    end;
+
+    // Añadir la cláusula FROM
+    QueryResult := ObtenerNombreTabla(TableName);
+    if QueryResult = '' then
+    begin
+      Result := '';
+      Exit;
+    end;
+
+    // Ajustar la sintaxis de FROM según la base de datos
+    if IsAccess then
+      SQLBuilder.Append(' FROM ' + QueryResult) // MS Access
+    else
+      SQLBuilder.Append(' FROM [' + QueryResult + ']'); // SQL Server
+
+    // Asignar el resultado final
+    Result := SQLBuilder.ToString;
+  finally
+    // Restaurar el estado del filtro si se modificó
+    if (Subserie <> '') and (ADataset.FieldDefs.IndexOf('codsubs') >= 0) then
+      ADataset.Filtered := False;
+    SQLBuilder.Free;
+  end;
+end;
+
+{function TUDM.GenerarConsultaSQL(ADataset: TDataSet; const TableName: string): string;
+var
+  SQLQuery: string;
+  NomVariable, Etiqueta, Tipo: string;
+begin
+  SQLQuery := 'SELECT ';
+
+ // Añadir las llaves primarias de la tabla tb_seriesdatos
+
+  SQLQuery := SQLQuery + 'IdEstructura, id, codsubs, Fecha, Version, Codigodoc, '; // Ajusta según tus llaves primarias
+
+  // Recorremos el DataSet que contiene los datos de cl_VarSubserie
+  ADataset.First;
+  while not ADataset.Eof do
+  begin
+    NomVariable := ADataset.FieldByName('NomVariable').AsString;
+    Etiqueta := ADataset.FieldByName('Etiqueta').AsString;
+    Tipo := LowerCase(ADataset.FieldByName('tipo').AsString);
+
+    // Construir la parte de la consulta dependiendo del tipo de dato
+    if Tipo = 'int' then
+      SQLQuery := SQLQuery + NomVariable + ', '
+    else if Tipo = 'varchar' then
+      SQLQuery := SQLQuery + 'CAST(' + NomVariable + ' AS VARCHAR(' + ADataset.FieldByName('longitud').AsString + ')) , '
+    else
+      SQLQuery := SQLQuery + NomVariable + ', ';
+
+    ADataset.Next;
+  end;
+
+  // Eliminar la última coma sobrante
+  if Length(SQLQuery) > 7 then
+  begin
+    SQLQuery := Copy(SQLQuery, 1, Length(SQLQuery) - 2); // Elimina la última coma y espacio
+  end
+  else
+  begin
+    Result := ''; // No se generó ninguna columna
+    Exit;
+  end;
+
+  // Añadir la cláusula FROM
+  with TFDQuery.Create(nil) do
+  try
+    Active := False;
+    Connection := UDM.Conn;
+    SQL.Clear;
+    SQL.Add(TableName);
+    try
+      Open();
+      SQLQuery := SQLQuery + ' FROM ' + Fields[0].AsString;
+    except
+      on E: Exception do
+
+
+    end;
+  finally
+    Free;
+  end;
+
+
+  // Depurar la consulta generada
+//  ShowMessage(SQLQuery); // Muestra la consulta generada
+
+  Result := SQLQuery;
+end; }
+
+function TUDM.getFileMd5HashString(const vFileName: string): string;
+begin
+
 end;
 
 function TUDM.GetFolder(idServer: integer): string;
@@ -1234,6 +2797,19 @@ begin
   end;
 end;
 
+function TUDM.getMd5HashString(const vValue: string): string;
+var
+  vHashMD5: TIdHashMessageDigest5;
+begin
+  vHashMD5 := nil;
+  try
+    vHashMD5 := TIdHashMessageDigest5.Create;
+    Result := IdGlobal.IndyLowerCase(vHashMD5.HashStringAsHex(vValue));
+  finally
+    vHashMD5.Free;
+  end;
+end;
+
 function TUDM.GetNewNodeID: Integer;
 begin
   Result := 0;
@@ -1250,6 +2826,12 @@ begin
     Result := UDM.conn.ExecSQLScalar('SELECT Max(id)+1 AS NewID FROM tb_mp');
   except
   end;
+end;
+
+procedure TUDM.CommitTransaction;
+begin
+  if Conn.InTransaction then
+    Conn.Commit;
 end;
 
 procedure TUDM.CompletaNombreFile;
@@ -1292,11 +2874,306 @@ begin
   end;
 end;
 
+procedure TUDM.CrearArbol(TreeView: TTreeView; DataSet: TDataSet; ParentNode: TTreeNode; ParentID: Integer; MostrarNodosInvisibles: Boolean);
+var
+  NewNode: TTreeNode;
+  Bookmark: TBookmark;
+  IconIndex: Integer;
+  EsVisible: Boolean;
+begin
+  // Guardar la posición actual del dataset
+  Bookmark := DataSet.GetBookmark;
+  try
+    // Mover al primer registro del dataset
+    DataSet.First;
+    while not DataSet.Eof do
+    begin
+      // Comprobar si el registro actual es hijo del nodo padre actual
+      if DataSet.FieldByName('padre').AsInteger = ParentID then
+      begin
+        // Determinar si se debe mostrar el nodo
+        EsVisible := DataSet.FieldByName('visible').AsBoolean;
+        if EsVisible or MostrarNodosInvisibles then
+        begin
+          // Determinar el índice del icono basado en las condiciones dadas
+          if ParentID = 0 then
+          begin
+            // Si es un nodo raíz (padre es 0 o NULL), usar el valor del campo icono
+            IconIndex := DataSet.FieldByName('icono').AsInteger;
+          end
+          else
+          begin
+            // Revisar el icono del nodo padre para asignar iconos específicos
+            if Assigned(ParentNode) then
+            begin
+              case ParentNode.ImageIndex of
+                5: // Nodos hijos de padre con icono 5
+                  if EsVisible then
+                    IconIndex := 5
+                  else
+                    IconIndex := 12; // Icono para nodos invisibles
+                6: // Nodos hijos de padre con icono 6
+                  if EsVisible then
+                    IconIndex := 6
+                  else
+                    IconIndex := 13; // Icono para nodos invisibles
+              else
+                // Si no aplica la regla de padre con icono 5 o 6, usar reglas generales
+                case DataSet.FieldByName('tipo').AsInteger of
+                  1: // Tipo 1
+                    if EsVisible then
+                      IconIndex := 15
+                    else
+                      IconIndex := 14; // Icono para nodos invisibles
+                  2: // Tipo 2
+                    if EsVisible then
+                      IconIndex := 1
+                    else
+                      IconIndex := 8; // Icono para nodos invisibles
+                else
+                  IconIndex := -1; // Sin icono si no se especifica
+                end;
+              end;
+            end;
+          end;
+
+          // Crear un nuevo nodo hijo
+          NewNode := TreeView.Items.AddChild(ParentNode, DataSet.FieldByName('etiqueta').AsString);
+
+          // Asignar datos al nodo usando el procedimiento AgregaData
+          AgregaData(NewNode, DataSet.FieldByName('id').AsInteger, DataSet.FieldByName('padre').AsInteger, IconIndex, DataSet.FieldByName('tipo').AsInteger, DataSet.FieldByName('etiqueta').AsString, DataSet.FieldByName('administrador').AsString, DataSet.FieldByName('IdEstructura').AsString, DataSet.FieldByName('Descripcion').AsString);
+
+          // Asignar el icono determinado
+          NewNode.ImageIndex := IconIndex;
+          NewNode.SelectedIndex := IconIndex; // Selecciona el mismo icono al seleccionar el nodo
+
+          // Llamar recursivamente para agregar los hijos de este nodo
+          CrearArbol(TreeView, DataSet, NewNode, DataSet.FieldByName('id').AsInteger, MostrarNodosInvisibles);
+        end;
+      end;
+      DataSet.Next;
+    end;
+  finally
+    // Restaurar la posición del dataset
+    if DataSet.BookmarkValid(Bookmark) then
+      DataSet.GotoBookmark(Bookmark);
+    DataSet.FreeBookmark(Bookmark);
+  end;
+end;
+
+
+{
+procedure TUDM.CrearArbol(TreeView: TTreeView; DataSet: TDataSet; ParentNode: TTreeNode; ParentID: Integer);
+var
+  NewNode: TTreeNode;
+  Bookmark: TBookmark;
+  IconIndex: Integer;
+begin
+  // Guardar la posición actual del dataset
+  Bookmark := DataSet.GetBookmark;
+  try
+    // Mover al primer registro del dataset
+    DataSet.First;
+    while not DataSet.Eof do
+    begin
+      // Comprobar si el registro actual es hijo del nodo padre actual
+      if DataSet.FieldByName('padre').AsInteger = ParentID then
+      begin
+        // Determinar el índice del icono basado en las condiciones dadas
+        if ParentID = 0 then
+        begin
+          // Si es un nodo raíz (padre es 0 o NULL), usar el valor del campo icono
+          IconIndex := DataSet.FieldByName('icono').AsInteger;
+        end
+        else
+        begin
+          // Revisar el icono del nodo padre para asignar iconos específicos
+          if Assigned(ParentNode) then
+          begin
+            case ParentNode.ImageIndex of
+              5: // Nodos hijos de padre con icono 5
+                if DataSet.FieldByName('visible').AsBoolean then
+                  IconIndex := 5
+                else
+                  IconIndex := 12;
+              6: // Nodos hijos de padre con icono 6
+                if DataSet.FieldByName('visible').AsBoolean then
+                  IconIndex := 6
+                else
+                  IconIndex := 13;
+            else
+              // Si no aplica la regla de padre con icono 5 o 6, usar reglas generales
+              case DataSet.FieldByName('tipo').AsInteger of
+                1: // Tipo 1
+                  if DataSet.FieldByName('visible').AsBoolean then
+                    IconIndex := 15
+                  else
+                    IconIndex := 14;
+                2: // Tipo 2
+                  if DataSet.FieldByName('visible').AsBoolean then
+                    IconIndex := 1
+                  else
+                    IconIndex := 8;
+              else
+                IconIndex := -1; // Sin icono si no se especifica
+              end;
+            end;
+          end;
+        end;
+
+        // Crear un nuevo nodo hijo
+        NewNode := TreeView.Items.AddChild(ParentNode, DataSet.FieldByName('etiqueta').AsString);
+
+        // Asignar datos al nodo usando el procedimiento AgregaData
+        AgregaData(NewNode, DataSet.FieldByName('id').AsInteger, DataSet.FieldByName('padre').AsInteger, IconIndex, DataSet.FieldByName('etiqueta').AsString, DataSet.FieldByName('administrador').AsString, DataSet.FieldByName('IdEstructura').AsString);
+
+        // Asignar el icono determinado
+        NewNode.ImageIndex := IconIndex;
+        NewNode.SelectedIndex := IconIndex; // Selecciona el mismo icono al seleccionar el nodo
+
+        // Llamar recursivamente para agregar los hijos de este nodo
+        CrearArbol(TreeView, DataSet, NewNode, DataSet.FieldByName('id').AsInteger);
+      end;
+      DataSet.Next;
+    end;
+  finally
+    // Restaurar la posición del dataset
+    if DataSet.BookmarkValid(Bookmark) then
+      DataSet.GotoBookmark(Bookmark);
+    DataSet.FreeBookmark(Bookmark);
+  end;
+end;
+
+}
 procedure TUDM.CreateFTPDirStructure(ListProccess: TStringList);
 var
   Local_i: Integer;
 begin
 
+end;
+
+procedure TUDM.CreateTableFromDefinitions(ATableName, ASubserieId: string);
+var
+  FDQuery: TFDQuery;
+  SQL: TStringList;
+  VarName, VarType, SQLVarType: string;
+  VarLength: Integer;
+  serie, subserie: string;
+begin
+  FDQuery := TFDQuery.Create(nil);
+  SQL := TStringList.Create;
+  subserie := ASubserieId;
+  serie := UDM.Conn.ExecSQLScalar('select codserie from cl_subseries where codsubs=' + QuotedStr(subserie));
+  try
+    FDQuery.Connection := UDM.Conn;
+    // Consulta para leer las definiciones de las variables desde cl_VarSubserie
+    FDQuery.SQL.Text := 'SELECT NomVariable, tipo, Longitud ' + 'FROM cl_VarSubserie ' + 'WHERE codsubs = ' + QuotedStr(ASubserieId) + ' ORDER BY Orden';
+    FDQuery.Open;
+
+    // Definición inicial de la tabla con campos base
+    SQL.Add('CREATE TABLE ' + ATableName + ' (');
+    SQL.Add('  IdEstructura VARCHAR(50),');
+    SQL.Add('  id INT,');
+    SQL.Add('  codsubs VARCHAR(50),');
+    SQL.Add('  Fecha DATETIME,');
+    SQL.Add('  Version VARCHAR(12),');
+    SQL.Add('  Codigodoc VARCHAR(20),');
+
+    // Iterar sobre los resultados de la consulta para construir las columnas de la tabla
+    while not FDQuery.Eof do
+    begin
+      VarName := FDQuery.FieldByName('NomVariable').AsString;
+      VarType := UDM.Conn.ExecSQLScalar('SELECT tipo FROM CL_SubseriesTipoVar WHERE idtipo=' + FDQuery.FieldByName('tipo').AsString);
+      VarLength := FDQuery.FieldByName('Longitud').AsInteger;
+
+      // Seleccionar el tipo de dato según el motor de base de datos
+      if VarType = 'Fecha' then
+      begin
+        if TBD = 'S' then
+          SQLVarType := 'DATETIME2'  // DATETIME2 es más preciso y moderno en SQL Server
+        else
+          SQLVarType := 'DATETIME';  // Access sigue utilizando LONGTEXT para grandes textos
+      end
+      else if VarType = 'Caracteres' then
+      begin
+        if VarLength > 0 then
+          SQLVarType := 'VARCHAR(' + IntToStr(VarLength) + ')'
+        else
+          SQLVarType := 'VARCHAR(MAX)';  // Utilizamos VARCHAR(MAX) en lugar de TEXT o NTEXT
+      end
+      else if VarType = 'Entero' then
+      begin
+        SQLVarType := 'INT';
+      end
+      else if VarType = 'Memo' then
+      begin
+        if TBD = 'S' then
+          SQLVarType := 'VARCHAR(MAX)'  // SQL Server mejor opción en lugar de NTEXT
+        else
+          SQLVarType := 'LONGTEXT';  // Access sigue utilizando LONGTEXT para grandes textos
+      end
+      else if VarType = 'Real' then
+      begin
+        SQLVarType := 'DECIMAL(18, 6)';  // DECIMAL es más preciso que FLOAT/DOUBLE
+      end
+      else if VarType = 'Boolean' then
+      begin
+        if TBD = 'S' then
+          SQLVarType := 'BIT'  // SQL Server
+        else
+          SQLVarType := 'YESNO';  // Access
+      end;
+
+      // Agregar la definición de la columna al SQL
+      SQL.Add('  ' + VarName + ' ' + SQLVarType + ',');
+
+      FDQuery.Next;  // Avanzar al siguiente registro
+    end;
+
+    // Agregar clave primaria y referencias a otras tablas con actualización y eliminación en cascada
+    if TBD = 'S' then
+    begin
+      // Para SQL Server
+      SQL.Add('  PRIMARY KEY (IdEstructura, id, codsubs, Fecha, Version, Codigodoc),');
+      SQL.Add('  FOREIGN KEY (IdEstructura, id, codsubs, Fecha, Version, Codigodoc) ' + 'REFERENCES tb_SeriesDatos(IdEstructura, id, codsubs, Fecha, Version, Codigodoc) ' + 'ON UPDATE CASCADE ' +  // Actualización en cascada
+        'ON DELETE CASCADE');    // Eliminación en cascada
+    end
+    else
+    begin
+      // Para MS Access
+      SQL.Add('  PRIMARY KEY (IdEstructura, id, codsubs, Fecha, Version, Codigodoc),');
+      SQL.Add('  FOREIGN KEY (IdEstructura, id, codsubs, Fecha, Version, Codigodoc) ' + 'REFERENCES tb_SeriesDatos(IdEstructura, id, codsubs, Fecha, Version, Codigodoc) ' + 'ON UPDATE CASCADE ' +  // Access admite ON UPDATE CASCADE
+        'ON DELETE CASCADE');   // Access admite ON DELETE CASCADE
+    end;
+    SQL.Add(');');
+
+    // Ejecutar la consulta para crear la tabla
+    FDQuery.SQL.Text := SQL.Text;
+    try
+      Conn.StartTransaction;
+      Conn.ExecSQL(SQL.Text);  // Ejecutar la creación de la tabla
+      Conn.Commit;
+    // Actualizar el nombre de la tabla en la serie correspondiente
+      if UDM.cl_series.Locate('codserie', serie, []) then
+        if UDM.cl_subseries.Locate('codserie;codsubs', VarArrayOf([serie, subserie]), []) then
+        begin
+          UDM.cl_subseries.Edit;
+          UDM.cl_subseries.FieldByName('NombreTablaMetadatos').AsString := ATableName;
+          try
+            UDM.cl_subseries.Post;
+          except
+            on E: Exception do
+              UDM.cl_subseries.Cancel;
+          end;
+        end;
+    except
+      Conn.Rollback;  // Revertir la transacción en caso de error
+    end;
+
+  finally
+    FDQuery.Free;
+    SQL.Free;
+  end;
 end;
 
 procedure TUDM.CreaTreeDB(conn: TFdconnection; t: PArbol; ShowAll: Boolean);
@@ -1313,6 +3190,7 @@ var
   cad: string;
   ndopadre, ndoparent: TTreeNode;
   EsView: Boolean;
+  tmp: integer;
 
   function c(objeto: string; tipo: char): string;
   begin
@@ -1327,7 +3205,7 @@ var
     ndo.SelectedIndex := id;
   end;
 
-  procedure AgregaData(Nodo: TTreeNode; aId, apadre, aIcono: integer; aetiqueta: string; v: Boolean);
+  procedure AgregaData(Nodo: TTreeNode; aId, apadre, aIcono: integer; aetiqueta, admin: string; v: Boolean);
   var
     pData: PDataRec;
     tmpNodo: TTreeNode;
@@ -1337,6 +3215,7 @@ var
     pData.Padre := apadre;
     pData.Icono := aIcono;
     pData.Etiqueta := aetiqueta;
+    pData.Owner := admin;
     PonImgen(Nodo, aIcono);
     Nodo.Data := pData;
   end;
@@ -1349,16 +3228,26 @@ var
     try
       Connection := conn;
       SQL.Clear;
-      if not ShowAll then
-        SQL.Add('SELECT tb_tree.id, tb_tree.etiqueta, tb_tree.padre, tb_tree.icono, tb_tree.visible FROM tb_tree  where Padre=' + IntToStr(IdPadre) + ' and visible=true order by etiqueta')
+      if TBD = 'A' then
+      begin
+        if not ShowAll then
+          SQL.Add('SELECT tb_tree.id, tb_tree.etiqueta, tb_tree.padre, tb_tree.icono, tb_tree.visible, tb_tree.administrador FROM tb_tree  where Padre=' + IntToStr(IdPadre) + ' and visible=true order by etiqueta')
+        else
+          SQL.Add('SELECT tb_tree.id, tb_tree.etiqueta, tb_tree.padre, tb_tree.icono, tb_tree.visible, tb_tree.administrador FROM tb_tree  where Padre=' + IntToStr(IdPadre) + ' order by etiqueta');
+      end
       else
-        SQL.Add('SELECT tb_tree.id, tb_tree.etiqueta, tb_tree.padre, tb_tree.icono, tb_tree.visible FROM tb_tree  where Padre=' + IntToStr(IdPadre) + ' order by etiqueta');
+      begin
+        if not ShowAll then
+          SQL.Add('SELECT tb_tree.id, tb_tree.etiqueta, tb_tree.padre, tb_tree.icono, tb_tree.visible, tb_tree.administrador FROM tb_tree  where Padre=' + IntToStr(IdPadre) + ' and visible=1 order by etiqueta')
+        else
+          SQL.Add('SELECT tb_tree.id, tb_tree.etiqueta, tb_tree.padre, tb_tree.icono, tb_tree.visible, tb_tree.administrador FROM tb_tree  where Padre=' + IntToStr(IdPadre) + ' order by etiqueta');
+      end;
       try
         Active := True;
         while not Eof do
         begin
           tmpNode := t.Items.AddChild(ndo, FieldByName('etiqueta').AsString);
-          AgregaData(tmpNode, Fields[0].AsInteger, Fields[2].AsInteger, Fields[3].AsInteger, Fields[1].AsString, Fields[4].AsBoolean);
+          AgregaData(tmpNode, Fields[0].AsInteger, Fields[2].AsInteger, Fields[3].AsInteger, Fields[1].AsString, Fields[5].AsString, Fields[4].AsBoolean);
           NodoQuery(tmpNode, Fields[0].AsInteger);
           Next;
         end;
@@ -1392,17 +3281,28 @@ begin
     Active := False;
     Connection := conn;
     SQL.Clear;
-    if not ShowAll then
-      SQL.Add('SELECT tb_tree.id, tb_tree.etiqueta, tb_tree.padre, tb_tree.icono, tb_tree.visible FROM tb_tree  where aowner=' + QuotedStr('system') + ' and visible=true order by etiqueta asc')
+    if TBD = 'A' then
+    begin
+      if not ShowAll then
+        SQL.Add('SELECT tb_tree.id, tb_tree.etiqueta, tb_tree.padre, tb_tree.icono, tb_tree.visible, tb_tree.administrador FROM tb_tree  where padre is null and aowner=' + QuotedStr('system') + ' and visible=true order by etiqueta asc')
+      else
+        SQL.Add('SELECT tb_tree.id, tb_tree.etiqueta, tb_tree.padre, tb_tree.icono, tb_tree.visible, tb_tree.administrador FROM tb_tree  where padre is null and aowner=' + QuotedStr('system') + ' order by etiqueta asc');
+    end
     else
-      SQL.Add('SELECT tb_tree.id, tb_tree.etiqueta, tb_tree.padre, tb_tree.icono, tb_tree.visible FROM tb_tree  where aowner=' + QuotedStr('system') + ' order by etiqueta asc');
+    begin
+      if not ShowAll then
+        SQL.Add('SELECT tb_tree.id, tb_tree.etiqueta, tb_tree.padre, tb_tree.icono, tb_tree.visible, tb_tree.administrador FROM tb_tree  where (padre IS NULL OR padre=0) and aowner=' + QuotedStr('system') + ' and visible=1 order by etiqueta asc')
+      else
+        SQL.Add('SELECT tb_tree.id, tb_tree.etiqueta, tb_tree.padre, tb_tree.icono, tb_tree.visible, tb_tree.administrador FROM tb_tree  where (padre IS NULL OR padre=0) and aowner=' + QuotedStr('system') + ' order by etiqueta asc');
+    end;
     try
       Active := True;
       First;
       while not Eof do
       begin
         ndopadre := t.Items.Add(nil, FieldByName('etiqueta').AsString);
-        AgregaData(ndopadre, Fields[0].AsInteger, Fields[2].AsInteger, Fields[3].AsInteger, Fields[1].AsString, Fields[4].AsBoolean);
+        tmp := Fields[0].AsInteger;
+        AgregaData(ndopadre, Fields[0].AsInteger, Fields[2].AsInteger, Fields[3].AsInteger, Fields[1].AsString, Fields[5].AsString, Fields[4].AsBoolean);
         NodoQuery(ndopadre, Fields[0].AsInteger);
         Next;
       end;
@@ -1416,6 +3316,51 @@ begin
   Screen.Cursor := crDefault;
 end;
 
+procedure TUDM.ValidateParentNode(Node: TTreeNode);
+begin
+  if Node.Parent = nil then
+    raise Exception.Create('No se puede agregar un nodo sin un padre asignado. Debe seleccionar un nodo valido.');
+end;
+
+function TUDM.ValidateTablesForData: Boolean;
+var
+  FDQuery: TFDQuery;
+  TableList: array[0..3] of string;
+  i, RowCount: Integer;
+  ErrorMsg: string;
+begin
+  Result := True;  // Inicialmente asumimos que todas las tablas tienen datos
+  FDQuery := TFDQuery.Create(nil);
+  try
+    FDQuery.Connection := UDM.Conn;  // Tu conexión debe estar configurada
+    TableList[0] := 'cl_ArchivosGestion';
+    TableList[1] := 'cl_ftp_Server';
+    TableList[2] := 'cl_series';
+    TableList[3] := 'cl_subseries';
+
+    // Iteramos sobre las tablas para validar si tienen registros
+    for i := 0 to High(TableList) do
+    begin
+      FDQuery.SQL.Text := 'SELECT COUNT(*) FROM ' + TableList[i];
+      FDQuery.Open;
+      RowCount := FDQuery.Fields[0].AsInteger;
+
+      // Si alguna tabla no tiene registros, generamos el error y detenemos la operación
+      if RowCount = 0 then
+      begin
+        ErrorMsg := 'La tabla ' + TableList[i] + ' no tiene datos. No se puede continuar.';
+        Result := False;
+        sms(ErrorMsg, 1); // Muestra un mensaje al usuario
+//        ShowMessage(ErrorMsg);
+        Break;  // Salimos del bucle al encontrar una tabla vacía
+      end;
+    end;
+
+  finally
+    FDQuery.Free;
+  end;
+end;
+
 function TUDM.VarToInt(const AVariant: Variant): integer;
 begin
   Result := StrToIntDef(Trim(VarToStr(AVariant)), 0);
@@ -1423,8 +3368,7 @@ end;
 
 procedure TUDM.VarVirt;
 begin
-  if UDM.tb_SerieDatosVar.recordcount = 0 then
-    UDM.tb_VirtualVar.Append;
+
 end;
 
 procedure TUDM.Verayuda(TopicID: integer);
@@ -1458,11 +3402,14 @@ procedure TUDM.VerPDFF(aFileName: string);
     CloseHandle(ProcessInfo.hProcess);
     Result := Resultado;
   end;
+//
 
 var
   s, s1, s2, cad: string;
 begin
+
 //  s := ExtractFilePath(Application.ExeName) + 'foxit.exe '; //'SumatraPDF\SumatraPDF.exe ' ;
+
   s1 := aFileName;
 //  s2 := Concat(s, '"' + s1 + '"');
   cad := QuotedStr('P') + ' ' + AnsiQuotedStr(s1, '"');
@@ -1470,15 +3417,32 @@ begin
 //  WinExecAndWait32(s2, SW_HIDE);
 end;
 
+procedure TUDM.ViewHLP(ID: integer);
+var
+  TopicID: integer;
+begin
+  TStyleManager.TrySetStyle('Windows');
+  TopicID := ID;
+  HelpFile := ExtractFilePath(Application.ExeName) + 'ArchiGenioPro.chm';
+  Application.HelpSystem.ShowContextHelp(TopicID, HelpFile);
+  TStyleManager.TrySetStyle(fdefaultStyleName);
+end;
+
 function TUDM.ViewIMG(FilePath: string): Integer;
 var
   cmd: string;
   fp: string;
 begin
-  cmd := ExtractFilePath(Application.ExeName) + '\JPEGViewPortable\JPEGViewPortable.exe ';
-  fp := AnsiQuotedStr(FilePath, '"');
-  cmd := cmd + fp;
-  Result := WinExecAndWait32(cmd, SW_SHOWNORMAL);
+  cmd := ExtractFilePath(Application.ExeName) + 'JPEGViewPortable\JPEGViewPortable.exe ';
+  if FileExists(trim(cmd)) then
+  begin
+    fp := AnsiQuotedStr(FilePath, '"');
+    ShellExecute(0, 'open', PChar(cmd), PChar(fp), nil, SW_SHOWNORMAL);
+  end
+  else
+  begin
+    sms('No se encontró la aplicación por defecto para visualizar la imagen.', 1);
+  end;
 end;
 
 function TUDM.ViewPDF(FilePath: string): Integer;
@@ -1638,7 +3602,7 @@ begin
       tb_tree.Post;
       if V then
       begin
-        while trim(tb_tree.FieldByName('Padre').AsString) <> '' do
+        while (trim(tb_tree.FieldByName('Padre').AsString) <> '') and (tb_tree.FieldByName('Padre').AsString <> '0') do
         begin
           tb_tree.Edit;
           tb_tree.FieldByName('visible').AsBoolean := V;
@@ -1660,6 +3624,7 @@ begin
           except
 
           end;
+         // tb_tree.Prior;
         end;
         tb_tree.Edit;
         tb_tree.FieldByName('visible').AsBoolean := V;
@@ -1728,6 +3693,47 @@ begin
   Result := Resultado;
 end;
 
+procedure TUDM.ZipDirectory(const Directory, ZipFileName: string);
+begin
+  TZipFile.ZipDirectoryContents(ZipFileName, Directory, zcStored);
+end;
+
+procedure TUDM.IdFTP1Work(ASender: TObject; AWorkMode: TWorkMode; AWorkCount: Int64);
+var
+  porciento: integer;
+begin
+  {if pp <> nil then
+  begin
+    porciento := trunc((AWorkCount * 100) / FicheroTama);
+    MueveBar(pp, porciento);
+  end       }
+end;
+
+procedure TUDM.Inici(aBAR: PBarra; Min, Max: integer);
+begin
+  aBAR.MinValue := Min;
+  aBAR.MaxValue := Max;
+  aBAR.Progress := 0;
+  aBAR.Update;
+end;
+
+procedure TUDM.InitializeConnection;
+begin
+  if not Assigned(ReportConnection) then
+  begin
+    ReportConnection := TADOConnection.Create(nil);
+    ReportConnection.ConnectionString := 'Provider=SQLOLEDB;Data Source=' + ServerName + ';' + 'Initial Catalog=SDbd;' + 'User ID=geoconn;Password=geoconn;';
+    ReportConnection.LoginPrompt := False;
+
+    try
+      ReportConnection.Connected := True; // Conectar una vez
+    except
+      on E: Exception do
+        ShowMessage('Error al conectar a la base de datos: ' + E.Message);
+    end;
+  end;
+end;
+
 procedure TUDM.Inserta(aidObjeto, acodigoHijo, acodigoPadre, aicon: Integer; aetiq, NombreEntidad, aKeyDef, aKeyVal: string);
 begin
   tb_tree.Append;
@@ -1746,6 +3752,80 @@ begin
     begin
       sms('No se pudo crear correctamente el organigrama empresarial. Motivo: ' + E.Message, 1);
       tb_tree.Cancel;
+    end;
+  end;
+end;
+
+/// <summary>
+/// Verifica si el valor del campo 'etiqueta' es único en el DataSet.
+/// </summary>
+/// <param name="DataSet">El DataSet donde se buscará el valor.</param>
+/// <param name="LabelValue">El valor del campo 'etiqueta' a verificar.</param>
+/// <returns>True si el valor es único; False si ya existe en el DataSet.</returns>
+/// <remarks>
+/// Este método recorre el DataSet para buscar duplicados, ignorando el registro actual (si está en modo de edición o inserción).
+/// La comparación es insensible a mayúsculas/minúsculas.
+/// Para evitar ciclos infinitos, se asegura que:
+/// - El DataSet no esté en un estado que impida la navegación (por ejemplo, modo de edición).
+/// - Se use CompareBookmarks para comparar marcadores de forma segura.
+/// Si el DataSet no está activo o está vacío, se retorna True.
+/// </remarks>
+/// <exception cref="Exception">
+/// - Si no se puede acceder al campo 'etiqueta' o si falla la navegación del DataSet.
+/// </exception>
+function TUDM.IsLabelNoUnique(const LabelValue: string): Boolean;
+var
+  I: Integer;
+begin
+  Result := False;
+  for I := 0 to ListVarTmp.Count - 1 do
+  begin
+    if SameText(LabelValue, ListVarTmp[I]) then
+    begin
+      Result := True;
+      Break;
+    end;
+  end;
+end;
+
+
+/// <summary>
+/// Verifica si un nombre de campo coincide con una palabra reservada.
+/// </summary>
+/// <param name="FieldName">El nombre del campo a verificar.</param>
+/// <returns>True si el nombre es una palabra reservada; False en caso contrario.</returns>
+
+function TUDM.IsReservedField(const FieldName: string): Boolean;
+var
+  I: Integer;
+begin
+  Result := False;
+  for I := Low(ReservedFields) to High(ReservedFields) do
+  begin
+    if SameText(FieldName, ReservedFields[I]) then
+    begin
+      Result := True;
+      Break;
+    end;
+  end;
+end;
+
+/// <summary>
+/// Verifica si un nombre de campo contiene caracteres inválidos.
+/// </summary>
+/// <param name="FieldName">El nombre del campo a validar.</param>
+/// <returns>True si el nombre es válido; False si contiene caracteres inválidos.</returns>
+function TUDM.IsValidFieldName(const FieldName: string): Boolean;
+var
+  I: Integer;
+begin
+  Result := True;
+  for I := 1 to Length(FieldName) do
+  begin
+    if FieldName[I] in InvalidChars then
+    begin
+      Result := False;
+      Break;
     end;
   end;
 end;
@@ -1808,6 +3888,222 @@ begin
   Screen.Cursor := crDefault;
 end;
 
+procedure TUDM.LoadAndRunReport(const ReportFileName: string);
+var
+  Report: TfrxReport;
+  i: Integer;
+  ADODataSet: TADODataSet;
+  DBDataset: TfrxDBDataset;
+begin
+  if not Assigned(ReportConnection) then
+    InitializeConnection;
+
+  Report := TfrxReport.Create(nil);
+  try
+    Report.LoadFromFile(ExtractFilePath(ParamStr(0)) + 'Reportes\' + ReportFileName); // Ruta a tu carpeta de reportes
+    for i := 0 to Report.ComponentCount - 1 do
+      if Report.Components[i] is TfrxADOQuery then
+        TfrxADOQuery(Report.Components[i] as TfrxADOQuery).Open();
+      {
+    // Buscar el componente TfrxDBDataset en el reporte
+    DBDataset := Report.FindObject('Dataset') as TfrxDBDataset;
+    if Assigned(DBDataset) then
+    begin
+      // Asignar la conexión ADO a los datasets del reporte
+      ADODataSet := TADODataSet.Create(nil);
+      try
+        ADODataSet.Connection := ReportConnection;
+        DBDataset.DataSet := ADODataSet;
+        // Configurar el ADODataSet si es necesario
+        ADODataSet.Close; // Cerrar para evitar la apertura innecesaria
+        ADODataSet.Open; // Abrir el dataset
+      except
+        on E: Exception do
+          ShowMessage('Error al configurar el dataset: ' + E.Message);
+      end;
+    end
+    else
+      ShowMessage('No se encontró el dataset "Dataset" en el reporte.');  }
+
+    Report.PrepareReport(False);
+    Report.ShowPreparedReport; // O usa Print, Export, etc.
+  except
+    on E: Exception do
+      ShowMessage('Error al ejecutar el reporte: ' + E.Message);
+  end;
+  Report.Free;
+end;
+
+procedure TUDM.LoadGridLayout(GridView: TcxGridTableView; const LayoutName: string);
+begin
+  // Si el archivo INI existe, restaurar la configuración
+  if FileExists(LayoutName) then
+    GridView.RestoreFromIniFile(LayoutName);
+end;
+
+procedure TUDM.LoadTreeViewState2(TreeView: TTreeView; const FileName: string; tb_tree, tb_seriestree, tb_seriesdatos: TDataSet);
+
+  function BookmarkToString(Bookmark: TBookmark): string;
+  begin
+    SetString(Result, PAnsiChar(Bookmark), Length(Bookmark));
+  end;
+
+  function StringToBookmark(const S: string): TBookmark;
+  begin
+    SetLength(Result, Length(S));
+    Move(PAnsiChar(S)^, Result[0], Length(S));
+  end;
+
+var
+  IniFile: TIniFile;
+  Node: TTreeNode;
+  i, SelectedIndex: Integer;
+  Expanded: Boolean;
+  MousePos: TPoint;
+  Bookmark_tree, Bookmark_seriestree, Bookmark_seriesdatos: TBookmark;
+  NodeText: string;
+begin
+  // Abrimos el archivo .ini
+  IniFile := TIniFile.Create(FileName);
+  try
+    // Restaura el estado de expansión de cada nodo
+    for i := 0 to TreeView.Items.Count - 1 do
+    begin
+      Node := TreeView.Items[i];
+      NodeText := 'Node' + IntToStr(Node.AbsoluteIndex);
+
+      // Normalizamos la comparación de cadenas con AnsiCompareText para evitar problemas con caracteres especiales
+      Expanded := IniFile.ReadBool('TreeViewState', NodeText, False);
+      Node.Expanded := Expanded;
+    end;
+
+    // Restaura el nodo seleccionado (si existe)
+    SelectedIndex := IniFile.ReadInteger('TreeViewState', 'SelectedNode', -1);
+    if SelectedIndex <> -1 then
+    begin
+      Node := TreeView.Items[SelectedIndex];
+      if Node <> nil then
+      begin
+        TreeView.Selected := Node; // Selecciona el nodo
+
+        // Ahora simulamos el evento OnMouseDown para el nodo seleccionado
+        if Assigned(TreeView.OnMouseDown) then
+        begin
+          // Calcula la posición del nodo seleccionado para simular el clic
+          MousePos := TreeView.ClientToScreen(Point(Node.DisplayRect(True).Left, Node.DisplayRect(True).Top));
+
+          // Dispara el evento OnMouseDown
+          TreeView.OnMouseDown(TreeView, mbLeft, [], MousePos.X, MousePos.Y);
+        end;
+      end;
+    end;
+
+   { // Restaura los bookmarks de las tablas
+    if tb_tree.Active then
+    begin
+      Bookmark_tree := StringToBookmark(IniFile.ReadString('TableState', 'tb_tree', ''));
+      if Bookmark_tree <> nil then
+        tb_tree.Bookmark := Bookmark_tree;
+    end;
+
+    if tb_seriestree.Active then
+    begin
+      Bookmark_seriestree := StringToBookmark(IniFile.ReadString('TableState', 'tb_seriestree', ''));
+      if Bookmark_seriestree <> nil then
+        tb_seriestree.Bookmark := Bookmark_seriestree;
+    end;
+
+    if tb_seriesdatos.Active then
+    begin
+      Bookmark_seriesdatos := StringToBookmark(IniFile.ReadString('TableState', 'tb_seriesdatos', ''));
+      if Bookmark_seriesdatos <> nil then
+        tb_seriesdatos.Bookmark := Bookmark_seriesdatos;
+    end;   }
+  finally
+    IniFile.Free;
+  end;
+end;
+
+procedure TUDM.LoadTreeViewState(TreeView: TTreeView; const FileName: string);
+var
+  IniFile: TIniFile;
+  Node: TTreeNode;
+  i, SelectedIndex: Integer;
+  Expanded: Boolean;
+  MousePos: TPoint;
+begin
+  CargandoEstado := True;
+  IniFile := TIniFile.Create(FileName);
+  try
+    // Restaura el estado de expansión de cada nodo
+    for i := 0 to TreeView.Items.Count - 1 do
+    begin
+      Node := TreeView.Items[i];
+      Expanded := IniFile.ReadBool('TreeViewState', 'Node' + IntToStr(Node.AbsoluteIndex), False);
+      Node.Expanded := Expanded;
+    end;
+
+    // Restaura el nodo seleccionado (si existe)
+    SelectedIndex := IniFile.ReadInteger('TreeViewState', 'SelectedNode', -1);
+    if SelectedIndex <> -1 then
+    begin
+      Node := TreeView.Items[SelectedIndex];
+      if Node <> nil then
+      begin
+        TreeView.Selected := Node; // Selecciona el nodo
+        NodoSel := Node.Text;
+        // Ahora simulamos el evento OnMouseDown para el nodo seleccionado
+        if Assigned(TreeView.OnMouseDown) then
+        begin
+          // Calcula la posición del nodo seleccionado para simular el clic
+          MousePos := TreeView.ClientToScreen(Point(Node.DisplayRect(True).Left, Node.DisplayRect(True).Top));
+
+          // Dispara el evento OnMouseDown
+          TreeView.OnMouseDown(TreeView, mbLeft, [], MousePos.X, MousePos.Y);
+        end;
+      end;
+    end;
+  finally
+    CargandoEstado := False;
+    IniFile.Free;
+  end;
+end;
+
+procedure TUDM.log(Mensaje: string; acc: Integer; aSerie, aSSerie, aStructura: string);
+var
+  F: TextFile;
+  Filename: string;
+  Mutex: THandle;
+  FileSearch: TSearchRec;
+  cad: string;
+  flag: Boolean;
+begin
+  with tb_log do
+  begin
+    Append;
+    FieldByName('usuariopc').AsString := DatosPC.Usuario;
+    FieldByName('pc').AsString := DatosPC.Nombre;
+    FieldByName('fecha').AsString := FormatDateTime('[ddd dd mmm, hh:nn:ss:zzz]', Now);
+    FieldByName('ip').AsString := DatosPC.IP;
+    FieldByName('usuario_sistema').AsString := UDM.UserName;
+    FieldByName('accion').AsInteger := acc;
+    FieldByName('rol').AsString := UDM.Rol;
+    FieldByName('msg').AsString := Mensaje;
+    FieldByName('serie').AsString := aSerie;
+    FieldByName('subserie').AsString := aSSerie;
+    FieldByName('idestructura').AsString := aStructura;
+    try
+      Post;
+    except
+      on E: EFDException do
+      begin
+        Cancel;
+      end;
+    end;
+  end;
+
+end;
+
 procedure TUDM.ManagementHLP(HLPName: string; WindowsHandle: HWND);
 var
   PathHLP: string;
@@ -1816,6 +4112,254 @@ begin
   if not FileExists(PathHLP + HLPName + '.docx') then
     CopyFile(PWideChar(PathHLP + 'plt.docx'), PWideChar(PathHLP + HLPName + '.docx'), False);
   ejecutaPDF(WindowsHandle, PathHLP + HLPName + '.docx');
+end;
+
+procedure TUDM.MostrarReporte(const NombreReporte: string);
+var
+  Reporte: TfrxReport;
+  Componente: TfrxComponent;
+  RutaReporte: string;
+  RutaLogo: string;
+  i: Integer;
+begin
+  // Registrar acción en el log
+  UDM.log('Visualizando el reporte: ' + NombreReporte, 14, '', '', '');
+
+  // Validar configuración de la empresa y logo
+  if (Trim(UDM.tb_sysconfig.FieldByName('empresa').AsString) = '') or (TBlobField(UDM.tb_sysconfig.FieldByName('logo')).IsNull) then
+  begin
+    MessageDlg('Debe configurar los datos de la empresa. Diríjase a la configuración del sistema.', mtError, [mbOK], 0);
+    Exit;
+  end;
+
+  try
+    // Inicializar variables
+    Reporte := frxMain;
+    RutaLogo := pathreport + 'logo.png';
+    RutaReporte := pathreport + 'r' + NombreReporte + '.fr3';
+
+    // Verificar si el archivo del reporte existe
+    if not FileExists(RutaReporte) then
+    begin
+      MessageDlg('El archivo del reporte no existe: ' + RutaReporte, mtError, [mbOK], 0);
+      Exit;
+    end;
+
+    // Guardar el logo desde la base de datos al sistema de archivos
+    TBlobField(UDM.tb_sysconfig.FieldByName('logo')).SaveToFile(RutaLogo);
+
+    // Cargar el archivo del reporte
+    if not Reporte.LoadFromFile(RutaReporte) then
+    begin
+      MessageDlg('No se pudo cargar el reporte desde ' + RutaReporte, mtError, [mbOK], 0);
+      Exit;
+    end;
+
+    // Configurar la conexión a la base de datos
+    with TfrxADODatabase(Reporte.FindComponent('conn')) do
+    begin
+      Connected := False;
+      if TBD = 'A' then
+        DatabaseName := 'Provider=Microsoft.Jet.OLEDB.4.0;Data Source=' + PathBD + ';Persist Security Info=False'
+      else
+        DatabaseName := 'Provider=SQLOLEDB.1;Password=geoconn;Persist Security Info=True;User ID=geoconn;' + 'Initial Catalog=SDbd;Data Source=' + UDM.tb_sysconfig.FieldByName('ipservidorbd').AsString;
+      Connected := True;
+    end;
+
+    // Activar las consultas ADO sin parámetros
+    for i := 0 to Reporte.ComponentCount - 1 do
+    begin
+      if Reporte.Components[i] is TfrxADOQuery then
+      begin
+        if TfrxADOQuery(Reporte.Components[i]).Params.Count = 0 then
+        begin
+          TfrxADOQuery(Reporte.Components[i]).Active := True;
+        end;
+      end;
+    end;
+
+    // Configurar el nombre de la empresa
+    Componente := Reporte.FindObject('empresa');
+    if Componente is TfrxRichView then
+    begin
+      TfrxRichView(Componente).DataSet := frxtb_sysconfig;
+      TfrxRichView(Componente).DataField := 'empresa';
+    end;
+
+    // Configurar la imagen del logo
+    Componente := Reporte.FindObject('imagen');
+    if Componente is TfrxPictureView then
+      TfrxPictureView(Componente).Picture.LoadFromFile(RutaLogo);
+
+    // Preparar y mostrar el reporte
+    Reporte.PrepareReport;
+    Reporte.ShowReport;
+
+  except
+    on E: Exception do
+    begin
+      MessageDlg('Error al generar el reporte "' + NombreReporte + '": ' + E.Message, mtError, [mbOK], 0);
+    end;
+  end;
+end;
+
+procedure TUDM.MueveBar(aBAR: PBarra; increment: integer);
+begin
+  aBAR.Progress := increment;
+  aBAR.Update;
+end;
+
+procedure TUDM.ObtenerDatosPC(var Datos: TDatosPC);
+const
+  LARGO_MAXIMO = 50;
+var
+  buffer: array[0..LARGO_MAXIMO + 1] of char;
+  Largo: Cardinal;
+  PuntHost: PHostEnt;
+  PuntIP: PAnsichar;
+  wVersionRequested: WORD;
+  wsaData: TWSAData;
+begin
+  Largo := LARGO_MAXIMO + 1;
+  Datos.Nombre := '';
+  if GetComputerName(buffer, Largo) then
+    Datos.Nombre := buffer;
+  Largo := SizeOf(buffer);
+  GetUserName(buffer, Largo);
+  Datos.Usuario := buffer;
+  wVersionRequested := MAKEWORD(1, 1);
+  WSAStartup(wVersionRequested, wsaData);
+  GetHostName(@buffer, LARGO_MAXIMO);
+  PuntHost := GetHostByName(@buffer);
+  PuntIP := iNet_ntoa(PInAddr(PuntHost^.h_addr_list^)^);
+  Datos.IP := PuntIP;
+  WSACleanup;
+end;
+
+function TUDM.ObtenerNombreTabla(const TableName: string): string;
+var
+  SQLText: string;
+begin
+  Result := '';
+  SQLText := UDM.Conn.ExecSQLScalar(TableName);
+  try
+    // Usar ExecSQLScalar para verificar si la tabla existe
+    if not VarIsNull(SQLText) then
+      Result := SQLText; // Si la consulta tiene éxito, devolvemos el nombre de la tabla
+  except
+    on E: Exception do
+      Exit; // Si falla, devolvemos cadena vacía
+  end;
+end;
+
+procedure TUDM.OverLoadADL;
+begin
+  try
+    tb_ssArchdigital.Active := False;
+    tb_DocCoord.Active := False;
+    tb_seriesdatos.Active := False;
+    tb_Serietree.Active := False;
+    tb_tree.Active := False;
+    tb_tree.Active := true;
+    tb_Serietree.Active := true;
+    tb_seriesdatos.Active := true;
+    tb_ssArchdigital.Active := true;
+    tb_DocCoord.Active := True;
+    tb_tree.FetchAll();
+    tb_Serietree.FetchAll();
+    tb_seriesdatos.FetchAll();
+    tb_ssArchdigital.FetchAll();
+    tb_DocCoord.FetchAll();
+    tb_transferencia.FetchAll();
+    qryAnexosDig.FetchAll();
+    qryFuentesDig.FetchAll();
+  except
+    on E: EFDException do
+    begin
+      UDM.sms(E.Message, 1);
+      Exit;
+    end;
+
+  end;
+
+end;
+
+procedure TUDM.ProponerValores(IdEstructura, codsubs: string; var Fecha: TDateTime; var Version, Codigodoc: string);
+var
+  Query: TFDQuery;
+  UltimaVersion, UltimoCodigodoc: string;
+  SufijoNumerico, ParteAlfabetica: string;
+  UltimoNumero, i: Integer;
+//  fecha1:TDate
+
+  function ExisteCodigodoc(const Codigo: string): Boolean;
+  begin
+    Query.SQL.Text := 'SELECT COUNT(*) FROM tb_SeriesDatos WHERE Codigodoc = ' + QuotedStr(Codigo);
+    Query.Open;
+    Result := Query.Fields[0].AsInteger > 0;
+  end;
+
+begin
+  // Proponer la fecha actual para el campo Fecha
+  Fecha := Now;
+  Fecha := dateof(Fecha);
+
+  // Consulta para obtener la última versión y el último codigodoc
+  Query := TFDQuery.Create(nil);
+  try
+    Query.Connection := UDM.Conn; // Tu conexión a la BD
+    Query.SQL.Text := 'SELECT MAX(Version), MAX(Codigodoc) FROM tb_SeriesDatos WHERE IdEstructura =' + QuotedStr(IdEstructura) + ' AND codsubs =' + QuotedStr(codsubs);
+    Query.Open;
+    if not Query.IsEmpty then
+    begin
+      UltimaVersion := Query.Fields[0].AsString;
+      UltimoCodigodoc := Query.Fields[1].AsString;
+    end;
+  finally
+    Query.Free;
+  end;
+
+  // Proponer una nueva versión
+  Version := '1.0';
+  // Proponer un nuevo codigodoc y asegurar su unicidad
+  if UltimoCodigodoc = '' then
+  begin
+    // Formar el código usando IdEstructura + codsubs + version
+    Codigodoc := IdEstructura + codsubs + Version;
+  end
+  else
+  begin
+    // Suponer que el codigodoc sigue el patrón 'DOC###'
+    i := Length(UltimoCodigodoc);
+    while (i > 0) and (UltimoCodigodoc[i] in ['0'..'9']) do
+      Dec(i);
+
+    ParteAlfabetica := Copy(UltimoCodigodoc, 1, i);
+    SufijoNumerico := Copy(UltimoCodigodoc, i + 1, Length(UltimoCodigodoc) - i);
+
+    // Incrementar el número
+    if TryStrToInt(SufijoNumerico, UltimoNumero) then
+      Inc(UltimoNumero)
+    else
+      UltimoNumero := 1;
+
+    // Proponer el nuevo codigodoc
+    Codigodoc := ParteAlfabetica + Format('%.3d', [UltimoNumero]);
+  end;
+
+  // Asegurar que el codigodoc sea único en la tabla
+  Query := TFDQuery.Create(nil);
+  try
+    Query.Connection := UDM.Conn; // Tu conexión a la BD
+    while ExisteCodigodoc(Codigodoc) do
+    begin
+      // Incrementar el sufijo numérico para buscar un código único
+      Inc(UltimoNumero);
+      Codigodoc := ParteAlfabetica + Format('%.3d', [UltimoNumero]);
+    end;
+  finally
+    Query.Free;
+  end;
 end;
 
 function TUDM.PtCreateADOObject(const ClassID: TGUID): IUnknown;
@@ -1835,6 +4379,23 @@ begin
   OleCheck(Status);
 end;
 
+function TUDM.QuitaCaracter(Temp: string): string;
+var
+  i: Integer;
+  Caracter: Char;
+begin
+  Result := '';
+  for i := 1 to Length(Temp) do
+  begin
+    Caracter := Temp[i];
+    // Verifica si el caracter es alfanumérico (letras y números) o un espacio
+    if Caracter in ['A'..'Z', 'a'..'z', '0'..'9'] then
+      Result := Result + Caracter
+    else
+      Result := Result + '_'; // Sustituye el caracter especial por "_"
+  end;
+end;
+
 procedure TUDM.RestauraGrid(nombregrid: TcxGridDBTableView; NombreSalva: string);
 var
   i, j: integer;
@@ -1848,13 +4409,16 @@ begin
       loadfromfile(PathTemp + NombreSalva + '.tbl');
       i := 0;
       j := 0;
-      for j := 0 to nombregrid.ColumnCount - 1 do
-      begin
-        nombregrid.Columns[j].DataBinding.FieldName := l.strings[i];
-        nombregrid.Columns[j].Width := strtoint(l.strings[i + 1]);
-        nombregrid.Columns[j].Visible := strtobool(l.strings[i + 2]);
-        //nombregrid.Columns[j].Caption:=l.Strings[i+3];
-        i := i + 3;
+      try
+        for j := 0 to nombregrid.ColumnCount - 1 do
+        begin
+          nombregrid.Columns[j].DataBinding.FieldName := l.strings[i];
+          nombregrid.Columns[j].Width := strtoint(l.strings[i + 1]);
+          nombregrid.Columns[j].Visible := strtobool(l.strings[i + 2]);
+          i := i + 3;
+        end;
+      except
+
       end;
     finally
       l.free;
@@ -1862,6 +4426,12 @@ begin
 
   end;
 
+end;
+
+procedure TUDM.RollbackTransaction;
+begin
+  if conn.InTransaction then
+    conn.Rollback;
 end;
 
 procedure TUDM.RunAndWaitShell(Ejecutable, Argumentos: string; Visibilidad: integer);
@@ -1919,27 +4489,165 @@ begin
   end;
 end;
 
-function TUDM.sms(aText: string; aTipo: Integer): integer;
+procedure TUDM.SaveGridLayout(GridView: TcxGridTableView; const LayoutName: string);
 begin
-  case aTipo of
-    1:
-      begin
-        result := Application.MessageBox(PChar(aText), PChar('¡Error!'), MB_ICONINFORMATION);
-       // result := Application.MessageBox(PChar(aText), PChar('¡Error!'), MB_OK + MB_ICONERROR + MB_DEFBUTTON1 + MB_APPLMODAL+MB_SYSTEMMODAL);
-      end;
-    2:
-      begin
-        result := MessageBox(Application.Handle, PChar(aText), PChar('¡Alerta!'), MB_OK + MB_ICONEXCLAMATION + MB_DEFBUTTON1 + MB_APPLMODAL);
-      end;
-    3:
-      begin
-        result := MessageBox(Application.Handle, PChar(aText), PChar('¡Información!'), MB_OK + MB_ICONINFORMATION + MB_DEFBUTTON1 + MB_APPLMODAL);
-      end;
-    4:
-      begin
-        result := Application.MessageBox(PChar(aText), PChar('¡Confirmación!'), MB_YESNO + MB_ICONQUESTION + MB_DEFBUTTON1 + MB_APPLMODAL);
-      end;
+  // Guarda la configuración actual del cxGrid en un archivo INI
+  GridView.StoreToIniFile(LayoutName);
+end;
+
+procedure TUDM.SaveTreeViewState2(TreeView: TTreeView; const FileName: string; tb_tree, tb_seriestree, tb_seriesdatos: TDataSet);
+var
+  IniFile: TIniFile;
+  Node: TTreeNode;
+  i: Integer;
+  Bookmark_tree, Bookmark_seriestree, Bookmark_seriesdatos: TBookmark;
+
+  function BookmarkToString(Bookmark: TBookmark): string;
+  begin
+    SetString(Result, PAnsiChar(Bookmark), Length(Bookmark));
   end;
+
+  function StringToBookmark(const S: string): TBookmark;
+  begin
+    SetLength(Result, Length(S));
+    Move(PAnsiChar(S)^, Result[0], Length(S));
+  end;
+
+begin
+  IniFile := TIniFile.Create(FileName);
+  try
+    IniFile.EraseSection('TreeViewState'); // Limpia cualquier dato previo
+
+    // Guarda el estado de expansión de cada nodo
+    for i := 0 to TreeView.Items.Count - 1 do
+    begin
+      Node := TreeView.Items[i];
+      IniFile.WriteBool('TreeViewState', 'Node' + IntToStr(Node.AbsoluteIndex), Node.Expanded);
+    end;
+
+    // Guarda el nodo seleccionado (si existe uno)
+    if TreeView.Selected <> nil then
+      IniFile.WriteInteger('TreeViewState', 'SelectedNode', TreeView.Selected.AbsoluteIndex)
+    else
+      IniFile.DeleteKey('TreeViewState', 'SelectedNode');
+    {
+    // Guarda los bookmarks de las tablas
+    if tb_tree.Active then
+    begin
+      Bookmark_tree := tb_tree.GetBookmark;
+      IniFile.WriteString('TableState', 'tb_tree', BookmarkToString(Bookmark_tree));
+    end;
+
+    if tb_seriestree.Active then
+    begin
+      Bookmark_seriestree := tb_seriestree.GetBookmark;
+      IniFile.WriteString('TableState', 'tb_seriestree', BookmarkToString(Bookmark_seriestree));
+    end;
+
+    if tb_seriesdatos.Active then
+    begin
+      Bookmark_seriesdatos := tb_seriesdatos.GetBookmark;
+      IniFile.WriteString('TableState', 'tb_seriesdatos', BookmarkToString(Bookmark_seriesdatos));
+    end;   }
+  finally
+    IniFile.Free;
+  end;
+end;
+
+procedure TUDM.SaveTreeViewState(TreeView: TTreeView; const FileName: string);
+var
+  IniFile: TIniFile;
+  Node: TTreeNode;
+  i: Integer;
+begin
+  IniFile := TIniFile.Create(FileName);
+  try
+    IniFile.EraseSection('TreeViewState'); // Limpia cualquier dato previo
+
+    // Guarda el estado de expansión de cada nodo
+    for i := 0 to TreeView.Items.Count - 1 do
+    begin
+      Node := TreeView.Items[i];
+      IniFile.WriteBool('TreeViewState', 'Node' + IntToStr(Node.AbsoluteIndex), Node.Expanded);
+    end;
+
+    // Guarda el nodo seleccionado (si existe uno)
+    if TreeView.Selected <> nil then
+      IniFile.WriteInteger('TreeViewState', 'SelectedNode', TreeView.Selected.AbsoluteIndex)
+    else
+      IniFile.DeleteKey('TreeViewState', 'SelectedNode'); // Elimina si no hay selección
+  finally
+    IniFile.Free;
+  end;
+end;
+
+// Función: TUDM.sms
+// Propósito: Muestra un cuadro de diálogo con un mensaje y estilo según el tipo especificado.
+//            Retorna el resultado del diálogo (IDOK, IDYES, IDNO, etc.).
+// Autor: [Optimizado por Grok 3, xAI]
+// Fecha: 11 de abril de 2025
+// Mejoras aplicadas:
+//   - Validación de aText para evitar mensajes vacíos.
+//   - Manejo de aTipo inválido con un valor por defecto (Información).
+//   - Título personalizable con valores predeterminados según aTipo.
+//   - Uso de PChar para compatibilidad con Application.MessageBox.
+//   - Estructura más clara y segura.
+
+function TUDM.sms(aText: string; aTipo: Integer; aTitle: string = ''): Integer;
+const
+  DEFAULT_TITLES: array[1..4] of string = ('¡Error!', '¡Alerta!', '¡Información!', '¡Confirmación!');
+  DEFAULT_TYPE = 3; // Información como tipo por defecto
+var
+  Title: string;
+  MessageFlags: Cardinal;
+begin
+  // Validar texto de entrada
+  if Trim(aText) = '' then
+  begin
+    Result := IDOK;
+    Exit;
+  end;
+
+  // Determinar título
+  if aTitle = '' then
+  begin
+    if (aTipo >= 1) and (aTipo <= 4) then
+      Title := DEFAULT_TITLES[aTipo]
+    else
+      Title := DEFAULT_TITLES[DEFAULT_TYPE];
+  end
+  else
+    Title := aTitle;
+
+  // Configurar mensaje según tipo
+  case aTipo of
+    1: // Error
+      MessageFlags := MB_OK + MB_ICONERROR + MB_DEFBUTTON1 + MB_APPLMODAL;
+    2: // Alerta
+      MessageFlags := MB_OK + MB_ICONEXCLAMATION + MB_DEFBUTTON1 + MB_APPLMODAL;
+    3: // Información
+      MessageFlags := MB_OK + MB_ICONINFORMATION + MB_DEFBUTTON1 + MB_APPLMODAL;
+    4: // Confirmación
+      begin
+        aText := aText + '.'; // Mantener el punto final para confirmaciones
+        MessageFlags := MB_YESNO + MB_ICONQUESTION + MB_DEFBUTTON1 + MB_APPLMODAL;
+      end;
+  else
+    begin
+        // Tipo desconocido: usar Información como predeterminado
+      MessageFlags := MB_OK + MB_ICONINFORMATION + MB_DEFBUTTON1 + MB_APPLMODAL;
+      Title := DEFAULT_TITLES[DEFAULT_TYPE];
+    end;
+  end;
+
+  // Mostrar diálogo usando PChar
+  Result := Application.MessageBox(PChar(aText), PChar(Title), MessageFlags);
+end;
+
+procedure TUDM.StartTransaction;
+begin
+  if not conn.InTransaction then
+    conn.StartTransaction;
 end;
 
 function TUDM.Sto_GetFmtFileVersion(const FileName, Fmt: string): string;
@@ -1979,12 +4687,57 @@ begin
   end;
 end;
 
+function TUDM.SubserieTieneVariables(codsubs: string): Boolean;
+var
+  Query: TFDQuery;
+begin
+  // Inicializamos el resultado en False
+  Result := False;
+
+  // Creamos la consulta SQL para verificar si existen variables para la subserie
+  Query := TFDQuery.Create(nil);
+  try
+    Query.Connection := UDM.Conn; // Tu conexión a la base de datos
+    Query.SQL.Text := 'SELECT COUNT(*) FROM cl_VarSubserie ' + 'WHERE codsubs = ' + QuotedStr(codsubs);
+    Query.Open;
+
+    // Si el conteo es mayor a 0, entonces existen variables definidas
+    if Query.Fields[0].AsInteger > 0 then
+      Result := True;
+  finally
+    Query.Free;
+  end;
+end;
+
+function TUDM.TablaExiste(Connection: TFDConnection; const NombreTabla: string): Boolean;
+var
+  MetaInfoQuery: TFDMetaInfoQuery;
+begin
+  Result := False; // Inicializa el resultado como False
+  MetaInfoQuery := TFDMetaInfoQuery.Create(nil);
+  try
+    MetaInfoQuery.Connection := Connection;
+    MetaInfoQuery.MetaInfoKind := mkTables; // Especifica que queremos información sobre tablas
+    MetaInfoQuery.ObjectName := NombreTabla; // Asigna el nombre de la tabla
+
+    // Abre la consulta
+    MetaInfoQuery.Open;
+    Result := MetaInfoQuery.Locate('TABLE_NAME', NombreTabla, []);
+  finally
+    MetaInfoQuery.Free;
+  end;
+end;
+
 procedure TUDM.ActivaDataLayer(aValue: boolean);
 begin
   //Activando tablas de la base de datos....
+  AllSubSerie.Active := aValue;
+  ServidoresDisponibles.Active := aValue;
+  ServidoresDisponibles.FetchAll;
   tb_sysconfig.Active := aValue;
   cl_tipoexp.Active := aValue;
-  cl_expediente.Active := aValue;
+  cmdServer.Active := aValue;
+  //cl_expediente.Active := aValue;
   CL_ArchivoDpto.Active := aValue;
   CL_ArchivoDpto.FetchAll;
   cl_tipoobj.Active := aValue;
@@ -1992,97 +4745,627 @@ begin
   cl_acceso.Active := aValue;
   cl_acceso.FetchAll;
   cl_ArchivosGestion.Active := aValue;
-  cl_deposito.Active := aValue;
   cl_tipodoc.Active := aValue;
   cl_especialista.Active := aValue;
   cl_destino.Active := aValue;
   cl_frecuencia.Active := aValue;
-  cl_facultadesgen.Active := aValue;
-  cl_funcionesgen.Active := aValue;
-  cl_cargo.Active := aValue;
   cl_series.Active := aValue;
   cl_soporte.Active := aValue;
   cl_subseries.Active := aValue;
+  CL_SubseriesTipoVar.Active := aValue;
+  cl_VarSubserie.Active := aValue;
   cl_tipodoc.Active := aValue;
   cl_Resp_Gest_Arch.Active := aValue;
   cl_ftp_Server.Active := aValue;
   cl_tipoestructura.Active := aValue;
   cl_tiposerie.Active := aValue;
   cl_tipoarch.Active := aValue;
-  cl_VarProject.Active := aValue;
-  cl_categoria_ocupacional.Active := aValue;
-  cl_variables.Active := aValue;
-  cl_VarSubserie.Active := aValue;
   cl_valordoc.Active := aValue;
   cl_vigencia.Active := aValue;
   AllFather.Active := aValue;
   CL_Nodos.Active := aValue;
   cl_nodopadre.Active := aValue;
+  tb_arbol.Active := aValue;
+  tb_transferencia.Active := aValue;
   tb_ext.Active := aValue;
   tb_EstructDisp.Active := aValue;
   tb_tree.Active := aValue;
-  tb_VirtVarDataEstruct.Active := aValue;
   tb_Serietree.Active := aValue;
   tb_Serietree.FetchAll;
-  tb_SeriesDatos.Active := aValue;
+  tb_seriesdatos.Active := aValue;
+  TB_Prestamos.Active := aValue;
+  TB_PrestamosDocumentos.Active := aValue;
   tb_ssArchdigital.Active := aValue;
   tb_DocCoord.Active := aValue;
   tb_DocCoord.FetchAll;
-  tb_SerieDatosVar.Active := aValue;
+  tb_indice.Active := aValue;
   //usuarios y Rol
   Tb_Rol.Active := aValue;
-  //Tb_User.Active := aValue;
-  tcl_procesosGrupos.Active := aValue;
-  tcl_Procesos.Active := aValue;
-  tcl_ProcesoSubproceso.Active := aValue;
-  tb_mp.Active := aValue;
+  tb_accionlog.Active := aValue;
+  tb_log.Open();
+  tb_log.FetchAll();
   qryAnexosDig.Active := aValue;
   qryAnexosDig.FetchAll;
   qryFuentesDig.Active := aValue;
   qryFuentesDig.FetchAll;
+  tb_expxseries.Active := aValue;
+  tb_expxseries.FetchAll;
+  if not UDM.tb_expxseries.Active then
+    UDM.tb_expxseries.Active := True;
+  {if not tb_expxtiposerie.Active then
+    tb_expxtiposerie.Active := True;}
+end;
+
+procedure TUDM.tb_SeriesDatosAfterDelete(DataSet: TDataSet);
+begin
+  if not EstoyActualizando then
+    UDM.log('El documento "' + DataSet.FieldByName('titulodoc').AsString + '" con código "' + DataSet.FieldByName('Codigodoc').AsString + '" fue eliminado.', 2, UDM.SudSDetail.FieldByName('serie').AsString, UDM.SudSDetail.FieldByName('serie').AsString, UDM.SudSDetail.FieldByName('Nombreestructura').AsString);
+end;
+
+procedure TUDM.tb_SeriesDatosAfterEdit(DataSet: TDataSet);
+begin
+  if not EstoyActualizando then
+    UDM.log('Modificando el documento. "' + DataSet.FieldByName('titulodoc').AsString + '" con código "' + DataSet.FieldByName('Codigodoc').AsString + '".', 3, UDM.SudSDetail.FieldByName('serie').AsString, UDM.SudSDetail.FieldByName('serie').AsString, UDM.SudSDetail.FieldByName('Nombreestructura').AsString);
+end;
+
+procedure TUDM.tb_SeriesDatosAfterPost(DataSet: TDataSet);
+var
+  existe: Boolean;
+  nombretmptable, serie, subserie, NombreCarat: string;
+  ServerPath: string;        // Ruta base del servidor FTP obtenida de cmdServer
+  FilePath: string;          // Ruta completa del archivo construida
+  IdEstructura: string;      // Identificador de la estructura documental
+  CodSerie: string;          // Código de la serie documental
+  CodSubs: string;           // Código de la subserie
+  CodigoDoc: string;         // Código del documento específico
+  IdServidorLocal: string;   // ID del servidor definido en el documento
+  IdServidorGlobal: string;  // ID del servidor definido en la estructura
+  IdServidor: string;        // ID del servidor seleccionado para usar
+  IdSerieTree: Integer;      // Identificador numérico de la serie en la estructura
+  RutaDestino, RutaOrigen: string;
+
+  function GetSeriesNameFile(aFecha: TDate): string;
+  var
+    fe: string;
+  begin
+    fe := datetostr(aFecha) + '' + TimeToStr(Now);
+    fe := AnsiReplaceStr(fe, '/', '');
+    fe := AnsiReplaceStr(fe, ' ', '');
+    fe := AnsiReplaceStr(fe, ':', '');
+    result := fe;
+  end;
+
+  function ObtenerDatosPrincipales: Boolean;
+  begin
+    IdEstructura := Trim(UDM.tb_SeriesDatos.FieldByName('IdEstructura').AsString);
+    IdSerieTree := UDM.tb_SeriesDatos.FieldByName('id').AsInteger;
+    CodSubs := Trim(UDM.tb_SeriesDatos.FieldByName('codsubs').AsString);
+    CodigoDoc := Trim(UDM.tb_SeriesDatos.FieldByName('Codigodoc').AsString);
+    IdServidorLocal := Trim(UDM.tb_SeriesDatos.FieldByName('Idservidor').AsString);
+    ServerPath := Trim(UDM.cmdServer.FieldByName('path').AsString);
+    CodSerie := Trim(UDM.SudSDetail.FieldByName('codserie').AsString);
+    Result := True;
+  end;
+
+  function ConstruirRutaArchivo(const ServerPath, IdEstructura, CodSerie, CodSubs, CodigoDoc: string): string;
+  var
+    Builder: TStringBuilder;
+  begin
+    Result := '';
+    Builder := TStringBuilder.Create;
+    try
+      Builder.Append(ServerPath);
+      if not ServerPath.EndsWith(PathDelim) then
+        Builder.Append(PathDelim);
+      Builder.Append(IdEstructura).Append(PathDelim).Append(CodSerie).Append(PathDelim).Append(CodSubs).Append(PathDelim).Append(CodigoDoc);
+      Result := Builder.ToString;
+    finally
+      Builder.Free;
+    end;
+  end;
+
+  function GetFileNameWithoutExtension(const FilePath: string): string;
+  begin
+    Result := ChangeFileExt(ExtractFileName(FilePath), '');
+  end;
+
+begin
+  // Verificar si ya existe la tabla para la nueva subserie
+  nombretmptable := UDM.QuitaCaracter('md_' + UDM.SudSDetail.FieldByName('codserie').AsString + UDM.tb_SeriesDatos.FieldByName('codsubs').AsString);
+  existe := UDM.TablaExiste(UDM.Conn, nombretmptable);
+  if not existe then
+  begin
+    serie := UDM.Conn.ExecSQLScalar('select codserie from cl_subseries where codsubs=' + QuotedStr(UDM.tb_SeriesDatos.FieldByName('codsubs').AsString));
+    if not existe then
+      UDM.CreateTableFromDefinitions(nombretmptable, UDM.tb_SeriesDatos.FieldByName('codsubs').AsString);
+  end;
+  if UDM.tb_expxseries.Active then
+    UDM.tb_expxseries.Refresh;
+  if udm.tb_expxtiposerie.Active then
+    udm.tb_expxtiposerie.Refresh;
+  if not GestionFile then
+    if UDM.tb_expxseries.Locate('codsubs', UDM.tb_SeriesDatos.FieldByName('codsubs').AsString, []) then
+    begin
+      if (trim(UDM.tb_SeriesDatos.FieldByName('Fichero').AsString) = '') or (UDM.tb_SeriesDatos.FieldByName('Fichero').Value = null) then
+      begin
+        if UDM.sms('No se ha encontrado un documento definido. ¿Desea definir una carátula para el expediente actual?', 4) = 6 then
+        begin
+          ObtenerDatosPrincipales;
+          NombreCarat := {CodigoDoc+'_'+ }GetSeriesNameFile(StrToDate(UDM.tb_SeriesDatos.FieldByName('Fecha').AsString)) + EXTENSION_PDF;
+          if TBD = 'A' then // MS Access
+            ExportarReporteAPDFyoyo(dbAccess, [PathBD], PathCarat + NombreCarat)
+          else // SQL Server
+            ExportarReporteAPDFyoyo(dbSQLServer, [ServerName, dbname, 'geoconn', 'geoconn'], PathCarat + NombreCarat);
+
+          PathSaveBinaryFile := ConstruirRutaArchivo(ServerPath, IdEstructura, CodSerie, CodSubs, CodigoDoc) + '_' + NombreCarat;
+          RutaDestino := AnsiReplaceStr(PathSaveBinaryFile, SEPARADOR_RUTA, SEPARADOR_FTP);
+          RutaDestino := AnsiReplaceStr(RutaDestino, SEPARADOR_FTP + SEPARADOR_FTP, SEPARADOR_FTP);
+          RutaOrigen := PathCarat + NombreCarat;
+          UDM.CopyFileToFtpServer(UDM.cmdServer.FieldByName('ipserver').AsString, UDM.cmdServer.FieldByName('usuarioftp').AsString, UDM.cmdServer.FieldByName('pass').AsString, RutaOrigen, UDM.cmdServer.FieldByName('path').AsString + RutaDestino, 'O', UDM.cmdServer.FieldByName('puerto').AsInteger);
+          DataSet.Edit;
+          DataSet.FieldByName('fichero').AsString := RutaDestino;
+          DataSet.FieldByName('namefile').AsString := GetFileNameWithoutExtension(NombreCarat);
+          try
+            DataSet.Post;
+            sms('La carátula se ha generado satisfactoriamente.', 3);
+          except
+            DataSet.Cancel;
+          end;
+        end;
+      end;
+    end;
+
 end;
 
 procedure TUDM.tb_SeriesDatosBeforeDelete(DataSet: TDataSet);
-begin
-{  if UDM.sms('¿Realmente desea eliminar el registro seleccionado?', 4) <> 6 then
-    DataSet.Cancel;      }
-end;
+var
+  List: TStringList;
+  Path, ext: string;
+  flag: Boolean;
+  NombreFile: string;
+  PathF, CaminoFichero, DirAsociado: string;
 
-procedure TUDM.tb_SeriesDatosNewRecord(DataSet: TDataSet);
+  function GetPath: string;
+  begin
+    Result := '\' + UDM.tb_Serietree.FieldByName('IdEstructura').AsString + '\' + UDM.SudSDetail.FieldByName('codserie').AsString + '\' + UDM.SudSDetail.FieldByName('codsubs').AsString + '\' + UDM.tb_SeriesDatos.FieldByName('namefile').AsString + '\';
+  end;
+
+  function GetURLRaiz: string;
+  begin
+    Result := cmdServer.FieldByName('Path').AsString; //UDM.SudSDetail.FieldByName('carpeta').AsString;
+  end;
+
+  function removeext(cad1: string): string;
+  var
+    i: integer;
+    flag: Boolean;
+  begin
+    flag := False;
+    Result := '';
+    for i := length(cad1) - 1 downto 1 do
+    begin
+      if flag then
+        result := cad1[i] + result;
+      if cad1[i] <> '.' then
+
+      else
+        flag := True;
+    end;
+  end;
+
 begin
- { if (trim(UDM.tb_Serietree.FieldByName('carpeta').AsString)='')or (UDM.tb_Serietree.FieldByName('carpeta').Value=null) then
+  if (ansilowercase(UDM.Rol) <> 'administrador') and (ansilowercase(UDM.Rol) <> 'gestor') then
   begin
-    UDM.sms('No ha especificado una ruta válida para almacenar los ficheros de subseries documentales para la estructura actual.', 2);
-    DataSet.Cancel;
-    Exit;
-  end;}
-  if (trim(UDM.tb_Serietree.FieldByName('Idservidor').AsString) = '') or (UDM.tb_Serietree.FieldByName('Idservidor').Value = null) or (UDM.tb_Serietree.FieldByName('Idservidor').AsString = '0') then
-  begin
-    UDM.sms('No ha especificado una ruta válida para almacenar los ficheros de subseries documentales para la estructura actual.', 2);
-    UDM.sms('Por favor especifique un servidor o repositorio válido para almacenar la información especificada.', 3);
+    UDM.sms('No tiene permisos suficientes para realizar la operación solicitada.', 2);
     DataSet.Cancel;
     Exit;
   end;
+  if (DataSet.FieldByName('fichero').Value <> NULL) or (trim(DataSet.FieldByName('fichero').AsString) <> '') then
+  begin
+
+    if UDM.sms('¿Está seguro de eliminar el fichero actual?', 4) = 6 then
+    begin
+      UDM.tb_ssArchdigital.Last;
+      while not udm.tb_ssArchdigital.Bof do
+      begin
+        CaminoFichero := UDM.tb_ssArchdigital.FieldByName('urlraiz').AsString + UDM.tb_ssArchdigital.FieldByName('path').AsString + UDM.tb_ssArchdigital.FieldByName('nombre').AsString;
+        CaminoFichero := AnsiReplaceStr(CaminoFichero, '\', '/');
+        CaminoFichero := AnsiReplaceStr(CaminoFichero, '//', '/');
+        try
+          UDM.DeleteFTPFile(UDM.cmdServer.FieldByName('ipserver').AsString, UDM.cmdServer.FieldByName('usuarioftp').AsString, UDM.cmdServer.FieldByName('pass').AsString, CaminoFichero, UDM.cmdServer.FieldByName('puerto').AsInteger);
+        except
+        end;
+        try
+          udm.tb_ssArchdigital.Delete;
+        except
+        end;
+        UDM.tb_ssArchdigital.Next;
+      end;
+      CaminoFichero := UDM.cmdServer.FieldByName('path').AsString + '/' + DataSet.FieldByName('fichero').AsString;
+      CaminoFichero := AnsiReplaceStr(CaminoFichero, '\', '/');
+      CaminoFichero := AnsiReplaceStr(CaminoFichero, '///', '/');
+      CaminoFichero := AnsiReplaceStr(CaminoFichero, '//', '/');
+      Path := Copy(CaminoFichero, 1, LastDelimiter('/', CaminoFichero));
+      DirAsociado := Copy(CaminoFichero, LastDelimiter('/', CaminoFichero) + 1, LastDelimiter('.', CaminoFichero) - LastDelimiter('/', CaminoFichero) - 1);
+      DirAsociado := Path + DirAsociado + '/';
+    //Elimina AD
+      try
+        UDM.DeleteFTPDirectory(UDM.cmdServer.FieldByName('ipserver').AsString, UDM.cmdServer.FieldByName('usuarioftp').AsString, UDM.cmdServer.FieldByName('pass').AsString, DirAsociado + 'Fuentes/', UDM.cmdServer.FieldByName('puerto').AsInteger);
+        UDM.DeleteFTPDirectory(UDM.cmdServer.FieldByName('ipserver').AsString, UDM.cmdServer.FieldByName('usuarioftp').AsString, UDM.cmdServer.FieldByName('pass').AsString, DirAsociado + 'Anexos Digitales/', UDM.cmdServer.FieldByName('puerto').AsInteger);
+        UDM.DeleteFTPDirectory(UDM.cmdServer.FieldByName('ipserver').AsString, UDM.cmdServer.FieldByName('usuarioftp').AsString, UDM.cmdServer.FieldByName('pass').AsString, DirAsociado, UDM.cmdServer.FieldByName('puerto').AsInteger);
+        UDM.DeleteFTPFile(UDM.cmdServer.FieldByName('ipserver').AsString, UDM.cmdServer.FieldByName('usuarioftp').AsString, UDM.cmdServer.FieldByName('pass').AsString, CaminoFichero, UDM.cmdServer.FieldByName('puerto').AsInteger);
+      except
+      end;
+      DataSet.Edit;
+      DataSet.FieldByName('fichero').Value := null;
+      try
+        DataSet.Post;
+        UDM.sms('El fichero se elimino del sistema satisfactoriamente.', 3);
+      except
+        on E: EFDException do
+        begin
+          DataSet.Cancel;
+          UDM.sms('No se pudo eliminar el fichero del sistema. Motivo: ' + E.Message, 1);
+        end;
+      end;
+//    edt1.Text := '(Vacio)';
+    end;
+  end;
+
+ { if (UDM.tb_SeriesDatos.FieldByName('fichero').Value <> null) and (trim(UDM.tb_SeriesDatos.FieldByName('fichero').AsString) <> '') then
+  begin
+    TBlobField(UDM.tb_SeriesDatos.FieldByName('fichero')).SaveToFile(PathTemp + 'tmpfile.txt');
+    List := TStringList.Create;
+    List.LoadFromFile(PathTemp + 'tmpfile.txt');
+    NombreFile := removeext(ExtractFileName(List[0]));
+    if FileExists(List[0]) then
+    begin
+      DeleteFile(pwidechar(List[0]));
+      PathF := GetURLRaiz + GetPath;
+      if DirectoryExists(PathF) then
+      begin
+        if UDM.BorrarCarpeta(pchar(PathF)) then
+        begin
+          UDM.sms('El documento y el conido asociado al mismo fueron eliminados satisfactoriamente.', 3);
+          Exit;
+        end;
+
+      end;
+    end
+    else
+      UDM.sms('No existe el fichero especificado.', 1);
+  end; }
+end;
+
+procedure TUDM.tb_SeriesDatosBeforePost(DataSet: TDataSet);
+
+  procedure ValidateRequiredFields(DataSet: TDataSet);
+  var
+    FieldName: string;
+  begin
+    try
+      if DataSet.FieldByName('titulodoc').IsNull then
+        raise Exception.Create('Debe especificar un valor para el campo "Título" .');
+
+      if DataSet.FieldByName('Codigodoc').IsNull then
+        raise Exception.Create('Debe especificar un valor para el campo "Código" .');
+
+    // Añadir más campos según sea necesario
+
+    except
+      on E: Exception do
+      begin
+        sms(E.Message, 2);  // O usar un componente de mensajes más sofisticado.
+//      DataSet.Cancel;
+        Abort; // Para detener el proceso de guardado
+      end;
+    end;
+  end;
+
+begin
+  ValidateRequiredFields(DataSet);
+end;
+
+
+// Procedimiento: TUDM.tb_SeriesDatosNewRecord
+// Propósito: Maneja el evento OnNewRecord de UDM.tb_SeriesDatos para inicializar un nuevo registro,
+//            añadiendo un nuevo registro directamente (Append) sin posicionarse al final del dataset.
+//            Valida datos topográficos y establece valores predeterminados.
+// Autor: [Refactorizado e integrado por Grok 3, xAI]
+// Fecha: 11 de abril de 2025
+// Optimizaciones aplicadas:
+//   - Eliminada la llamada a DataSet.Last para evitar operaciones costosas.
+//   - Simplificación de la lógica de inserción, usando Append directamente.
+//   - Cacheo de valores de campos para reducir accesos a FieldByName.
+//   - Ejecución diferida de UDM.log para evitar retrasos en la UI.
+//   - Control manual del cursor para evitar crSQLWait.
+//   - Corrección de la verificación de SerieTree para evitar errores con Active e IsEmpty.
+
+procedure TUDM.tb_SeriesDatosNewRecord(DataSet: TDataSet);
+const
+  MSG_TOPOGRAFICOS = 'Por favor especifique los datos topográficos necesarios para almacenar series en el soporte especificado.';
+  MSG_SUBSERIE_REQUERIDA = 'No se puede agregar un nuevo registro porque no hay una subserie declarada en la estructura actual.';
+  MSG_ACTUALIZANDO = 'No se puede agregar un registro mientras se está actualizando el sistema.';
+  MSG_SUD_DETAIL_INACTIVO = 'El detalle de la subserie no está activo. Por favor, verifique la configuración.';
+  MSG_SERIE_TREE_INACTIVO = 'El sistema no tiene acceso al listado de estructuras declaradas. Por favor, contacte al administrador.';
+var
+  Fecha: TDateTime;
+  Version, Codigodoc: string;
+  SerieTree: TDataSet;
+  SoporteId: Integer;
+  IsValid: Boolean;
+  IdEstructura, CodSubs, Deposito, Posicion, Gaveta, Archivo, Gestor, IdServidor: string;
+  LogMessage: string;
+
+  function IsFieldEmptyOrNull(const Value: string): Boolean; inline;
+  begin
+    Result := (Trim(Value) = '') or (Value = '0');
+  end;
+
+begin
+  // Forzar cursor predeterminado para evitar crSQLWait
+  Screen.Cursor := crDefault;
+  try
+    SerieTree := UDM.tb_Serietree;
+
+    // Verificaciones iniciales combinadas
+    if not SerieTree.Active then
+    begin
+      UDM.sms(MSG_SERIE_TREE_INACTIVO, 3);
+      DataSet.Cancel;
+      Exit;
+    end;
+    if SerieTree.IsEmpty then
+    begin
+      UDM.sms(MSG_SUBSERIE_REQUERIDA, 3);
+      DataSet.Cancel;
+      Exit;
+    end;
+
+    if EstoyActualizando then
+    begin
+      UDM.sms(MSG_ACTUALIZANDO, 3);
+      DataSet.Cancel;
+      Exit;
+    end;
+
+    if not UDM.SudSDetail.Active then
+    begin
+      UDM.sms(MSG_SUD_DETAIL_INACTIVO, 3);
+      DataSet.Cancel;
+      Exit;
+    end;
+
+    // Cachear valores de campos para reducir accesos
+    IdEstructura := SerieTree.FieldByName('IdEstructura').AsString;
+    CodSubs := SerieTree.FieldByName('codsubs').AsString;
+    Deposito := SerieTree.FieldByName('deposito').AsString;
+//    Posicion := SerieTree.FieldByName('posicion').AsString;//
+    Gaveta := SerieTree.FieldByName('gaveta').AsString;
+    Archivo := SerieTree.FieldByName('Archivo').AsString;
+    Gestor := SerieTree.FieldByName('gestor').AsString;
+    IdServidor := SerieTree.FieldByName('idservidor').AsString;
+
+    // Generar valores predeterminados
+    ProponerValores(IdEstructura, CodSubs, Fecha, Version, Codigodoc);
+    DataSet.FieldByName('Fecha').Value := Fecha;
+    DataSet.FieldByName('Version').AsString := Version;
+    DataSet.FieldByName('Codigodoc').AsString := Codigodoc;
+
+    // Validar datos topográficos
+    SoporteId := UDM.SudSDetail.FieldByName('idsoporte').AsInteger;
+    IsValid := True;
+
+    case SoporteId of
+      1:
+        IsValid := not (IsFieldEmptyOrNull(Deposito) or IsFieldEmptyOrNull(Gaveta) or IsFieldEmptyOrNull(Archivo));
+      2:
+        IsValid := not IsFieldEmptyOrNull(IdServidor);
+      3:
+        IsValid := not (IsFieldEmptyOrNull(Deposito) or IsFieldEmptyOrNull(Gaveta) or IsFieldEmptyOrNull(Archivo) or IsFieldEmptyOrNull(IdServidor));
+    end;
+
+    if not IsValid then
+    begin
+      if SoporteId = 2 then
+        UDM.sms('No ha especificado los datos topográficos de la serie actual. Por favor especifique un servidor o repositorio válido.', 3)
+      else
+        UDM.sms(MSG_TOPOGRAFICOS, 3);
+      DataSet.Cancel;
+      Exit;
+    end;
+
+    // Asignar valores al nuevo registro
+    DataSet.FieldByName('idservidor').AsString := IdServidor;
+    DataSet.FieldByName('deposito').AsString := Deposito;
+    DataSet.FieldByName('posicion').AsString := Posicion;
+    DataSet.FieldByName('gaveta').AsString := Gaveta;
+    DataSet.FieldByName('Archivo').AsString := Archivo;
+    DataSet.FieldByName('gestor').AsString := Gestor;
+
+    // Preparar mensaje de log
+    LogMessage := Format('El documento "%s" con código "%s" fue agregado al sistema.', [DataSet.FieldByName('titulodoc').AsString, DataSet.FieldByName('Codigodoc').AsString]);
+  finally
+    // Restaurar cursor
+    Screen.Cursor := crDefault;
+  end;
+
+  // Registrar log de forma diferida para no bloquear
+  TThread.Queue(nil,
+    procedure
+    begin
+      UDM.log(LogMessage, 5, UDM.SudSDetail.FieldByName('serie').AsString, UDM.SudSDetail.FieldByName('serie').AsString, UDM.SudSDetail.FieldByName('Nombreestructura').AsString);
+    end);
+end;
+
+{
+var
+  Flag: Boolean;
+  Fecha: TDateTime;
+  Version, Codigodoc: string;
+  IdEstructura, codsubs: string;
+begin
+
+  if EstoyActualizando then begin
+    DataSet.Cancel;
+    Exit;
+  end;
+  if not UDM.SudSDetail.active then begin
+    DataSet.Cancel;
+    exit;
+  end;
+
+  //genera nuevas llaves
+  ProponerValores(UDM.tb_Serietree.FieldByName('IdEstructura').AsString, UDM.tb_Serietree.FieldByName('codsubs').AsString, Fecha, Version, Codigodoc);
+  // Asignar los valores propuestos a los campos
+  DataSet.FieldByName('Fecha').Value := Fecha;
+  DataSet.FieldByName('Version').AsString := Version;
+  DataSet.FieldByName('Codigodoc').AsString := Codigodoc;
+  //Fin de llaves...
+  Flag := False;
+  case UDM.SudSDetail.FieldByName('idsoporte').AsInteger of
+    1:
+      begin //Soporte Papel
+        if (trim(UDM.tb_Serietree.FieldByName('deposito').AsString) = '') or (UDM.tb_Serietree.FieldByName('deposito').Value = null) then
+          Flag := True;
+        if (trim(UDM.tb_Serietree.FieldByName('gaveta').AsString) = '') or (UDM.tb_Serietree.FieldByName('gaveta').Value = null) then
+          Flag := True;
+        if (trim(UDM.tb_Serietree.FieldByName('Archivo').AsString) = '') or (UDM.tb_Serietree.FieldByName('Archivo').Value = null) then
+          Flag := True;
+        if Flag then
+        begin
+          UDM.sms('Por favor especifique los datos topográficos necesarios para almacenar series en el soporte especificado.', 3);
+          DataSet.Cancel;
+          Exit;
+        end;
+      end;
+    2:
+      begin //Soporte Digital
+        if (trim(UDM.tb_Serietree.FieldByName('Idservidor').AsString) = '') or (UDM.tb_Serietree.FieldByName('Idservidor').Value = null) or (UDM.tb_Serietree.FieldByName('Idservidor').AsString = '0') then
+        begin
+          UDM.sms('No ha especificado los datos topográficos de la serie acual', 2);
+          UDM.sms('Por favor especifique un servidor o repositorio válido para almacenar la información especificada.', 3);
+          DataSet.Cancel;
+          Exit;
+        end;
+      end;
+    3:
+      begin //Soporte Papel y digital
+        if (trim(UDM.tb_Serietree.FieldByName('deposito').AsString) = '') or (UDM.tb_Serietree.FieldByName('deposito').Value = null) then
+          Flag := True;
+        if (trim(UDM.tb_Serietree.FieldByName('gaveta').AsString) = '') or (UDM.tb_Serietree.FieldByName('gaveta').Value = null) then
+          Flag := True;
+        if (trim(UDM.tb_Serietree.FieldByName('archivo').AsString) = '') or (UDM.tb_Serietree.FieldByName('archivo').Value = null) then
+          Flag := True;
+        if (trim(UDM.tb_Serietree.FieldByName('Idservidor').AsString) = '') or (UDM.tb_Serietree.FieldByName('Idservidor').Value = null) then
+          Flag := True;
+        if Flag then
+        begin
+          UDM.sms('Por favor especifique los datos topográficos necesarios para almacenar series en el soporte especificado.', 3);
+          DataSet.Cancel;
+          Exit;
+        end;
+      end;
+  end;
+
+  //DataSet.FieldByName('Codigodoc').AsString := UDM.tb_Serietree.FieldByName('codsubs').AsString;
   DataSet.FieldByName('idservidor').AsInteger := UDM.tb_Serietree.FieldByName('idservidor').AsInteger;
   DataSet.FieldByName('deposito').AsString := UDM.tb_Serietree.FieldByName('deposito').AsString;
+  DataSet.FieldByName('posicion').AsString := UDM.tb_Serietree.FieldByName('posicion').AsString;
   DataSet.FieldByName('gaveta').AsString := UDM.tb_Serietree.FieldByName('gaveta').AsString;
   DataSet.FieldByName('Archivo').AsString := UDM.tb_Serietree.FieldByName('Archivo').AsString;
   DataSet.FieldByName('gestor').AsString := UDM.tb_Serietree.FieldByName('gestor').AsString;
-end;
-
-procedure TUDM.tb_SerietreePostError(DataSet: TDataSet; E: EDatabaseError; var Action: TDataAction);
-begin
-  UDM.sms('No se pudieron guardar los cambios realizados. Motivo: ' + E.Message, 1);
-end;
+  UDM.log('El documento"' + DataSet.FieldByName('titulodoc').AsString + '" con código "' + DataSet.FieldByName('Codigodoc').AsString + '" fue agregado al sistema.', 5, UDM.SudSDetail.FieldByName('serie').AsString, UDM.SudSDetail.FieldByName('serie').AsString, UDM.SudSDetail.FieldByName('Nombreestructura').AsString);
+end; }
 
 procedure TUDM.tb_treeAfterPost(DataSet: TDataSet);
 begin
-  AllFather.Active := False;
+//  tb_arbol.Refresh;
+{  AllFather.Active := False;
   AllFather.Active := True;
   CL_Nodos.Active := False;
   cl_nodopadre.Active := False;
   cl_nodopadre.Active := True;
-  CL_Nodos.Active := True;
+  CL_Nodos.Active := True;  }
+end;
+
+procedure TUDM.tb_treeBeforePost(DataSet: TDataSet);
+
+  function ExisteIdEstructura(const IdEstructura: string): Boolean;
+  var
+    Query: TFDQuery;
+  begin
+    Result := False;
+    Query := TFDQuery.Create(nil);
+    try
+      Query.Connection := UDM.Conn; // Asegúrate de tener tu conexión configurada
+      Query.SQL.Text := 'SELECT COUNT(*) FROM tb_tree WHERE IdEstructura = :IdEstructura';
+      Query.ParamByName('IdEstructura').AsString := IdEstructura;
+      Query.Open;
+
+    // Si el resultado es mayor que 0, significa que ya existe
+      if Query.Fields[0].AsInteger > 0 then
+        Result := True;
+    finally
+      Query.Free;
+    end;
+  end;
+
+var
+  IdEstructura: string;
+begin
+  IdEstructura := DataSet.FieldByName('IdEstructura').AsString;
+  if Trim(IdEstructura) = '' then
+  begin
+    sms('El código de la Estructura no puede estar vacío.', 2);
+    DataSet.Cancel; // Cancela la operación de inserción o modificación
+    Abort;          // Evita que continúe la inserción
+    Exit;
+  end;
+  if DataSet.State = dsInsert then
+    if ExisteIdEstructura(IdEstructura) then
+    begin
+      sms('El código de la Estructura ya existe. No se puede insertar un valor duplicado.', 2);
+      DataSet.Cancel; // Cancela la operación de inserción o modificación
+      Abort;          // Evita que continúe la inserción
+      Exit;
+    end;
+  if DataSet.FieldByName('tipo').Value = null then
+  begin
+    sms('Debe especificar un valor para el tipo de objeto.', 2);
+    DataSet.Cancel;
+    abort;
+    exit;
+  end;
+  if DataSet.FieldByName('Administrador').Value = null then
+  begin
+    sms('Debe especificar un valor para el Administrador del Area.', 2);
+    DataSet.Cancel;
+    abort;
+    exit;
+  end;
+end;
+
+procedure TUDM.Timer1Timer(Sender: TObject);
+begin
+  if Conectado then
+  begin
+    ActivaDataLayer(true);
+    Conectado := False;
+  end;
+end;
+
+procedure TUDM.TrimAppMemorySize;
+var
+  MainHandle: THandle;
+begin
+  try
+    MainHandle := OpenProcess(PROCESS_ALL_ACCESS, false, GetCurrentProcessID);
+    SetProcessWorkingSetSize(MainHandle, $FFFFFFFF, $FFFFFFFF);
+    CloseHandle(MainHandle);
+  except
+  end;
+  Application.ProcessMessages;
 end;
 
 procedure TUDM.UpDateDB;
@@ -2098,247 +5381,111 @@ procedure TUDM.UpDateDB;
     end;
   end;
 
-var
-  cad: string;
-begin    //fuente varchar(1)
-  execSQLUPD('ALTER TABLE cl_Resp_Gest_Arch ADD COLUMN habilitado varchar(1)');
-  execSQLUPD('ALTER TABLE cl_subseries ADD COLUMN fechaaprov date');
-  execSQLUPD('ALTER TABLE cl_subseries ADD COLUMN idtiposerie int');
-  execSQLUPD('ALTER TABLE cl_expediente ALTER COLUMN IDExpediente varchar(12)');
-  execSQLUPD('ALTER TABLE tb_SeriesDatos ALTER COLUMN IDExpediente varchar(12)');
-  execSQLUPD('UPDATE cl_series SET cl_series.serie = LTrim(RTrim(cl_Series.serie))');
-  execSQLUPD('UPDATE cl_subseries SET cl_subseries.subserie = LTrim(RTrim(cl_subseries.subserie))');
-  execSQLUPD('UPDATE tb_tree SET tb_tree.etiqueta = LTrim(RTrim(tb_tree.etiqueta))');
-  execSQLUPD('UPDATE cl_subseries SET cl_subseries.activa = true');
-  execSQLUPD('CREATE VIEW V_EtiquetaID AS SELECT id, etiqueta FROM tb_tree');
-  cad := 'CREATE TABLE tb_VirtVarDataEstruct (IdEstructura VARCHAR (50) NOT NULL, ';
-  cad := cad + 'id INTEGER, Orden INTEGER, IdVar SMALLINT, VarInteger INTEGER, VarDouble ';
-  cad := cad + 'REAL, VarDate TIMESTAMP,	VarString255 VARCHAR (255),	VarMemo TEXT,	CONSTRAINT ';
-  cad := cad + 'tb_VirtVarDataEstructPK PRIMARY KEY (IdEstructura, id, Orden, IdVar), ';
-  cad := cad + 'CONSTRAINT FK_tb_treevardata FOREIGN KEY (IdEstructura,id) REFERENCES tb_tree (IdEstructura,id))';
-  execSQLUPD(cad);
-  cad := 'INSERT INTO cl_Resp_Gest_Arch(Idresp, NombreResponsable, usuario, CorreoElect, Rol, Telefono, password, habilitado) ';
-  cad := cad + 'VALUES(0, ' + QuotedStr('Administrador del Sistema EMSERGO SGD') + ', ' + QuotedStr('administrador') + ', ';
-  cad := cad + QuotedStr('crosales@nauta.cu') + ', 1, ' + QuotedStr('50926970') + ', ' + QuotedStr('dd46685659a8cbe9779bc361e6d9ae47') + ', ' + QuotedStr('S') + ')';
-  execSQLUPD(cad);
-  cad := 'create table cl_tipoexp(IdTipoExp int primary key, NombreTipoExp varchar(255))';
-  execSQLUPD(cad);
-  cad := 'create table cl_expediente(IDExpediente int primary key, Nombre varchar(255), IdTipoExp int, FechaInicio datetime, FechaCierre datetime, cerrado varchar(1), comentario memo)';
-  execSQLUPD(cad);
-  execSQLUPD('ALTER TABLE cl_Resp_Gest_Arch ADD COLUMN habilitado varchar(1)');
-  execSQLUPD('ALTER TABLE tb_SeriesDatos ADD COLUMN IDExpediente int');
-  execSQLUPD('ALTER TABLE tb_SeriesDatos ADD COLUMN namefile varchar(255)');
-  cad := 'CREATE TABLE tb_ssArchdigital(IdEstructura varchar(50) NOT NULL, id int NOT NULL, codsubs varchar(50) ';
-  cad := cad + 'NOT NULL, Fecha datetime NOT NULL, Version smallint NOT NULL, idhijo int NOT NULL, nombre varchar(255),Etiqueta varchar(50)';
-  cad := cad + ' ext int, extnombre varchar(255), comentario varchar(255), urlraiz varchar(50), path varchar(255), ';
-  cad := cad + 'tamano int, padre int, nivel smallint, CONSTRAINT PK_tb_SSArchDigital PRIMARY KEY(IdEstructura, id,  ';
-  cad := cad + 'codsubs,  Fecha,  Version,  idhijo), CONSTRAINT  FK_SSDatos_SSArchDigital FOREIGN KEY (IdEstructura,  ';
-  cad := cad + 'id,  codsubs,  Fecha,  Version) REFERENCES  tb_SeriesDatos(IdEstructura, id, codsubs, Fecha, Version))';    // ON DELETE CASCADE ON UPDATE CASCADE
-  execSQLUPD(cad);
-  execSQLUPD('ALTER TABLE tb_ssArchdigital ADD COLUMN fuente varchar(1)');
-  execSQLUPD('ALTER TABLE tb_ssArchdigital ADD COLUMN etiqueta varchar(50)');
-  execSQLUPD('CREATE TABLE tb_ext(id int NOT NULL, ext varchar(5) NOT NULL, CONSTRAINT tb_ext_pkey PRIMARY KEY (id, ext));');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (1, ' + QuotedStr('.doc') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (1, ' + QuotedStr('.docm') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (1, ' + QuotedStr('.docx') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (1, ' + QuotedStr('.dotm') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (1, ' + QuotedStr('.dotx') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (1, ' + QuotedStr('.mht') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (1, ' + QuotedStr('.odt') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (1, ' + QuotedStr('.rtf') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (1, ' + QuotedStr('.txt') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (1, ' + QuotedStr('.xml') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (1, ' + QuotedStr('.xps') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (2, ' + QuotedStr('.accd') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (2, ' + QuotedStr('.mdb') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (3, ' + QuotedStr(' .mht') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (3, ' + QuotedStr('.csv') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (3, ' + QuotedStr('.dif') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (3, ' + QuotedStr('.ods') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (3, ' + QuotedStr('.prn') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (3, ' + QuotedStr('.slk') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (3, ' + QuotedStr('.xla') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (3, ' + QuotedStr('.xlam') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (3, ' + QuotedStr('.xls') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (3, ' + QuotedStr('.xlsb') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (3, ' + QuotedStr('.xlsm') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (3, ' + QuotedStr('.xlsx') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (3, ' + QuotedStr('.xlt') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (3, ' + QuotedStr('.xltm') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (3, ' + QuotedStr('.xltx') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (3, ' + QuotedStr('.xml') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (3, ' + QuotedStr('.xps') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (4, ' + QuotedStr('.emf') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (4, ' + QuotedStr('.odp') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (4, ' + QuotedStr('.png') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (4, ' + QuotedStr('.pot') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (4, ' + QuotedStr('.potm') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (4, ' + QuotedStr('.potx') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (4, ' + QuotedStr('.ppa') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (4, ' + QuotedStr('.ppam') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (4, ' + QuotedStr('.pps') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (4, ' + QuotedStr('.ppsm') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (4, ' + QuotedStr('.ppsx') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (4, ' + QuotedStr('.ppt') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (4, ' + QuotedStr('.pptm') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (4, ' + QuotedStr('.pptx') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (4, ' + QuotedStr('.thmx') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (4, ' + QuotedStr('.wmf') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (4, ' + QuotedStr('.wmv') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (4, ' + QuotedStr('.xps') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (5, ' + QuotedStr('.dwg') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (6, ' + QuotedStr('.pdf') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (7, ' + QuotedStr('.srf') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (9, ' + QuotedStr('.dat') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (10, ' + QuotedStr('.log') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (11, ' + QuotedStr('.bat') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (12, ' + QuotedStr('.exe') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (13, ' + QuotedStr('.htm') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (14, ' + QuotedStr('.bmp') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (15, ' + QuotedStr('.gif') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (16, ' + QuotedStr('.jpg') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (17, ' + QuotedStr('.jpeg') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (18, ' + QuotedStr('.html') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (19, ' + QuotedStr('.mp4') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (20, ' + QuotedStr('.psd') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (21, ' + QuotedStr('.rar') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (22, ' + QuotedStr('.shp') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (23, ' + QuotedStr('.swf') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (24, ' + QuotedStr('.tif') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (26, ' + QuotedStr('.wma') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (27, ' + QuotedStr('.zip') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (28, ' + QuotedStr('.3gp') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (29, ' + QuotedStr('.7z') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (30, ' + QuotedStr('.ace') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (31, ' + QuotedStr('.ai') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (32, ' + QuotedStr('.aif') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (33, ' + QuotedStr('.aiff') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (34, ' + QuotedStr('.amr') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (35, ' + QuotedStr('.asf') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (36, ' + QuotedStr('.asx') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (37, ' + QuotedStr('.bin') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (38, ' + QuotedStr('.bup') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (39, ' + QuotedStr('.cab') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (40, ' + QuotedStr('.cbr') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (41, ' + QuotedStr('.cda') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (42, ' + QuotedStr('.cdl') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (43, ' + QuotedStr('.cdr') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (44, ' + QuotedStr('.chm') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (45, ' + QuotedStr('.divx') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (46, ' + QuotedStr('.dll') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (47, ' + QuotedStr('.dmg') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (48, ' + QuotedStr('.dss') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (49, ' + QuotedStr('.dvf') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (50, ' + QuotedStr('.eml') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (51, ' + QuotedStr('.eps') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (52, ' + QuotedStr('.fla') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (53, ' + QuotedStr('.flv') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (54, ' + QuotedStr('.gz') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (55, ' + QuotedStr('.hqx') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (56, ' + QuotedStr('.ifo') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (57, ' + QuotedStr('.indd') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (58, ' + QuotedStr('.iso') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (59, ' + QuotedStr('.jar') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (60, ' + QuotedStr('.lnk') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (61, ' + QuotedStr('.m4a') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (62, ' + QuotedStr('.m4b') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (63, ' + QuotedStr('.m4p') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (64, ' + QuotedStr('.m4v') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (65, ' + QuotedStr('.mcd') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (66, ' + QuotedStr('.mid') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (67, ' + QuotedStr('.mov') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (68, ' + QuotedStr('.mp2') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (69, ' + QuotedStr('.mpeg') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (70, ' + QuotedStr('mpg') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (71, ' + QuotedStr('.msi') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (72, ' + QuotedStr('.mswm') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (73, ' + QuotedStr('.ogg') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (74, ' + QuotedStr('.png') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (75, ' + QuotedStr('.ps') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (76, ' + QuotedStr('.pst') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (77, ' + QuotedStr('.pub') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (78, ' + QuotedStr('.ptb') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (79, ' + QuotedStr('.qbb') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (80, ' + QuotedStr('.qbw') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (81, ' + QuotedStr('.qxd') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (82, ' + QuotedStr('.ram') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (83, ' + QuotedStr('.rm') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (84, ' + QuotedStr('.rmvb') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (86, ' + QuotedStr('.sea') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (87, ' + QuotedStr('.ses') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (88, ' + QuotedStr('.sit') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (89, ' + QuotedStr('.sitx') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (90, ' + QuotedStr('.ss') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (91, ' + QuotedStr('.tgz') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (92, ' + QuotedStr('.thm') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (93, ' + QuotedStr('.tmp') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (94, ' + QuotedStr('.torr') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (95, ' + QuotedStr('.ttf') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (96, ' + QuotedStr('.vcd') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (97, ' + QuotedStr('.vob') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (98, ' + QuotedStr('.wav') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (99, ' + QuotedStr('.wmv') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (100, ' + QuotedStr('.wps') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (101, ' + QuotedStr('.xpi') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (102, ' + QuotedStr('.db') + ');');
-  execSQLUPD('INSERT INTO tb_ext(id, ext)VALUES (104, ' + QuotedStr('.mp3') + ');');
-  execSQLUPD('DELETE FROM cl_frecuencia WHERE idfrecuencia=8;');
-  execSQLUPD('DELETE FROM cl_frecuencia WHERE idfrecuencia=9;');
-  execSQLUPD('INSERT INTO cl_frecuencia(Idfrecuencia, NombreFrecuencia)VALUES (8, ' + QuotedStr('Semestral') + ');');
-  execSQLUPD('INSERT INTO cl_frecuencia(Idfrecuencia, NombreFrecuencia)VALUES (9, ' + QuotedStr('') + ');');
-  execSQLUPD('DROP TABLE cl_tiposerie');
-  execSQLUPD('CREATE TABLE cl_tiposerie(idtiposerie int NOT NULL PRIMARY KEY, tiposerie varchar(50), espacial varchar(1));');
-  execSQLUPD('INSERT INTO cl_tiposerie(idtiposerie, tiposerie, espacial) VALUES(1, ' + QuotedStr('Documento') + ', ' + QuotedStr('N') + ');');
-  execSQLUPD('INSERT INTO cl_tiposerie(idtiposerie, tiposerie, espacial) VALUES(2, ' + QuotedStr('Documento Espacial') + ', ' + QuotedStr('S') + ');');
-  execSQLUPD('INSERT INTO cl_tiposerie(idtiposerie, tiposerie, espacial) VALUES(3, ' + QuotedStr('Expediente') + ', ' + QuotedStr('N') + ');');
-  execSQLUPD('INSERT INTO cl_tiposerie(idtiposerie, tiposerie, espacial) VALUES(4, ' + QuotedStr('Expediente Espacial') + ', ' + QuotedStr('S') + ');');
-  cad:='CREATE TABLE tb_sysconfig (idproducto varchar(255)NOT NULL, build varchar(255), ';
-  cad:=cad+'fecha datetime, version varchar(255), carpetabd varchar(255), ipservidorbd varchar(255),  ';
-  cad:=cad+'usuariobd varchar(255), passbd varchar(255), empresa varchar(255), direccion text, ';
-  cad:=cad+'logo image, directorempresacliente varchar(255), presidentecvdempresacliente varchar(255), ';
-  cad:=cad+'HID varchar(255), numeroserie varchar(255), licactiva int, CONSTRAINT PK_tb_sysconfig PRIMARY KEY(idproducto))';
-  execSQLUPD(cad);
-end;
-
-procedure TUDM.UpdateVarPrj(acodEE, acodNN: string);
-var
-  cad: string;
-begin
-  {cad:='SELECT cl_variables.IdVar,	cl_variables.NomVariable,	cl_variables.Etiqueta, cl_variables.tipo,	';
-  cad:=cad+'cl_variables.longitud, cl_variables.descripcion, cl_variables.ListaDesplegable FROM cl_variables';
-  cad:=cad+' WHERE (((cl_variables.IdVar) NOT IN ( SELECT IdVar FROM cl_VarProject  WHERE IdEstructura ='+QuotedStr(acodEE)+' and id='+acodNN+')));';  }
-  with UDM.VarDispPrj do
+  procedure Ejecutacmd(ascript: string);
   begin
-    Active := False;
-    Params[0].Value := acodEE;
-    Params[1].Value := acodNN;
     try
-      Active := True;
+      conn.StartTransaction;
+      conn.ExecSQL(ascript);
+      conn.Commit;
     except
       on E: EFDException do
       begin
-        UDM.sms('No se pudo cargar el listado de variables disponibles. Motivo: ' + E.Message, 1);
-        Exit;
+        conn.Rollback;
       end;
     end;
   end;
-end;
 
-procedure TUDM.UpdateVarSubS(acod: string);
-begin
-  with UDM.VarDispSubS do
+  procedure config(tborigen, tbdestino: string);
+  var
+    j: integer;
   begin
-    Active := False;
-    Params[0].Value := acod;
-    try
-      Active := True;
-    except
-      on E: EFDException do
-      begin
-        UDM.sms('No se pudo cargar el listado de variables disponibles. Motivo: ' + E.Message, 1);
-        Exit;
+    with cmdorig do
+    begin
+      Active := false;
+      SQL.clear;
+      SQL.Add('select * from ' + tborigen);
+      try
+        Active := True;
+      except
       end;
     end;
+    with cmddest do
+    begin
+      Active := false;
+      SQL.clear;
+      SQL.Add('select * from ' + tbdestino);
+      try
+        Active := True;
+      except
+      end;
+    end;
+    cmdorig.First;
+    while not cmdorig.Eof do
+    begin
+      cmddest.Append;
+      for j := 0 to cmdorig.FieldCount - 1 do
+        cmddest.FieldByName(cmdorig.Fields[j].FieldName).Value := cmdorig.Fields[j].Value;
+      try
+        cmddest.Post;
+      except
+        cmddest.Cancel;
+      end;
+      cmdorig.Next;
+    end;
+  end;
+
+var
+  cad: string;
+  List: TStringList;
+begin              //
+  cad := 'UPDATE cl_ttipoarch SET tipoarch = ' + QuotedStr('Gestión') + ' WHERE ldtipoarch = 2';
+  execSQLUPD(cad);
+  cad := '';
+  cad := cad + 'CREATE TABLE TB_Prestamos (IdEstructura varchar(50) NOT NULL, id int NOT NULL, ';
+  cad := cad + 'IdPrestamo varchar(12) NOT NULL, Prestamista varchar(255), Estructura varchar(150), ';
+  cad := cad + 'Responsable varchar(100), FPrestamo datetime, FDevolucion datetime, FCancelacion datetime, ';
+  cad := cad + 'OBS varchar(255), CONSTRAINT PK_TB_Prest PRIMARY KEY (IdEstructura, id, IdPrestamo), ';
+  cad := cad + 'CONSTRAINT FK_TREE_PRESTAMOS FOREIGN KEY (IdEstructura, id) REFERENCES tb_tree ';
+  cad := cad + '(IdEstructura, id) ON DELETE CASCADE ON UPDATE CASCADE); ';
+  execSQLUPD(cad);
+  cad := '';
+  cad := cad + 'CREATE TABLE TB_PrestamosDocumentos (IdEstructura varchar(50), id int NOT NULL, ';
+  cad := cad + 'IdPrestamo varchar(12), Codigodoc varchar(20), fecha datetime NOT NULL, version varchar(12), ';
+  cad := cad + 'codsubs varchar(50), titulodoc varchar(255), Archivo smallint, deposito varchar(255), ';
+  cad := cad + 'gaveta varchar(20), posicion varchar(10), CONSTRAINT PK_TB_Prest_Document PRIMARY KEY ';
+  cad := cad + '(IdEstructura, id, IdPrestamo, Codigodoc, fecha, version), CONSTRAINT FK_PRESTAMOS_DOCUMENTOS ';
+  cad := cad + 'FOREIGN KEY (IdEstructura, id, IdPrestamo) REFERENCES TB_Prestamos (IdEstructura, id, ';
+  cad := cad + 'IdPrestamo) ON DELETE CASCADE ON UPDATE CASCADE);';
+  execSQLUPD(cad);
+
+  cad := '';
+  cad := cad + 'CREATE TABLE tb_tree_directors (';
+  cad := cad + 'IdEstructura VARCHAR(50) NOT NULL, ';
+  cad := cad + 'id INT NOT NULL, ';
+  cad := cad + 'user_id VARCHAR(100) NOT NULL, ';
+  cad := cad + 'CONSTRAINT PK_tb_tree_directors PRIMARY KEY (IdEstructura, id, user_id), ';
+  cad := cad + 'CONSTRAINT FK_tb_tree_directors_tree FOREIGN KEY (IdEstructura, id) ';
+  cad := cad + 'REFERENCES tb_tree(IdEstructura, id), ';
+  cad := cad + 'CONSTRAINT FK_tb_tree_directors_user FOREIGN KEY (user_id) ';
+  cad := cad + 'REFERENCES tb_user(nombreuser)';
+  cad := cad + ');';
+  execSQLUPD(cad);
+  cad := '';
+//  execSQLUPD('DELETE FROM tb_rol WHERE rol = ' + QuotedStr('Visor'));
+  execSQLUPD('DELETE FROM tb_rol WHERE rol = ' + QuotedStr('Archivero'));
+  if TBD = 'S' then
+  begin
+    execSQLUPD('ALTER TABLE tb_serietree DROP COLUMN posicion;');
+    execSQLUPD('ALTER TABLE tb_seriesdatos ALTER COLUMN posicion VARCHAR(10);');
+    execSQLUPD('ALTER TABLE tb_seriesdatos ALTER COLUMN IDExpediente VARCHAR(20);');
+    execSQLUPD('ALTER TABLE tb_sysconfig ADD SistemaIdentificador VARCHAR(50) NOT NULL DEFAULT '+QuotedStr('GD_Valid_2025'));
+  end
+  else
+  begin
+    execSQLUPD('ALTER TABLE tb_serietree DROP COLUMN posicion;');
+    execSQLUPD('ALTER TABLE tb_seriesdatos ALTER COLUMN posicion TEXT(10);');
+    execSQLUPD('ALTER TABLE tb_seriesdatos ALTER COLUMN IDExpediente TEXT(20);');
+    execSQLUPD('ALTER TABLE tb_sysconfig ADD COLUMN SistemaIdentificador VARCHAR(50) NOT NULL DEFAULT '+QuotedStr('GD_Valid_2025') );
   end;
 end;
 

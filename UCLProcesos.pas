@@ -126,29 +126,28 @@ end;
 
 procedure TfrmCLprocesos.DBNavigator1Click(Sender: TObject; Button: TNavigateBtn);
 begin
-  if Button = nbInsert then
+  {if Button = nbInsert then
   begin
     if (TDBNavigator(Sender).DataSource.DataSet.State = dsInsert) or (TDBNavigator(Sender).DataSource.DataSet.State = dsEdit) then
       UDM.tcl_ProcesoSubproceso.FieldByName('IdSubproceso').AsInteger := UDM.GetLastId('tcl_ProcesoSubproceso', 'IdSubproceso');
-  end;
+  end; }
 end;
 
 procedure TfrmCLprocesos.DBNavigator2Click(Sender: TObject; Button: TNavigateBtn);
 begin
-  if Button = nbInsert then
+  {[[if Button = nbInsert then
   begin
     if (TDBNavigator(Sender).DataSource.DataSet.State = dsInsert) or (TDBNavigator(Sender).DataSource.DataSet.State = dsEdit) then
-      UDM.tcl_Procesos.FieldByName('IdProceso').AsInteger := UDM.GetLastId('tcl_Procesos', 'IdProceso');
-  end;
+      UDM.t]}
 end;
 
 procedure TfrmCLprocesos.DBNavigator3Click(Sender: TObject; Button: TNavigateBtn);
 begin
-  if Button = nbInsert then
+ { if Button = nbInsert then
   begin
     if (TDBNavigator(Sender).DataSource.DataSet.State = dsInsert) or (TDBNavigator(Sender).DataSource.DataSet.State = dsEdit) then
       UDM.tcl_procesosGrupos.FieldByName('IdGrupo').AsInteger := UDM.GetLastId('tcl_procesosGrupos', 'IdGrupo');
-  end;
+  end;  }
 end;
 
 procedure TfrmCLprocesos.FormActivate(Sender: TObject);

@@ -2120,7 +2120,6 @@ object MAINFORM: TMAINFORM
           Navigator.Buttons.CustomButtons = <>
           Styles.StyleSheet = UDM.cxVerticalGridStyleSheetDevExpress
           TabOrder = 0
-          DataController.DataSource = UDM.dstb_VirtualVarPrj
           Version = 1
           object ivj1: TcxDBEditorRow
             Visible = False
@@ -2282,7 +2281,6 @@ object MAINFORM: TMAINFORM
         Width = 300
         Height = 605
         ShowNodeHint = True
-        DataSource = UDM.dstb_mp
         DisplayField = 'etiqueta'
         ImageIndexField = 'icono'
         KeyField = 'id'
@@ -2400,10 +2398,6 @@ object MAINFORM: TMAINFORM
         object tsBasicView: TcxTabSheet
           Caption = 'Gesti'#243'n de Series documentales  (Formulario)'
           ImageIndex = 0
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object cxScrollBox1: TcxScrollBox
             Left = 0
             Top = 0
@@ -3196,6 +3190,10 @@ object MAINFORM: TMAINFORM
         object tsAdvancedView: TcxTabSheet
           Caption = 'Gesti'#243'n de Series documentales (Vista Tabla)'
           ImageIndex = 1
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           object cxScrollBox2: TcxScrollBox
             Left = 0
             Top = 0
@@ -3794,6 +3792,10 @@ object MAINFORM: TMAINFORM
           object tssubseriesdisp: TcxTabSheet
             Caption = 'Disponibles'
             ImageIndex = 0
+            ExplicitLeft = 0
+            ExplicitTop = 0
+            ExplicitWidth = 0
+            ExplicitHeight = 0
             object Panel2: TPanel
               Left = 0
               Top = 0
@@ -3901,6 +3903,10 @@ object MAINFORM: TMAINFORM
                 object tsSSDispoVT: TcxTabSheet
                   Caption = 'Vista Tabla'
                   ImageIndex = 1
+                  ExplicitLeft = 0
+                  ExplicitTop = 0
+                  ExplicitWidth = 0
+                  ExplicitHeight = 0
                   object cxGrid1: TcxGrid
                     Left = 0
                     Top = 0
@@ -4712,7 +4718,6 @@ object MAINFORM: TMAINFORM
               Styles.StyleSheet = UDM.cxVerticalGridStyleSheetDevExpress
               TabOrder = 0
               OnMouseDown = cxDBVerticalGrid1MouseDown
-              DataController.DataSource = UDM.dsVarSSDetail
               Version = 1
               object cxDBVerticalGrid4CategoryRow1: TcxCategoryRow
                 Properties.Caption = 'PROPIEDADES'
@@ -4830,7 +4835,6 @@ object MAINFORM: TMAINFORM
               TabOrder = 1
               object cxGrid3DBTableView1: TcxGridDBTableView
                 Navigator.Buttons.CustomButtons = <>
-                DataController.DataSource = UDM.dsVarSSDetail
                 DataController.Summary.DefaultGroupSummaryItems = <>
                 DataController.Summary.FooterSummaryItems = <>
                 DataController.Summary.SummaryGroups = <>
@@ -4880,7 +4884,6 @@ object MAINFORM: TMAINFORM
                 Buttons.SaveBookmark.Visible = False
                 Buttons.GotoBookmark.Visible = False
                 Buttons.Filter.Visible = False
-                DataSource = UDM.dsVarSSDetail
                 InfoPanel.DisplayMask = '[RecordIndex] de [RecordCount]'
                 InfoPanel.Visible = True
                 Align = alRight
@@ -4894,7 +4897,6 @@ object MAINFORM: TMAINFORM
                 Top = 1
                 Width = 267
                 Height = 29
-                DataSource = UDM.dsVarSSDetail
                 VisibleButtons = [nbFirst, nbPrior, nbNext, nbLast]
                 Align = alClient
                 Hints.Strings = (
@@ -5329,6 +5331,10 @@ object MAINFORM: TMAINFORM
           object tsSubseriesDatos: TcxTabSheet
             Caption = 'Gesti'#243'n de Subseries documentales'
             ImageIndex = 0
+            ExplicitLeft = 0
+            ExplicitTop = 0
+            ExplicitWidth = 0
+            ExplicitHeight = 0
             object splitervar: TAdvSplitter
               Left = 1150
               Top = 0
@@ -5443,7 +5449,6 @@ object MAINFORM: TMAINFORM
                       HeaderAlignment = taCenter
                       FieldName = 'coddep'
                     end>
-                  Properties.ListSource = UDM.dscl_deposito
                   Visible = False
                   HeaderAlignmentHorz = taCenter
                   HeaderGlyphAlignmentHorz = taCenter
@@ -5533,6 +5538,10 @@ object MAINFORM: TMAINFORM
                 object tsvar: TcxTabSheet
                   Caption = 'Otros campos'
                   ImageIndex = 0
+                  ExplicitLeft = 0
+                  ExplicitTop = 0
+                  ExplicitWidth = 0
+                  ExplicitHeight = 0
                   object cxDBVerticalGrid1: TcxDBVerticalGrid
                     Left = 0
                     Top = 0
@@ -5548,7 +5557,6 @@ object MAINFORM: TMAINFORM
                     Styles.UseOddEvenStyles = bTrue
                     TabOrder = 0
                     OnMouseDown = cxDBVerticalGrid1MouseDown
-                    DataController.DataSource = UDM.Dtb_VirtualVar
                     Version = 1
                     object iv1: TcxDBEditorRow
                       Styles.Header = cxStyle101
@@ -5918,7 +5926,7 @@ object MAINFORM: TMAINFORM
         FullRepaint = False
         OutlookLook = False
         Resizable = False
-        TabOrder = 6
+        TabOrder = 4
         Visible = False
         OnButtonClick = jcpTopografiaArchivoButtonClick
         object Label3: TLabel
@@ -6697,10 +6705,6 @@ object MAINFORM: TMAINFORM
           object cxTabSheet3: TcxTabSheet
             Caption = 'Foto'
             ImageIndex = 1
-            ExplicitLeft = 0
-            ExplicitTop = 0
-            ExplicitWidth = 0
-            ExplicitHeight = 0
             object cxDBImage2: TcxDBImage
               Left = 0
               Top = 0
@@ -6930,7 +6934,7 @@ object MAINFORM: TMAINFORM
         FullRepaint = False
         OutlookLook = False
         Resizable = False
-        TabOrder = 4
+        TabOrder = 6
         Visible = False
         OnButtonClick = cpInfoPathSubSeriesButtonClick
         object lbl1: TLabel
@@ -7866,7 +7870,6 @@ object MAINFORM: TMAINFORM
     object C2: TMenuItem
       Caption = 'Categor'#237'a ocupacional'
       Visible = False
-      OnClick = C2Click
     end
     object D2: TMenuItem
       Caption = 'Dep'#243'sitos'
@@ -7892,7 +7895,6 @@ object MAINFORM: TMAINFORM
     object C1: TMenuItem
       Caption = 'Cargos'
       Visible = False
-      OnClick = C1Click
     end
     object F1: TMenuItem
       Caption = 'Frecuencia de creaci'#243'n'

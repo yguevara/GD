@@ -1006,7 +1006,6 @@ object frmListEspec: TfrmListEspec
             HeaderAlignment = taCenter
             FieldName = 'nombre'
           end>
-        Properties.ListSource = UDM.dscl_cargo
         HeaderAlignmentHorz = taCenter
         HeaderGlyphAlignmentHorz = taCenter
         Width = 150

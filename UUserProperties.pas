@@ -26,7 +26,8 @@ uses
   dxSkinVisualStudio2013Dark, dxSkinVisualStudio2013Light, dxSkinVS2010,
   dxSkinWhiteprint, dxSkinXmas2008Blue, cxTextEdit, cxMaskEdit, cxDropDownEdit,
   cxLookupEdit, cxDBLookupEdit, cxDBLookupComboBox, Vcl.ComCtrls, Vcl.ToolWin,
-  JvExControls, JvButton, JvTransparentButton;
+  JvExControls, JvButton, JvTransparentButton, Vcl.DBActns, System.Actions,
+  Vcl.ActnList;
 
 type
   TfrmProperties = class(TForm)
@@ -49,8 +50,12 @@ type
     JvTransparentButton1: TJvTransparentButton;
     btnusercontrol: TJvTransparentButton;
     btnSystemHelp: TJvTransparentButton;
-    JvTransparentButton2: TJvTransparentButton;
     Edit1: TEdit;
+    JvTransparentButton10: TJvTransparentButton;
+    JvTransparentButton8: TJvTransparentButton;
+    ActionList1: TActionList;
+    DatasetPost1: TDataSetPost;
+    DatasetCancel1: TDataSetCancel;
     procedure btnCreateUserClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -113,13 +118,11 @@ begin
 end;
 
 procedure TfrmProperties.btnSystemHelpClick(Sender: TObject);
+var
+  TopicID: integer;
 begin
-  with TfrmsystemMSG.Create(nil) do
-  try
-    ShowModal;
-  finally
-    Free;
-  end;
+  TopicID := 14;
+  Application.HelpContext(TopicID);
 end;
 
 procedure TfrmProperties.Button1Click(Sender: TObject);
@@ -142,8 +145,15 @@ end;
 
 procedure TfrmProperties.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
-  if (UDM.cl_Resp_Gest_Arch.State = dsEdit) or (UDM.cl_Resp_Gest_Arch.State = dsInsert) then
+  if (UDM.cl_Resp_Gest_Arch.State = dsInsert) or (UDM.cl_Resp_Gest_Arch.State = dsEdit) then
+  try
     UDM.cl_Resp_Gest_Arch.Cancel;
+  except
+    on E: EFDException do
+    begin
+      MessageDlg('No se pudieron realizar los cambios solicitados.' + E.Message, mtError, [mbOK], 0);
+    end;
+  end;
 end;
 
 procedure TfrmProperties.FormCreate(Sender: TObject);
@@ -159,15 +169,13 @@ begin
 end;
 
 procedure TfrmProperties.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+var
+  TopicID: integer;
 begin
   if Key = 112 then
   begin
-    with TfrmsystemMSG.Create(nil) do
-    try
-      ShowModal;
-    finally
-      Free;
-    end;
+    TopicID := 14;
+    Application.HelpContext(TopicID);
   end;
 end;
 

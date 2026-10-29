@@ -49,7 +49,7 @@ var
 implementation
 
 uses
-  UCapaDatos, UExcelExport;
+  UCapaDatos, UExcelExport, USecurityClasss;
 
 {$R *.dfm}
 

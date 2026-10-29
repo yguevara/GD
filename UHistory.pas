@@ -56,13 +56,11 @@ begin
 end;
 
 procedure TfrmHistory.btnSystemHelpClick(Sender: TObject);
+var
+  TopicID: integer;
 begin
-  with TfrmsystemMSG.Create(nil) do
-  try
-    ShowModal;
-  finally
-    Free;
-  end;
+  TopicID := 34;
+  Application.HelpContext(TopicID);
 end;
 
 procedure TfrmHistory.FormActivate(Sender: TObject);
@@ -74,15 +72,13 @@ begin
 end;
 
 procedure TfrmHistory.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+var
+  TopicID: integer;
 begin
   if Key = 112 then
   begin
-    with TfrmsystemMSG.Create(nil) do
-    try
-      ShowModal;
-    finally
-      Free;
-    end;
+    TopicID := 34;
+    Application.HelpContext(TopicID);
   end;
 end;
 

@@ -118,7 +118,7 @@ end;
 
 procedure TfrmNewNode.SpeedButton1Click(Sender: TObject);
 begin
-  if UDM.tb_tree.RecordCount > 0 then
+{  if UDM.tb_tree.RecordCount > 0 then
   begin
     UDM.UpdateVarPrj(UDM.tb_tree.FieldByName('IdEstructura').AsString, UDM.tb_tree.FieldByName('Id').AsString);
     TipoObj := 'E';
@@ -135,7 +135,7 @@ begin
   begin
     UDM.sms('Por favor seleccione una estructura válida para la asignación de variables.', 2);
     Exit;
-  end;
+  end;   }
 end;
 
 end.

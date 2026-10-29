@@ -50,7 +50,7 @@ begin
   begin
 
       UDM.cl_Resp_Gest_Arch.Edit;
-      UDM.cl_Resp_Gest_Arch.FieldByName('password').AsString := MD5Print(MD5String(edtpass.Text));
+      UDM.cl_Resp_Gest_Arch.FieldByName('password').AsString := UDM.getMd5HashString(edtpass.Text) ;//MD5Print(MD5String(edtpass.Text));
       try
         UDM.cl_Resp_Gest_Arch.Post;
         UDM.sms('¡La contraseña se ha cambiado satisfactoriamente!', 3);

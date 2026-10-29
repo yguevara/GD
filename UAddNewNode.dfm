@@ -911,7 +911,7 @@ object frmNewNode: TfrmNewNode
     ParentBackground = False
     ParentColor = False
     ParentFont = False
-    TabOrder = 2
+    TabOrder = 1
     object Label5: TLabel
       Left = 328
       Top = 67
@@ -983,7 +983,7 @@ object frmNewNode: TfrmNewNode
       Align = alBottom
       DataBinding.DataField = 'descripcion'
       DataBinding.DataSource = UDM.dstb_tree
-      TabOrder = 0
+      TabOrder = 5
       Height = 89
       Width = 581
     end
@@ -1018,7 +1018,7 @@ object frmNewNode: TfrmNewNode
       StyleFocused.LookAndFeel.SkinName = 'Office2010Blue'
       StyleHot.LookAndFeel.NativeStyle = True
       StyleHot.LookAndFeel.SkinName = 'Office2010Blue'
-      TabOrder = 1
+      TabOrder = 4
       Width = 234
     end
     object lcbRepresentante: TcxDBLookupComboBox
@@ -1051,7 +1051,7 @@ object frmNewNode: TfrmNewNode
       StyleFocused.LookAndFeel.SkinName = 'Office2010Blue'
       StyleHot.LookAndFeel.NativeStyle = True
       StyleHot.LookAndFeel.SkinName = 'Office2010Blue'
-      TabOrder = 2
+      TabOrder = 3
       Width = 204
     end
     object edtEtiqueta: TcxDBTextEdit
@@ -1075,7 +1075,7 @@ object frmNewNode: TfrmNewNode
       StyleFocused.LookAndFeel.SkinName = 'DevExpressDarkStyle'
       StyleHot.LookAndFeel.NativeStyle = True
       StyleHot.LookAndFeel.SkinName = 'DevExpressDarkStyle'
-      TabOrder = 3
+      TabOrder = 1
       Width = 377
     end
     object edtdeposito: TcxDBTextEdit
@@ -1099,7 +1099,7 @@ object frmNewNode: TfrmNewNode
       StyleFocused.LookAndFeel.SkinName = 'DevExpressDarkStyle'
       StyleHot.LookAndFeel.NativeStyle = True
       StyleHot.LookAndFeel.SkinName = 'DevExpressDarkStyle'
-      TabOrder = 4
+      TabOrder = 0
       Width = 162
     end
     object cxDBCheckBox1: TcxDBCheckBox
@@ -1161,7 +1161,7 @@ object frmNewNode: TfrmNewNode
         0FA6CF825D9F0C64780000000049454E44AE426082}
       Properties.GlyphCount = 2
       Properties.NullStyle = nssUnchecked
-      TabOrder = 5
+      TabOrder = 2
     end
   end
 end

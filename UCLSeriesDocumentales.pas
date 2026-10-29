@@ -18,7 +18,8 @@ uses
   FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf,
   FireDAC.DApt.Intf, FireDAC.Stan.Async, FireDAC.DApt, FireDAC.Comp.DataSet,
   FireDAC.Comp.Client, cxButtonEdit, JvBaseDlg, JvSelectDirectory, JvExExtCtrls,
-  JvExtComponent, JvCaptionPanel, AdvGroupBox, AdvPanel, Vcl.Menus, AdvMenus;
+  JvExtComponent, JvCaptionPanel, AdvGroupBox, AdvPanel, Vcl.Menus, AdvMenus,
+  frxADOComponents, frxClass, frxGradient, frxRich, frxDBSet;
 
 type
   TfrmCLSeries = class(TForm)
@@ -56,7 +57,6 @@ type
     cxGridDBTableView1: TcxGridDBTableView;
     cxGridLevel1: TcxGridLevel;
     tsFormulario: TcxTabSheet;
-    SpeedButton1: TSpeedButton;
     dsSeries: TDataSource;
     GroupBox3: TGroupBox;
     GroupBox2: TGroupBox;
@@ -75,18 +75,11 @@ type
     cxGridDBTableView1tcentral: TcxGridDBColumn;
     cxGridDBTableView1destino: TcxGridDBColumn;
     cxGridDBTableView1tipoarchivo: TcxGridDBColumn;
-    cxGridDBTableView1pc: TcxGridDBColumn;
-    cxGridDBTableView1carpeta: TcxGridDBColumn;
     cxGridDBTableView1acceso: TcxGridDBColumn;
     cxGridDBTableView1frecuencia: TcxGridDBColumn;
     cxGridDBTableView1tiempo: TcxGridDBColumn;
     cxGridDBTableView1observacion: TcxGridDBColumn;
-    cxGridDBTableView1correo: TcxGridDBColumn;
-    cxGridDBTableView1archivo: TcxGridDBColumn;
-    cxGridDBTableView1deposito: TcxGridDBColumn;
-    cxGridDBTableView1gaveta: TcxGridDBColumn;
     SD: TJvSelectDirectory;
-    cxGridDBTableView1cargo: TcxGridDBColumn;
     Label9: TLabel;
     lcbSoporte: TcxDBLookupComboBox;
     edtNombreSS: TcxDBTextEdit;
@@ -102,54 +95,19 @@ type
     Label12: TLabel;
     edtArchCentral: TcxDBTextEdit;
     edtArchGestion: TcxDBTextEdit;
-    AdvGroupBox1: TAdvGroupBox;
-    Label4: TLabel;
     Label6: TLabel;
     Label1: TLabel;
     lcbAcceso: TcxDBLookupComboBox;
     lcbDestino: TcxDBLookupComboBox;
     Label10: TLabel;
-    GroupBox6: TGroupBox;
-    Label21: TLabel;
-    lcbServer: TcxDBLookupComboBox;
-    cxDBTextEdit6: TcxDBTextEdit;
-    Label22: TLabel;
-    cxDBTextEdit7: TcxDBTextEdit;
-    Label25: TLabel;
-    cxDBBlobEdit1: TcxDBBlobEdit;
-    Label18: TLabel;
     cpInfoPathSubSeries: TJvCaptionPanel;
     lbl1: TLabel;
     btnSelectDir: TSpeedButton;
     edt1: TEdit;
-    cbbarchivo: TcxDBLookupComboBox;
-    Label3: TLabel;
-    jvcpArchivo: TJvCaptionPanel;
     cmdArch: TFDQuery;
-    btnViewDetailFile: TJvTransparentButton;
-    cxDBVerticalGrid2: TcxDBVerticalGrid;
-    cxDBVerticalGrid2CategoryRow6: TcxCategoryRow;
     dscmdArch: TDataSource;
-    cxDBVerticalGrid2Cod: TcxDBEditorRow;
-    cxDBVerticalGrid2nombreArchivo: TcxDBEditorRow;
-    cxDBVerticalGrid2Tipo: TcxDBEditorRow;
-    cxDBVerticalGrid2Idresp: TcxDBEditorRow;
-    cxDBVerticalGrid2croquis: TcxDBEditorRow;
-    cxDBVerticalGrid2Foto: TcxDBEditorRow;
-    cxDBVerticalGrid2Descripcion: TcxDBEditorRow;
-    btnServerDetailView: TJvTransparentButton;
     cmdServer: TFDQuery;
     dscmdServer: TDataSource;
-    jvcpServerDetail: TJvCaptionPanel;
-    cxDBVerticalGrid1: TcxDBVerticalGrid;
-    cxCategoryRow1: TcxCategoryRow;
-    cxDBVerticalGrid1Idservidor: TcxDBEditorRow;
-    cxDBVerticalGrid1etiquetaServ: TcxDBEditorRow;
-    cxDBVerticalGrid1ipserver: TcxDBEditorRow;
-    cxDBVerticalGrid1path: TcxDBEditorRow;
-    cxDBVerticalGrid1user: TcxDBEditorRow;
-    cxDBVerticalGrid1pass: TcxDBEditorRow;
-    cxDBVerticalGrid1puerto: TcxDBEditorRow;
     AdvPanel3: TAdvPanel;
     GroupBox1: TGroupBox;
     Label13: TLabel;
@@ -158,23 +116,9 @@ type
     lcbVigencia: TcxDBLookupComboBox;
     GroupBox5: TGroupBox;
     Label16: TLabel;
-    Label17: TLabel;
     cxDBLookupComboBox1: TcxDBLookupComboBox;
-    cxDBTextEdit3: TcxDBTextEdit;
-    btnGestDetail: TJvTransparentButton;
-    lcbGestor: TcxDBLookupComboBox;
-    jvcpGestor: TJvCaptionPanel;
-    cxDBVerticalGrid3: TcxDBVerticalGrid;
-    cxCategoryRow2: TcxCategoryRow;
     cmdGestor: TFDQuery;
     dscmdGestor: TDataSource;
-    cxDBVerticalGrid3Idresp: TcxDBEditorRow;
-    cxDBVerticalGrid3NombreResponsable: TcxDBEditorRow;
-    cxDBVerticalGrid3usuario: TcxDBEditorRow;
-    cxDBVerticalGrid3password: TcxDBEditorRow;
-    cxDBVerticalGrid3CorreoElect: TcxDBEditorRow;
-    cxDBVerticalGrid3rol: TcxDBEditorRow;
-    cxDBVerticalGrid3Telefono: TcxDBEditorRow;
     cxGridDBTableView1fechaaprov: TcxGridDBColumn;
     cxDBDateEdit1: TcxDBDateEdit;
     Label5: TLabel;
@@ -196,18 +140,18 @@ type
     btnBestFitSS: TJvTransparentButton;
     btnExportSSExcel: TJvTransparentButton;
     Edit1: TEdit;
-    Panel5: TPanel;
-    JvTransparentButton4: TJvTransparentButton;
-    Edit2: TEdit;
-    Panel7: TPanel;
-    JvTransparentButton5: TJvTransparentButton;
-    Edit3: TEdit;
-    Panel8: TPanel;
-    JvTransparentButton6: TJvTransparentButton;
-    Edit4: TEdit;
     Panel9: TPanel;
     JvTransparentButton7: TJvTransparentButton;
     Edit5: TEdit;
+    frxMain: TfrxReport;
+    btnPrint: TJvTransparentButton;
+    frxtb_sysconfig: TfrxDBDataset;
+    Label3: TLabel;
+    cxDBTextEdit1: TcxDBTextEdit;
+    cxGridDBTableView1idtiposerie: TcxGridDBColumn;
+    JvTransparentButton4: TJvTransparentButton;
+    allSubSerie: TFDQuery;
+    JvTransparentButton5: TJvTransparentButton;
     procedure btnCloseClick(Sender: TObject);
     procedure btnFuncionesClick(Sender: TObject);
     procedure DBNavigator1Click(Sender: TObject; Button: TNavigateBtn);
@@ -219,14 +163,8 @@ type
     procedure cxGridDBTableView1carpetaPropertiesButtonClick(Sender: TObject; AButtonIndex: Integer);
     procedure btnSelectDirClick(Sender: TObject);
     procedure cxDBBlobEdit1PropertiesButtonClick(Sender: TObject; AButtonIndex: Integer);
-    procedure btnViewDetailFileClick(Sender: TObject);
-    procedure btnServerDetailViewClick(Sender: TObject);
-    procedure btnGestDetailClick(Sender: TObject);
     procedure jvcpGestorButtonClick(Sender: TObject; Button: TJvCapBtnStyle);
-    procedure SpeedButton5Click(Sender: TObject);
-    procedure SpeedButton4Click(Sender: TObject);
     procedure SpeedButton6Click(Sender: TObject);
-    procedure SpeedButton7Click(Sender: TObject);
     procedure ToolButton1Click(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure edtAnioKeyPress(Sender: TObject; var Key: Char);
@@ -247,12 +185,19 @@ type
     procedure cxGrid2Exit(Sender: TObject);
     procedure btnSystemHelpClick(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure cxDBVerticalGrid2DescripcionEditPropertiesButtonClick(
-      Sender: TObject; AButtonIndex: Integer);
+    procedure cxDBVerticalGrid2DescripcionEditPropertiesButtonClick(Sender: TObject; AButtonIndex: Integer);
+    procedure FormShow(Sender: TObject);
+    procedure jvcpServerDetailEndAutoDrag(Sender: TObject);
+    procedure btnPrintClick(Sender: TObject);
+    procedure JvTransparentButton4Click(Sender: TObject);
   private
     { Private declarations }
+    procedure ApplyChanges;  // Nuevo método para aplicar cambios
+    procedure CancelChanges; // Nuevo método para cancelar cambios
   public
     { Public declarations }
+    procedure CargaReporte(report: TfrxReport; pathreport, nameempresa, empresa, nameimagen, pathimagen: string);
+    procedure InsertConnection(report: TfrxReport; connection: string);
   end;
 
 var
@@ -261,12 +206,13 @@ var
 implementation
 
 uses
-  UCapaDatos, UVarVirtualVar, UVeditor, UExcelExport, USystemMsg;
+  UCapaDatos, UVarVirtualVar, UVeditor, UExcelExport, USystemMsg, UREditor;
 
 {$R *.dfm}
 
 procedure TfrmCLSeries.btnCloseClick(Sender: TObject);
 begin
+  ModalResult := mrCancel;  // Cancelar cambios al cerrar
   Close;
 end;
 
@@ -274,56 +220,76 @@ procedure TfrmCLSeries.btnExpandClick(Sender: TObject);
 begin
   try
     cxGrid1DBTableView1.ApplyBestFit();
-    UDM.SalvaConfigGrid(cxGrid1DBTableView1, 'cl_archivos');
+    UDM.SalvaConfigGrid(cxGrid1DBTableView1, 'cl_series');
   except
   end;
 end;
 
 procedure TfrmCLSeries.btnFuncionesClick(Sender: TObject);
+var
+  i: Integer;
+  nombretmptable: string;
 begin
   if UDM.cl_subseries.RecordCount > 0 then
   begin
-    UDM.UpdateVarSubS(UDM.cl_subseries.FieldByName('codsubs').AsString);
-    TipoObj := 'S';
     with TfrmVarVirtualVar.Create(nil) do
     try
-      cxGridDBTableView1.DataController.DataSource := UDM.dsVarDispSubS;
       if TipoObj = 'S' then
         Caption := 'Variables asignadas a la Serie documental ' + AnsiQuotedStr(UDM.cl_subseries.FieldByName('subserie').AsString, '"');
+      nombretmptable := UDM.QuitaCaracter('md_' + UDM.cl_series.FieldByName('codserie').AsString + UDM.cl_subseries.FieldByName('codsubs').AsString);
+      if not UDM.TablaExiste(UDM.Conn, nombretmptable) then
+      begin
+        udm.cl_subseries.edit;
+        UDM.cl_subseries.FieldByName('NombreTablaMetadatos').AsString := '';
+        try
+          udm.cl_subseries.Post
+        except
+          udm.cl_subseries.Cancel;
+        end;
+        DBNavigator3.VisibleButtons := [nbPrior, nbNext, nbInsert, nbDelete, nbEdit, nbPost, nbCancel, nbRefresh];
+        cxGridDBTableView1.OptionsData.Editing := True;
+        cxGridDBTableView1.OptionsData.Inserting := True;
+        cxGridDBTableView1.OptionsData.Deleting := True;
+        Visualizando := False;
+      end
+      else
+      begin
+        UDM.sms('La tabla de las variables asociadas a esta serie documental ya fue creada. No podrá realizar modificaciones en las definiciones.', 3);
+        DBNavigator3.VisibleButtons := [nbFirst, nbPrior, nbNext, nbLast, nbRefresh];
+        cxGridDBTableView1.OptionsData.Editing := False;
+        cxGridDBTableView1.OptionsData.Inserting := False;
+        cxGridDBTableView1.OptionsData.Deleting := False;
+        Visualizando := True;
+      end;
       ShowModal;
     finally
       Free;
     end;
+
   end
   else
   begin
     UDM.sms('Debe existir al menos una serie documental valida.', 2);
     Exit;
   end;
+
 end;
 
-procedure TfrmCLSeries.btnGestDetailClick(Sender: TObject);
+procedure TfrmCLSeries.btnPrintClick(Sender: TObject);   //'rSeiresSubseries.fr3'
+
+  function TamFichero(n: string): longint;
+  var
+    f: file of Byte;
+  begin
+    result := 0;
+    AssignFile(f, n);
+    Reset(f);
+    result := FileSize(f);
+    CloseFile(f);
+  end;
+
 begin
-  if (trim(UDM.cl_subseries.FieldByName('cargo').AsString) = '') or (UDM.cl_subseries.FieldByName('cargo').Value = null) then
-  begin
-    UDM.sms('Debe especificar un gestor de serie documental válido.', 2);
-    Exit;
-  end;
-  jvcpGestor.Visible := True;
-  with cmdGestor do
-  begin
-    Active := False;
-    Params[0].Value := UDM.cl_subseries.FieldByName('cargo').AsInteger;
-    try
-      Active := True;
-    except
-      on E: EFDException do
-      begin
-        UDM.sms('No se pudo consultar los detalles del gestor seleccionado. Motivo: ' + E.Message, 3);
-        Exit;
-      end;
-    end;
-  end;
+  UDM.MostrarReporte('SERIESV');
 end;
 
 procedure TfrmCLSeries.btnSelectDirClick(Sender: TObject);
@@ -338,52 +304,48 @@ begin
     end;
 end;
 
-procedure TfrmCLSeries.btnServerDetailViewClick(Sender: TObject);
-begin
-  cmdServer.Active := False;
-  cmdServer.Params[0].Value := UDM.cl_subseries.FieldByName('pc').Value;
-  try
-    cmdServer.Active := True;
-    if cmdServer.RecordCount > 0 then
-      jvcpServerDetail.Visible := true
-    else
-      UDM.sms('No ha escogido un servidor válido para visualizar sus detalles.', 2);
-  except
-    on E: EFDException do
-    begin
-      UDM.sms('No se pueden consultar los detalles del servidor.', 1);
-    end;
-  end;
-
-end;
-
 procedure TfrmCLSeries.btnSystemHelpClick(Sender: TObject);
 var
   TopicID: integer;
 begin
-  with TfrmsystemMSG.Create(nil) do
-  try
-    ShowModal;
-  finally
-    Free;
-  end;
+  TopicID := 19;
+  Application.HelpContext(TopicID);
 end;
 
-procedure TfrmCLSeries.btnViewDetailFileClick(Sender: TObject);
+procedure TfrmCLSeries.CancelChanges;
 begin
-  cmdArch.Active := False;
-  cmdArch.Params[0].Value := UDM.cl_subseries.FieldByName('archivo').Value;
-  try
-    cmdArch.Active := True;
-    if cmdArch.RecordCount > 0 then
-      jvcpArchivo.Visible := True
-    else
-      UDM.sms('No ha escogido un archivo válido para visualizar sus detalles.', 2);
-  except
-    on E: EFDException do
+  if UDM.cl_series.State in [dsEdit, dsInsert] then
+    UDM.cl_series.Cancel;
+  if UDM.cl_subseries.State in [dsEdit, dsInsert] then
+    UDM.cl_subseries.Cancel;
+  if UDM.AllSubSerie.State in [dsEdit, dsInsert] then
+    UDM.AllSubSerie.Cancel;
+end;
+
+procedure TfrmCLSeries.CargaReporte(report: TfrxReport; pathreport, nameempresa, empresa, nameimagen, pathimagen: string);
+var
+  Component: TfrxComponent;
+begin
+  with report do
+  begin
+    LoadFromFile(pathreport);
+    InsertConnection(report, PathBD);
+    Component := FindObject(nameempresa);
+    if Component <> nil then
     begin
-      UDM.sms('No se pueden consultar los detalles del archivo.', 1);
+      if Component is TfrxRichView then
+        TfrxRichView(Component).DataSet := frxtb_sysconfig;
+      TfrxRichView(Component).DataField := 'empresa';
+
     end;
+    Component := FindObject(nameimagen);
+    if Component <> nil then
+    begin
+      if Component is TfrxPictureView then
+        TfrxPictureView(Component).Picture.LoadFromFile(pathimagen);
+    end;
+    PrepareReport(False);
+    ShowReport();
   end;
 end;
 
@@ -397,8 +359,7 @@ begin
   cpInfoPathSubSeries.Visible := True;
 end;
 
-procedure TfrmCLSeries.cxDBVerticalGrid2DescripcionEditPropertiesButtonClick(
-  Sender: TObject; AButtonIndex: Integer);
+procedure TfrmCLSeries.cxDBVerticalGrid2DescripcionEditPropertiesButtonClick(Sender: TObject; AButtonIndex: Integer);
 begin
   CampoTexto(@dscmdArch, 'Descripcion', 'Descripción del  archivo asignado a la subserie ' + UDM.cl_subseries.FieldByName('subserie').AsString);
 end;
@@ -436,13 +397,20 @@ procedure TfrmCLSeries.DBNavigator1Click(Sender: TObject; Button: TNavigateBtn);
 begin
   if Button = nbInsert then
   begin
-    if (TDBNavigator(Sender).DataSource.DataSet.State = dsInsert) or (TDBNavigator(Sender).DataSource.DataSet.State = dsEdit) then
+    if (TDBNavigator(Sender).DataSource.DataSet.State = dsInsert) then
       UDM.cl_subseries.FieldByName('codsubs').AsInteger := UDM.GetLastId('cl_subseries', 'codsubs');
-  end;
+  end; {
+  else if Button = nbPost then
+    ApplyChanges
+  else if Button = nbCancel then
+    CancelChanges;   }
 end;
 
 procedure TfrmCLSeries.dsSeriesDataChange(Sender: TObject; Field: TField);
 begin
+  UDM.dscl_subseries.DataSet := UDM.cl_subseries;
+  cxGridDBTableView1.FilterRow.Visible := False;  // Muestra una fila especial para filtrar
+  cxGridDBTableView1.OptionsBehavior.IncSearch := False;  // Búsqueda incremental mientras el usuario escribe
   if UDM.cl_series.RecordCount > 0 then
   begin
     Panel4.Caption := 'Serie: ' + AnsiQuotedStr(UDM.cl_series.FieldByName('serie').AsString, '"');
@@ -454,17 +422,6 @@ begin
     Panel4.Caption := 'No hay series definidas.';
     Panel3.Caption := 'Debe definir al menos una serie válida.';
     GroupBox3.Caption := '--';
-  end;
-  if cxGrid1DBTableView1.DataController.DataSet.RecordCount > 0 then
-  try
-    cxGrid1DBTableView1.ApplyBestFit();
-  except
-  end;
-
-  if cxGridDBTableView1.DataController.DataSet.RecordCount > 0 then
-  try
-    cxGridDBTableView1.ApplyBestFit();
-  except
   end;
 end;
 
@@ -517,38 +474,91 @@ end;
 
 procedure TfrmCLSeries.FormActivate(Sender: TObject);
 begin
-  Edit1.Focused;
-  Edit1.SetFocus;
-  Security.SetModSecurity(Self, acceso);
-  UDM.RestauraGrid(cxGrid1DBTableView1, 'cl_series');
-  UDM.RestauraGrid(cxGridDBTableView1, 'cl_subseries');
+//  Security.SetModSecurity(Self, acceso);
 end;
 
 procedure TfrmCLSeries.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
-{  UDM.SalvaConfigGrid(cxGrid1DBTableView1);
-  UDM.SalvaConfigGrid(cxGridDBTableView1);}
-  UDM.SalvaConfigGrid(cxGrid1DBTableView1, 'cl_series');
-  UDM.SalvaConfigGrid(cxGridDBTableView1, 'cl_subseries');
+  UDM.SaveGridLayout(cxGrid1DBTableView1, PathTemp + 'cl_series.ini');
+  UDM.SaveGridLayout(cxGridDBTableView1, PathTemp + 'cl_subseries.ini');
+
+  // Verificar si hay cambios pendientes
+  if (UDM.cl_series.State in [dsEdit, dsInsert]) or (UDM.cl_subseries.State in [dsEdit, dsInsert]) or (UDM.AllSubSerie.State in [dsEdit, dsInsert]) then
+  begin
+    case MessageDlg('¿Desea guardar los cambios antes de cerrar?', mtConfirmation, [mbYes, mbNo, mbCancel], 0) of
+      mrYes:
+        begin
+          ApplyChanges;
+          ModalResult := mrOk;
+        end;
+      mrNo:
+        begin
+          CancelChanges;
+          ModalResult := mrCancel;
+        end;
+      mrCancel:
+        CanClose := False;  // No cerrar el formulario
+    end;
+  end
+  else
+    ModalResult := mrCancel;  // No hay cambios, cerrar sin guardar
 end;
 
 procedure TfrmCLSeries.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+var
+  TopicID: integer;
 begin
   if Key = 112 then
   begin
-    with TfrmsystemMSG.Create(nil) do
-    try
-      ShowModal;
-    finally
-      Free;
-    end;
+    TopicID := 19;
+    Application.HelpContext(TopicID);
   end;
+end;
+
+procedure TfrmCLSeries.FormShow(Sender: TObject);
+begin
+  Edit1.Focused;
+  Edit1.SetFocus;
+  UDM.LoadGridLayout(cxGrid1DBTableView1, PathTemp + 'cl_series.ini');
+  UDM.LoadGridLayout(cxGridDBTableView1, PathTemp + 'cl_subseries.ini');
+end;
+
+procedure TfrmCLSeries.InsertConnection(report: TfrxReport; connection: string);
+var
+  i: integer;
+begin
+  TfrxADODatabase(report.FindComponent('conn')).Connected := false;
+  if TBD = 'A' then
+    TfrxADODatabase(report.FindComponent('conn')).DatabaseName := 'Provider=Microsoft.Jet.OLEDB.4.0;Data Source=' + connection + ';Persist Security Info=False'
+  else
+    TfrxADODatabase(report.FindComponent('conn')).DatabaseName := 'Provider=SQLOLEDB.1;Password=geoconn;Persist Security Info=True;User ID=geoconn;Initial Catalog=SDbd;Data Source=' + UDM.tb_sysconfig.FieldByName('ipservidorbd').AsString;
+  TfrxADODatabase(report.FindComponent('conn')).Connected := True;
+  for i := 0 to report.ComponentCount - 1 do
+  begin
+    if report.Components[i] is TfrxADOQuery then
+    begin
+      if TfrxADOQuery(report.Components[i]).Params.Count = 0 then
+      begin
+        TfrxADOQuery(report.Components[i]).Active := True;
+      end;
+
+    end;
+    if report.Components[i] is TfrxADOTable then
+    begin
+      TfrxADOTable(report.Components[i]).Active := True;
+    end;
+  end
 end;
 
 procedure TfrmCLSeries.jvcpGestorButtonClick(Sender: TObject; Button: TJvCapBtnStyle);
 begin
   if Button = capClose then
     TJvCaptionPanel(Sender).Visible := False;
+end;
+
+procedure TfrmCLSeries.jvcpServerDetailEndAutoDrag(Sender: TObject);
+begin
+  UDM.Boundarys(Sender);
 end;
 
 procedure TfrmCLSeries.JvTransparentButton2Click(Sender: TObject);
@@ -564,13 +574,52 @@ begin
   ExcelExport(nil, cxGrid1);
 end;
 
-procedure TfrmCLSeries.btnBestFitSSClick(Sender: TObject);
+procedure TfrmCLSeries.JvTransparentButton4Click(Sender: TObject);
 begin
-  if cxGridDBTableView1.DataController.DataSet.RecordCount > 0 then
-    cxGridDBTableView1.ApplyBestFit()
+  if UDM.dscl_subseries.DataSet = UDM.cl_subseries then
+  begin
+  // Limpiar cualquier consulta anterior
+    pSeries.Visible := False;
+    cxPageControl1.ActivePage := tsVTSS;
+    allSubSerie.Close;
+  // Preparar la consulta para obtener todas las subseries
+    allSubSerie.SQL.Text := 'SELECT * FROM cl_subseries ORDER BY codserie, codsubs'; // Ordenar por codserie y codsubs
+    allSubSerie.Open; // Ejecutar la consulta
+    UDM.dscl_subseries.DataSet := allSubSerie;
+    cxGridDBTableView1.FilterRow.Visible := True;  // Muestra una fila especial para filtrar
+    cxGridDBTableView1.OptionsBehavior.IncSearch := True;  // Búsqueda incremental mientras el usuario escribe
+
+  // Verificar si hay registros y mostrar un mensaje
+    if allSubSerie.RecordCount = 0 then
+      udm.sms('No hay subseries registradas.', 3)
+    else
+      udm.sms(Format('Se están visualizando %d subseries.', [allSubSerie.RecordCount]), 3);
+  end
   else
   begin
+    UDM.dscl_subseries.DataSet := UDM.cl_subseries;
+    cxGridDBTableView1.FilterRow.Visible := False;  // Muestra una fila especial para filtrar
+    cxGridDBTableView1.OptionsBehavior.IncSearch := False;  // Búsqueda incremental mientras el usuario escribe
+    pSeries.Visible := True;
+    cxPageControl1.ActivePage := tsFormulario;
+  end;
+end;
 
+procedure TfrmCLSeries.ApplyChanges;
+begin
+  if UDM.cl_series.State in [dsEdit, dsInsert] then
+    UDM.cl_series.Post;
+  if UDM.cl_subseries.State in [dsEdit, dsInsert] then
+    UDM.cl_subseries.Post;
+  if UDM.AllSubSerie.State in [dsEdit, dsInsert] then
+    UDM.AllSubSerie.Post;
+end;
+
+procedure TfrmCLSeries.btnBestFitSSClick(Sender: TObject);
+begin
+  try
+    cxGridDBTableView1.ApplyBestFit();
+  except
   end;
 end;
 
@@ -593,7 +642,6 @@ procedure TfrmCLSeries.S1Click(Sender: TObject);
 begin
   try
     cxGrid1DBTableView1.ApplyBestFit();
-    UDM.SalvaConfigGrid(cxGrid1DBTableView1, 'cl_series');
   except
   end;
 end;
@@ -602,29 +650,13 @@ procedure TfrmCLSeries.S2Click(Sender: TObject);
 begin
   try
     cxGridDBTableView1.ApplyBestFit();
-    UDM.SalvaConfigGrid(cxGridDBTableView1, 'cl_subseries');
   except
   end;
-end;
-
-procedure TfrmCLSeries.SpeedButton4Click(Sender: TObject);
-begin
-  jvcpArchivo.Visible := False;
-end;
-
-procedure TfrmCLSeries.SpeedButton5Click(Sender: TObject);
-begin
-  jvcpServerDetail.Visible := False;
 end;
 
 procedure TfrmCLSeries.SpeedButton6Click(Sender: TObject);
 begin
   cpInfoPathSubSeries.Visible := False;
-end;
-
-procedure TfrmCLSeries.SpeedButton7Click(Sender: TObject);
-begin
-  jvcpGestor.Visible := False;
 end;
 
 procedure TfrmCLSeries.ToolButton1Click(Sender: TObject);

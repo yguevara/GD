@@ -788,8 +788,6 @@ type
     procedure R1Click(Sender: TObject);
     procedure eliminarClick(Sender: TObject);
     procedure TvTreeCalidadChange(Sender: TObject; Node: TTreeNode);
-    procedure C2Click(Sender: TObject);
-    procedure C1Click(Sender: TObject);
     procedure TvTree1Change(Sender: TObject; Node: TTreeNode);
     procedure etiquetaClick(Sender: TObject);
     procedure modificarClick(Sender: TObject);
@@ -915,11 +913,10 @@ uses
   UHistory, UAbout, UAutentica, UCapaDatos, UUserGest, UDocManagement,
   UCLSeriesDocumentales, UCLDestino, UCLAcceso, UCLSoporte, UCLFrecuencia,
   UCLTipoDoc, UNodeAsist, UCLFtpServer, UCLProcesos, UCLRepActArchiv,
-  UGestEstruct, UCategoria_Ocupa, UCL_Cargo, UCLVariables, UMangementArch,
-  USeriesDisp, UCL_Especialistas, UEntrada, UManagementFileSeries, UCLFacultades,
-  UCLFunciones, UViewFunciones, UICSeriesDocumentales, UCLTipoEstructura,
-  UCL_Depositos, UVeditor, UVarVirtualSeriesD, UExcelExport, UClTipoObjeto,
-  UManagementNode, USystemMsg, UAddNewNode, UNodeProperties;
+  UGestEstruct,  UMangementArch,
+  USeriesDisp, UCL_Especialistas, UManagementFileSeries, UCLFacultades,
+  UCLFunciones, UViewFunciones, UCLTipoEstructura,
+  UCL_Depositos, UVeditor, UExcelExport,    UManagementNode, USystemMsg, UAddNewNode, UNodeProperties;
 
 procedure TMAINFORM.A1Click(Sender: TObject);
 begin
@@ -1099,26 +1096,6 @@ begin
   cpInfoPathSubSeries.Visible := False;
 end;
 
-procedure TMAINFORM.C1Click(Sender: TObject);
-begin
-  with TfrmCLCargo.Create(nil) do
-  try
-    ShowModal;
-  finally
-    Free;
-  end;
-end;
-
-procedure TMAINFORM.C2Click(Sender: TObject);
-begin
-  with TfrmCatOcupa.Create(nil) do
-  try
-    ShowModal;
-  finally
-    Free;
-  end;
-end;
-
 procedure TMAINFORM.ControldeVersiones1Click(Sender: TObject);
 begin
   with TfrmHistory.Create(nil) do
@@ -1218,21 +1195,8 @@ procedure TMAINFORM.CreateMapProcess;
 var
   ContG, ContP, ContServ: integer;
 
-  function AddTreeProcess(aCode, aPadre, aImg: integer; Etiq: string): Boolean;
-  begin
-    UDM.tb_mp.Append;
-    UDM.tb_mp.FieldByName('Id').AsInteger := aCode;
-    UDM.tb_mp.FieldByName('Padre').AsInteger := aPadre;
-    UDM.tb_mp.FieldByName('Icono').AsInteger := aImg;
-    UDM.tb_mp.FieldByName('etiqueta').AsString := Etiq;
-    try
-      UDM.tb_mp.Post;
-      UDM.tb_mp.Active := False;
-      UDM.tb_mp.Active := True;
-    except
-      UDM.tb_mp.Cancel;
-    end;
-  end;
+
+
 
 begin
   UDM.tcl_procesosGrupos.Active := True;

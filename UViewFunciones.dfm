@@ -943,7 +943,6 @@ object frmSelectFuncionG: TfrmSelectFuncionG
           item
             FieldName = 'nombre'
           end>
-        Properties.ListSource = UDM.dscl_cargo
         HeaderAlignmentHorz = taCenter
         HeaderGlyphAlignmentHorz = taCenter
         Width = 150
@@ -977,7 +976,6 @@ object frmSelectFuncionG: TfrmSelectFuncionG
       Height = 21
       KeyField = 'Idcargo'
       ListField = 'nombre'
-      ListSource = UDM.dscl_cargo
       TabOrder = 0
     end
   end
@@ -997,7 +995,6 @@ object frmSelectFuncionG: TfrmSelectFuncionG
     end
   end
   object cmdfun: TFDQuery
-    Active = True
     Connection = UDM.Conn
     SQL.Strings = (
       'select * from cl_funcionesgen')

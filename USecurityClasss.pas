@@ -234,6 +234,24 @@ begin
         TcxDBNavigator(aff as TcxDBNavigator).Buttons.PriorPage.Visible := not fat;
         TcxDBNavigator(aff as TcxDBNavigator).Buttons.NextPage.Visible := not fat;
       end;
+    end
+    else
+    begin
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.First.Visible := not fat;
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.Prior.Visible := not fat;
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.Next.Visible := not fat;
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.Last.Visible := not fat;
+      //TcxDBNavigator(aff as TcxDBNavigator).Buttons.Append.Visible:=True;
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.Delete.Visible := not fat;
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.Post.Visible := fat;
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.Cancel.Visible := fat;
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.Edit.Visible := fat;
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.Insert.Visible := not fat;
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.Filter.Visible := not fat;
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.GotoBookmark.Visible := not fat;
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.SaveBookmark.Visible := not fat;
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.PriorPage.Visible := not fat;
+      TcxDBNavigator(aff as TcxDBNavigator).Buttons.NextPage.Visible := not fat;
     end;
   end
   else if AnsiLowerCase(Acceso) = 'solo lectura' then
@@ -330,13 +348,23 @@ end;
 
 procedure TSecurityClass.DBNavigatorConfig(aff: TComponent; Acceso: string);
 begin
+
   if AnsiLowerCase(Acceso) = 'acceso total' then
   begin
-    if TDBNavigator(aff as TDBNavigator).Tag <> 99 then
+    if TDBNavigator(aff as TDBNavigator).Tag = 55 then
+    begin
+      TDBNavigator(aff as TDBNavigator).VisibleButtons := [nbDelete, nbEdit, nbPost, nbCancel, nbRefresh]
+    end
+    else if TDBNavigator(aff as TDBNavigator).Tag <> 99 then
       TDBNavigator(aff as TDBNavigator).VisibleButtons := [nbFirst, nbPrior, nbNext, nbLast, nbInsert, nbDelete, nbEdit, nbPost, nbCancel, nbRefresh]
   end
   else if AnsiLowerCase(Acceso) = 'solo lectura' then
-    TDBNavigator(aff as TDBNavigator).VisibleButtons := [nbFirst, nbPrior, nbNext, nbLast, nbRefresh];
+    if TDBNavigator(aff as TDBNavigator).Tag = 55 then
+    begin
+      TDBNavigator(aff as TDBNavigator).VisibleButtons := [nbRefresh]
+    end
+    else
+      TDBNavigator(aff as TDBNavigator).VisibleButtons := [nbFirst, nbPrior, nbNext, nbLast, nbRefresh];
 end;
 
 procedure TSecurityClass.DBLookupComboBoxConfig(aff: TComponent; fat: Boolean; Acceso: string);
@@ -638,12 +666,26 @@ end;
 function TSecurityClass.GetRol(conn: TFDConnection; UserName, Pass, schname: string): string;
 var
   CAD, CAD1: widestring;
+  cmd: TFDQuery;
 begin
   Result := '';
-  CAD1 := MD5Print(MD5String(Pass));
+  CAD1 := schname;
+  cmd := TFDQuery.Create(nil);
   CAD := 'SELECT tb_rol.rol FROM cl_Resp_Gest_Arch INNER JOIN tb_rol ON cl_Resp_Gest_Arch.rol = ';
-  CAD := CAD + 'tb_rol.idrol WHERE cl_Resp_Gest_Arch.usuario =:pp AND cl_Resp_Gest_Arch.password =:aa';
-  result := conn.ExecSQLScalar(CAD, [ansilowercase(UserName), CAD1]);
+  CAD := CAD + 'tb_rol.idrol WHERE cl_Resp_Gest_Arch.usuario =' + QuotedStr(ansilowercase(UserName)) + ' AND cl_Resp_Gest_Arch.password =' + QuotedStr(CAD1);
+  CAD := CAD + ' AND cl_Resp_Gest_Arch.habilitado =' + quotedstr('S');
+  cmd.Active := False;
+  cmd.Connection := conn;
+  {cmd.SQL.Clear;
+  cmd.SQL.Add(CAD);}
+  try
+    cmd.Open(CAD);
+    result := cmd.FieldByName('rol').AsString;
+  except
+    Result := '';
+  end;
+
+//  result := conn.ExecSQLScalar(CAD, [, ]);
 end;
 
 procedure TSecurityClass.SetModSecurity(aFrm: TForm; Acceso: string);
@@ -664,7 +706,7 @@ var
 begin
   if AnsiLowerCase(Acceso) = 'sin acceso' then
   begin
-    sms('No tiene acceso al módulo especificado. Por favor contacte con el administrador del sistema.', 1);
+    //sms('No tiene acceso al módulo especificado. Por favor contacte con el administrador del sistema.', 1);
     Exit;
   end;
   for i := 0 to aFrm.ComponentCount - 1 do
@@ -679,19 +721,19 @@ begin
   case aTipo of
     1:
       begin
-        result:=Application.MessageBox(PChar(aText), PChar('¡Error!'), MB_OK + MB_ICONERROR + MB_DEFBUTTON1 + MB_APPLMODAL);
+        result := Application.MessageBox(PChar(aText), PChar('¡Error!'), MB_OK + MB_ICONERROR + MB_DEFBUTTON1 + MB_APPLMODAL);
       end;
     2:
       begin
-        result:=MessageBox(Application.Handle, PChar(aText), PChar('¡Alerta!'), MB_OK + MB_ICONEXCLAMATION + MB_DEFBUTTON1 + MB_APPLMODAL);
+        result := MessageBox(Application.Handle, PChar(aText), PChar('¡Alerta!'), MB_OK + MB_ICONEXCLAMATION + MB_DEFBUTTON1 + MB_APPLMODAL);
       end;
     3:
       begin
-        result:=MessageBox(Application.Handle, PChar(aText), PChar('¡Información!'), MB_OK + MB_ICONINFORMATION + MB_DEFBUTTON1 + MB_APPLMODAL);
+        result := MessageBox(Application.Handle, PChar(aText), PChar('¡Información!'), MB_OK + MB_ICONINFORMATION + MB_DEFBUTTON1 + MB_APPLMODAL);
       end;
     4:
       begin
-        result:=Application.MessageBox(PChar(aText), PChar('¡Confirmación!'), MB_YESNO+ MB_ICONQUESTION + MB_DEFBUTTON1 + MB_APPLMODAL);
+        result := Application.MessageBox(PChar(aText), PChar('¡Confirmación!'), MB_YESNO + MB_ICONQUESTION + MB_DEFBUTTON1 + MB_APPLMODAL);
       end;
   end;
 end;

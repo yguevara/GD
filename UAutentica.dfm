@@ -15,6 +15,7 @@ object frmAutentica: TfrmAutentica
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Font.Style = []
+  HelpFile = 'ArchiGenioPro.chm'
   Icon.Data = {
     0000010001001E1E000001001800680B000016000000280000001E0000003C00
     00000100180000000000400B000000000000000000000000000000000000ECEC
@@ -115,6 +116,7 @@ object frmAutentica: TfrmAutentica
   OnHelp = FormHelp
   OnKeyDown = edtuserKeyDown
   OnKeyPress = FormKeyPress
+  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object lbluser: TLabel
@@ -126,7 +128,7 @@ object frmAutentica: TfrmAutentica
   end
   object lblpass: TLabel
     Left = 10
-    Top = 149
+    Top = 138
     Width = 54
     Height = 13
     Caption = 'Contrase'#241'a'
@@ -320,9 +322,8 @@ object frmAutentica: TfrmAutentica
   object edtuser: TEdit
     Left = 71
     Top = 97
-    Width = 264
+    Width = 282
     Height = 21
-    Color = 15453088
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -11
@@ -331,27 +332,9 @@ object frmAutentica: TfrmAutentica
     ParentFont = False
     TabOrder = 0
     OnKeyDown = edtuserKeyDown
-    OnKeyPress = edtuserKeyPress
-  end
-  object edtpass: TEdit
-    Left = 71
-    Top = 144
-    Width = 264
-    Height = 21
-    Color = 15453088
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
-    Font.Style = []
-    ParentFont = False
-    PasswordChar = '*'
-    TabOrder = 1
-    OnKeyDown = edtuserKeyDown
-    OnKeyPress = edtpassKeyPress
   end
   object btnAcept: TButton
-    Left = 147
+    Left = 165
     Top = 171
     Width = 91
     Height = 25
@@ -362,14 +345,41 @@ object frmAutentica: TfrmAutentica
     OnKeyPress = btnAceptKeyPress
   end
   object btnCancel: TButton
-    Left = 244
+    Left = 262
     Top = 171
     Width = 91
     Height = 25
     Caption = '&Cancelar'
-    TabOrder = 2
+    TabOrder = 4
     OnClick = btncancelClick
     OnKeyDown = edtuserKeyDown
     OnKeyPress = btnCancelKeyPress
+  end
+  object btnHelp: TButton
+    Left = 10
+    Top = 171
+    Width = 91
+    Height = 25
+    Caption = '&Ayuda'
+    TabOrder = 2
+    OnClick = btnHelpClick
+    OnKeyDown = edtuserKeyDown
+    OnKeyPress = btnAceptKeyPress
+  end
+  object edtpass: TEdit
+    Left = 71
+    Top = 129
+    Width = 282
+    Height = 21
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    Font.Style = []
+    ParentFont = False
+    PasswordChar = '*'
+    TabOrder = 1
+    OnKeyDown = edtuserKeyDown
+    OnKeyPress = edtpassKeyPress
   end
 end

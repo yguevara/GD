@@ -46,10 +46,13 @@ type
     Contenedor: PQry;
     NombreCampo, capt: string;
     function TamFichero(n: string): longint;
+    procedure ViewIMG(NombreCampo: string);
   end;
 
 {var
   frmManagementProc: TfrmManagementProc;    }
+
+
 procedure ManagementPDF(aDS: PQry; aFieldName, Etiq, extension: string);
 
 implementation
@@ -65,7 +68,7 @@ begin
     Contenedor := aDS;
     exten := extension;
     NombreCampo := aFieldName;
-    capt := Etiq;
+    Caption := Etiq;
     ShowModal;
   finally
     Free;
@@ -81,7 +84,7 @@ begin
     UDM.sms('Debe especificar un fichero válido para eliminar.', 3);
     Exit;
   end;
-  if udm.sms('¿Está seguro de eliminar el procedimiento almacenado en el campo actual?', 4) = 6 then
+  if udm.sms('Atención:' + sLineBreak + 'Está a punto de eliminar el fichero actual.' + sLineBreak + '¿Desea continuar?', 4) = 6 then
   begin
     Contenedor^.Edit;
     Contenedor^.FieldByName(NombreCampo).Clear;
@@ -98,7 +101,7 @@ var
   Stream: TMemoryStream;
 begin
   //Load PDF File into DB Field...
-  if exten = 'jpg' then
+  if (exten = 'jpg') or (exten = 'jpeg') or (exten = 'png') or (exten = 'bmp') then
   begin
     if (Contenedor^.State <> dsedit) or (Contenedor^.State <> dsinsert) then
       Contenedor^.Edit;
@@ -144,12 +147,7 @@ end;
 
 procedure TfrmManagementProc.btnSystemHelpClick(Sender: TObject);
 begin
-  with TfrmsystemMSG.Create(nil) do
-  try
-    ShowModal;
-  finally
-    Free;
-  end;
+  Application.HelpContext(42);
 end;
 
 procedure TfrmManagementProc.btntbtncerrarClick(Sender: TObject);
@@ -159,6 +157,23 @@ end;
 
 procedure TfrmManagementProc.btnViewInformeClick(Sender: TObject);
 var
+  param, param1, listParam: string;
+begin
+  if exten <> 'jpg' then
+  begin
+    screen.Cursor := crSQLWait;
+    param := UDM.tb_SeriesDatos.FieldByName('codsubs').AsString;
+    param1 := UDM.tb_SeriesDatos.FieldByName('codigodoc').AsString;
+    listParam := AnsiQuotedStr(param, '"') + ' ' + AnsiQuotedStr(param1, '"');
+    UDM.RunAndWaitShell(ExtractFilePath(Application.ExeName) + '\PDFExpressViewer.exe', listParam, SW_SHOWMAXIMIZED);
+    screen.Cursor := crDefault;
+  end
+  else
+  begin
+    ViewIMG(NombreCampo);
+  end;
+end;
+{var
   Path, ext: string;
   flag: Boolean;
   cont: Integer;
@@ -211,8 +226,32 @@ begin
     Refresh;
   finally
     Screen.Cursor := crDefault;
+  end;     }
+
+  {
+  if (UDM.tb_SeriesDatos.FieldByName('fichero').Value <> null) and (trim(UDM.tb_SeriesDatos.FieldByName('fichero').AsString) <> '') then
+  begin
+    TBlobField(UDM.tb_SeriesDatos.FieldByName('fichero')).SaveToFile(PathTemp + 'tmpfile.txt');
+    List := TStringList.Create;
+    List.LoadFromFile(PathTemp + 'tmpfile.txt');
+    if FileExists(List[0]) then
+    begin
+      ext := ExtractFileExt(List[0]);
+      if AnsiLowerCase(ext) = '.pdf' then
+      begin
+        cad := QuotedStr('P') + ' ' + AnsiQuotedStr(List[0], '"');
+        UDM.RunAndWaitShell(PathSys + 'Viewer.exe', cad, SW_SHOWMAXIMIZED);
+      end;
+      //UDM.ViewPDF(List[0]);
+    end
+    else
+      UDM.sms('No existe el fichero especificado.', 1);
+  end
+  else
+  begin
+    UDM.sms('Error se encontró un documento para visualizar. Especifique un documento válido para visualizar.', 3);
   end;
-end;
+end;        }
 
 procedure TfrmManagementProc.FormActivate(Sender: TObject);
 begin
@@ -224,12 +263,7 @@ procedure TfrmManagementProc.FormKeyDown(Sender: TObject; var Key: Word; Shift: 
 begin
   if Key = 112 then
   begin
-    with TfrmsystemMSG.Create(nil) do
-    try
-      ShowModal;
-    finally
-      Free;
-    end;
+    Application.HelpContext(42);
   end;
 end;
 
@@ -252,6 +286,63 @@ begin
   else
   begin
     edt1.Text := '(<<Fichero Alamacenado>>)';
+  end;
+end;
+
+procedure TfrmManagementProc.ViewIMG(NombreCampo: string);
+var
+  Path, ext: string;
+  flag: Boolean;
+  cont: Integer;
+  TFBD, TFTMP: Int64;
+
+  procedure ejecutaPDF(Path: string);
+  begin
+    try
+      ShellExecute(Handle, nil, PChar(Path), '', '', SW_SHOWNORMAL);
+    except
+      on E: EFilerError do
+      begin
+        UDM.sms('No se pudo abrir el Informe especificado. Motivo:' + E.Message, 1);
+        Exit;
+      end;
+    end;
+  end;
+
+begin
+  if (UDM.cl_ArchivosGestion.FieldByName(NombreCampo).Value = null) or (trim(UDM.cl_ArchivosGestion.FieldByName(NombreCampo).asstring) = null) then
+  begin
+    UDM.sms('No existe ningún fichero almacenado que pueda ser visualizado.', 3);
+    Exit;
+  end;
+  ext := exten;
+  Screen.Cursor := crSQLWait;
+  try
+    Path := PathTemp + NombreCampo + '.' + ext;
+    if FileExists(Path) then
+    try
+      DeleteFile(Path);
+    except
+      if FileExists(Path) then
+      begin
+        flag := False;
+        cont := 1;
+        while not flag do
+        begin
+          Path := PathTemp + NombreCampo + inttostr(cont) + '.' + ext;
+          if not FileExists(Path) then
+            flag := True;
+          cont := cont + 1;
+        end;
+      end;
+    end;
+    TBlobField(UDM.cl_ArchivosGestion.FieldByName(NombreCampo)).SaveToFile(Path);
+    UDM.ViewIMG(Path);
+//    ejecutaPDF(Path);
+    BringToFront;
+    Refresh;
+  finally
+    Screen.Cursor := crDefault;
   end;
 end;
 

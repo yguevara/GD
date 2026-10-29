@@ -855,7 +855,7 @@ object frmAddNode: TfrmAddNode
     Width = 714
     Height = 253
     Align = alClient
-    TabOrder = 2
+    TabOrder = 1
     Properties.ActivePage = tsNewStruct
     Properties.CustomButtons.Buttons = <>
     Properties.Options = [pcoGradient, pcoGradientClientArea, pcoRedrawOnResize]
@@ -869,6 +869,10 @@ object frmAddNode: TfrmAddNode
       Caption = 'Nueva estructura'
       ImageIndex = 0
       TabVisible = False
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object Panel2: TPanel
         Left = 0
         Top = 0

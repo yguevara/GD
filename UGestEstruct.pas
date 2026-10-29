@@ -162,7 +162,7 @@ end;
 
 procedure TfrmEstructura.FormActivate(Sender: TObject);
 begin
-  Security.SetModSecurity(Self, acceso);
+//  Security.SetModSecurity(Self, acceso);
   cxPageControl2.ActivePage:=tsNewStruct;
   Width:=515;
   Height:=290;

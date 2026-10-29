@@ -59,24 +59,22 @@ type
     PrintDialog: TPrintDialog;
     FontDialog1: TFontDialog;
     ToolbarImages: TImageList;
-    DBNavigator1: TcxDBNavigator;
-    Editor: TDBRichEdit;
     ImageList1: TImageList;
     pMainContainer: TPanel;
-    JvTransparentButton1: TJvTransparentButton;
-    btnautentica: TJvTransparentButton;
-    btnusercontrol: TJvTransparentButton;
-    btnLC: TJvTransparentButton;
+    btnclose: TJvTransparentButton;
+    btnprint: TJvTransparentButton;
+    btnPrintconfig: TJvTransparentButton;
+    btnright: TJvTransparentButton;
     btnSystemHelp: TJvTransparentButton;
-    JvTransparentButton2: TJvTransparentButton;
+    btncut: TJvTransparentButton;
     Edit1: TEdit;
-    JvTransparentButton3: TJvTransparentButton;
+    btnpaste: TJvTransparentButton;
     UnderlineButton: TJvTransparentButton;
     ItalicButton: TJvTransparentButton;
     BoldButton: TJvTransparentButton;
-    JvTransparentButton7: TJvTransparentButton;
-    JvTransparentButton8: TJvTransparentButton;
-    JvTransparentButton9: TJvTransparentButton;
+    btnunder: TJvTransparentButton;
+    btncenter: TJvTransparentButton;
+    btnleft: TJvTransparentButton;
     PrintDialog1: TPrintDialog;
     ActionList1: TActionList;
     EditCut1: TEditCut;
@@ -87,7 +85,7 @@ type
     EditDelete1: TEditDelete;
     FilePrintSetup1: TFilePrintSetup;
     PrintDlg1: TPrintDlg;
-    JvTransparentButton10: TJvTransparentButton;
+    btncopy: TJvTransparentButton;
     Action1: TAction;
     FormatRichEditBold1: TRichEditBold;
     FormatRichEditItalic1: TRichEditItalic;
@@ -102,13 +100,16 @@ type
     Panel2: TPanel;
     JvTransparentButton11: TJvTransparentButton;
     Edit3: TEdit;
-    JvTransparentButton12: TJvTransparentButton;
+    font: TJvTransparentButton;
     Panel1: TPanel;
     Panel3: TPanel;
     Panel4: TPanel;
     FontName: TComboBox;
     Panel5: TPanel;
     FontSize: TEdit;
+    Timer1: TTimer;
+    DBNavigator1: TcxDBNavigator;
+    Editor: TDBRichEdit;
     procedure ShowHint(Sender: TObject);
     procedure CutButtonClick(Sender: TObject);
     procedure CopyButtonClick(Sender: TObject);
@@ -138,15 +139,17 @@ type
     procedure FontNameKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure ToolButton7Click(Sender: TObject);
     procedure FormActivate(Sender: TObject);
-    procedure JvTransparentButton1Click(Sender: TObject);
+    procedure btncloseClick(Sender: TObject);
     procedure JvTransparentButton11Click(Sender: TObject);
-    procedure JvTransparentButton12Click(Sender: TObject);
+    procedure fontClick(Sender: TObject);
+    procedure btnSystemHelpClick(Sender: TObject);
   private
     { Private declarations }
 //     Editorsalida:Trichedit;
     FUpdating: Boolean;
     FFileName: string;
     salve: boolean;
+    RTA: string;
     function CurrText: TTextAttributes;
     procedure UpdateCursorPos;
     procedure SetModified(Value: Boolean);
@@ -238,6 +241,7 @@ begin
     Editor.DataSource := ds^;
     Editor.DataField := campo;
     Editor.ReadOnly := False;
+    DBNavigator1.DataSource := ds^;
     try
       ds^.DataSet.Edit;
     except
@@ -245,31 +249,6 @@ begin
     Caption := Titulo;
     ShowModal;
   finally
-    if not EsReadOnly then
-    begin
-      TFDQuery(ds^.DataSet).Edit;
-      if (Editor.DataSource.DataSet.State = dsedit) or (Editor.DataSource.DataSet.State = dsinsert) then
-      try
-        Descripcion := Editor.Text;
-        if TFDQuery(ds^.DataSet).ChangeCount > 0 then
-        begin
-          TFDQuery(ds^.DataSet).Edit;
-          if (Editor.DataSource.DataSet.State = dsedit) or (Editor.DataSource.DataSet.State = dsinsert) then
-            TFDQuery(ds^.DataSet).FieldByName(campo).Value := Descripcion;
-          TFDQuery(ds^.DataSet).Post;
-        end;
-        TFDQuery(ds^.DataSet).Post;
-        if TFDQuery(ds^.DataSet).ChangeCount > 0 then
-          TFDQuery(ds^.DataSet).ApplyUpdates(0);
-      except
-        on E: EDatabaseError do
-        begin
-          UDM.sms('Ha ocurrido un error. Motivo: ' + e.Message, 1);
-        end;
-      end;
-      result := salve;
-      EditorActivo := False;
-    end;
     Free;
   end;
 end;
@@ -301,7 +280,7 @@ var
   DC: HDC;
 begin
   DC := GetDC(0);
-  EnumFonts(DC, nil, @EnumFontsProc, Pointer( FontName.Items));
+  EnumFonts(DC, nil, @EnumFontsProc, Pointer(FontName.Items));
   ReleaseDC(0, DC);
   FontName.Sorted := True;
 end;
@@ -327,8 +306,8 @@ begin
 end;
 
 procedure TFVeditor.FileSave(Sender: TObject);
-//var
-//  ms:Tmemorystream;
+var
+  RTFText: TStringStream;
 begin
   Editor.Lines.SaveToFile(UDM.CarpetaGeodato + 'Editor.rtf');
   salve := true;
@@ -372,6 +351,7 @@ end;
 
 function TFVeditor.CurrText: TTextAttributes;
 begin
+  //Editor.SelLength:=255;
   if Editor.SelLength > 0 then
     Result := Editor.SelAttributes
   else
@@ -402,8 +382,6 @@ end;
 
 procedure TFVeditor.FontNameChange(Sender: TObject);
 begin
-  if FUpdating then Exit;
-  CurrText.Name := FontName.Items[FontName.ItemIndex];
   if FUpdating then
     Exit;
   CurrText.Name := FontName.Items[FontName.ItemIndex];
@@ -438,17 +416,22 @@ end;
 
 procedure TFVeditor.JvTransparentButton11Click(Sender: TObject);
 begin
-  jvcpSSDetail.Visible:=false
+  jvcpSSDetail.Visible := false
 end;
 
-procedure TFVeditor.JvTransparentButton12Click(Sender: TObject);
+procedure TFVeditor.fontClick(Sender: TObject);
 begin
-jvcpSSDetail.Visible:=True;
+  jvcpSSDetail.Visible := True;
 end;
 
-procedure TFVeditor.JvTransparentButton1Click(Sender: TObject);
+procedure TFVeditor.btncloseClick(Sender: TObject);
 begin
   Close;
+end;
+
+procedure TFVeditor.btnSystemHelpClick(Sender: TObject);
+begin
+  Application.HelpContext(41);
 end;
 
 procedure TFVeditor.UnderlineButtonClick(Sender: TObject);
@@ -493,7 +476,7 @@ end;
 
 procedure TFVeditor.EditorChange(Sender: TObject);
 begin
-  //SetModified(Editor.Modified);
+  SetModified(Editor.Modified);
 end;
 
 procedure TFVeditor.RulerResize(Sender: TObject);
@@ -503,7 +486,13 @@ end;
 
 procedure TFVeditor.FormActivate(Sender: TObject);
 begin
-  Security.SetModSecurity(Self, acceso);
+ { if acceso<>'sin acceso' then begin
+    Security.SetModSecurity(Self, acceso);
+  end
+  else
+  begin
+    DBNavigator1.Visible:=False;
+  end; }
 end;
 
 procedure TFVeditor.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -561,6 +550,10 @@ begin
   //SelectionChange(Self);
   CurrText.Name := DefFontData.Name;
   CurrText.Size := -MulDiv(DefFontData.Height, 72, Screen.PixelsPerInch);
+  //CurrText.Name:= 'Arial';
+  FontName.Text := CurrText.Name;
+  //CurrText.Size := 12;
+  FontSize.Text := inttostr(CurrText.Size);
 end;
 
 procedure TFVeditor.ToolButton3Click(Sender: TObject);
@@ -588,20 +581,16 @@ begin
 end;
 
 procedure TFVeditor.FormShow(Sender: TObject);
+var
+  s:string;
 begin
   UpdateCursorPos;
-  DragAcceptFiles(Handle, True);
-  //RichEditChange(nil);
-  Editor.Focused;
-  Editor.SetFocus;
+  DragAcceptFiles(Editor.Handle, True);
+  EditorChange(nil);
   { Check if we should load a file from the command line }
   if (ParamCount > 0) and FileExists(ParamStr(1)) then
     PerformFileOpen(ParamStr(1));
- // Restauraposicion;
-  CurrText.Name := 'Arial';
-  FontName.Text := 'Arial';
-  CurrText.Size := 12;
-  FontSize.Text := '12';
+
 end;
 
 procedure TFVeditor.PrintButtonClick(Sender: TObject);

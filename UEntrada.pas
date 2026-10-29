@@ -65,7 +65,6 @@ type
     procedure Panel3Resize(Sender: TObject);
     procedure cxDBVerticalGrid1MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure G1Click(Sender: TObject);
-    procedure V1Click(Sender: TObject);
     procedure Panel2Resize(Sender: TObject);
     procedure SpeedButton3Click(Sender: TObject);
     procedure btnCloseClick(Sender: TObject);
@@ -100,18 +99,13 @@ implementation
 uses
   UCapaDatos, UFVariablesAyuda;
 
-procedure TFEntrada.V1Click(Sender: TObject);
-begin
-  AyudaVariable(UDM.cl_Variables.fieldbyname('NomVariable').asstring)
-end;
-
 function VarVirtual: boolean;
 var
   vtipo: TFieldType;
   LEN: INTEGER;
   vs: string;
 begin
-  with TFEntrada.Create(nil) do
+{  with TFEntrada.Create(nil) do
   try
     CantIndex := 0;
     if UDM.cl_subseries.Locate('codsubs', UDM.tb_SeriesDatos.FieldByName('codsubs').AsInteger) then
@@ -127,7 +121,7 @@ begin
     UDM.tb_VirtualVar.active := false;
     UDM.tb_VirtualVar.FieldDefs.Clear;
     Free;
-  end;
+  end;   }
 end;
 
 procedure TFEntrada.btnAddVarClick(Sender: TObject);

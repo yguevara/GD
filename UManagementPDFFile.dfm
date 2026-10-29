@@ -2,9 +2,6 @@ object frmManagementProc: TfrmManagementProc
   Left = 0
   Top = 0
   BorderStyle = bsDialog
-  Caption = 
-    'Gestiona procedimientos de calidad asociados al procedimiento ac' +
-    'tual'
   ClientHeight = 137
   ClientWidth = 566
   Color = clBtnFace
@@ -813,8 +810,8 @@ object frmManagementProc: TfrmManagementProc
   PixelsPerInch = 96
   TextHeight = 13
   object btnFindInforme: TSpeedButton
-    Left = 511
-    Top = 72
+    Left = 510
+    Top = 70
     Width = 24
     Height = 25
     Hint = 'Abrir ficheros existentes'
@@ -826,9 +823,9 @@ object frmManagementProc: TfrmManagementProc
   object lbl1: TLabel
     Left = 30
     Top = 55
-    Width = 133
+    Width = 86
     Height = 13
-    Caption = 'Camino o estado del fichero'
+    Caption = 'Estado del fichero'
   end
   object edt1: TEdit
     Left = 30
@@ -836,7 +833,7 @@ object frmManagementProc: TfrmManagementProc
     Width = 481
     Height = 21
     ReadOnly = True
-    TabOrder = 0
+    TabOrder = 1
     OnKeyDown = FormKeyDown
   end
   object sbAD: TAdvOfficeStatusBar
@@ -882,8 +879,7 @@ object frmManagementProc: TfrmManagementProc
     Align = alTop
     Color = 15780526
     ParentBackground = False
-    TabOrder = 2
-    ExplicitTop = 8
+    TabOrder = 0
     object btnClose: TJvTransparentButton
       Left = 1
       Top = 1
@@ -1176,9 +1172,7 @@ object frmManagementProc: TfrmManagementProc
         0000000000000000000000000000000000000000000000000000000000000000
         0000000000000000000000000000000000000000000000000000000000000000
         0000000000000000000000000000000000000000000000000000}
-      ExplicitLeft = 77
-      ExplicitTop = 4
-      ExplicitHeight = 38
+      ExplicitLeft = 117
     end
     object btnFileClean: TJvTransparentButton
       Left = 56
@@ -1324,7 +1318,8 @@ object frmManagementProc: TfrmManagementProc
         0000000000000000000000000000000000000000000000000000000000000000
         0000000000000000000000000000000000000000000000000000000000000000
         0000000000000000000000000000000000000000000000000000}
-      ExplicitLeft = 54
+      ExplicitLeft = 62
+      ExplicitTop = 0
     end
     object btnSystemHelp: TJvTransparentButton
       Left = 510
@@ -1477,8 +1472,8 @@ object frmManagementProc: TfrmManagementProc
     object Edit1: TEdit
       Left = 0
       Top = 0
-      Width = 1
-      Height = 1
+      Width = 0
+      Height = 21
       TabOrder = 0
       OnKeyDown = FormKeyDown
     end
@@ -1490,7 +1485,7 @@ object frmManagementProc: TfrmManagementProc
   end
   object dlgOpenODJPG: TOpenDialog
     FileName = 'C:\      !!!!!!MIPYMES\!!WEB\RAD2007.bmp'
-    Filter = 'Croquis, fotos del Archivo|*.jpg; *.jpeg; *.png;*.bmp'
+    Filter = 'Croquis, fotos del Archivo|*.jpg|*.bmp|*.jpeg|*.bmp'
     Left = 264
     Top = 72
   end

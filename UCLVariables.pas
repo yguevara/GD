@@ -12,7 +12,7 @@ uses
   cxGridDBTableView, cxClasses, cxGridCustomView, cxGrid, cxDropDownEdit,
   cxVGrid, cxDBVGrid, cxInplaceContainer, dxBarBuiltInMenu, cxContainer,
   cxDBEdit, cxCheckBox, cxTextEdit, cxMaskEdit, cxBlobEdit, Vcl.StdCtrls,
-  cxGroupBox, cxPC, Vcl.Buttons;
+  cxGroupBox, cxPC, Vcl.Buttons, JvExControls, JvButton, JvTransparentButton;
 
 type
   TfrmVariables = class(TForm)
@@ -20,10 +20,6 @@ type
     cxDBNavigator3: TcxDBNavigator;
     DBNavigator3: TDBNavigator;
     StatusBar1: TStatusBar;
-    ToolBar1: TToolBar;
-    btnClose: TToolButton;
-    ToolButton3: TToolButton;
-    btnhlp: TToolButton;
     cxPageControl1: TcxPageControl;
     tsform: TcxTabSheet;
     cxTabSheet2: TcxTabSheet;
@@ -53,27 +49,20 @@ type
     cxDBComboBox1: TcxDBComboBox;
     cxDBBlobEdit2: TcxDBBlobEdit;
     Label3: TLabel;
-    cxDBCheckBox1: TcxDBCheckBox;
     cxDBTextEdit2: TcxDBTextEdit;
     Label2: TLabel;
     Label10: TLabel;
     cxDBTextEdit3: TcxDBTextEdit;
-    ToolButton1: TToolButton;
-    ToolButton2: TToolButton;
-    ToolButton4: TToolButton;
-    ToolButton5: TToolButton;
-    ToolButton6: TToolButton;
-    ToolButton7: TToolButton;
-    ToolButton8: TToolButton;
+    pMainContainer: TPanel;
+    JvTransparentButton1: TJvTransparentButton;
+    btnExcelExport: TJvTransparentButton;
+    btnExpand: TJvTransparentButton;
+    btnSystemHelp: TJvTransparentButton;
+    btnPrint: TJvTransparentButton;
+    Edit1: TEdit;
     procedure btnCloseClick(Sender: TObject);
-    procedure btnhlpClick(Sender: TObject);
-    procedure DBNavigator3Click(Sender: TObject; Button: TNavigateBtn);
-    procedure cxDBBlobEdit2PropertiesButtonClick(Sender: TObject;
-      AButtonIndex: Integer);
     procedure ToolButton2Click(Sender: TObject);
     procedure FormActivate(Sender: TObject);
-    procedure cxGrid1DBTableView1descripcionPropertiesButtonClick(
-      Sender: TObject; AButtonIndex: Integer);
   private
     { Private declarations }
   public
@@ -95,42 +84,9 @@ begin
   Close;
 end;
 
-procedure TfrmVariables.btnhlpClick(Sender: TObject);
-begin
-  UDM.ManagementHLP(Caption, Self.Handle);
-end;
-
-procedure TfrmVariables.cxDBBlobEdit2PropertiesButtonClick(Sender: TObject;
-  AButtonIndex: Integer);
-begin
-  { if ansilowercase(UDM.ROL) <> 'administradores' then
-    if (UDM.cl_facultadesgen.FieldByName('facultades').Value = null) or (trim(UDM.cl_facultadesgen.FieldByName('facultades').Value) = '') then
-    begin
-      udm.sms('No se encontró contenido para mostrar.', 3);
-      Exit;
-    end;  }
-  CampoTexto(@UDM.dscl_variables, 'descripcion', 'Descripciones generales de la variable ' + UDM.cl_variables.FieldByName('etiqueta').AsString);
-end;
-
-procedure TfrmVariables.cxGrid1DBTableView1descripcionPropertiesButtonClick(
-  Sender: TObject; AButtonIndex: Integer);
-begin
-  CampoTexto(@UDM.dscl_variables, 'descripcion', 'Descripciones generales de la variable ' + UDM.cl_variables.FieldByName('etiqueta').AsString);
-end;
-
-procedure TfrmVariables.DBNavigator3Click(Sender: TObject;
-  Button: TNavigateBtn);
-begin
-  if Button = nbInsert then
-  begin
-    if (TDBNavigator(Sender).DataSource.DataSet.State = dsInsert) or (TDBNavigator(Sender).DataSource.DataSet.State = dsEdit) then
-      UDM.cl_variables.FieldByName('IdVar').AsInteger:=UDM.GetLastId('cl_variables', 'IdVar');
-  end;
-end;
-
 procedure TfrmVariables.FormActivate(Sender: TObject);
 begin
-  Security.SetModSecurity(Self, acceso);
+//  Security.SetModSecurity(Self, acceso);
 end;
 
 procedure TfrmVariables.ToolButton2Click(Sender: TObject);

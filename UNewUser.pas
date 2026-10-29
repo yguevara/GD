@@ -54,6 +54,7 @@ type
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormCreate(Sender: TObject);
     procedure btnHelpClick(Sender: TObject);
+    procedure edtUserKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     { Private declarations }
   public
@@ -83,7 +84,7 @@ procedure TfrmNewUser.btnCreateUserClick(Sender: TObject);
   var
     V: Variant;
   begin
-      V := UDM.Conn.ExecSQLScalar('SELECT Max(Idresp) FROM cl_Resp_Gest_Arch');
+    V := UDM.Conn.ExecSQLScalar('SELECT Max(Idresp) FROM cl_Resp_Gest_Arch');
     result := StrToInt(VarToStr(V)) + 1;
   end;
 
@@ -91,7 +92,7 @@ begin
   if (LowerCase(edtUser.Text) = 'administrador') or (LowerCase(edtUser.Text) = 'administrator') then
   begin
    // udm.sms('`No se puede eliminar el usuario actual', 1);
-    UDM.sms('El nombre de usuario '+AnsiQuotedStr('administrador/administrator', '"')+' está restringido por el sistema.', 3);
+    UDM.sms('El nombre de usuario ' + AnsiQuotedStr('administrador/administrator', '"') + ' está restringido por el sistema.', 3);
     Exit;
   end;
   if (edtUser.Text = '') or (Length(edtUser.Text) <= 3) or (edtUser.Text = ' ') or (Length(edtpass.Text) <= 6) then
@@ -110,7 +111,7 @@ begin
       FieldByName('Idresp').AsInteger := GetLastId;
       FieldByName('usuario').AsString := AnsiLowerCase(trim(edtUser.Text));
       FieldByName('NombreResponsable').AsString := edtCompleteName.Text;
-      FieldByName('password').AsString := MD5Print(MD5String(edtpass.Text));
+      FieldByName('password').AsString := UDM.getMd5HashString(edtpass.Text);//MD5Print(MD5String(edtpass.Text));
       FieldByName('Telefono').AsString := edtEmpresa.Text;
       FieldByName('CorreoElect').AsString := edtMinisterio.Text;
       FieldByName('Habilitado').AsString := cbEnable.Text;
@@ -140,7 +141,16 @@ end;
 
 procedure TfrmNewUser.btnHelpClick(Sender: TObject);
 begin
-  //UDM.ManagementHLP(Caption, Self.Handle);
+  Application.HelpContext(13);
+end;
+
+procedure TfrmNewUser.edtUserKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if Key = 112 then
+  begin
+    Application.HelpContext(13);
+  end;
+
 end;
 
 procedure TfrmNewUser.FormCloseQuery(Sender: TObject; var CanClose: Boolean);

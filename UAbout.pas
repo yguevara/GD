@@ -7,14 +7,15 @@ uses
   System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
   dxGDIPlusClasses, Vcl.ExtCtrls, Vcl.StdCtrls, acPNG, cxGraphics, cxControls,
   cxLookAndFeels, cxLookAndFeelPainters, cxContainer, cxEdit, dxSkinsCore,
-  dxSkinsDefaultPainters, cxTextEdit, cxMemo;
+  dxSkinsDefaultPainters, cxTextEdit, cxMemo, cxRichEdit, Vcl.ComCtrls;
 
 type
   TfrmAbout = class(TForm)
-    Image1: TImage;
+    BAS: TImage;
     lblBuild: TLabel;
-    mDatos: TcxMemo;
-    procedure Image1Click(Sender: TObject);
+    pro: TImage;
+    Panel1: TPanel;
+    procedure BASClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
   private
     { Private declarations }
@@ -35,25 +36,38 @@ uses
 
 procedure TfrmAbout.FormActivate(Sender: TObject);
 begin
-  if UDM.tb_sysconfig.RecordCount > 0 then
+  if programver='PROFESIONAL' then begin
+    pro.Visible:=TRUE;
+    pro.Align:=alClient;
+    pro.SendToBack;
+    BAS.Visible:=False;
+    lblBuild.Caption:='ArchiGenioPro v' + Sto_GetFmtFileVersion(Application.ExeName, '%.d.%.d.%.d.%.4d');
+  end else begin
+    BAS.Visible:=TRUE;
+    BAS.Align:=alClient;
+    BAS.SendToBack;
+    Pro.Visible:=False;
+    lblBuild.Caption:='ArchiGenio v' + Sto_GetFmtFileVersion(Application.ExeName, '%.d.%.d.%.d.%.4d');
+  end;
+ { if UDM.tb_sysconfig.RecordCount > 0 then
   begin
     lblBuild.Visible:=False;
     mdatos.Lines.Clear;
     mdatos.Lines.Add('EMSERGO S.R.L');
-    mdatos.Lines.Add('Producto Licenciado a: ' + UDM.tb_sysconfig.FieldByName('empresa').AsString);
+//    mdatos.Lines.Add('Producto Licenciado a: ' + GetPT(UDM.tb_sysconfig.FieldByName('empresa').AsString));
     mdatos.Lines.Add('ID del Producto: ' + UDM.tb_sysconfig.FieldByName('idproducto').AsString);
     mdatos.Lines.Add('Versión: ' + UDM.tb_sysconfig.FieldByName('version').AsString);
     mdatos.Lines.Add('ArchiGenioPro v' + Sto_GetFmtFileVersion(Application.ExeName, '%.d.%.d.%.d.%.4d'));
   end
   else begin
     lblBuild.Visible:=True;
-  end;
+  end;       }
  // lblVersion.Caption:='Versión: '+UDM.tb_sysconfig.FieldByName('version').AsString;
  // lblProductID.Caption:='ID: '+UDM.tb_sysconfig.FieldByName('idproducto').AsString;
  // lblEmpresa.Caption:='Empresa: '+UDM.tb_sysconfig.FieldByName('empresa').AsString;
 end;
 
-procedure TfrmAbout.Image1Click(Sender: TObject);
+procedure TfrmAbout.BASClick(Sender: TObject);
 begin
   Close;
 end;

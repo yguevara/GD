@@ -890,6 +890,10 @@ object frmEstructura: TfrmEstructura
     object tsNewStruct: TcxTabSheet
       Caption = 'Nueva estructura (Vista Formulario)'
       ImageIndex = 0
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object Panel7: TPanel
         Left = 44
         Top = 25
@@ -1063,7 +1067,7 @@ object frmEstructura: TfrmEstructura
     Width = 593
     Height = 31
     Align = alTop
-    TabOrder = 3
+    TabOrder = 1
     object SpeedButton2: TSpeedButton
       Left = 1
       Top = 1
@@ -1209,7 +1213,7 @@ object frmEstructura: TfrmEstructura
     Width = 593
     Height = 161
     Align = alClient
-    TabOrder = 4
+    TabOrder = 3
     Visible = False
     object cxPageControl1: TcxPageControl
       Left = 1
@@ -1230,6 +1234,10 @@ object frmEstructura: TfrmEstructura
       object tsv1: TcxTabSheet
         Caption = 'Etiqueta'
         ImageIndex = 0
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object cxVG1: TcxDBVerticalGrid
           Left = 0
           Top = 33
@@ -1243,7 +1251,6 @@ object frmEstructura: TfrmEstructura
           Navigator.Buttons.CustomButtons = <>
           Styles.StyleSheet = UDM.cxVerticalGridStyleSheetDevExpress
           TabOrder = 0
-          DataController.DataSource = UDM.Dtb_VirtualVar
           Version = 1
           object iv1: TcxDBEditorRow
             Visible = False

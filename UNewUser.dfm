@@ -112,6 +112,7 @@ object frmNewUser: TfrmNewUser
   Position = poScreenCenter
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
+  OnKeyDown = edtUserKeyDown
   PixelsPerInch = 96
   TextHeight = 13
   object lblNameUser: TLabel
@@ -176,6 +177,7 @@ object frmNewUser: TfrmNewUser
     Width = 313
     Height = 21
     TabOrder = 0
+    OnKeyDown = edtUserKeyDown
   end
   object edtCompleteName: TEdit
     Left = 128
@@ -183,6 +185,7 @@ object frmNewUser: TfrmNewUser
     Width = 313
     Height = 21
     TabOrder = 1
+    OnKeyDown = edtUserKeyDown
   end
   object cbEnable: TComboBox
     Left = 128
@@ -190,6 +193,7 @@ object frmNewUser: TfrmNewUser
     Width = 59
     Height = 21
     TabOrder = 4
+    OnKeyDown = edtUserKeyDown
     Items.Strings = (
       'S'
       'N')
@@ -200,7 +204,8 @@ object frmNewUser: TfrmNewUser
     Width = 313
     Height = 21
     PasswordChar = '*'
-    TabOrder = 5
+    TabOrder = 6
+    OnKeyDown = edtUserKeyDown
   end
   object Panel2: TPanel
     Left = 16
@@ -208,7 +213,7 @@ object frmNewUser: TfrmNewUser
     Width = 425
     Height = 4
     BevelInner = bvLowered
-    TabOrder = 10
+    TabOrder = 5
   end
   object edtconfirmpass: TEdit
     Left = 128
@@ -216,7 +221,8 @@ object frmNewUser: TfrmNewUser
     Width = 313
     Height = 21
     PasswordChar = '*'
-    TabOrder = 6
+    TabOrder = 7
+    OnKeyDown = edtUserKeyDown
   end
   object Panel3: TPanel
     Left = 16
@@ -224,7 +230,7 @@ object frmNewUser: TfrmNewUser
     Width = 425
     Height = 4
     BevelInner = bvLowered
-    TabOrder = 11
+    TabOrder = 8
   end
   object Panel4: TPanel
     Left = 16
@@ -232,7 +238,7 @@ object frmNewUser: TfrmNewUser
     Width = 425
     Height = 4
     BevelInner = bvLowered
-    TabOrder = 12
+    TabOrder = 10
   end
   object btnClose: TButton
     Left = 366
@@ -240,8 +246,9 @@ object frmNewUser: TfrmNewUser
     Width = 75
     Height = 25
     Caption = 'Cerrar'
-    TabOrder = 8
+    TabOrder = 13
     OnClick = btnCloseClick
+    OnKeyDown = edtUserKeyDown
   end
   object btnCreateUser: TButton
     Left = 285
@@ -249,8 +256,9 @@ object frmNewUser: TfrmNewUser
     Width = 75
     Height = 25
     Caption = 'Crear'
-    TabOrder = 7
+    TabOrder = 12
     OnClick = btnCreateUserClick
+    OnKeyDown = edtUserKeyDown
   end
   object btnHelp: TButton
     Left = 8
@@ -258,8 +266,9 @@ object frmNewUser: TfrmNewUser
     Width = 75
     Height = 25
     Caption = 'Ayuda'
-    TabOrder = 9
+    TabOrder = 11
     OnClick = btnHelpClick
+    OnKeyDown = edtUserKeyDown
   end
   object edtEmpresa: TEdit
     Left = 128
@@ -267,6 +276,7 @@ object frmNewUser: TfrmNewUser
     Width = 313
     Height = 21
     TabOrder = 2
+    OnKeyDown = edtUserKeyDown
   end
   object edtMinisterio: TEdit
     Left = 128
@@ -274,6 +284,7 @@ object frmNewUser: TfrmNewUser
     Width = 313
     Height = 21
     TabOrder = 3
+    OnKeyDown = edtUserKeyDown
   end
   object lcbrol: TDBLookupComboBox
     Left = 127
@@ -281,6 +292,7 @@ object frmNewUser: TfrmNewUser
     Width = 313
     Height = 21
     KeyField = 'idrol'
-    TabOrder = 13
+    TabOrder = 9
+    OnKeyDown = edtUserKeyDown
   end
 end

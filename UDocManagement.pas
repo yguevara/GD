@@ -40,12 +40,7 @@ uses
 
 procedure TfrmDoc.btnSystemHelpClick(Sender: TObject);
 begin
-  with TfrmsystemMSG.Create(nil) do
-  try
-    ShowModal;
-  finally
-    Free;
-  end;
+  Application.HelpContext(1);
 end;
 
 procedure TfrmDoc.FormActivate(Sender: TObject);
@@ -98,12 +93,7 @@ procedure TfrmDoc.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState
 begin
   if Key = 112 then
   begin
-    with TfrmsystemMSG.Create(nil) do
-    try
-      ShowModal;
-    finally
-      Free;
-    end;
+    Application.HelpContext(36);
   end;
 end;
 

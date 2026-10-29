@@ -40,7 +40,6 @@ type
     cxGrid1DBTableView1Padre: TcxGridDBColumn;
     procedure btnhlpClick(Sender: TObject);
     procedure btnCloseClick(Sender: TObject);
-    procedure btnFuncionesClick(Sender: TObject);
     procedure ToolButton1Click(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure cxGrid1DBTableView1DescripcionPropertiesButtonClick(
@@ -58,31 +57,13 @@ var
 implementation
 
 uses
-  UCapaDatos, UCLVarProject, UExcelExport, UVeditor;
+  UCapaDatos,  UExcelExport, UVeditor, UREditor, USecurityClass;
 
 {$R *.dfm}
 
 procedure TfrmTipoEstructura.btnCloseClick(Sender: TObject);
 begin
   Close;
-end;
-
-procedure TfrmTipoEstructura.btnFuncionesClick(Sender: TObject);
-begin
-  if UDM.cl_tipoestructura.RecordCount > 0 then
-  begin
-    with TfrmVarProject.Create(nil) do
-    try
-      ShowModal;
-    finally
-      Free;
-    end;
-  end
-  else
-  begin
-    UDM.sms('Debe existir al menos una estructura válida.', 2);
-    Exit;
-  end;
 end;
 
 procedure TfrmTipoEstructura.btnhlpClick(Sender: TObject);
@@ -103,8 +84,12 @@ begin
 end;
 
 procedure TfrmTipoEstructura.FormActivate(Sender: TObject);
+var
+  acceso: TAccessLevel;
 begin
-  Security.SetModSecurity(Self, acceso);
+  // Obtener el nivel de acceso para este formulario
+  acceso := GlobalSecurity.GetAccess(UDM.Rol, Self.Name); // Self.Name es el nombre del formulario
+  GlobalSecurity.SetModuleSecurity(Self, acceso);
 end;
 
 procedure TfrmTipoEstructura.FormCloseQuery(Sender: TObject;

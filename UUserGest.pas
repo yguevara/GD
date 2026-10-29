@@ -6,7 +6,9 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
   System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
   Vcl.ComCtrls, JvExComCtrls, JvListView, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.Menus,
-  UCapaDatos, Vcl.ToolWin, JvExControls, JvButton, JvTransparentButton;
+  UCapaDatos, Vcl.ToolWin, JvExControls, JvButton, JvTransparentButton,
+  frxADOComponents, frxClass, frxGradient, frxRich, Data.Win.ADODB, db,
+  frxDBSet;
 
 type
   TfrmGestUser = class(TForm)
@@ -30,6 +32,9 @@ type
     btnSystemHelp: TJvTransparentButton;
     JvTransparentButton2: TJvTransparentButton;
     Edit1: TEdit;
+    btnPrint: TJvTransparentButton;
+    frxMain: TfrxReport;
+    frxtb_sysconfig: TfrxDBDataset;
     procedure FormActivate(Sender: TObject);
     procedure Establecercontrasea1Click(Sender: TObject);
     procedure Agregar1Click(Sender: TObject);
@@ -39,11 +44,15 @@ type
     procedure btnCloseClick(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure btnSystemHelpClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure btnPrintClick(Sender: TObject);
   private
     { Private declarations }
   public
     { Public declarations }
     procedure UpdateUserList;
+    procedure CargaReporte(report: TfrxReport; pathreport, nameempresa, empresa, nameimagen, pathimagen: string);
+    procedure InsertConnection(report: TfrxReport; connection: string);
   end;
 
 var
@@ -76,13 +85,49 @@ begin
   Close;
 end;
 
-procedure TfrmGestUser.btnSystemHelpClick(Sender: TObject);
+procedure TfrmGestUser.btnPrintClick(Sender: TObject);
 begin
-  with TfrmsystemMSG.Create(nil) do
-  try
-    ShowModal;
-  finally
-    Free;
+ //esta validacion la puse aqui pero puede ser en otro lugar si deseas
+  if ((UDM.tb_sysconfig.FieldByName('empresa').AsString <> '') and (not TBlobField(UDM.tb_sysconfig.FieldByName('logo')).IsNull)) then
+  begin
+     //salvar el logo que esta en la tabla de configuracion a la carpeta de reportes ,que ahora esta a nivel del mosulo
+     //principal
+    TBlobField(UDM.tb_sysconfig.FieldByName('logo')).SaveToFile(pathreport + 'logo.png');
+    //todos los parametros para cargar el reporte
+    CargaReporte(frxMain, pathreport + 'rListUser.fr3', 'empresa', UDM.tb_sysconfig.FieldByName('empresa').AsString, 'imagen', pathreport + 'logo.png');
+  end
+  else
+  begin
+    udm.sms('Debe configurar los Datos de la Empresa. Diríjase a la configuración del Sistema', 1);
+  end;
+end;
+
+procedure TfrmGestUser.btnSystemHelpClick(Sender: TObject);
+var
+  TopicID: integer;
+begin
+  TopicID := 12;
+  Application.HelpContext(TopicID);
+end;
+
+procedure TfrmGestUser.CargaReporte(report: TfrxReport; pathreport, nameempresa, empresa, nameimagen, pathimagen: string);
+var
+  Component: TfrxComponent;
+begin
+  with report do
+  begin
+    LoadFromFile(pathreport);
+    InsertConnection(report, PathBD);
+    Component := FindObject(nameempresa);
+    if Component is TfrxRichView then
+
+      TfrxRichView(Component).DataSet:= frxtb_sysconfig;
+      TfrxRichView(Component).DataField:='empresa';
+    Component := FindObject(nameimagen);
+    if Component is TfrxPictureView then
+      TfrxPictureView(Component).Picture.LoadFromFile(pathimagen);
+    PrepareReport();
+    ShowReport();
   end;
 end;
 
@@ -135,25 +180,49 @@ end;
 procedure TfrmGestUser.FormActivate(Sender: TObject);
 begin
   UpdateUserList;
-
   if lbUser.ItemIndex = -1 then
     lbUser.Items[0].Selected := True;
+end;
+
+procedure TfrmGestUser.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+var
+  TopicID: integer;
+begin
+  if Key = 112 then
+  begin
+    TopicID := 12;
+    Application.HelpContext(TopicID);
+  end;
+
+end;
+
+procedure TfrmGestUser.FormShow(Sender: TObject);
+begin
   Edit1.Focused;
   Edit1.SetFocus;
 end;
 
-procedure TfrmGestUser.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+procedure TfrmGestUser.InsertConnection(report: TfrxReport; connection: string);
+var
+  i: integer;
 begin
-  if Key = 112 then
+  TfrxADODatabase(report.FindComponent('conn')).Connected := false;
+  if TBD = 'A' then
+    TfrxADODatabase(report.FindComponent('conn')).DatabaseName := 'Provider=Microsoft.Jet.OLEDB.4.0;Data Source=' + connection + ';Persist Security Info=False'
+  else
+    TfrxADODatabase(report.FindComponent('conn')).DatabaseName := 'Provider=SQLOLEDB.1;Password=geoconn;Persist Security Info=True;User ID=geoconn;Initial Catalog=SDbd;Data Source=' + UDM.tb_sysconfig.FieldByName('ipservidorbd').AsString;
+  TfrxADODatabase(report.FindComponent('conn')).Connected := True;
+  for i := 0 to report.ComponentCount - 1 do
   begin
-    with TfrmsystemMSG.Create(nil) do
-    try
-      ShowModal;
-    finally
-      Free;
-    end;
-  end;
+    if report.Components[i] is TfrxADOQuery then
+    begin
+      if TfrxADOQuery(report.Components[i]).Params.Count = 0 then
+      begin
+        TfrxADOQuery(report.Components[i]).Active := True;
+      end;
 
+    end;
+  end
 end;
 
 procedure TfrmGestUser.lbUserDblClick(Sender: TObject);

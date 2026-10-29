@@ -5,7 +5,7 @@
         <FrameworkType>VCL</FrameworkType>
         <MainSource>ArchiGenioPro.dpr</MainSource>
         <Base>True</Base>
-        <Config Condition="'$(Config)'==''">Release</Config>
+        <Config Condition="'$(Config)'==''">Debug</Config>
         <Platform Condition="'$(Platform)'==''">Win32</Platform>
         <TargetedPlatforms>1</TargetedPlatforms>
         <AppType>Application</AppType>
@@ -53,7 +53,7 @@
         <UWP_DelphiLogo44>$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_44.png</UWP_DelphiLogo44>
         <UWP_DelphiLogo150>$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_150.png</UWP_DelphiLogo150>
         <SanitizedProjectName>ArchiGenioPro</SanitizedProjectName>
-        <Custom_Styles>&quot;Metropolis UI Blue|VCLSTYLE|$(BDSCOMMONDIR)\Styles\MetropolisUIBlue.vsf&quot;;&quot;Windows10 Blue|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows10Blue.vsf&quot;;&quot;Windows10 SlateGray|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows10SlateGray.vsf&quot;</Custom_Styles>
+        <Custom_Styles>&quot;Metropolis UI Blue|VCLSTYLE|$(BDSCOMMONDIR)\Styles\MetropolisUIBlue.vsf&quot;</Custom_Styles>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <DCC_UsePackage>DBXSqliteDriver;dxFlowChartRS26;dxPSdxMapControlLnkRS26;DBXDb2Driver;vclactnband;dxBarRS26;vclFireDAC;dxFireDACEMFRS26;tethering;TMAP;dxSpreadSheetInplaceRichEditRS26;FireDACADSDriver;JvPluginSystem;tmswizdXE12;dxRichEditCoreRS26;dxPSdxSpreadSheetLnkRS26;FireDACMSSQLDriver;vcltouch;JvBands;vcldb;svn;JvJans;dxGDIPlusRS26;JvDotNetCtrls;dxPSdxFCLnkRS26;dxCloudServiceLibraryRS26;dxPSLnksRS26;FireDACDBXDriver;cxGridRS26;dxPsPrVwAdvRS26;dxPDFViewerRS26;vclx;dxPScxTLLnkRS26;RESTBackendComponents;VCLRESTComponents;vclie;bindengine;CloudService;dxmdsRS26;JvHMI;FireDACMySQLDriver;dxdborRS26;frx26;DataSnapClient;dxFireDACServerModeRS26;bindcompdbx;clinetsuite_103;DBXSybaseASEDriver;IndyIPServer;cxPivotGridRS26;IndySystem;frxDBX26;CnPack_D103R;fsADO26;cxTreeListdxBarPopupMenuRS26;dsnapcon;cxTreeListRS26;dxPScxPivotGridLnkRS26;cxSchedulerRibbonStyleEventEditorRS26;dxPSCoreRS26;FireDACMSAccDriver;fmxFireDAC;FireDACInfxDriver;vclimg;dxSpreadSheetRS26;dxBarExtItemsRS26;dxPSdxGaugeControlLnkRS26;Jcl;emshosting;tmsdXE12;DBXOdbcDriver;FireDACTDataDriver;dxdbtrRS26;dxRichEditControlCoreRS26;soaprtl;DbxCommonDriver;dxFlowChartAdvancedCustomizeFormRS26;JvManagedThreads;dxDockingRS26;xmlrtl;soapmidas;DataSnapNativeClient;fmxobj;cxLibraryRS26;JvTimeFramework;rtl;emsserverresource;DbxClientDriver;DBXSybaseASADriver;dxPScxSchedulerLnkRS26;dxSpreadSheetConditionalFormattingDialogsRS26;JvSystem;JvStdCtrls;appanalytics;dxRibbonCustomizationFormRS26;cxSchedulerGridRS26;IndyIPClient;bindcompvcl;dxFlowChartLayoutsRS26;dxADOEMFRS26;JvDocking;JvPascalInterpreter;VclSmp;FireDACODBCDriver;dxRibbonRS26;DataSnapIndy10ServerTransport;dxPScxCommonRS26;JclVcl;dxRichEditDocumentModelRS26;DataSnapProviderClient;FireDACMongoDBDriver;dxFlowChartDesignerRS26;JvControls;dxPScxGridLnkRS26;JvPrintPreview;dxSpreadSheetCoreRS26;DataSnapServerMidas;RESTComponents;ZComponent;DBXInterBaseDriver;dxPScxExtCommonRS26;ZCore;emsclientfiredac;DataSnapFireDAC;svnui;JvGlobus;DBXMSSQLDriver;JvMM;dxRichEditControlRS26;DatasnapConnectorsFreePascal;dxGaugeControlRS26;dxorgcRS26;dxPScxVGridLnkRS26;bindcompfmx;JvNet;DBXOracleDriver;inetdb;JvAppFrm;dxBarDBNavRS26;dxDBXServerModeRS26;emsedge;FireDACIBDriver;fmx;fmxdae;dxServerModeRS26;dxWizardControlRS26;JvWizards;dxTabbedMDIRS26;fs26;dxEMFRS26;dbexpress;IndyCore;dxComnRS26;ZParseSql;frxIntIO26;JvPageComps;dsnap;DataSnapCommon;emsclient;FireDACCommon;JvDB;DataSnapConnectors;cxSchedulerTreeBrowserRS26;dxADOServerModeRS26;soapserver;cxPivotGridOLAPRS26;JclDeveloperTools;cxVerticalGridRS26;dxtrmdRS26;FireDACOracleDriver;DBXMySQLDriver;cxSchedulerRS26;cxSchedulerWebServiceStorageRS26;dxPSdxLCLnkRS26;DBXFirebirdDriver;JvCmp;FireDACCommonODBC;FireDACCommonDriver;dxMapControlRS26;frxIntIOIndy26;inet;dxSpellCheckerRS26;IndyIPCommon;JvCustom;dxSpreadSheetCoreConditionalFormattingDialogsRS26;vcl;dxPSdxDBOCLnkRS26;JvXPCtrls;frxDB26;FireDACDb2Driver;dxSpreadSheetReportDesignerRS26;dxPScxPCProdRS26;dxNavBarRS26;tmsxlsdXE12;dxCoreRS26;fsDB26;cxExportRS26;ZDbc;FireDAC;dxHttpIndyRequestRS26;dxPSPrVwRibbonRS26;JvCore;frxe26;JvCrypt;FireDACSqliteDriver;FireDACPgDriver;dxPSRichEditControlLnkRS26;FireDACASADriver;cxPivotGridChartRS26;JvDlgs;JvRuntimeDesign;DataSnapServer;dxPSdxDBTVLnkRS26;vclwinx;FireDACDSDriver;frxADO26;dxTileControlRS26;tmsexdXE12;dxSkinsCoreRS26;CustomIPTransport;vcldsnap;bindcomp;ZPlain;dxPSdxOCLnkRS26;DBXInformixDriver;acntDX10Rio_R;dbxcds;adortl;dxSpreadSheetCoreDialogsRS26;dxBarExtDBItemsRS26;dsnapxml;dbrtl;inetdbxpress;IndyProtocols;dxPSdxPDFViewerLnkRS26;dxRichEditInplaceRS26;JclContainers;fmxase;$(DCC_UsePackage)</DCC_UsePackage>
@@ -79,9 +79,11 @@
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <Icon_MainIcon>SerPerf_Icon6.ico</Icon_MainIcon>
-        <VerInfo_AutoGenVersion>true</VerInfo_AutoGenVersion>
         <UWP_DelphiLogo44>ICON5\ICON\44x44_1.png</UWP_DelphiLogo44>
         <UWP_DelphiLogo150>ICON5\ICON\150x150_1.png</UWP_DelphiLogo150>
+        <VerInfo_Release>9299</VerInfo_Release>
+        <VerInfo_Build>15405</VerInfo_Build>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.9299.15405;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
@@ -94,10 +96,10 @@
         <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <VerInfo_Build>13</VerInfo_Build>
-        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.13;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
-        <VerInfo_AutoGenVersion>true</VerInfo_AutoGenVersion>
-        <Icon_MainIcon>SerPerf_Icon7.ico</Icon_MainIcon>
+        <VerInfo_Build>15405</VerInfo_Build>
+        <VerInfo_Keys>CompanyName=EMSERGO S.R.L;FileDescription=$(MSBuildProjectName);FileVersion=1.0.9299.15405;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_Release>9299</VerInfo_Release>
+        <Icon_MainIcon>SerPerf_Icon6.ico</Icon_MainIcon>
     </PropertyGroup>
     <ItemGroup>
         <DelphiCompile Include="$(MainSource)">
@@ -135,134 +137,80 @@
         <DCCReference Include="UCLSeriesDocumentales.pas">
             <Form>frmCLSeries</Form>
         </DCCReference>
-        <DCCReference Include="UCLDestino.pas">
-            <Form>frmCLDestino</Form>
-        </DCCReference>
-        <DCCReference Include="UCLAcceso.pas">
-            <Form>frmCLAcceso</Form>
-        </DCCReference>
-        <DCCReference Include="UCLSoporte.pas">
-            <Form>frmCLSoporte</Form>
-        </DCCReference>
-        <DCCReference Include="UCLFrecuencia.pas">
-            <Form>frmCLFrecuencia</Form>
-        </DCCReference>
-        <DCCReference Include="UCLTipoDoc.pas">
-            <Form>frmCLTipoDoc</Form>
-        </DCCReference>
-        <DCCReference Include="UNodeAsist.pas">
-            <Form>frmGestionarNodos</Form>
-        </DCCReference>
         <DCCReference Include="UCLFtpServer.pas">
             <Form>frmListFTPServer</Form>
-        </DCCReference>
-        <DCCReference Include="UCLProcesos.pas">
-            <Form>frmCLprocesos</Form>
         </DCCReference>
         <DCCReference Include="UManagementPDFFile.pas">
             <Form>frmManagementProc</Form>
         </DCCReference>
-        <DCCReference Include="UCLRepActArchiv.pas">
-            <Form>frmRepActArch</Form>
-        </DCCReference>
         <DCCReference Include="UGestEstruct.pas">
             <Form>frmEstructura</Form>
-        </DCCReference>
-        <DCCReference Include="UCategoria_Ocupa.pas">
-            <Form>frmCatOcupa</Form>
-        </DCCReference>
-        <DCCReference Include="UCL_Cargo.pas">
-            <Form>frmCLCargo</Form>
-        </DCCReference>
-        <DCCReference Include="Clasificadores\UCLFacultades.pas">
-            <Form>frmCLFacultades</Form>
-        </DCCReference>
-        <DCCReference Include="Clasificadores\UCLFunciones.pas">
-            <Form>frmCLFunciones</Form>
-        </DCCReference>
-        <DCCReference Include="UViewFunciones.pas">
-            <Form>frmSelectFuncionG</Form>
-        </DCCReference>
-        <DCCReference Include="UCLVariables.pas">
-            <Form>frmVariables</Form>
-        </DCCReference>
-        <DCCReference Include="UVarVirtualVar.pas">
-            <Form>frmVarVirtualVar</Form>
         </DCCReference>
         <DCCReference Include="UMangementArch.pas">
             <Form>frmManagemetArch</Form>
         </DCCReference>
-        <DCCReference Include="USeriesDisp.pas">
-            <Form>frmSeriesDisp</Form>
-        </DCCReference>
-        <DCCReference Include="UCL_Especialistas.pas">
-            <Form>frmListEspec</Form>
-        </DCCReference>
-        <DCCReference Include="UEntrada.pas">
-            <Form>FEntrada</Form>
-        </DCCReference>
-        <DCCReference Include="UFVariablesAyuda.pas">
-            <Form>FVariablesAyuda</Form>
-        </DCCReference>
         <DCCReference Include="UManagementFileSeries.pas">
             <Form>frmManagementFile</Form>
         </DCCReference>
-        <DCCReference Include="UICSeriesDocumentales.pas">
-            <Form>frmICSeriesDocumentales</Form>
-        </DCCReference>
-        <DCCReference Include="UCLTipoEstructura.pas">
-            <Form>frmTipoEstructura</Form>
-        </DCCReference>
-        <DCCReference Include="UCLVarProject.pas">
-            <Form>frmVarProject</Form>
-        </DCCReference>
-        <DCCReference Include="UCL_Depositos.pas">
-            <Form>frmDeposito</Form>
-        </DCCReference>
-        <DCCReference Include="USecurityClasss.pas"/>
         <DCCReference Include="UVeditor.pas">
             <Form>FVeditor</Form>
-        </DCCReference>
-        <DCCReference Include="UVarVirtualSeriesD.pas">
-            <Form>frmVariablesVirtSeries</Form>
         </DCCReference>
         <DCCReference Include="UExcelExport.pas">
             <Form>frmExcelExport</Form>
         </DCCReference>
-        <DCCReference Include="UClTipoObjeto.pas">
-            <Form>frmTipoObjeto</Form>
-        </DCCReference>
-        <DCCReference Include="UManagementNode.pas">
-            <Form>frmAddNode</Form>
-            <FormType>dfm</FormType>
-        </DCCReference>
         <DCCReference Include="USystemMsg.pas">
             <Form>frmsystemMSG</Form>
-            <FormType>dfm</FormType>
-        </DCCReference>
-        <DCCReference Include="UAddNewNode.pas">
-            <Form>frmNewNode</Form>
-            <FormType>dfm</FormType>
         </DCCReference>
         <DCCReference Include="UNodeProperties.pas">
             <Form>frmPropiedadesNodo</Form>
-            <FormType>dfm</FormType>
         </DCCReference>
         <DCCReference Include="UMAINFORM.pas">
             <Form>MAIN</Form>
-            <FormType>dfm</FormType>
-        </DCCReference>
-        <DCCReference Include="UCL_Expediente.pas">
-            <Form>frmExpediente</Form>
-            <FormType>dfm</FormType>
-        </DCCReference>
-        <DCCReference Include="UCL_TiposExp.pas">
-            <Form>frmTiposExp</Form>
-            <FormType>dfm</FormType>
         </DCCReference>
         <DCCReference Include="uiapp.pas"/>
         <DCCReference Include="USysConfig.pas">
             <Form>frmSysConfig</Form>
+        </DCCReference>
+        <DCCReference Include="UTransferencias.pas">
+            <Form>frmTransferencias</Form>
+        </DCCReference>
+        <DCCReference Include="UExportImportDocumentSubSeries.pas">
+            <Form>frmImportExport</Form>
+        </DCCReference>
+        <DCCReference Include="UManagementIndex.pas">
+            <Form>frmIEIndex</Form>
+        </DCCReference>
+        <DCCReference Include="UNewNodefrm.pas">
+            <Form>frmNewNodeform</Form>
+        </DCCReference>
+        <DCCReference Include="UAdminLog.pas">
+            <Form>frmAdminSysLogs</Form>
+        </DCCReference>
+        <DCCReference Include="UManagementTrans.pas">
+            <Form>frmTrans</Form>
+        </DCCReference>
+        <DCCReference Include="UDepuracion.pas">
+            <Form>frmDepuracion</Form>
+        </DCCReference>
+        <DCCReference Include="DBTableModifier.pas"/>
+        <DCCReference Include="UVarVirtualVar.pas">
+            <Form>frmVarVirtualVar</Form>
+        </DCCReference>
+        <DCCReference Include="UTopoDocActual.pas">
+            <Form>frmUbicaDocActual</Form>
+        </DCCReference>
+        <DCCReference Include="UREditor.pas">
+            <Form>frmREditor</Form>
+        </DCCReference>
+        <DCCReference Include="UNodeInfo.pas">
+            <Form>frmNodeInfo</Form>
+        </DCCReference>
+        <DCCReference Include="frmTransferencia.pas">
+            <Form>Form1</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="UPrestamos.pas">
+            <Form>fpRESTAMOS</Form>
             <FormType>dfm</FormType>
         </DCCReference>
         <BuildConfiguration Include="Release">
@@ -286,8 +234,8 @@
                     <Source Name="MainSource">ArchiGenioPro.dpr</Source>
                 </Source>
                 <Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\adortl260.bpl">Embarcadero ADO Database Components</Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\bdertl260.bpl">Embarcadero BDE Database Components</Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\inetdbbde260.bpl">(untitled)</Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\dcloffice2k260.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\dclofficexp260.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
                 </Excluded_Packages>

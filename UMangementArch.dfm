@@ -807,6 +807,7 @@ object frmManagemetArch: TfrmManagemetArch
   OnActivate = FormActivate
   OnCloseQuery = FormCloseQuery
   OnKeyDown = FormKeyDown
+  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object StatusBar1: TStatusBar
@@ -833,7 +834,7 @@ object frmManagemetArch: TfrmManagemetArch
     Width = 833
     Height = 203
     Align = alClient
-    TabOrder = 1
+    TabOrder = 2
     object cxGrid1DBTableView1: TcxGridDBTableView
       OnKeyDown = FormKeyDown
       Navigator.Buttons.ConfirmDelete = True
@@ -942,7 +943,7 @@ object frmManagemetArch: TfrmManagemetArch
     Width = 833
     Height = 31
     Align = alTop
-    TabOrder = 2
+    TabOrder = 1
     UseDockManager = True
     Version = '2.5.5.1'
     Caption.Color = clHighlight
@@ -962,7 +963,7 @@ object frmManagemetArch: TfrmManagemetArch
     Text = ''
     FullHeight = 31
     object btnExportSSExcel: TJvTransparentButton
-      Left = 735
+      Left = 733
       Top = 1
       Width = 55
       Height = 29
@@ -1109,7 +1110,7 @@ object frmManagemetArch: TfrmManagemetArch
       ExplicitHeight = 30
     end
     object btnBestFitSS: TJvTransparentButton
-      Left = 680
+      Left = 678
       Top = 1
       Width = 55
       Height = 29
@@ -1258,7 +1259,7 @@ object frmManagemetArch: TfrmManagemetArch
     object DBNavigator3: TDBNavigator
       Left = 1
       Top = 1
-      Width = 679
+      Width = 677
       Height = 29
       DataSource = UDM.dscl_ArchivosGestion
       VisibleButtons = [nbPrior, nbNext, nbInsert, nbEdit, nbPost, nbCancel]
@@ -1281,9 +1282,9 @@ object frmManagemetArch: TfrmManagemetArch
     end
     object cxDBNavigator3: TcxDBNavigator
       Tag = 99
-      Left = 790
+      Left = 788
       Top = 1
-      Width = 42
+      Width = 44
       Height = 29
       Buttons.CustomButtons = <>
       Buttons.First.Visible = False
@@ -1319,7 +1320,7 @@ object frmManagemetArch: TfrmManagemetArch
     Align = alTop
     Color = 15780526
     ParentBackground = False
-    TabOrder = 3
+    TabOrder = 0
     object JvTransparentButton1: TJvTransparentButton
       Left = 1
       Top = 1
@@ -1908,14 +1909,159 @@ object frmManagemetArch: TfrmManagemetArch
         0000000000000000000000000000000000000000000000000000000000000000
         0000000000000000000000000000000000000000000000000000000000000000
         0000000000000000000000000000000000000000000000000000}
-      ExplicitLeft = 572
-      ExplicitTop = 4
+      ExplicitTop = -3
+    end
+    object btnPrint: TJvTransparentButton
+      Left = 166
+      Top = 1
+      Width = 50
+      Height = 39
+      Hint = 'Imprimir'
+      Align = alLeft
+      AutoGray = False
+      Color = 13135884
+      FrameStyle = fsIndent
+      ParentShowHint = False
+      ShowHint = True
+      OnClick = btnPrintClick
+      Glyph.Data = {
+        36100000424D3610000000000000360000002800000020000000200000000100
+        2000000000000010000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000000000000000000000000000000000000000000000000000000000000FFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000000000000000000000000000000000000000000000000000000000000FFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000000000000000000000000000000000000000000000000000000000000FFFF
+        FFFFFFFFFFFF0000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000FFFFFFFFFFFFFFFF00000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000000000000000000000000000000000000000000000000000000000000FFFF
+        FFFFFFFFFFFF0000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000FFFFFFFFFFFFFFFF00000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        00000000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFF0000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000000000000000
+        00000000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFF0000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000000000000000
+        00000000000000000000FFFFFFFFFFFFFFFF000000000000000000000000FFFF
+        FFFFFFFFFFFF0000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000FFFFFFFFFFFFFFFF00000000000000000000
+        0000FFFFFFFFFFFFFFFF00000000000000000000000000000000000000000000
+        00000000000000000000FFFFFFFFFFFFFFFF000000000000000000000000FFFF
+        FFFFFFFFFFFF0000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000FFFFFFFFFFFFFFFF00000000000000000000
+        0000FFFFFFFFFFFFFFFF00000000000000000000000000000000000000000000
+        00000000000000000000FFFFFFFFFFFFFFFF000000000000000000000000FFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000000000000000
+        0000FFFFFFFFFFFFFFFF00000000000000000000000000000000000000000000
+        00000000000000000000FFFFFFFFFFFFFFFF000000000000000000000000FFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000000000000000
+        0000FFFFFFFFFFFFFFFF00000000000000000000000000000000000000000000
+        00000000000000000000FFFFFFFFFFFFFFFF0000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000FFFFFFFFFFFFFFFF00000000000000000000000000000000000000000000
+        00000000000000000000FFFFFFFFFFFFFFFF0000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000FFFFFFFFFFFFFFFF00000000000000000000000000000000000000000000
+        00000000000000000000FFFFFFFFFFFFFFFF00000000FFFFFFC3FFFFFFC10000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000FFFFFFFFFFFFFFFF00000000000000000000000000000000000000000000
+        00000000000000000000FFFFFFFFFFFFFFFF00000000FFFFFFBFFFFFFFBD0000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000FFFFFFFFFFFFFFFF00000000000000000000000000000000000000000000
+        00000000000000000000FFFFFFE6FFFFFFFFFFFFFF3E00000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000000000000000000000000000000000000000000000000000000000000FFFF
+        FF42FFFFFFFFFFFFFFE400000000000000000000000000000000000000000000
+        00000000000000000000FFFFFF89FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFF8500000000000000000000000000000000000000000000
+        00000000000000000000FFFFFF06FFFFFF88FFFFFFE0FFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFE0FFFFFF85FFFFFF0500000000000000000000000000000000000000000000
+        000000000000000000000000000000000000000000000000000000000000FFFF
+        FFFFFFFFFFFF0000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000FFFFFFFFFFFFFFFF00000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000000000000000000000000000000000000000000000000000000000000FFFF
+        FFFFFFFFFFFF0000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000FFFFFFFFFFFFFFFF00000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000000000000000000000000000000000000000000000000000000000000FFFF
+        FFFFFFFFFFFF0000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000FFFFFFFFFFFFFFFF00000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000000000000000000000000000000000000000000000000000000000000FFFF
+        FFFFFFFFFFFF0000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000FFFFFFFFFFFFFFFF00000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000000000000000000000000000000000000000000000000000000000000FFFF
+        FFFFFFFFFFFF0000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000FFFFFFFFFFFFFFFF00000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000000000000000000000000000000000000000000000000000000000000FFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000000000000000000000000000000000000000000000000000000000000FFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000}
+      ExplicitLeft = 317
       ExplicitHeight = 38
     end
     object Edit1: TEdit
       Left = 0
       Top = 0
-      Width = 1
+      Width = 0
       Height = 21
       TabOrder = 0
       OnKeyDown = FormKeyDown
@@ -1972,5 +2118,735 @@ object frmManagemetArch: TfrmManagemetArch
       ImageIndex = 0
       OnClick = MenuItem4Click
     end
+  end
+  object frxMain: TfrxReport
+    Version = '2022.3'
+    DotMatrixReport = False
+    IniFile = '\Software\Fast Reports'
+    PreviewOptions.Buttons = [pbPrint, pbLoad, pbSave, pbExport, pbZoom, pbFind, pbOutline, pbPageSetup, pbTools, pbEdit, pbNavigator, pbExportQuick, pbCopy, pbSelection]
+    PreviewOptions.Zoom = 1.000000000000000000
+    PrintOptions.Printer = 'Default'
+    PrintOptions.PrintOnSheet = 0
+    ReportOptions.CreateDate = 45008.944661388900000000
+    ReportOptions.LastChange = 45098.320088402780000000
+    ScriptLanguage = 'PascalScript'
+    ScriptText.Strings = (
+      ''
+      'begin'
+      ''
+      'end.')
+    Left = 120
+    Top = 208
+    Datasets = <
+      item
+        DataSet = frxMain.ADOQuery1
+        DataSetName = 'ADOQuery1'
+      end>
+    Variables = <
+      item
+        Name = ' Connection'
+        Value = Null
+      end
+      item
+        Name = '[myconn]'
+        Value = Null
+      end>
+    Style = <>
+    object Data: TfrxDataPage
+      Height = 1000.000000000000000000
+      Width = 1000.000000000000000000
+      object conn: TfrxADODatabase
+        LoginPrompt = False
+        pLeft = 96
+        pTop = 64
+      end
+      object ADOQuery1: TfrxADOQuery
+        UserName = 'ADOQuery1'
+        CloseDataSource = True
+        BCDToCurrency = False
+        DataSetOptions = []
+        IgnoreDupParams = False
+        Params = <>
+        SQL.Strings = (
+          
+            'SELECT tb_tree.IdEstructura, tb_tree.Id, tb_tree.etiqueta, tb_Se' +
+            'rietree.codsubs, cl_subseries.subserie, cl_series.codserie, cl_s' +
+            'eries.serie, cl_ArchivosGestion.nombreArchivo,'
+          'cl_subseries.deposito,'
+          
+            'IIf(  cl_subseries.gaveta=0,  cl_subseries.gaveta=Null,  cl_subs' +
+            'eries.gaveta) AS gaveta'
+          
+            'FROM (cl_series RIGHT JOIN (cl_subseries RIGHT JOIN (tb_tree LEF' +
+            'T JOIN tb_Serietree ON (tb_tree.id = tb_Serietree.id) AND (tb_tr' +
+            'ee.IdEstructura = tb_Serietree.IdEstructura)) ON cl_subseries.co' +
+            'dsubs = tb_Serietree.codsubs) ON cl_series.codserie = cl_subseri' +
+            'es.codserie) LEFT JOIN cl_ArchivosGestion ON cl_subseries.archiv' +
+            'o = cl_ArchivosGestion.Cod'
+          'ORDER BY tb_tree.Id asc;  ')
+        CommandTimeout = 30
+        Database = frxMain.conn
+        LockType = ltReadOnly
+        pLeft = 212
+        pTop = 72
+        Parameters = <>
+      end
+    end
+    object Page1: TfrxReportPage
+      Orientation = poLandscape
+      PaperWidth = 297.000000000000000000
+      PaperHeight = 210.000000000000000000
+      PaperSize = 9
+      LeftMargin = 10.000000000000000000
+      RightMargin = 10.000000000000000000
+      TopMargin = 10.000000000000000000
+      BottomMargin = 10.000000000000000000
+      Frame.Typ = []
+      MirrorMode = []
+      object MasterData1: TfrxMasterData
+        FillType = ftBrush
+        FillGap.Top = 0
+        FillGap.Left = 0
+        FillGap.Bottom = 0
+        FillGap.Right = 0
+        Frame.Typ = []
+        Height = 18.897650000000000000
+        Top = 200.000000000000000000
+        Width = 1046.929810000000000000
+        DataSet = frxMain.ADOQuery1
+        DataSetName = 'ADOQuery1'
+        RowCount = 0
+        Stretched = True
+        object ADOQuery1IdEstructura: TfrxMemoView
+          IndexTag = 1
+          AllowVectorExport = True
+          Left = 11.338590000000000000
+          Width = 125.858255510000000000
+          Height = 18.897650000000000000
+          StretchMode = smMaxHeight
+          DataSet = frxMain.ADOQuery1
+          DataSetName = 'ADOQuery1'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -11
+          Font.Name = 'Arial'
+          Font.Style = []
+          Frame.Typ = [ftLeft, ftRight, ftTop, ftBottom]
+          Memo.UTF8W = (
+            '[ADOQuery1."IdEstructura"]')
+          ParentFont = False
+          Duplicates = dmMerge
+          VAlign = vaCenter
+          Formats = <
+            item
+            end
+            item
+            end>
+        end
+        object ADOQuery1codserie: TfrxMemoView
+          IndexTag = 1
+          AllowVectorExport = True
+          Left = 276.637910000000000000
+          Width = 56.692913390000000000
+          Height = 18.897650000000000000
+          StretchMode = smMaxHeight
+          DataField = 'codserie'
+          DataSet = frxMain.ADOQuery1
+          DataSetName = 'ADOQuery1'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -11
+          Font.Name = 'Arial'
+          Font.Style = []
+          Frame.Typ = [ftLeft, ftRight, ftTop, ftBottom]
+          Memo.UTF8W = (
+            '[ADOQuery1."codserie"]')
+          ParentFont = False
+          SuppressRepeated = True
+          Duplicates = dmMerge
+          VAlign = vaCenter
+        end
+        object ADOQuery1serie: TfrxMemoView
+          IndexTag = 1
+          AllowVectorExport = True
+          Left = 333.464750000000000000
+          Width = 188.598425200000000000
+          Height = 18.897650000000000000
+          StretchMode = smMaxHeight
+          DataField = 'serie'
+          DataSet = frxMain.ADOQuery1
+          DataSetName = 'ADOQuery1'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -11
+          Font.Name = 'Arial'
+          Font.Style = []
+          Frame.Typ = [ftLeft, ftRight, ftTop, ftBottom]
+          Memo.UTF8W = (
+            '[ADOQuery1."serie"]')
+          ParentFont = False
+          SuppressRepeated = True
+          Duplicates = dmMerge
+          VAlign = vaCenter
+        end
+        object ADOQuery1codsubs: TfrxMemoView
+          IndexTag = 1
+          AllowVectorExport = True
+          Left = 521.882190000000000000
+          Width = 63.874015748031500000
+          Height = 18.897650000000000000
+          StretchMode = smMaxHeight
+          DataField = 'codsubs'
+          DataSet = frxMain.ADOQuery1
+          DataSetName = 'ADOQuery1'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -11
+          Font.Name = 'Arial'
+          Font.Style = []
+          Frame.Typ = [ftLeft, ftRight, ftTop, ftBottom]
+          Memo.UTF8W = (
+            '[ADOQuery1."codsubs"]')
+          ParentFont = False
+          VAlign = vaCenter
+        end
+        object ADOQuery1subserie: TfrxMemoView
+          IndexTag = 1
+          AllowVectorExport = True
+          Left = 585.968503930000000000
+          Width = 258.519685040000000000
+          Height = 18.897650000000000000
+          StretchMode = smMaxHeight
+          DataField = 'subserie'
+          DataSet = frxMain.ADOQuery1
+          DataSetName = 'ADOQuery1'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -11
+          Font.Name = 'Arial'
+          Font.Style = []
+          Frame.Typ = [ftLeft, ftRight, ftTop, ftBottom]
+          Memo.UTF8W = (
+            '[ADOQuery1."subserie"]')
+          ParentFont = False
+        end
+        object ADOQuery1deposito: TfrxMemoView
+          IndexTag = 1
+          AllowVectorExport = True
+          Left = 903.055660000000000000
+          Width = 62.362204720000000000
+          Height = 18.897650000000000000
+          StretchMode = smMaxHeight
+          DataField = 'deposito'
+          DataSet = frxMain.ADOQuery1
+          DataSetName = 'ADOQuery1'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -11
+          Font.Name = 'Arial'
+          Font.Style = []
+          Frame.Typ = [ftLeft, ftRight, ftTop, ftBottom]
+          Memo.UTF8W = (
+            '[ADOQuery1."deposito"]')
+          ParentFont = False
+          Duplicates = dmMerge
+          VAlign = vaCenter
+        end
+        object ADOQuery1gaveta: TfrxMemoView
+          IndexTag = 1
+          AllowVectorExport = True
+          Left = 965.283464560000000000
+          Width = 54.803154490000000000
+          Height = 18.897650000000000000
+          StretchMode = smMaxHeight
+          DataSet = frxMain.ADOQuery1
+          DataSetName = 'ADOQuery1'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -11
+          Font.Name = 'Arial'
+          Font.Style = []
+          Frame.Typ = [ftLeft, ftRight, ftTop, ftBottom]
+          Memo.UTF8W = (
+            '[ADOQuery1."gaveta"]')
+          ParentFont = False
+          Duplicates = dmMerge
+          VAlign = vaCenter
+        end
+        object ADOQuery1nombreArchivo: TfrxMemoView
+          IndexTag = 1
+          AllowVectorExport = True
+          Left = 844.338648580000000000
+          Width = 58.582657640000000000
+          Height = 18.897650000000000000
+          StretchMode = smMaxHeight
+          DataField = 'nombreArchivo'
+          DataSet = frxMain.ADOQuery1
+          DataSetName = 'ADOQuery1'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -11
+          Font.Name = 'Arial'
+          Font.Style = []
+          Frame.Typ = [ftLeft, ftRight, ftTop, ftBottom]
+          Memo.UTF8W = (
+            '[ADOQuery1."nombreArchivo"]')
+          ParentFont = False
+        end
+        object Memo22: TfrxMemoView
+          AllowVectorExport = True
+          Left = 137.283550000000000000
+          Width = 139.086614170000000000
+          Height = 18.897650000000000000
+          StretchMode = smMaxHeight
+          DataSet = frxMain.ADOQuery1
+          DataSetName = 'ADOQuery1'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -12
+          Font.Name = 'Arial'
+          Font.Style = []
+          Frame.Typ = [ftLeft, ftRight, ftTop, ftBottom]
+          Memo.UTF8W = (
+            '[ADOQuery1."etiqueta"]')
+          ParentFont = False
+          Duplicates = dmMerge
+          VAlign = vaCenter
+        end
+      end
+      object PageFooter1: TfrxPageFooter
+        FillType = ftBrush
+        FillGap.Top = 0
+        FillGap.Left = 0
+        FillGap.Bottom = 0
+        FillGap.Right = 0
+        Frame.Typ = []
+        Height = 22.677180000000000000
+        Top = 240.000000000000000000
+        Width = 1046.929810000000000000
+        object Memo1: TfrxMemoView
+          AllowVectorExport = True
+          Left = 774.803650000000000000
+          Top = 3.779530000000020000
+          Width = 234.330860000000000000
+          Height = 18.897650000000000000
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -11
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          HAlign = haRight
+          Memo.UTF8W = (
+            'P'#225'gina [Page#] de [TotalPages#]')
+          ParentFont = False
+        end
+        object Line2: TfrxLineView
+          Align = baBottom
+          AllowVectorExport = True
+          Left = -3.779530000000000000
+          Top = 22.677180000000000000
+          Width = 1012.914040000000000000
+          Color = clBlack
+          Frame.Typ = [ftTop]
+        end
+        object Memo13: TfrxMemoView
+          Align = baLeft
+          AllowVectorExport = True
+          Top = 3.779530000000020000
+          Width = 423.307360000000000000
+          Height = 18.897650000000000000
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -11
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Memo.UTF8W = (
+            'Reporte emitido por el Sistema de Gesti'#243'n Documental EmsergoSGD')
+          ParentFont = False
+        end
+      end
+      object Memo5: TfrxMemoView
+        AllowVectorExport = True
+        Left = 1164.095240000000000000
+        Top = 313.700990000000000000
+        Width = 151.181200000000000000
+        Height = 18.897650000000000000
+        Frame.Typ = []
+        HAlign = haRight
+        Memo.UTF8W = (
+          'P'#225'gina [Page#] de [TotalPages#]')
+      end
+      object PageHeader1: TfrxPageHeader
+        FillType = ftBrush
+        FillGap.Top = 0
+        FillGap.Left = 0
+        FillGap.Bottom = 0
+        FillGap.Right = 0
+        Frame.Typ = []
+        Height = 109.606370000000000000
+        Top = 16.000000000000000000
+        Width = 1046.929810000000000000
+        object Shape3: TfrxShapeView
+          AllowVectorExport = True
+          Left = 11.338590000000000000
+          Top = 2.952690000000001000
+          Width = 1009.134510000000000000
+          Height = 105.826840000000000000
+          Frame.Typ = []
+        end
+        object Memo8: TfrxMemoView
+          AllowVectorExport = True
+          Left = 266.385900000000000000
+          Top = 70.811070000000000000
+          Width = 396.850650000000000000
+          Height = 22.677180000000000000
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -19
+          Font.Name = 'bell mt'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Memo.UTF8W = (
+            'Cuadro de clasificaci'#243'n documental.')
+          ParentFont = False
+        end
+        object empresa: TfrxMemoView
+          AllowVectorExport = True
+          Left = 166.283550000000000000
+          Top = 13.456710000000000000
+          Width = 559.370440000000000000
+          Height = 41.574830000000000000
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -15
+          Font.Name = 'bell mt'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          HAlign = haCenter
+          Memo.UTF8W = (
+            'GESTI'#211'N DE LAS AGUAS TERRESTRES'
+            
+              'Empresa de Investigaciones y Proyectos Hidr'#225'ulicos Santiago de C' +
+              'uba')
+          ParentFont = False
+        end
+        object Line3: TfrxLineView
+          AllowVectorExport = True
+          Left = 137.196857720000000000
+          Top = 3.779530000000000000
+          Height = 105.826840000000000000
+          Color = clBlack
+          Frame.Typ = [ftLeft]
+        end
+        object imagen: TfrxPictureView
+          AllowVectorExport = False
+          Left = 20.000000000000000000
+          Top = 10.338590000000000000
+          Width = 102.047310000000000000
+          Height = 94.488250000000000000
+          Frame.Typ = []
+          HightQuality = False
+          Transparent = True
+          TransparentColor = clWhite
+        end
+        object Memo16: TfrxMemoView
+          AllowVectorExport = True
+          Left = 797.480830000000000000
+          Top = 49.252010000000000000
+          Width = 196.535560000000000000
+          Height = 26.456710000000000000
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Memo.UTF8W = (
+            'P'#225'g.  [Page#]  de  [TotalPages#]')
+          ParentFont = False
+          Formats = <
+            item
+            end
+            item
+            end>
+        end
+        object Line4: TfrxLineView
+          AllowVectorExport = True
+          Left = 750.291338580000000000
+          Top = 2.779530000000000000
+          Height = 105.826840000000000000
+          Color = clBlack
+          Frame.Typ = [ftLeft]
+        end
+        object Memo6: TfrxMemoView
+          AllowVectorExport = True
+          Left = 797.480830000000000000
+          Top = 14.118120000000000000
+          Width = 173.858380000000000000
+          Height = 18.897650000000000000
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Memo.UTF8W = (
+            'R(13)-1.01 -16-01')
+          ParentFont = False
+        end
+      end
+      object Header1: TfrxHeader
+        FillType = ftBrush
+        FillGap.Top = 0
+        FillGap.Left = 0
+        FillGap.Bottom = 0
+        FillGap.Right = 0
+        Frame.Typ = []
+        Height = 37.795300000000000000
+        Top = 144.000000000000000000
+        Width = 1046.929810000000000000
+        ReprintOnNewPage = True
+        object Shape1: TfrxShapeView
+          AllowVectorExport = True
+          ShiftMode = smWhenOverlapped
+          Left = 11.338590000000000000
+          Top = -0.220470000000006000
+          Width = 1009.134510000000000000
+          Height = 37.795300000000000000
+          Frame.Typ = []
+        end
+        object Memo7: TfrxMemoView
+          AllowVectorExport = True
+          Left = 11.338590000000000000
+          Top = -0.220470000000006000
+          Width = 264.944881889764000000
+          Height = 37.795300000000000000
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          Frame.Typ = [ftLeft, ftRight, ftTop, ftBottom]
+          HAlign = haCenter
+          Memo.UTF8W = (
+            'Datos de la oficina')
+          ParentFont = False
+        end
+        object Memo10: TfrxMemoView
+          AllowVectorExport = True
+          Left = 276.661417320000000000
+          Top = -0.220470000000006000
+          Width = 245.291375200000000000
+          Height = 37.795300000000000000
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          Frame.Typ = [ftLeft, ftRight, ftTop, ftBottom]
+          HAlign = haCenter
+          Memo.UTF8W = (
+            'Datos de la Serie')
+          ParentFont = False
+        end
+        object Memo12: TfrxMemoView
+          AllowVectorExport = True
+          Left = 521.716493930000000000
+          Top = -0.220470000000006000
+          Width = 322.771695040000000000
+          Height = 37.795300000000000000
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          Frame.Typ = [ftLeft, ftRight]
+          HAlign = haCenter
+          Memo.UTF8W = (
+            'Datos de las Sub-Series')
+          ParentFont = False
+        end
+        object Memo15: TfrxMemoView
+          AllowVectorExport = True
+          Left = 844.338648580000000000
+          Top = -0.220470000000006000
+          Width = 175.747970470000000000
+          Height = 18.897650000000000000
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          Frame.Typ = [ftLeft, ftRight, ftTop, ftBottom]
+          HAlign = haCenter
+          Memo.UTF8W = (
+            'Ubicaci'#243'n')
+          ParentFont = False
+        end
+        object Memo17: TfrxMemoView
+          AllowVectorExport = True
+          Left = 844.338648580000000000
+          Top = 18.677180000000000000
+          Width = 58.582657640000000000
+          Height = 18.897650000000000000
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          Frame.Typ = [ftLeft, ftRight, ftTop, ftBottom]
+          HAlign = haCenter
+          Memo.UTF8W = (
+            'Archivo')
+          ParentFont = False
+        end
+        object Memo19: TfrxMemoView
+          AllowVectorExport = True
+          Left = 965.283491410000000000
+          Top = 18.677180000000000000
+          Width = 54.803127640000000000
+          Height = 18.897650000000000000
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          Frame.Typ = [ftLeft, ftRight, ftTop, ftBottom]
+          Memo.UTF8W = (
+            'Gaveta')
+          ParentFont = False
+        end
+        object Memo18: TfrxMemoView
+          AllowVectorExport = True
+          Left = 903.055660000000000000
+          Top = 18.897650000000000000
+          Width = 62.362204720000000000
+          Height = 18.897650000000000000
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          Frame.Typ = [ftLeft, ftRight, ftTop, ftBottom]
+          HAlign = haCenter
+          Memo.UTF8W = (
+            'Dep'#243'sito')
+          ParentFont = False
+        end
+        object Memo20: TfrxMemoView
+          AllowVectorExport = True
+          Left = 11.338590000000000000
+          Top = 18.677180000000000000
+          Width = 125.858267720000000000
+          Height = 18.897650000000000000
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          Frame.Typ = [ftLeft, ftRight, ftTop, ftBottom]
+          HAlign = haCenter
+          Memo.UTF8W = (
+            'C'#243'digo')
+          ParentFont = False
+        end
+        object Memo21: TfrxMemoView
+          AllowVectorExport = True
+          Left = 137.283550000000000000
+          Top = 18.677180000000000000
+          Width = 139.086614170000000000
+          Height = 18.897650000000000000
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          Frame.Typ = [ftLeft, ftRight, ftTop, ftBottom]
+          HAlign = haCenter
+          Memo.UTF8W = (
+            'Nombre')
+          ParentFont = False
+        end
+        object Memo23: TfrxMemoView
+          AllowVectorExport = True
+          Left = 276.661417320000000000
+          Top = 18.897650000000000000
+          Width = 56.692950000000000000
+          Height = 18.897650000000000000
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          Frame.Typ = [ftLeft, ftRight, ftTop, ftBottom]
+          HAlign = haCenter
+          Memo.UTF8W = (
+            'C'#243'digo ')
+          ParentFont = False
+        end
+        object Memo24: TfrxMemoView
+          AllowVectorExport = True
+          Left = 333.464750000000000000
+          Top = 18.897650000000000000
+          Width = 188.976500000000000000
+          Height = 18.897650000000000000
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          Frame.Typ = [ftLeft, ftRight, ftTop, ftBottom]
+          HAlign = haCenter
+          Memo.UTF8W = (
+            'Nombre')
+          ParentFont = False
+        end
+        object Memo25: TfrxMemoView
+          AllowVectorExport = True
+          Left = 521.716493930000000000
+          Top = 18.897650000000000000
+          Width = 64.252010000000000000
+          Height = 18.897650000000000000
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          Frame.Typ = [ftLeft, ftRight, ftTop, ftBottom]
+          HAlign = haCenter
+          Memo.UTF8W = (
+            'C'#243'digo')
+          ParentFont = False
+        end
+        object Memo26: TfrxMemoView
+          AllowVectorExport = True
+          Left = 585.968503930000000000
+          Top = 18.897650000000000000
+          Width = 257.763779527559000000
+          Height = 18.897650000000000000
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          Frame.Typ = [ftLeft, ftRight, ftTop, ftBottom]
+          HAlign = haCenter
+          Memo.UTF8W = (
+            'Nombre')
+          ParentFont = False
+        end
+      end
+    end
+  end
+  object frxtb_sysconfig: TfrxDBDataset
+    UserName = 'tb_sysconfig'
+    CloseDataSource = False
+    DataSet = UDM.tb_sysconfig
+    BCDToCurrency = False
+    DataSetOptions = []
+    Left = 549
+    Top = 120
   end
 end

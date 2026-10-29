@@ -830,7 +830,7 @@ object frmGestionarNodos: TfrmGestionarNodos
     Width = 185
     Height = 320
     Align = alLeft
-    TabOrder = 0
+    TabOrder = 1
     object Image1: TImage
       Left = 1
       Top = 1
@@ -859,7 +859,7 @@ object frmGestionarNodos: TfrmGestionarNodos
     Font.Style = [fsBold]
     ParentBackground = False
     ParentFont = False
-    TabOrder = 1
+    TabOrder = 0
   end
   object StatusBar1: TStatusBar
     Left = 0
@@ -875,7 +875,7 @@ object frmGestionarNodos: TfrmGestionarNodos
     Width = 521
     Height = 320
     Align = alClient
-    TabOrder = 3
+    TabOrder = 2
     object Panel3: TPanel
       Left = 1
       Top = 274
@@ -884,7 +884,7 @@ object frmGestionarNodos: TfrmGestionarNodos
       Align = alBottom
       Color = 14597449
       ParentBackground = False
-      TabOrder = 0
+      TabOrder = 1
       object btnBack: TCnButton
         Left = 80
         Top = 10
@@ -996,7 +996,7 @@ object frmGestionarNodos: TfrmGestionarNodos
       Width = 519
       Height = 273
       Align = alClient
-      TabOrder = 1
+      TabOrder = 0
       Properties.ActivePage = TS1
       Properties.CustomButtons.Buttons = <>
       ClientRectBottom = 269
@@ -1006,6 +1006,10 @@ object frmGestionarNodos: TfrmGestionarNodos
       object TS1: TcxTabSheet
         Caption = '1'
         ImageIndex = 0
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object cxMemo1: TcxMemo
           Left = 0
           Top = 0

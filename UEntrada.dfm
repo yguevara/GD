@@ -876,7 +876,6 @@ object FEntrada: TFEntrada
       Hint = 'Valor de la variable'
       Caption = 'ToolButton2'
       ImageIndex = 15
-      OnClick = V1Click
     end
     object ToolButton3: TToolButton
       Left = 148
@@ -1328,7 +1327,6 @@ object FEntrada: TFEntrada
     end
     object V1: TMenuItem
       Caption = 'Variable'
-      OnClick = V1Click
     end
   end
   object cxStyleRepository2: TcxStyleRepository

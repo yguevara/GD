@@ -17,8 +17,8 @@ uses
 
 const
   { Cadenas para registrar el mutex y el mensaje }
-  sMutex = 'D32E2D37-2240-4920-A5D6-591D655C59F3';
-  sActivar = '0485222D-F0E5-43DB-AE8B-A8613455B36C';
+  sMutex = 'D32E2D37-2240-4920-A5D6-591D655C59B3';
+  sActivar = '0485222D-F0E5-43DB-AE8B-A8613455F36C';
 
 var
   mActivar: Cardinal; { Mensaje para activar la instancia anterior }

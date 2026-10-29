@@ -5,8 +5,6 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
   ClientHeight = 462
   ClientWidth = 957
   Color = clWindow
-  Constraints.MaxHeight = 501
-  Constraints.MinHeight = 501
   Ctl3D = False
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -805,9 +803,11 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
   OldCreateOrder = False
   Position = poScreenCenter
   OnActivate = FormActivate
+  OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnKeyDown = FormKeyDown
   OnResize = FormResize
+  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object AdvSplitter1: TAdvSplitter
@@ -997,9 +997,9 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
     end
     object cxDBNavigator1: TcxDBNavigator
       Tag = 99
-      Left = 869
+      Left = 867
       Top = 1
-      Width = 42
+      Width = 44
       Height = 28
       Buttons.CustomButtons = <>
       Buttons.First.Visible = False
@@ -1021,14 +1021,14 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       InfoPanel.DisplayMask = '[RecordIndex] de [RecordCount]'
       InfoPanel.Visible = True
       Align = alRight
-      TabOrder = 0
+      TabOrder = 1
       Visible = False
     end
     object DBNavigator1: TDBNavigator
       Tag = 99
       Left = 1
       Top = 1
-      Width = 868
+      Width = 866
       Height = 28
       DataSource = UDM.dstb_tree
       VisibleButtons = [nbEdit, nbPost, nbCancel]
@@ -1047,7 +1047,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       ParentShowHint = False
       ConfirmDelete = False
       ShowHint = True
-      TabOrder = 1
+      TabOrder = 0
       OnClick = DBNavigator1Click
     end
   end
@@ -1058,19 +1058,32 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
     Height = 348
     Align = alLeft
     TabOrder = 2
+    OnResize = Panel3Resize
     object tvTreeData: TTreeView
+      Left = -4
+      Top = 109
+      Width = 315
+      Height = 346
+      HideSelection = False
+      Images = UDM.ImageList3
+      Indent = 27
+      ReadOnly = True
+      TabOrder = 1
+      StyleElements = [seFont, seClient]
+      OnCustomDrawItem = tvTreeDataCustomDrawItem
+      OnKeyDown = FormKeyDown
+      OnMouseDown = tvTreeDataMouseDown
+    end
+    object Panel1: TPanel
       Left = 1
       Top = 1
       Width = 315
-      Height = 346
-      Align = alClient
-      Color = 15453088
-      Images = UDM.ImageList2
-      Indent = 27
-      ReadOnly = True
+      Height = 32
+      Align = alTop
+      Caption = 'CUADRO DE CLASIFICACI'#211'N'
+      Color = 15780526
+      ParentBackground = False
       TabOrder = 0
-      OnKeyDown = FormKeyDown
-      OnMouseDown = tvTreeDataMouseDown
     end
   end
   object Panel4: TPanel
@@ -1082,12 +1095,9 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
     Color = 11105043
     ParentBackground = False
     TabOrder = 3
-    DesignSize = (
-      635
-      348)
     object Label6: TLabel
       Left = 6
-      Top = 183
+      Top = 222
       Width = 65
       Height = 13
       Caption = 'Descripci'#243'n'
@@ -1098,319 +1108,16 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object GroupBox3: TGroupBox
-      Left = 25
-      Top = 5
-      Width = 585
-      Height = 171
-      Anchors = [akTop]
-      Color = 11105043
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindow
-      Font.Height = -13
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentBackground = False
-      ParentColor = False
-      ParentFont = False
-      TabOrder = 0
-      object Label5: TLabel
-        Left = 328
-        Top = 67
-        Width = 82
-        Height = 13
-        Caption = 'Tipo de Objeto'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindow
-        Font.Height = -11
-        Font.Name = 'Tahoma'
-        Font.Style = [fsBold]
-        ParentFont = False
-      end
-      object Label3: TLabel
-        Left = 17
-        Top = 67
-        Width = 131
-        Height = 13
-        Caption = 'Administrador del '#193'rea'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindow
-        Font.Height = -11
-        Font.Name = 'Tahoma'
-        Font.Style = [fsBold]
-        ParentFont = False
-      end
-      object Label1: TLabel
-        Left = 185
-        Top = 16
-        Width = 44
-        Height = 13
-        Caption = 'Nombre'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindow
-        Font.Height = -11
-        Font.Name = 'Tahoma'
-        Font.Style = [fsBold]
-        ParentFont = False
-      end
-      object Label4: TLabel
-        Left = 17
-        Top = 16
-        Width = 131
-        Height = 13
-        Caption = 'C'#243'digo de la estructura'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindow
-        Font.Height = -11
-        Font.Name = 'Tahoma'
-        Font.Style = [fsBold]
-        ParentFont = False
-      end
-      object Label2: TLabel
-        Left = 17
-        Top = 115
-        Width = 33
-        Height = 13
-        Caption = 'Padre'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindow
-        Font.Height = -11
-        Font.Name = 'Tahoma'
-        Font.Style = [fsBold]
-        ParentFont = False
-      end
-      object lcbTipodeObjeto: TcxDBLookupComboBox
-        Tag = 3
-        Left = 328
-        Top = 86
-        Hint = 'Tipo de objeto'
-        DataBinding.DataField = 'tipo'
-        DataBinding.DataSource = UDM.dstb_tree
-        ParentFont = False
-        Properties.KeyFieldNames = 'idtipoobj'
-        Properties.ListColumns = <
-          item
-            Caption = 'Tipos de objetos'
-            HeaderAlignment = taCenter
-            FieldName = 'nombretipoobj'
-          end>
-        Properties.ListOptions.ShowHeader = False
-        Properties.ListSource = UDM.dscl_tipoobj
-        Style.Color = 15453088
-        Style.Font.Charset = DEFAULT_CHARSET
-        Style.Font.Color = clBlack
-        Style.Font.Height = -12
-        Style.Font.Name = 'Tahoma'
-        Style.Font.Style = []
-        Style.LookAndFeel.NativeStyle = True
-        Style.LookAndFeel.SkinName = 'Office2010Blue'
-        Style.IsFontAssigned = True
-        StyleDisabled.LookAndFeel.NativeStyle = True
-        StyleDisabled.LookAndFeel.SkinName = 'Office2010Blue'
-        StyleFocused.LookAndFeel.NativeStyle = True
-        StyleFocused.LookAndFeel.SkinName = 'Office2010Blue'
-        StyleHot.LookAndFeel.NativeStyle = True
-        StyleHot.LookAndFeel.SkinName = 'Office2010Blue'
-        TabOrder = 0
-        OnKeyDown = FormKeyDown
-        Width = 234
-      end
-      object lcbRepresentante: TcxDBLookupComboBox
-        Tag = 3
-        Left = 17
-        Top = 86
-        Hint = 'Responsables actividad archivistica'
-        DataBinding.DataField = 'Administrador'
-        DataBinding.DataSource = UDM.dstb_tree
-        ParentFont = False
-        Properties.KeyFieldNames = 'Idresp'
-        Properties.ListColumns = <
-          item
-            Caption = 'Responsables de la actividad'
-            HeaderAlignment = taCenter
-            FieldName = 'NombreResponsable'
-          end>
-        Properties.ListOptions.ShowHeader = False
-        Properties.ListSource = UDM.dscl_Resp_Gest_Arch
-        Style.Color = 15453088
-        Style.Font.Charset = DEFAULT_CHARSET
-        Style.Font.Color = clBlack
-        Style.Font.Height = -12
-        Style.Font.Name = 'Tahoma'
-        Style.Font.Style = []
-        Style.LookAndFeel.NativeStyle = True
-        Style.LookAndFeel.SkinName = 'Office2010Blue'
-        Style.IsFontAssigned = True
-        StyleDisabled.LookAndFeel.NativeStyle = True
-        StyleDisabled.LookAndFeel.SkinName = 'Office2010Blue'
-        StyleFocused.LookAndFeel.NativeStyle = True
-        StyleFocused.LookAndFeel.SkinName = 'Office2010Blue'
-        StyleHot.LookAndFeel.NativeStyle = True
-        StyleHot.LookAndFeel.SkinName = 'Office2010Blue'
-        TabOrder = 1
-        OnKeyDown = FormKeyDown
-        Width = 204
-      end
-      object edtEtiqueta: TcxDBTextEdit
-        Left = 185
-        Top = 35
-        DataBinding.DataField = 'etiqueta'
-        DataBinding.DataSource = UDM.dstb_tree
-        ParentFont = False
-        Properties.ValidationOptions = [evoShowErrorIcon]
-        Style.Color = 15453088
-        Style.Font.Charset = DEFAULT_CHARSET
-        Style.Font.Color = clBlack
-        Style.Font.Height = -12
-        Style.Font.Name = 'Tahoma'
-        Style.Font.Style = []
-        Style.LookAndFeel.NativeStyle = True
-        Style.LookAndFeel.SkinName = 'DevExpressDarkStyle'
-        Style.IsFontAssigned = True
-        StyleDisabled.LookAndFeel.NativeStyle = True
-        StyleDisabled.LookAndFeel.SkinName = 'DevExpressDarkStyle'
-        StyleFocused.LookAndFeel.NativeStyle = True
-        StyleFocused.LookAndFeel.SkinName = 'DevExpressDarkStyle'
-        StyleHot.LookAndFeel.NativeStyle = True
-        StyleHot.LookAndFeel.SkinName = 'DevExpressDarkStyle'
-        TabOrder = 2
-        OnKeyDown = FormKeyDown
-        Width = 377
-      end
-      object edtdeposito: TcxDBTextEdit
-        Left = 17
-        Top = 35
-        DataBinding.DataField = 'IdEstructura'
-        DataBinding.DataSource = UDM.dstb_tree
-        ParentFont = False
-        Properties.ValidationOptions = [evoShowErrorIcon]
-        Style.Color = 15453088
-        Style.Font.Charset = DEFAULT_CHARSET
-        Style.Font.Color = clBlack
-        Style.Font.Height = -12
-        Style.Font.Name = 'Tahoma'
-        Style.Font.Style = []
-        Style.LookAndFeel.NativeStyle = True
-        Style.LookAndFeel.SkinName = 'DevExpressDarkStyle'
-        Style.IsFontAssigned = True
-        StyleDisabled.LookAndFeel.NativeStyle = True
-        StyleDisabled.LookAndFeel.SkinName = 'DevExpressDarkStyle'
-        StyleFocused.LookAndFeel.NativeStyle = True
-        StyleFocused.LookAndFeel.SkinName = 'DevExpressDarkStyle'
-        StyleHot.LookAndFeel.NativeStyle = True
-        StyleHot.LookAndFeel.SkinName = 'DevExpressDarkStyle'
-        TabOrder = 3
-        OnKeyDown = FormKeyDown
-        Width = 162
-      end
-      object cxDBCheckBox1: TcxDBCheckBox
-        Left = 242
-        Top = 85
-        Caption = 'Visible'
-        DataBinding.DataField = 'visible'
-        DataBinding.DataSource = UDM.dstb_tree
-        Properties.Glyph.SourceDPI = 96
-        Properties.Glyph.Data = {
-          89504E470D0A1A0A0000000D494844520000002000000010080600000077007D
-          59000000017352474200AECE1CE90000000467414D410000B18F0BFC61050000
-          00097048597300000EC300000EC301C76FA864000005AA49444154484B959577
-          50546714C5895D01891A7526636C340B4A50116996A549115414022381312202
-          52452982083822C1024851575004346A0836FA2A4D90851559AA201DE92C8852
-          4CF2C7C9F77DBBE37FCE989DF9CDBBFBF6DD73CEBDFBE63D29C9671A613A61C6
-          37305302BDFEBBB85C8382049E11BE4ABE98788621E2F28C109B6780986CBD42
-          8986D4F496D0E0C2CE7321E808A39C457B58B0985042C819B43182D07696101C
-          84D6E0403406FA1791DE19D46468BCF47F1393AD0FD24F07919A4985275FE78A
-          114860758E846C4C5652B230C9CF64BC0DF0A302B362730DD135F6172AFB7D50
-          D927A682D24B39C1E0537A28DE2827B48EA4E2F2530EEBA70166359FF6C76445
-          2646EE5D458DBF27B8AB3722DFF200FB4EE11D3C08EEAA8D10FA7A40941A0D51
-          4A14EA4EFA508139D159FAE8187D203661466293F21E2FC6ABF762326B8FA0B8
-          DD0D65DD1E681E4E4264C62EDA3F9B0698DDE07B1213658F89813B928DACC1CB
-          12E08F6301C83633478EB905AB7999954836B446F549570C275F46B5BB271598
-          7BE909874C94464C3C5146E9F644293129EDF2C0CB2E774650920E4CDC56C031
-          62038A3B8EA3613001E71FE87E0930A7DAC515E345E9E02E5F87B6E61E0C8D4C
-          A2B95D84FBEE218CB7A4EE1B1E474B530FB83FADC3505224F8BF3952817917D2
-          7790896EA1A4D38D51DCE186A2F6E328EA704561BB2B8E46A8E0D46567B474F6
-          C2C875299E08ED21EC8B4248AA0EDB200D30B7D86C2F59750C59B5152A22AE60
-          7CF25F0C8F4DA1A95384A60E11063F4CE1E3C43FEC371EF96BBAFC0E2357CF98
-          0A4887DCD542FD40020ADA9C91C8DB0F8EB334FCB9DB90D77C142712B6E04CFC
-          09F40D7EC0F10B16E0E63890F34EA8E80A87DF4D75B6411A601E4FDF04FD57FC
-          D0EDEB807C5353BC8A88C6C0E81406C826FA4709A22994864721CFD818ED1E36
-          68B6D1C3332D7613C904DED64465D7453CADB307C74916953535F0BDE2023D97
-          45CCBCBB7F0C9177BC712EC50C794D2EC8A8B145E1BBD324DC66B6411A403A4B
-          D7003D61EE68F97537B2B535911BFC3B59F9247A8727D033344E98444E5004B2
-          3435D07460271AF7E92263335BA1ECA91BEA286B0B437AB50D621FD9C225D402
-          BD031F90595288D6EE51D4B556C1C267199ED53BE3DE6B4BDC15EC476EA337DC
-          6336B10DD200328FB7EE44578023B2D5D590EE7916B5EF86F07E701CA28F5310
-          8D7D46D7C03884CD83F8D32318596A1B516FAC8EFB2A1A5460BE57FC66143407
-          E01E11CE103A202CD914A109CE18217D239FFE865DB03A129F1FC21DBE39C10C
-          C9E5667852E304E78BAA5F02C83E54D564AB4D5BAD8CE1BE61BC1F9AC0C8C7CF
-          1046C732C4213E61A8771869AB9421E4A8224589AD50CE2D4A0D39F55E48E1EF
-          413221FD8D03BCAF6A2331231C456F1EC33E5C09691596482ADB8DC45223C6C3
-          2A3B385ED840FB656880F9696BD5F1EEB0390416FA786EE780CF2211AA2222C1
-          D3D9867C02ADE9B9E776F6E01BE9A24A6B2D9256308105C72255F148E8C40C6E
-          965288C16B7BD8852A42DB490AF179FB70A3441FD74BF470AD98C2412AFF001C
-          C2D6D37E591A40EEF62A35345AE9A1DE540395A63BF050790D5EE86C4583C576
-          D49BEBE285963A3BC737D046F52E550836C9E3FA8F6BA9C0C223E755F0406087
-          6BC4E03A11A706D428FD8D23B2EA7DC8C466882BDC49D88ED8028A2E6EBE34C5
-          A160D63F9F05E02E5B8F5A1332A986126A383F931B8D833AC3AD10682840B045
-          01B5FA5BD060AE43265F07BEEA4AF05596236EB1220B601FBA1E77CA2D71FBD5
-          3EC25EDC2A3327A67B9831F7A509B825C6647A2312CA00D78A0C105FA847C270
-          60735AF9CB06A42F2D5128895FAA84F825CA885BA284D8C51445318B147075A1
-          026218F28859208F68C279B995A5A457C6DA57A9D036680D6C8394611BA80C1B
-          0A11FF8512405182B59F12ACC8D18A1C0FFA92A3AF22F67AC9D397197B0ED057
-          22BD1B17121649F8E12B2C96406B9A9EF652115ACB7D03DF4BA0357906484DFB
-          0FA6CF825D9F0C64780000000049454E44AE426082}
-        Properties.GlyphCount = 2
-        Properties.NullStyle = nssUnchecked
-        Properties.OnEditValueChanged = cxDBCheckBox1PropertiesEditValueChanged
-        TabOrder = 4
-      end
-      object lcbPadre: TcxDBLookupComboBox
-        Tag = 3
-        Left = 17
-        Top = 134
-        Hint = 'Responsables actividad archivistica'
-        DataBinding.DataField = 'padre'
-        DataBinding.DataSource = UDM.dstb_tree
-        ParentFont = False
-        Properties.KeyFieldNames = 'id'
-        Properties.ListColumns = <
-          item
-            Caption = 'Padres'
-            HeaderAlignment = taCenter
-            FieldName = 'etiqueta'
-          end>
-        Properties.ListOptions.ShowHeader = False
-        Properties.ListSource = dsPadres
-        Style.Color = 15453088
-        Style.Font.Charset = DEFAULT_CHARSET
-        Style.Font.Color = clBlack
-        Style.Font.Height = -12
-        Style.Font.Name = 'Tahoma'
-        Style.Font.Style = []
-        Style.LookAndFeel.NativeStyle = True
-        Style.LookAndFeel.SkinName = 'Office2010Blue'
-        Style.IsFontAssigned = True
-        StyleDisabled.LookAndFeel.NativeStyle = True
-        StyleDisabled.LookAndFeel.SkinName = 'Office2010Blue'
-        StyleFocused.LookAndFeel.NativeStyle = True
-        StyleFocused.LookAndFeel.SkinName = 'Office2010Blue'
-        StyleHot.LookAndFeel.NativeStyle = True
-        StyleHot.LookAndFeel.SkinName = 'Office2010Blue'
-        TabOrder = 5
-        OnKeyDown = FormKeyDown
-        Width = 204
-      end
-    end
     object edtDescripcion: TcxDBRichEdit
       Left = 1
-      Top = 209
+      Top = 244
       Align = alBottom
       DataBinding.DataField = 'descripcion'
       DataBinding.DataSource = UDM.dstb_tree
       ParentFont = False
+      PopupMenu = PPMDescript
       Properties.ScrollBars = ssVertical
-      Style.Color = 15453088
+      Style.Color = clWindow
       Style.Font.Charset = DEFAULT_CHARSET
       Style.Font.Color = clWindowText
       Style.Font.Height = -11
@@ -1419,8 +1126,553 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       Style.IsFontAssigned = True
       TabOrder = 1
       OnKeyDown = FormKeyDown
-      Height = 138
+      Height = 103
       Width = 633
+    end
+    object cxPageControl2: TcxPageControl
+      Left = 1
+      Top = 1
+      Width = 633
+      Height = 243
+      Align = alClient
+      Color = 11105043
+      ParentBackground = False
+      ParentColor = False
+      TabOrder = 0
+      Properties.ActivePage = tsnode
+      Properties.CustomButtons.Buttons = <>
+      Properties.Style = 7
+      Properties.TabHeight = 1
+      Properties.TabWidth = 1
+      OnChange = cxPageControl2Change
+      ClientRectBottom = 242
+      ClientRectLeft = 1
+      ClientRectRight = 632
+      ClientRectTop = 21
+      object tsnode: TcxTabSheet
+        ParentCustomHint = False
+        Color = 11105043
+        ImageIndex = 0
+        ParentColor = False
+        object Panel6: TPanel
+          Left = 0
+          Top = 0
+          Width = 631
+          Height = 221
+          Align = alClient
+          Color = 11105043
+          ParentBackground = False
+          TabOrder = 0
+          object GroupBox3: TGroupBox
+            Left = 1
+            Top = 1
+            Width = 629
+            Height = 219
+            Align = alClient
+            Color = 11105043
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clWindow
+            Font.Height = -13
+            Font.Name = 'Tahoma'
+            Font.Style = [fsBold]
+            ParentBackground = False
+            ParentColor = False
+            ParentFont = False
+            TabOrder = 0
+            object Label5: TLabel
+              Left = 240
+              Top = 16
+              Width = 82
+              Height = 13
+              Caption = 'Tipo de Objeto'
+              Font.Charset = DEFAULT_CHARSET
+              Font.Color = clWindow
+              Font.Height = -11
+              Font.Name = 'Tahoma'
+              Font.Style = [fsBold]
+              ParentFont = False
+            end
+            object Label3: TLabel
+              Left = 17
+              Top = 155
+              Width = 131
+              Height = 13
+              Caption = 'Administrador del '#193'rea'
+              Font.Charset = DEFAULT_CHARSET
+              Font.Color = clWindow
+              Font.Height = -11
+              Font.Name = 'Tahoma'
+              Font.Style = [fsBold]
+              ParentFont = False
+            end
+            object Label1: TLabel
+              Left = 17
+              Top = 64
+              Width = 44
+              Height = 13
+              Caption = 'Nombre'
+              Font.Charset = DEFAULT_CHARSET
+              Font.Color = clWindow
+              Font.Height = -11
+              Font.Name = 'Tahoma'
+              Font.Style = [fsBold]
+              ParentFont = False
+            end
+            object Label4: TLabel
+              Left = 17
+              Top = 16
+              Width = 131
+              Height = 13
+              Caption = 'C'#243'digo de la estructura'
+              Font.Charset = DEFAULT_CHARSET
+              Font.Color = clWindow
+              Font.Height = -11
+              Font.Name = 'Tahoma'
+              Font.Style = [fsBold]
+              ParentFont = False
+            end
+            object Label2: TLabel
+              Left = 17
+              Top = 107
+              Width = 33
+              Height = 13
+              Caption = 'Padre'
+              Font.Charset = DEFAULT_CHARSET
+              Font.Color = clWindow
+              Font.Height = -11
+              Font.Name = 'Tahoma'
+              Font.Style = [fsBold]
+              ParentFont = False
+            end
+            object Label7: TLabel
+              Left = 1
+              Top = 205
+              Width = 627
+              Height = 13
+              Align = alBottom
+              Caption = '      Descripci'#243'n: '
+              Font.Charset = DEFAULT_CHARSET
+              Font.Color = clWindow
+              Font.Height = -11
+              Font.Name = 'Tahoma'
+              Font.Style = [fsBold]
+              ParentFont = False
+              ExplicitWidth = 89
+            end
+            object lcbTipodeObjeto: TcxDBLookupComboBox
+              Tag = 3
+              Left = 239
+              Top = 35
+              Hint = 'Tipo de objeto'
+              DataBinding.DataField = 'tipo'
+              DataBinding.DataSource = UDM.dstb_tree
+              ParentFont = False
+              Properties.KeyFieldNames = 'idtipoobj'
+              Properties.ListColumns = <
+                item
+                  Caption = 'Tipos de objetos'
+                  HeaderAlignment = taCenter
+                  FieldName = 'nombretipoobj'
+                end>
+              Properties.ListOptions.ShowHeader = False
+              Properties.ListSource = UDM.dscl_tipoobj
+              Properties.OnCloseUp = lcbTipodeObjetoPropertiesCloseUp
+              Style.Color = clWindow
+              Style.Font.Charset = DEFAULT_CHARSET
+              Style.Font.Color = clBlack
+              Style.Font.Height = -12
+              Style.Font.Name = 'Tahoma'
+              Style.Font.Style = []
+              Style.LookAndFeel.NativeStyle = True
+              Style.LookAndFeel.SkinName = 'Office2010Blue'
+              Style.IsFontAssigned = True
+              StyleDisabled.LookAndFeel.NativeStyle = True
+              StyleDisabled.LookAndFeel.SkinName = 'Office2010Blue'
+              StyleFocused.LookAndFeel.NativeStyle = True
+              StyleFocused.LookAndFeel.SkinName = 'Office2010Blue'
+              StyleHot.LookAndFeel.NativeStyle = True
+              StyleHot.LookAndFeel.SkinName = 'Office2010Blue'
+              TabOrder = 1
+              OnKeyDown = FormKeyDown
+              Width = 329
+            end
+            object lcbRepresentante: TcxDBLookupComboBox
+              Tag = 3
+              Left = 17
+              Top = 174
+              Hint = 'Responsables actividad archivistica'
+              DataBinding.DataField = 'Administrador'
+              DataBinding.DataSource = UDM.dstb_tree
+              ParentFont = False
+              Properties.KeyFieldNames = 'Idresp'
+              Properties.ListColumns = <
+                item
+                  Caption = 'Responsables de la actividad'
+                  HeaderAlignment = taCenter
+                  FieldName = 'NombreResponsable'
+                end>
+              Properties.ListOptions.ShowHeader = False
+              Properties.ListSource = UDM.dscl_Resp_Gest_Arch
+              Style.Color = clWindow
+              Style.Font.Charset = DEFAULT_CHARSET
+              Style.Font.Color = clBlack
+              Style.Font.Height = -12
+              Style.Font.Name = 'Tahoma'
+              Style.Font.Style = []
+              Style.LookAndFeel.NativeStyle = True
+              Style.LookAndFeel.SkinName = 'Office2010Blue'
+              Style.IsFontAssigned = True
+              StyleDisabled.LookAndFeel.NativeStyle = True
+              StyleDisabled.LookAndFeel.SkinName = 'Office2010Blue'
+              StyleFocused.LookAndFeel.NativeStyle = True
+              StyleFocused.LookAndFeel.SkinName = 'Office2010Blue'
+              StyleHot.LookAndFeel.NativeStyle = True
+              StyleHot.LookAndFeel.SkinName = 'Office2010Blue'
+              TabOrder = 4
+              OnKeyDown = FormKeyDown
+              Width = 216
+            end
+            object edtEtiqueta: TcxDBTextEdit
+              Left = 17
+              Top = 83
+              DataBinding.DataField = 'etiqueta'
+              DataBinding.DataSource = UDM.dstb_tree
+              ParentFont = False
+              Properties.ValidationOptions = [evoShowErrorIcon]
+              Style.Color = clWindow
+              Style.Font.Charset = DEFAULT_CHARSET
+              Style.Font.Color = clBlack
+              Style.Font.Height = -12
+              Style.Font.Name = 'Tahoma'
+              Style.Font.Style = []
+              Style.LookAndFeel.NativeStyle = True
+              Style.LookAndFeel.SkinName = 'DevExpressDarkStyle'
+              Style.IsFontAssigned = True
+              StyleDisabled.LookAndFeel.NativeStyle = True
+              StyleDisabled.LookAndFeel.SkinName = 'DevExpressDarkStyle'
+              StyleFocused.LookAndFeel.NativeStyle = True
+              StyleFocused.LookAndFeel.SkinName = 'DevExpressDarkStyle'
+              StyleHot.LookAndFeel.NativeStyle = True
+              StyleHot.LookAndFeel.SkinName = 'DevExpressDarkStyle'
+              TabOrder = 2
+              OnKeyDown = FormKeyDown
+              Width = 552
+            end
+            object edtdeposito: TcxDBTextEdit
+              Left = 17
+              Top = 35
+              DataBinding.DataField = 'IdEstructura'
+              DataBinding.DataSource = UDM.dstb_tree
+              ParentFont = False
+              Properties.ValidationOptions = [evoShowErrorIcon]
+              Style.Color = clWindow
+              Style.Font.Charset = DEFAULT_CHARSET
+              Style.Font.Color = clBlack
+              Style.Font.Height = -12
+              Style.Font.Name = 'Tahoma'
+              Style.Font.Style = []
+              Style.LookAndFeel.NativeStyle = True
+              Style.LookAndFeel.SkinName = 'DevExpressDarkStyle'
+              Style.IsFontAssigned = True
+              StyleDisabled.LookAndFeel.NativeStyle = True
+              StyleDisabled.LookAndFeel.SkinName = 'DevExpressDarkStyle'
+              StyleFocused.LookAndFeel.NativeStyle = True
+              StyleFocused.LookAndFeel.SkinName = 'DevExpressDarkStyle'
+              StyleHot.LookAndFeel.NativeStyle = True
+              StyleHot.LookAndFeel.SkinName = 'DevExpressDarkStyle'
+              TabOrder = 0
+              OnKeyDown = FormKeyDown
+              Width = 216
+            end
+            object cxDBCheckBox1: TcxDBCheckBox
+              Left = 239
+              Top = 175
+              Caption = 'Visible'
+              DataBinding.DataField = 'visible'
+              DataBinding.DataSource = UDM.dstb_tree
+              Properties.Glyph.SourceDPI = 96
+              Properties.Glyph.Data = {
+                89504E470D0A1A0A0000000D494844520000002000000010080600000077007D
+                59000000017352474200AECE1CE90000000467414D410000B18F0BFC61050000
+                00097048597300000EC300000EC301C76FA864000005AA49444154484B959577
+                50546714C5895D01891A7526636C340B4A50116996A549115414022381312202
+                52452982083822C1024851575004346A0836FA2A4D90851559AA201DE92C8852
+                4CF2C7C9F77DBBE37FCE989DF9CDBBFBF6DD73CEBDFBE63D29C9671A613A61C6
+                37305302BDFEBBB85C8382049E11BE4ABE98788621E2F28C109B6780986CBD42
+                8986D4F496D0E0C2CE7321E808A39C457B58B0985042C819B43182D07696101C
+                84D6E0403406FA1791DE19D46468BCF47F1393AD0FD24F07919A4985275FE78A
+                114860758E846C4C5652B230C9CF64BC0DF0A302B362730DD135F6172AFB7D50
+                D927A682D24B39C1E0537A28DE2827B48EA4E2F2530EEBA70166359FF6C76445
+                2646EE5D458DBF27B8AB3722DFF200FB4EE11D3C08EEAA8D10FA7A40941A0D51
+                4A14EA4EFA508139D159FAE8187D203661466293F21E2FC6ABF762326B8FA0B8
+                DD0D65DD1E681E4E4264C62EDA3F9B0698DDE07B1213658F89813B928DACC1CB
+                12E08F6301C83633478EB905AB7999954836B446F549570C275F46B5BB271598
+                7BE909874C94464C3C5146E9F644293129EDF2C0CB2E774650920E4CDC56C031
+                62038A3B8EA3613001E71FE87E0930A7DAC515E345E9E02E5F87B6E61E0C8D4C
+                A2B95D84FBEE218CB7A4EE1B1E474B530FB83FADC3505224F8BF3952817917D2
+                7790896EA1A4D38D51DCE186A2F6E328EA704561BB2B8E46A8E0D46567B474F6
+                C2C875299E08ED21EC8B4248AA0EDB200D30B7D86C2F59750C59B5152A22AE60
+                7CF25F0C8F4DA1A95384A60E11063F4CE1E3C43FEC371EF96BBAFC0E2357CF98
+                0A4887DCD542FD40020ADA9C91C8DB0F8EB334FCB9DB90D77C142712B6E04CFC
+                09F40D7EC0F10B16E0E63890F34EA8E80A87DF4D75B6411A601E4FDF04FD57FC
+                D0EDEB807C5353BC8A88C6C0E81406C826FA4709A22994864721CFD818ED1E36
+                68B6D1C3332D7613C904DED64465D7453CADB307C74916953535F0BDE2023D97
+                45CCBCBB7F0C9177BC712EC50C794D2EC8A8B145E1BBD324DC66B6411A403A4B
+                D7003D61EE68F97537B2B535911BFC3B59F9247A8727D033344E98444E5004B2
+                3435D07460271AF7E92263335BA1ECA91BEA286B0B437AB50D621FD9C225D402
+                BD031F90595288D6EE51D4B556C1C267199ED53BE3DE6B4BDC15EC476EA337DC
+                6336B10DD200328FB7EE44578023B2D5D590EE7916B5EF86F07E701CA28F5310
+                8D7D46D7C03884CD83F8D32318596A1B516FAC8EFB2A1A5460BE57FC66143407
+                E01E11CE103A202CD914A109CE18217D239FFE865DB03A129F1FC21DBE39C10C
+                C9E5667852E304E78BAA5F02C83E54D564AB4D5BAD8CE1BE61BC1F9AC0C8C7CF
+                1046C732C4213E61A8771869AB9421E4A8224589AD50CE2D4A0D39F55E48E1EF
+                413221FD8D03BCAF6A2331231C456F1EC33E5C09691596482ADB8DC45223C6C3
+                2A3B385ED840FB656880F9696BD5F1EEB0390416FA786EE780CF2211AA2222C1
+                D3D9867C02ADE9B9E776F6E01BE9A24A6B2D9256308105C72255F148E8C40C6E
+                965288C16B7BD8852A42DB490AF179FB70A3441FD74BF470AD98C2412AFF001C
+                C2D6D37E591A40EEF62A35345AE9A1DE540395A63BF050790D5EE86C4583C576
+                D49BEBE285963A3BC737D046F52E550836C9E3FA8F6BA9C0C223E755F0406087
+                6BC4E03A11A706D428FD8D23B2EA7DC8C466882BDC49D88ED8028A2E6EBE34C5
+                A160D63F9F05E02E5B8F5A1332A986126A383F931B8D833AC3AD10682840B045
+                01B5FA5BD060AE43265F07BEEA4AF05596236EB1220B601FBA1E77CA2D71FBD5
+                3EC25EDC2A3327A67B9831F7A509B825C6647A2312CA00D78A0C105FA847C270
+                60735AF9CB06A42F2D5128895FAA84F825CA885BA284D8C51445318B147075A1
+                026218F28859208F68C279B995A5A457C6DA57A9D036680D6C8394611BA80C1B
+                0A11FF8512405182B59F12ACC8D18A1C0FFA92A3AF22F67AC9D397197B0ED057
+                22BD1B17121649F8E12B2C96406B9A9EF652115ACB7D03DF4BA0357906484DFB
+                0FA6CF825D9F0C64780000000049454E44AE426082}
+              Properties.GlyphCount = 2
+              Properties.NullStyle = nssUnchecked
+              Properties.OnEditValueChanged = cxDBCheckBox1PropertiesEditValueChanged
+              TabOrder = 5
+            end
+            object lcbPadre: TcxDBLookupComboBox
+              Tag = 3
+              Left = 17
+              Top = 126
+              Hint = 'Responsables actividad archivistica'
+              DataBinding.DataField = 'padre'
+              DataBinding.DataSource = UDM.dstb_tree
+              ParentFont = False
+              Properties.KeyFieldNames = 'id'
+              Properties.ListColumns = <
+                item
+                  Caption = 'Padres'
+                  HeaderAlignment = taCenter
+                  FieldName = 'etiqueta'
+                end>
+              Properties.ListOptions.ShowHeader = False
+              Properties.ListSource = dsPadres
+              Style.Color = clWindow
+              Style.Font.Charset = DEFAULT_CHARSET
+              Style.Font.Color = clBlack
+              Style.Font.Height = -12
+              Style.Font.Name = 'Tahoma'
+              Style.Font.Style = []
+              Style.LookAndFeel.NativeStyle = True
+              Style.LookAndFeel.SkinName = 'Office2010Blue'
+              Style.IsFontAssigned = True
+              StyleDisabled.LookAndFeel.NativeStyle = True
+              StyleDisabled.LookAndFeel.SkinName = 'Office2010Blue'
+              StyleFocused.LookAndFeel.NativeStyle = True
+              StyleFocused.LookAndFeel.SkinName = 'Office2010Blue'
+              StyleHot.LookAndFeel.NativeStyle = True
+              StyleHot.LookAndFeel.SkinName = 'Office2010Blue'
+              TabOrder = 3
+              OnKeyDown = FormKeyDown
+              Width = 552
+            end
+          end
+        end
+      end
+      object tsmainNode: TcxTabSheet
+        ImageIndex = 1
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
+        object Panel7: TPanel
+          Left = 0
+          Top = 0
+          Width = 631
+          Height = 221
+          Align = alClient
+          Color = 11105043
+          ParentBackground = False
+          TabOrder = 0
+          object GroupBox1: TGroupBox
+            Left = 1
+            Top = 1
+            Width = 629
+            Height = 219
+            Align = alClient
+            Color = 11105043
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clWindow
+            Font.Height = -13
+            Font.Name = 'Tahoma'
+            Font.Style = [fsBold]
+            ParentBackground = False
+            ParentColor = False
+            ParentFont = False
+            TabOrder = 0
+            object Label9: TLabel
+              Left = 17
+              Top = 64
+              Width = 44
+              Height = 13
+              Caption = 'Nombre'
+              Font.Charset = DEFAULT_CHARSET
+              Font.Color = clWindow
+              Font.Height = -11
+              Font.Name = 'Tahoma'
+              Font.Style = [fsBold]
+              ParentFont = False
+            end
+            object Label10: TLabel
+              Left = 17
+              Top = 16
+              Width = 131
+              Height = 13
+              Caption = 'C'#243'digo de la estructura'
+              Font.Charset = DEFAULT_CHARSET
+              Font.Color = clWindow
+              Font.Height = -11
+              Font.Name = 'Tahoma'
+              Font.Style = [fsBold]
+              ParentFont = False
+            end
+            object Label8: TLabel
+              Left = 1
+              Top = 205
+              Width = 89
+              Height = 13
+              Align = alBottom
+              Caption = '      Descripci'#243'n: '
+              Font.Charset = DEFAULT_CHARSET
+              Font.Color = clWindow
+              Font.Height = -11
+              Font.Name = 'Tahoma'
+              Font.Style = [fsBold]
+              ParentFont = False
+            end
+            object cxDBTextEdit1: TcxDBTextEdit
+              Left = 17
+              Top = 83
+              DataBinding.DataField = 'etiqueta'
+              DataBinding.DataSource = UDM.dstb_tree
+              ParentFont = False
+              Properties.ValidationOptions = [evoShowErrorIcon]
+              Style.Color = clWindow
+              Style.Font.Charset = DEFAULT_CHARSET
+              Style.Font.Color = clBlack
+              Style.Font.Height = -12
+              Style.Font.Name = 'Tahoma'
+              Style.Font.Style = []
+              Style.LookAndFeel.NativeStyle = True
+              Style.LookAndFeel.SkinName = 'DevExpressDarkStyle'
+              Style.IsFontAssigned = True
+              StyleDisabled.LookAndFeel.NativeStyle = True
+              StyleDisabled.LookAndFeel.SkinName = 'DevExpressDarkStyle'
+              StyleFocused.LookAndFeel.NativeStyle = True
+              StyleFocused.LookAndFeel.SkinName = 'DevExpressDarkStyle'
+              StyleHot.LookAndFeel.NativeStyle = True
+              StyleHot.LookAndFeel.SkinName = 'DevExpressDarkStyle'
+              TabOrder = 2
+              OnKeyDown = FormKeyDown
+              Width = 552
+            end
+            object cxDBTextEdit2: TcxDBTextEdit
+              Left = 17
+              Top = 35
+              DataBinding.DataField = 'IdEstructura'
+              DataBinding.DataSource = UDM.dstb_tree
+              ParentFont = False
+              Properties.ValidationOptions = [evoShowErrorIcon]
+              Style.Color = clWindow
+              Style.Font.Charset = DEFAULT_CHARSET
+              Style.Font.Color = clBlack
+              Style.Font.Height = -12
+              Style.Font.Name = 'Tahoma'
+              Style.Font.Style = []
+              Style.LookAndFeel.NativeStyle = True
+              Style.LookAndFeel.SkinName = 'DevExpressDarkStyle'
+              Style.IsFontAssigned = True
+              StyleDisabled.LookAndFeel.NativeStyle = True
+              StyleDisabled.LookAndFeel.SkinName = 'DevExpressDarkStyle'
+              StyleFocused.LookAndFeel.NativeStyle = True
+              StyleFocused.LookAndFeel.SkinName = 'DevExpressDarkStyle'
+              StyleHot.LookAndFeel.NativeStyle = True
+              StyleHot.LookAndFeel.SkinName = 'DevExpressDarkStyle'
+              TabOrder = 1
+              OnKeyDown = FormKeyDown
+              Width = 216
+            end
+            object cxDBCheckBox2: TcxDBCheckBox
+              Left = 239
+              Top = 33
+              Caption = 'Visible'
+              DataBinding.DataField = 'visible'
+              DataBinding.DataSource = UDM.dstb_tree
+              Properties.Glyph.SourceDPI = 96
+              Properties.Glyph.Data = {
+                89504E470D0A1A0A0000000D494844520000002000000010080600000077007D
+                59000000017352474200AECE1CE90000000467414D410000B18F0BFC61050000
+                00097048597300000EC300000EC301C76FA864000005AA49444154484B959577
+                50546714C5895D01891A7526636C340B4A50116996A549115414022381312202
+                52452982083822C1024851575004346A0836FA2A4D90851559AA201DE92C8852
+                4CF2C7C9F77DBBE37FCE989DF9CDBBFBF6DD73CEBDFBE63D29C9671A613A61C6
+                37305302BDFEBBB85C8382049E11BE4ABE98788621E2F28C109B6780986CBD42
+                8986D4F496D0E0C2CE7321E808A39C457B58B0985042C819B43182D07696101C
+                84D6E0403406FA1791DE19D46468BCF47F1393AD0FD24F07919A4985275FE78A
+                114860758E846C4C5652B230C9CF64BC0DF0A302B362730DD135F6172AFB7D50
+                D927A682D24B39C1E0537A28DE2827B48EA4E2F2530EEBA70166359FF6C76445
+                2646EE5D458DBF27B8AB3722DFF200FB4EE11D3C08EEAA8D10FA7A40941A0D51
+                4A14EA4EFA508139D159FAE8187D203661466293F21E2FC6ABF762326B8FA0B8
+                DD0D65DD1E681E4E4264C62EDA3F9B0698DDE07B1213658F89813B928DACC1CB
+                12E08F6301C83633478EB905AB7999954836B446F549570C275F46B5BB271598
+                7BE909874C94464C3C5146E9F644293129EDF2C0CB2E774650920E4CDC56C031
+                62038A3B8EA3613001E71FE87E0930A7DAC515E345E9E02E5F87B6E61E0C8D4C
+                A2B95D84FBEE218CB7A4EE1B1E474B530FB83FADC3505224F8BF3952817917D2
+                7790896EA1A4D38D51DCE186A2F6E328EA704561BB2B8E46A8E0D46567B474F6
+                C2C875299E08ED21EC8B4248AA0EDB200D30B7D86C2F59750C59B5152A22AE60
+                7CF25F0C8F4DA1A95384A60E11063F4CE1E3C43FEC371EF96BBAFC0E2357CF98
+                0A4887DCD542FD40020ADA9C91C8DB0F8EB334FCB9DB90D77C142712B6E04CFC
+                09F40D7EC0F10B16E0E63890F34EA8E80A87DF4D75B6411A601E4FDF04FD57FC
+                D0EDEB807C5353BC8A88C6C0E81406C826FA4709A22994864721CFD818ED1E36
+                68B6D1C3332D7613C904DED64465D7453CADB307C74916953535F0BDE2023D97
+                45CCBCBB7F0C9177BC712EC50C794D2EC8A8B145E1BBD324DC66B6411A403A4B
+                D7003D61EE68F97537B2B535911BFC3B59F9247A8727D033344E98444E5004B2
+                3435D07460271AF7E92263335BA1ECA91BEA286B0B437AB50D621FD9C225D402
+                BD031F90595288D6EE51D4B556C1C267199ED53BE3DE6B4BDC15EC476EA337DC
+                6336B10DD200328FB7EE44578023B2D5D590EE7916B5EF86F07E701CA28F5310
+                8D7D46D7C03884CD83F8D32318596A1B516FAC8EFB2A1A5460BE57FC66143407
+                E01E11CE103A202CD914A109CE18217D239FFE865DB03A129F1FC21DBE39C10C
+                C9E5667852E304E78BAA5F02C83E54D564AB4D5BAD8CE1BE61BC1F9AC0C8C7CF
+                1046C732C4213E61A8771869AB9421E4A8224589AD50CE2D4A0D39F55E48E1EF
+                413221FD8D03BCAF6A2331231C456F1EC33E5C09691596482ADB8DC45223C6C3
+                2A3B385ED840FB656880F9696BD5F1EEB0390416FA786EE780CF2211AA2222C1
+                D3D9867C02ADE9B9E776F6E01BE9A24A6B2D9256308105C72255F148E8C40C6E
+                965288C16B7BD8852A42DB490AF179FB70A3441FD74BF470AD98C2412AFF001C
+                C2D6D37E591A40EEF62A35345AE9A1DE540395A63BF050790D5EE86C4583C576
+                D49BEBE285963A3BC737D046F52E550836C9E3FA8F6BA9C0C223E755F0406087
+                6BC4E03A11A706D428FD8D23B2EA7DC8C466882BDC49D88ED8028A2E6EBE34C5
+                A160D63F9F05E02E5B8F5A1332A986126A383F931B8D833AC3AD10682840B045
+                01B5FA5BD060AE43265F07BEEA4AF05596236EB1220B601FBA1E77CA2D71FBD5
+                3EC25EDC2A3327A67B9831F7A509B825C6647A2312CA00D78A0C105FA847C270
+                60735AF9CB06A42F2D5128895FAA84F825CA885BA284D8C51445318B147075A1
+                026218F28859208F68C279B995A5A457C6DA57A9D036680D6C8394611BA80C1B
+                0A11FF8512405182B59F12ACC8D18A1C0FFA92A3AF22F67AC9D397197B0ED057
+                22BD1B17121649F8E12B2C96406B9A9EF652115ACB7D03DF4BA0357906484DFB
+                0FA6CF825D9F0C64780000000049454E44AE426082}
+              Properties.GlyphCount = 2
+              Properties.NullStyle = nssUnchecked
+              Properties.OnEditValueChanged = cxDBCheckBox1PropertiesEditValueChanged
+              TabOrder = 0
+            end
+          end
+        end
+      end
     end
   end
   object cxPageControl1: TcxPageControl
@@ -1433,27 +1685,25 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
     Visible = False
     Properties.ActivePage = tsVariable
     Properties.CustomButtons.Buttons = <>
-    ClientRectBottom = 344
-    ClientRectLeft = 4
-    ClientRectRight = 4
-    ClientRectTop = 3
+    ClientRectBottom = 348
+    ClientRectRight = 2
+    ClientRectTop = 2
     object tsVariable: TcxTabSheet
       Caption = 'Variables'
       ImageIndex = 2
       object cxDBVerticalGrid1: TcxDBVerticalGrid
         Left = 0
         Top = 161
-        Width = 0
-        Height = 180
+        Width = 2
+        Height = 185
         Align = alClient
-        OptionsView.RowHeaderWidth = 29
+        OptionsView.RowHeaderWidth = 33
         OptionsView.RowHeight = 20
         OptionsBehavior.GoToNextCellOnEnter = True
         OptionsBehavior.FocusFirstCellOnNewRecord = True
         Navigator.Buttons.CustomButtons = <>
         Styles.StyleSheet = UDM.cxVerticalGridStyleSheetUserFormat4
-        TabOrder = 0
-        DataController.DataSource = UDM.dsVarEPCDetail
+        TabOrder = 2
         Version = 1
         object cxCategoryRow1: TcxCategoryRow
           Properties.Caption = 'PROPIEDADES'
@@ -1565,13 +1815,12 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       object cxGrid1: TcxGrid
         Left = 0
         Top = 31
-        Width = 0
+        Width = 2
         Height = 130
         Align = alTop
         TabOrder = 1
         object cxGridDBTableView1: TcxGridDBTableView
           Navigator.Buttons.CustomButtons = <>
-          DataController.DataSource = UDM.dsVarEPCDetail
           DataController.Summary.DefaultGroupSummaryItems = <>
           DataController.Summary.FooterSummaryItems = <>
           DataController.Summary.SummaryGroups = <>
@@ -1595,15 +1844,15 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       object Panel5: TPanel
         Left = 0
         Top = 0
-        Width = 0
+        Width = 2
         Height = 31
         Align = alTop
-        TabOrder = 2
+        TabOrder = 0
         object cxDBNavigator2: TcxDBNavigator
           Tag = 99
           Left = -43
           Top = 1
-          Width = 42
+          Width = 44
           Height = 29
           Buttons.CustomButtons = <>
           Buttons.First.Visible = False
@@ -1621,13 +1870,12 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
           Buttons.SaveBookmark.Visible = False
           Buttons.GotoBookmark.Visible = False
           Buttons.Filter.Visible = False
-          DataSource = UDM.dsVarEPCDetail
           InfoPanel.DisplayMask = '[RecordIndex] de [RecordCount]'
           InfoPanel.Visible = True
           Align = alRight
           ParentShowHint = False
           ShowHint = True
-          TabOrder = 1
+          TabOrder = 0
         end
         object DBNavigator2: TDBNavigator
           Tag = 99
@@ -1635,7 +1883,6 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
           Top = 1
           Width = 80
           Height = 29
-          DataSource = UDM.dsVarEPCDetail
           VisibleButtons = [nbFirst, nbPrior, nbNext, nbLast]
           Align = alClient
           Hints.Strings = (
@@ -1651,7 +1898,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
             'Refrescar')
           ParentShowHint = False
           ShowHint = True
-          TabOrder = 0
+          TabOrder = 1
         end
       end
     end
@@ -1661,14 +1908,14 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       ImageIndex = 1
       ParentColor = False
       TabVisible = False
-      ExplicitLeft = 0
       ExplicitTop = 0
+      ExplicitWidth = 0
       ExplicitHeight = 0
       object cxDBVerticalGrid2: TcxDBVerticalGrid
         Left = 0
         Top = 33
-        Width = 0
-        Height = 307
+        Width = 2
+        Height = 313
         Align = alClient
         OptionsView.RowHeaderWidth = 24
         OptionsView.RowHeight = 20
@@ -1676,8 +1923,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
         OptionsBehavior.FocusFirstCellOnNewRecord = True
         Navigator.Buttons.CustomButtons = <>
         Styles.StyleSheet = UDM.cxVerticalGridStyleSheetDevExpress
-        TabOrder = 0
-        DataController.DataSource = UDM.Dtb_VirtualVar
+        TabOrder = 1
         Version = 1
         object iv1: TcxDBEditorRow
           Visible = False
@@ -1797,13 +2043,13 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       object ToolBar3: TToolBar
         Left = 0
         Top = 0
-        Width = 0
+        Width = 2
         Height = 33
         ButtonHeight = 38
         ButtonWidth = 39
         Caption = 'ToolBar1'
         Images = UDM.ILv3
-        TabOrder = 1
+        TabOrder = 0
         Visible = False
         object ToolButton4: TToolButton
           Left = 0
@@ -1897,385 +2143,6 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
     UseSystemFont = False
     Version = '1.6.2.1'
   end
-  object cpNewNode: TJvCaptionPanel
-    Left = 182
-    Top = 77
-    Width = 592
-    Height = 284
-    Buttons = []
-    Caption = 'Adicionar un nuevo nodo'
-    CaptionColor = 11105043
-    CaptionPosition = dpTop
-    CaptionFont.Charset = DEFAULT_CHARSET
-    CaptionFont.Color = clWhite
-    CaptionFont.Height = -13
-    CaptionFont.Name = 'Tahoma'
-    CaptionFont.Style = [fsBold]
-    Color = 11105043
-    OutlookLook = False
-    TabOrder = 6
-    Visible = False
-    object Label7: TLabel
-      Left = 19
-      Top = 42
-      Width = 131
-      Height = 13
-      Caption = 'C'#243'digo de la estructura'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindow
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentFont = False
-    end
-    object Label8: TLabel
-      Left = 19
-      Top = 93
-      Width = 131
-      Height = 13
-      Caption = 'Administrador del '#193'rea'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindow
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentFont = False
-    end
-    object Label10: TLabel
-      Left = 330
-      Top = 93
-      Width = 82
-      Height = 13
-      Caption = 'Tipo de Objeto'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindow
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentFont = False
-    end
-    object Label9: TLabel
-      Left = 187
-      Top = 42
-      Width = 44
-      Height = 13
-      Caption = 'Nombre'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindow
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentFont = False
-    end
-    object Label11: TLabel
-      Left = 3
-      Top = 140
-      Width = 65
-      Height = 13
-      Caption = 'Descripci'#243'n'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindow
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentFont = False
-    end
-    object edtCodEstructura: TcxDBTextEdit
-      Left = 19
-      Top = 61
-      DataBinding.DataField = 'IdEstructura'
-      DataBinding.DataSource = UDM.dstb_tree
-      ParentFont = False
-      Properties.ValidationOptions = [evoShowErrorIcon]
-      Properties.OnValidate = edtCodEstructuraPropertiesValidate
-      Style.Color = 15453088
-      Style.Font.Charset = DEFAULT_CHARSET
-      Style.Font.Color = clWindowText
-      Style.Font.Height = -11
-      Style.Font.Name = 'Tahoma'
-      Style.Font.Style = []
-      Style.LookAndFeel.NativeStyle = True
-      Style.LookAndFeel.SkinName = 'DevExpressDarkStyle'
-      Style.IsFontAssigned = True
-      StyleDisabled.LookAndFeel.NativeStyle = True
-      StyleDisabled.LookAndFeel.SkinName = 'DevExpressDarkStyle'
-      StyleFocused.LookAndFeel.NativeStyle = True
-      StyleFocused.LookAndFeel.SkinName = 'DevExpressDarkStyle'
-      StyleHot.LookAndFeel.NativeStyle = True
-      StyleHot.LookAndFeel.SkinName = 'DevExpressDarkStyle'
-      TabOrder = 0
-      OnKeyDown = FormKeyDown
-      Width = 162
-    end
-    object cxDBLookupComboBox1: TcxDBLookupComboBox
-      Tag = 3
-      Left = 19
-      Top = 112
-      Hint = 'Responsables actividad archivistica'
-      DataBinding.DataField = 'Administrador'
-      DataBinding.DataSource = UDM.dstb_tree
-      ParentFont = False
-      Properties.KeyFieldNames = 'Idresp'
-      Properties.ListColumns = <
-        item
-          Caption = 'Responsables de la actividad'
-          HeaderAlignment = taCenter
-          FieldName = 'NombreResponsable'
-        end>
-      Properties.ListOptions.ShowHeader = False
-      Properties.ListSource = UDM.dscl_Resp_Gest_Arch
-      Style.Color = 15453088
-      Style.Font.Charset = DEFAULT_CHARSET
-      Style.Font.Color = clWindowText
-      Style.Font.Height = -11
-      Style.Font.Name = 'Tahoma'
-      Style.Font.Style = []
-      Style.LookAndFeel.NativeStyle = True
-      Style.LookAndFeel.SkinName = 'Office2010Blue'
-      Style.IsFontAssigned = True
-      StyleDisabled.LookAndFeel.NativeStyle = True
-      StyleDisabled.LookAndFeel.SkinName = 'Office2010Blue'
-      StyleFocused.LookAndFeel.NativeStyle = True
-      StyleFocused.LookAndFeel.SkinName = 'Office2010Blue'
-      StyleHot.LookAndFeel.NativeStyle = True
-      StyleHot.LookAndFeel.SkinName = 'Office2010Blue'
-      TabOrder = 1
-      OnKeyDown = FormKeyDown
-      Width = 204
-    end
-    object cxDBCheckBox2: TcxDBCheckBox
-      Left = 244
-      Top = 110
-      Caption = 'Visible'
-      DataBinding.DataField = 'visible'
-      DataBinding.DataSource = UDM.dstb_tree
-      ParentFont = False
-      Properties.Glyph.SourceDPI = 96
-      Properties.Glyph.Data = {
-        89504E470D0A1A0A0000000D494844520000002000000010080600000077007D
-        59000000017352474200AECE1CE90000000467414D410000B18F0BFC61050000
-        00097048597300000EC300000EC301C76FA864000005AA49444154484B959577
-        50546714C5895D01891A7526636C340B4A50116996A549115414022381312202
-        52452982083822C1024851575004346A0836FA2A4D90851559AA201DE92C8852
-        4CF2C7C9F77DBBE37FCE989DF9CDBBFBF6DD73CEBDFBE63D29C9671A613A61C6
-        37305302BDFEBBB85C8382049E11BE4ABE98788621E2F28C109B6780986CBD42
-        8986D4F496D0E0C2CE7321E808A39C457B58B0985042C819B43182D07696101C
-        84D6E0403406FA1791DE19D46468BCF47F1393AD0FD24F07919A4985275FE78A
-        114860758E846C4C5652B230C9CF64BC0DF0A302B362730DD135F6172AFB7D50
-        D927A682D24B39C1E0537A28DE2827B48EA4E2F2530EEBA70166359FF6C76445
-        2646EE5D458DBF27B8AB3722DFF200FB4EE11D3C08EEAA8D10FA7A40941A0D51
-        4A14EA4EFA508139D159FAE8187D203661466293F21E2FC6ABF762326B8FA0B8
-        DD0D65DD1E681E4E4264C62EDA3F9B0698DDE07B1213658F89813B928DACC1CB
-        12E08F6301C83633478EB905AB7999954836B446F549570C275F46B5BB271598
-        7BE909874C94464C3C5146E9F644293129EDF2C0CB2E774650920E4CDC56C031
-        62038A3B8EA3613001E71FE87E0930A7DAC515E345E9E02E5F87B6E61E0C8D4C
-        A2B95D84FBEE218CB7A4EE1B1E474B530FB83FADC3505224F8BF3952817917D2
-        7790896EA1A4D38D51DCE186A2F6E328EA704561BB2B8E46A8E0D46567B474F6
-        C2C875299E08ED21EC8B4248AA0EDB200D30B7D86C2F59750C59B5152A22AE60
-        7CF25F0C8F4DA1A95384A60E11063F4CE1E3C43FEC371EF96BBAFC0E2357CF98
-        0A4887DCD542FD40020ADA9C91C8DB0F8EB334FCB9DB90D77C142712B6E04CFC
-        09F40D7EC0F10B16E0E63890F34EA8E80A87DF4D75B6411A601E4FDF04FD57FC
-        D0EDEB807C5353BC8A88C6C0E81406C826FA4709A22994864721CFD818ED1E36
-        68B6D1C3332D7613C904DED64465D7453CADB307C74916953535F0BDE2023D97
-        45CCBCBB7F0C9177BC712EC50C794D2EC8A8B145E1BBD324DC66B6411A403A4B
-        D7003D61EE68F97537B2B535911BFC3B59F9247A8727D033344E98444E5004B2
-        3435D07460271AF7E92263335BA1ECA91BEA286B0B437AB50D621FD9C225D402
-        BD031F90595288D6EE51D4B556C1C267199ED53BE3DE6B4BDC15EC476EA337DC
-        6336B10DD200328FB7EE44578023B2D5D590EE7916B5EF86F07E701CA28F5310
-        8D7D46D7C03884CD83F8D32318596A1B516FAC8EFB2A1A5460BE57FC66143407
-        E01E11CE103A202CD914A109CE18217D239FFE865DB03A129F1FC21DBE39C10C
-        C9E5667852E304E78BAA5F02C83E54D564AB4D5BAD8CE1BE61BC1F9AC0C8C7CF
-        1046C732C4213E61A8771869AB9421E4A8224589AD50CE2D4A0D39F55E48E1EF
-        413221FD8D03BCAF6A2331231C456F1EC33E5C09691596482ADB8DC45223C6C3
-        2A3B385ED840FB656880F9696BD5F1EEB0390416FA786EE780CF2211AA2222C1
-        D3D9867C02ADE9B9E776F6E01BE9A24A6B2D9256308105C72255F148E8C40C6E
-        965288C16B7BD8852A42DB490AF179FB70A3441FD74BF470AD98C2412AFF001C
-        C2D6D37E591A40EEF62A35345AE9A1DE540395A63BF050790D5EE86C4583C576
-        D49BEBE285963A3BC737D046F52E550836C9E3FA8F6BA9C0C223E755F0406087
-        6BC4E03A11A706D428FD8D23B2EA7DC8C466882BDC49D88ED8028A2E6EBE34C5
-        A160D63F9F05E02E5B8F5A1332A986126A383F931B8D833AC3AD10682840B045
-        01B5FA5BD060AE43265F07BEEA4AF05596236EB1220B601FBA1E77CA2D71FBD5
-        3EC25EDC2A3327A67B9831F7A509B825C6647A2312CA00D78A0C105FA847C270
-        60735AF9CB06A42F2D5128895FAA84F825CA885BA284D8C51445318B147075A1
-        026218F28859208F68C279B995A5A457C6DA57A9D036680D6C8394611BA80C1B
-        0A11FF8512405182B59F12ACC8D18A1C0FFA92A3AF22F67AC9D397197B0ED057
-        22BD1B17121649F8E12B2C96406B9A9EF652115ACB7D03DF4BA0357906484DFB
-        0FA6CF825D9F0C64780000000049454E44AE426082}
-      Properties.GlyphCount = 2
-      Properties.NullStyle = nssUnchecked
-      Style.Font.Charset = DEFAULT_CHARSET
-      Style.Font.Color = clWindowText
-      Style.Font.Height = -11
-      Style.Font.Name = 'Tahoma'
-      Style.Font.Style = []
-      Style.IsFontAssigned = True
-      TabOrder = 2
-    end
-    object cxDBLookupComboBox2: TcxDBLookupComboBox
-      Tag = 3
-      Left = 330
-      Top = 112
-      Hint = 'Tipo de objeto'
-      DataBinding.DataField = 'tipo'
-      DataBinding.DataSource = UDM.dstb_tree
-      ParentFont = False
-      Properties.KeyFieldNames = 'idtipoobj'
-      Properties.ListColumns = <
-        item
-          Caption = 'Tipos de objetos'
-          HeaderAlignment = taCenter
-          FieldName = 'nombretipoobj'
-        end>
-      Properties.ListOptions.ShowHeader = False
-      Properties.ListSource = UDM.dscl_tipoobj
-      Properties.OnChange = cxDBLookupComboBox2PropertiesChange
-      Properties.OnCloseUp = cxDBLookupComboBox2PropertiesCloseUp
-      Style.Color = 15453088
-      Style.Font.Charset = DEFAULT_CHARSET
-      Style.Font.Color = clWindowText
-      Style.Font.Height = -11
-      Style.Font.Name = 'Tahoma'
-      Style.Font.Style = []
-      Style.LookAndFeel.NativeStyle = True
-      Style.LookAndFeel.SkinName = 'Office2010Blue'
-      Style.IsFontAssigned = True
-      StyleDisabled.LookAndFeel.NativeStyle = True
-      StyleDisabled.LookAndFeel.SkinName = 'Office2010Blue'
-      StyleFocused.LookAndFeel.NativeStyle = True
-      StyleFocused.LookAndFeel.SkinName = 'Office2010Blue'
-      StyleHot.LookAndFeel.NativeStyle = True
-      StyleHot.LookAndFeel.SkinName = 'Office2010Blue'
-      TabOrder = 3
-      OnKeyDown = FormKeyDown
-      Width = 234
-    end
-    object edtNombreEstructura: TcxDBTextEdit
-      Left = 187
-      Top = 61
-      DataBinding.DataField = 'etiqueta'
-      DataBinding.DataSource = UDM.dstb_tree
-      ParentFont = False
-      Properties.ValidationOptions = [evoShowErrorIcon]
-      Style.Color = 15453088
-      Style.Font.Charset = DEFAULT_CHARSET
-      Style.Font.Color = clWindowText
-      Style.Font.Height = -11
-      Style.Font.Name = 'Tahoma'
-      Style.Font.Style = []
-      Style.LookAndFeel.NativeStyle = True
-      Style.LookAndFeel.SkinName = 'DevExpressDarkStyle'
-      Style.IsFontAssigned = True
-      StyleDisabled.LookAndFeel.NativeStyle = True
-      StyleDisabled.LookAndFeel.SkinName = 'DevExpressDarkStyle'
-      StyleFocused.LookAndFeel.NativeStyle = True
-      StyleFocused.LookAndFeel.SkinName = 'DevExpressDarkStyle'
-      StyleHot.LookAndFeel.NativeStyle = True
-      StyleHot.LookAndFeel.SkinName = 'DevExpressDarkStyle'
-      TabOrder = 4
-      OnKeyDown = FormKeyDown
-      Width = 377
-    end
-    object cxDBRichEdit1: TcxDBRichEdit
-      Left = 1
-      Top = 160
-      Align = alBottom
-      DataBinding.DataField = 'descripcion'
-      DataBinding.DataSource = UDM.dstb_tree
-      ParentFont = False
-      Properties.ScrollBars = ssVertical
-      Style.Color = 15453088
-      Style.Font.Charset = DEFAULT_CHARSET
-      Style.Font.Color = clWindowText
-      Style.Font.Height = -11
-      Style.Font.Name = 'Tahoma'
-      Style.Font.Style = []
-      Style.IsFontAssigned = True
-      TabOrder = 5
-      OnKeyDown = FormKeyDown
-      Height = 77
-      Width = 574
-    end
-    object AdvPanel1: TAdvPanel
-      Left = 1
-      Top = 237
-      Width = 574
-      Height = 30
-      Align = alBottom
-      Color = 11105043
-      TabOrder = 6
-      UseDockManager = True
-      Version = '2.5.5.1'
-      Caption.Color = clHighlight
-      Caption.ColorTo = clNone
-      Caption.Font.Charset = DEFAULT_CHARSET
-      Caption.Font.Color = clWindowText
-      Caption.Font.Height = -11
-      Caption.Font.Name = 'Tahoma'
-      Caption.Font.Style = []
-      Caption.Indent = 0
-      DoubleBuffered = True
-      StatusBar.Font.Charset = DEFAULT_CHARSET
-      StatusBar.Font.Color = clWindowText
-      StatusBar.Font.Height = -11
-      StatusBar.Font.Name = 'Tahoma'
-      StatusBar.Font.Style = []
-      Text = ''
-      FullHeight = 200
-      object btnCancel: TJvTransparentButton
-        Left = 479
-        Top = 1
-        Width = 94
-        Height = 28
-        Hint = 'Aceptar y cerrar el panel informativo'
-        Align = alRight
-        AutoGray = False
-        Caption = 'Cancelar'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindow
-        Font.Height = -13
-        Font.Name = 'Tahoma'
-        Font.Style = [fsBold]
-        HotTrackFont.Charset = DEFAULT_CHARSET
-        HotTrackFont.Color = clWindowText
-        HotTrackFont.Height = -13
-        HotTrackFont.Name = 'Tahoma'
-        HotTrackFont.Style = []
-        FrameStyle = fsIndent
-        ParentFont = False
-        ParentShowHint = False
-        ShowHint = True
-        OnClick = btnCancelClick
-        ExplicitTop = 6
-      end
-      object btnOK: TJvTransparentButton
-        Left = 385
-        Top = 1
-        Width = 94
-        Height = 28
-        Hint = 'Aceptar y cerrar'
-        Align = alRight
-        AutoGray = False
-        Caption = 'OK'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindow
-        Font.Height = -13
-        Font.Name = 'Tahoma'
-        Font.Style = [fsBold]
-        HotTrackFont.Charset = DEFAULT_CHARSET
-        HotTrackFont.Color = clWindowText
-        HotTrackFont.Height = -13
-        HotTrackFont.Name = 'Tahoma'
-        HotTrackFont.Style = []
-        FrameStyle = fsIndent
-        ParentFont = False
-        ParentShowHint = False
-        ShowHint = True
-        OnClick = btnOKClick
-        ExplicitLeft = 396
-        ExplicitTop = 6
-      end
-    end
-  end
   object pMainContainer: TPanel
     Left = 0
     Top = 0
@@ -2284,7 +2151,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
     Align = alTop
     Color = 15780526
     ParentBackground = False
-    TabOrder = 7
+    TabOrder = 0
     object btnadd: TJvTransparentButton
       Left = 56
       Top = 1
@@ -2429,8 +2296,8 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
         0000000000000000000000000000000000000000000000000000000000000000
         0000000000000000000000000000000000000000000000000000000000000000
         0000000000000000000000000000000000000000000000000000}
-      ExplicitLeft = 75
-      ExplicitTop = 4
+      ExplicitLeft = 50
+      ExplicitTop = -3
     end
     object btnView: TJvTransparentButton
       Left = 166
@@ -2727,7 +2594,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       ExplicitTop = 4
     end
     object btnPrint: TJvTransparentButton
-      Left = 276
+      Left = 331
       Top = 1
       Width = 50
       Height = 38
@@ -2738,6 +2605,7 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       FrameStyle = fsIndent
       ParentShowHint = False
       ShowHint = True
+      OnClick = btnPrintClick
       Glyph.Data = {
         36100000424D3610000000000000360000002800000020000000200000000100
         2000000000000010000000000000000000000000000000000000000000000000
@@ -2869,7 +2737,8 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
         0000000000000000000000000000000000000000000000000000000000000000
         0000000000000000000000000000000000000000000000000000000000000000
         0000000000000000000000000000000000000000000000000000}
-      ExplicitLeft = 317
+      ExplicitLeft = 364
+      ExplicitTop = -3
     end
     object btnSystemHelp: TJvTransparentButton
       Left = 901
@@ -3161,8 +3030,8 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
         0000000000000000000000000000000000000000000000000000000000000000
         0000000000000000000000000000000000000000000000000000000000000000
         0000000000000000000000000000000000000000000000000000}
-      ExplicitLeft = 136
-      ExplicitTop = 4
+      ExplicitLeft = 105
+      ExplicitTop = -3
     end
     object btncerrar: TJvTransparentButton
       Left = 1
@@ -3311,10 +3180,169 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       ExplicitLeft = 14
       ExplicitTop = 4
     end
+    object font: TJvTransparentButton
+      Left = 276
+      Top = 1
+      Width = 55
+      Height = 38
+      Hint = 'Escoger tipo y tama'#241'o de la fuente '
+      Align = alLeft
+      AutoGray = False
+      Color = 13135884
+      DropDownMenu = AdvPopupMenu1
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      FrameStyle = fsIndent
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = True
+      PressOffset = 0
+      Glyph.Data = {
+        36100000424D3610000000000000360000002800000020000000200000000100
+        2000000000000010000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFCFFFFFFD7FFFF
+        FF96FFFFFF200000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFAFFFFFF5900000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        00000000000000000000000000000000000000000000FFFFFF02FFFFFF28FFFF
+        FFA1FFFFFFFFFFFFFFFCFFFFFF48000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000FFFFFF7EFFFFFFFFFFFFFFD2FFFFFF020000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000FFFFFF05FFFFFFDDFFFFFFFFFFFFFF470000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000000000000FFFFFF81FFFFFFFFFFFFFF9D0000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000000000000FFFFFF2AFFFFFFFFFFFFFFEFFFFFFF0700000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        00000000000000000000FFFFFFCDFFFFFFFFFFFFFF5100000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        00000000000000000000FFFFFF74FFFFFFFFFFFFFFAA00000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        00000000000000000000FFFFFF1CFFFFFFFDFFFFFFF5FFFFFF0D000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFF0000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFF0000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000FFFFFF13FFFFFFFAFFFFFFFAFFFFFF140000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000000000000000000000000000000000000FFFFFFB2FFFFFFFFFFFFFF6A0000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000000000000000000000000000000000000FFFFFF59FFFFFFFFFFFFFFC30000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000000000000000000000000000000000000FFFFFF0CFFFFFFF4FFFFFFFDFFFF
+        FF1D000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000FFFFFFF3FFFFFFFFFFFFFF0D000000000000
+        00000000000000000000000000000000000000000000FFFFFFA4FFFFFFFFFFFF
+        FF76000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000FFFFFFCAFFFFFFFFFFFFFF4F000000000000
+        00000000000000000000000000000000000000000000FFFFFF4BFFFFFFFFFFFF
+        FFCF000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000FFFFFF6CFFFFFFFFFFFFFFD7FFFFFF100000
+        00000000000000000000000000000000000000000000FFFFFF05FFFFFFEBFFFF
+        FFFFFFFFFF280000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000FFFFFF07FFFFFFD1FFFFFFFFFFFFFFD9FFFF
+        FF50FFFFFF140000000000000000000000000000000000000000FFFFFF96FFFF
+        FFFFFFFFFF820000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000000000000000000000000000000000000FFFFFF1BFFFFFFCEFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFF0000000000000000000000000000000000000000000000000000
+        00000000000000000000000000000000000000000000FFFFFF07FFFFFF74FFFF
+        FFD0FFFFFFEEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFF0000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000}
+      Images.ActiveIndex = 6
+      Images.GrayIndex = 6
+      Images.DisabledIndex = 6
+      Images.DownIndex = 6
+      Images.HotIndex = 6
+      ExplicitLeft = 282
+      ExplicitTop = -3
+    end
     object Edit1: TEdit
-      Left = 0
-      Top = 0
-      Width = 1
+      Left = 5
+      Top = 5
+      Width = 0
       Height = 19
       TabOrder = 0
       OnKeyDown = FormKeyDown
@@ -3327,8 +3355,8 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
       
         'FROM tb_tree where id<>:EE  and visible=true ORDER BY etiqueta A' +
         'SC')
-    Left = 103
-    Top = 263
+    Left = 231
+    Top = 207
     ParamData = <
       item
         Name = 'EE'
@@ -3339,8 +3367,8 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
   end
   object dsPadres: TDataSource
     DataSet = Padres
-    Left = 352
-    Top = 16
+    Left = 512
+    Top = 8
   end
   object APMArbol: TAdvPopupMenu
     Version = '2.6.4.0'
@@ -3383,7 +3411,634 @@ object frmPropiedadesNodo: TfrmPropiedadesNodo
     Top = 207
   end
   object Timer1: TTimer
-    Left = 528
-    Top = 112
+    Left = 864
+    Top = 280
+  end
+  object frxMain: TfrxReport
+    Version = '2022.3'
+    DotMatrixReport = False
+    IniFile = '\Software\Fast Reports'
+    PreviewOptions.Buttons = [pbPrint, pbLoad, pbSave, pbExport, pbZoom, pbFind, pbOutline, pbPageSetup, pbTools, pbEdit, pbNavigator, pbExportQuick, pbCopy, pbSelection]
+    PreviewOptions.Zoom = 1.000000000000000000
+    PrintOptions.Printer = 'Default'
+    PrintOptions.PrintOnSheet = 0
+    ReportOptions.CreateDate = 45008.944661388900000000
+    ReportOptions.LastChange = 45529.938879826390000000
+    ScriptLanguage = 'PascalScript'
+    ScriptText.Strings = (
+      'procedure MasterData1OnBeforePrint(Sender: TfrxComponent);'
+      'begin'
+      '      if visible.text='#39'False'#39' then'
+      '    begin'
+      '    Visible.Text:='#39'No'#39';'
+      '    end'
+      '     else'
+      '       begin'
+      '    Visible.Text:='#39'Si'#39';'
+      '     end;'
+      'end;'
+      ''
+      'begin'
+      'end.')
+    Left = 120
+    Top = 208
+    Datasets = <
+      item
+        DataSet = frxMain.ADOQuery1
+        DataSetName = 'ADOQuery1'
+      end>
+    Variables = <
+      item
+        Name = ' Connection'
+        Value = Null
+      end
+      item
+        Name = '[myconn]'
+        Value = Null
+      end>
+    Style = <>
+    object Data: TfrxDataPage
+      Height = 1000.000000000000000000
+      Width = 1000.000000000000000000
+      object conn: TfrxADODatabase
+        LoginPrompt = False
+        pLeft = 100
+        pTop = 60
+      end
+      object ADOQuery1: TfrxADOQuery
+        UserName = 'ADOQuery1'
+        CloseDataSource = True
+        BCDToCurrency = False
+        DataSetOptions = []
+        IgnoreDupParams = False
+        Params = <>
+        SQL.Strings = (
+          
+            'SELECT tb_tree.id, tb_tree.idestructura, tb_tree.etiqueta, tb_tr' +
+            'ee.administrador, tb_tree.visible, tb_tree.tipo, cl_Resp_Gest_Ar' +
+            'ch.NombreResponsable, cl_tipoobj.nombretipoobj'
+          
+            'FROM (tb_tree INNER JOIN cl_Resp_Gest_Arch ON tb_tree.Administra' +
+            'dor = cl_Resp_Gest_Arch.Idresp) INNER JOIN cl_tipoobj ON tb_tree' +
+            '.tipo = cl_tipoobj.idtipoobj'
+          'ORDER BY tb_tree.id;  ')
+        CommandTimeout = 30
+        Database = frxMain.conn
+        LockType = ltReadOnly
+        pLeft = 212
+        pTop = 56
+        Parameters = <>
+      end
+    end
+    object Page1: TfrxReportPage
+      PaperWidth = 210.000000000000000000
+      PaperHeight = 297.000000000000000000
+      PaperSize = 9
+      LeftMargin = 10.000000000000000000
+      RightMargin = 10.000000000000000000
+      TopMargin = 10.000000000000000000
+      BottomMargin = 10.000000000000000000
+      Frame.Typ = []
+      MirrorMode = []
+      OnBeforePrint = 'Page1OnBeforePrint'
+      object MasterData1: TfrxMasterData
+        FillType = ftBrush
+        FillGap.Top = 0
+        FillGap.Left = 0
+        FillGap.Bottom = 0
+        FillGap.Right = 0
+        Frame.Typ = []
+        Height = 18.897650000000000000
+        Top = 268.346630000000000000
+        Width = 718.110700000000000000
+        OnBeforePrint = 'MasterData1OnBeforePrint'
+        DataSet = frxMain.ADOQuery1
+        DataSetName = 'ADOQuery1'
+        RowCount = 0
+        Stretched = True
+        object ADOQuery1IdEstructura: TfrxMemoView
+          IndexTag = 1
+          AllowVectorExport = True
+          Left = 11.338590000000000000
+          Width = 140.976375510000000000
+          Height = 18.897650000000000000
+          StretchMode = smMaxHeight
+          DataSet = frxMain.ADOQuery1
+          DataSetName = 'ADOQuery1'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -11
+          Font.Name = 'Arial'
+          Font.Style = []
+          Frame.Typ = [ftLeft, ftRight, ftTop, ftBottom]
+          Memo.UTF8W = (
+            '[ADOQuery1."IdEstructura"]')
+          ParentFont = False
+          VAlign = vaCenter
+          Formats = <
+            item
+            end
+            item
+            end>
+        end
+        object ADOQuery1codserie: TfrxMemoView
+          IndexTag = 1
+          AllowVectorExport = True
+          Left = 344.661417320000000000
+          Width = 181.417403390000000000
+          Height = 18.897650000000000000
+          StretchMode = smMaxHeight
+          DataSet = frxMain.ADOQuery1
+          DataSetName = 'ADOQuery1'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -11
+          Font.Name = 'Arial'
+          Font.Style = []
+          Frame.Typ = [ftLeft, ftRight, ftTop, ftBottom]
+          Memo.UTF8W = (
+            '[ADOQuery1."NombreResponsable"]')
+          ParentFont = False
+          VAlign = vaCenter
+        end
+        object ADOQuery1codsubs: TfrxMemoView
+          IndexTag = 1
+          AllowVectorExport = True
+          Left = 596.716493930000000000
+          Width = 117.165373860000000000
+          Height = 18.897650000000000000
+          StretchMode = smMaxHeight
+          DataSet = frxMain.ADOQuery1
+          DataSetName = 'ADOQuery1'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -11
+          Font.Name = 'Arial'
+          Font.Style = []
+          Frame.Typ = [ftLeft, ftRight, ftTop, ftBottom]
+          Memo.UTF8W = (
+            '[ADOQuery1."nombretipoobj"]')
+          ParentFont = False
+          VAlign = vaCenter
+        end
+        object Memo22: TfrxMemoView
+          AllowVectorExport = True
+          Left = 152.283550000000000000
+          Width = 192.000034170000000000
+          Height = 18.897650000000000000
+          StretchMode = smMaxHeight
+          DataSet = frxMain.ADOQuery1
+          DataSetName = 'ADOQuery1'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -12
+          Font.Name = 'Arial'
+          Font.Style = []
+          Frame.Typ = [ftLeft, ftRight, ftTop, ftBottom]
+          Memo.UTF8W = (
+            '[ADOQuery1."etiqueta"]')
+          ParentFont = False
+          VAlign = vaCenter
+        end
+        object visible: TfrxMemoView
+          IndexTag = 1
+          AllowVectorExport = True
+          Left = 526.055350000000000000
+          Width = 70.677165350000000000
+          Height = 18.897650000000000000
+          OnBeforePrint = 'ADOQuery1serieOnBeforePrint'
+          StretchMode = smMaxHeight
+          DataSet = frxMain.ADOQuery1
+          DataSetName = 'ADOQuery1'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -11
+          Font.Name = 'Arial'
+          Font.Style = []
+          Frame.Typ = [ftLeft, ftRight, ftTop, ftBottom]
+          ParentFont = False
+          VAlign = vaCenter
+        end
+      end
+      object PageFooter1: TfrxPageFooter
+        FillType = ftBrush
+        FillGap.Top = 0
+        FillGap.Left = 0
+        FillGap.Bottom = 0
+        FillGap.Right = 0
+        Frame.Typ = []
+        Height = 22.677180000000000000
+        Top = 347.716760000000000000
+        Width = 718.110700000000000000
+        object Memo1: TfrxMemoView
+          AllowVectorExport = True
+          Left = 544.252320000000000000
+          Top = 3.779530000000020000
+          Width = 181.417440000000000000
+          Height = 18.897650000000000000
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -11
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          HAlign = haRight
+          Memo.UTF8W = (
+            'P'#225'gina [Page#] de [TotalPages#]')
+          ParentFont = False
+        end
+        object Line2: TfrxLineView
+          Align = baBottom
+          AllowVectorExport = True
+          Top = 22.677180000000000000
+          Width = 725.669759999999000000
+          Color = clBlack
+          Frame.Typ = [ftTop]
+        end
+        object Memo13: TfrxMemoView
+          Align = baLeft
+          AllowVectorExport = True
+          Top = 3.779530000000000000
+          Width = 423.307360000000000000
+          Height = 18.897650000000000000
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -11
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Memo.UTF8W = (
+            
+              'Reporte emitido por el Sistema de Gesti'#243'n Documental ArchiGenioP' +
+              'roV1')
+          ParentFont = False
+        end
+      end
+      object Memo5: TfrxMemoView
+        AllowVectorExport = True
+        Left = 1164.095240000000000000
+        Top = 313.700990000000000000
+        Width = 151.181200000000000000
+        Height = 18.897650000000000000
+        Frame.Typ = []
+        HAlign = haRight
+        Memo.UTF8W = (
+          'P'#225'gina [Page#] de [TotalPages#]')
+      end
+      object PageHeader1: TfrxPageHeader
+        FillType = ftBrush
+        FillGap.Top = 0
+        FillGap.Left = 0
+        FillGap.Bottom = 0
+        FillGap.Right = 0
+        Frame.Typ = []
+        Height = 127.677180000000000000
+        Top = 18.897650000000000000
+        Width = 718.110700000000000000
+        object Shape3: TfrxShapeView
+          AllowVectorExport = True
+          Left = 11.338590000000000000
+          Top = 2.952690000000000000
+          Width = 702.992580000000000000
+          Height = 120.944960000000000000
+          Frame.Typ = []
+        end
+        object Memo8: TfrxMemoView
+          AllowVectorExport = True
+          Left = 205.913420000000000000
+          Top = 78.370130000000000000
+          Width = 294.803340000000000000
+          Height = 22.677180000000000000
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -19
+          Font.Name = 'bell mt'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Memo.UTF8W = (
+            'Cuadro de clasificaci'#243'n documental.')
+          ParentFont = False
+        end
+        object Line3: TfrxLineView
+          AllowVectorExport = True
+          Left = 137.196857720000000000
+          Top = 3.779530000000000000
+          Height = 120.944960000000000000
+          Color = clBlack
+          Frame.Typ = [ftLeft]
+        end
+        object imagen: TfrxPictureView
+          AllowVectorExport = True
+          Left = 11.338590000000000000
+          Width = 124.724490000000000000
+          Height = 120.118120000000000000
+          Frame.Typ = []
+          KeepAspectRatio = False
+          HightQuality = False
+          Transparent = True
+          TransparentColor = clWhite
+        end
+        object Memo16: TfrxMemoView
+          AllowVectorExport = True
+          Left = 535.693260000000000000
+          Top = 7.677180000000000000
+          Width = 154.960730000000000000
+          Height = 30.236240000000000000
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -12
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Memo.UTF8W = (
+            'P'#225'g.  [Page#]  de  [TotalPages#]')
+          ParentFont = False
+          Formats = <
+            item
+            end
+            item
+            end>
+        end
+        object Line4: TfrxLineView
+          AllowVectorExport = True
+          Left = 531.078598580000000000
+          Top = 2.779530000000000000
+          Height = 120.944960000000000000
+          Color = clBlack
+          Frame.Typ = [ftLeft]
+        end
+        object Memo15: TfrxMemoView
+          AllowVectorExport = True
+          Left = 539.472790000000000000
+          Top = 45.354360000000000000
+          Width = 166.299320000000000000
+          Height = 64.252010000000000000
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -12
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Memo.UTF8W = (
+            'Fecha de emisi'#243'n: [Date]')
+          ParentFont = False
+        end
+        object empresa: TfrxRichView
+          AllowVectorExport = True
+          Left = 147.401670000000000000
+          Top = 11.338590000000000000
+          Width = 374.173470000000000000
+          Height = 52.913420000000000000
+          Frame.Typ = []
+          GapX = 2.000000000000000000
+          GapY = 1.000000000000000000
+          RichEdit = {
+            7B5C727466315C616E73695C616E7369637067313235325C64656666305C6E6F
+            7569636F6D7061745C6465666C616E67333038327B5C666F6E7474626C7B5C66
+            305C666E696C5C666368617273657430205461686F6D613B7D7D0D0A7B5C2A5C
+            67656E657261746F722052696368656432302031302E302E31393034317D5C76
+            6965776B696E64345C756331200D0A5C706172645C66305C667331365C706172
+            0D0A7D0D0A00}
+        end
+      end
+      object Header1: TfrxHeader
+        FillType = ftBrush
+        FillGap.Top = 0
+        FillGap.Left = 0
+        FillGap.Bottom = 0
+        FillGap.Right = 0
+        Frame.Typ = []
+        Height = 37.795300000000000000
+        Top = 207.874150000000000000
+        Width = 718.110700000000000000
+        ReprintOnNewPage = True
+        object Memo7: TfrxMemoView
+          AllowVectorExport = True
+          Left = 11.338590000000000000
+          Top = -0.220470000000006000
+          Width = 332.976421890000000000
+          Height = 37.795300000000000000
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          Frame.Typ = [ftLeft, ftRight, ftTop, ftBottom]
+          HAlign = haCenter
+          Memo.UTF8W = (
+            'Datos de la oficina')
+          ParentFont = False
+        end
+        object Memo10: TfrxMemoView
+          AllowVectorExport = True
+          Left = 344.692957320000000000
+          Top = -0.220470000000006000
+          Width = 369.637795275591000000
+          Height = 37.795300000000000000
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          Frame.Typ = [ftLeft, ftRight, ftTop, ftBottom]
+          HAlign = haCenter
+          Memo.UTF8W = (
+            'Datos generales')
+          ParentFont = False
+        end
+        object Memo20: TfrxMemoView
+          AllowVectorExport = True
+          Left = 11.338590000000000000
+          Top = 18.677180000000000000
+          Width = 140.976387720000000000
+          Height = 18.897650000000000000
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          Frame.Typ = [ftLeft, ftRight, ftTop, ftBottom]
+          HAlign = haCenter
+          Memo.UTF8W = (
+            'C'#243'digo')
+          ParentFont = False
+        end
+        object Memo21: TfrxMemoView
+          AllowVectorExport = True
+          Left = 152.283550000000000000
+          Top = 18.677180000000000000
+          Width = 192.000034170000000000
+          Height = 18.897650000000000000
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          Frame.Typ = [ftLeft, ftRight, ftTop, ftBottom]
+          HAlign = haCenter
+          Memo.UTF8W = (
+            'Nombre')
+          ParentFont = False
+        end
+        object Memo23: TfrxMemoView
+          AllowVectorExport = True
+          Left = 344.661417320000000000
+          Top = 18.897650000000000000
+          Width = 181.417440000000000000
+          Height = 18.897650000000000000
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          Frame.Typ = [ftLeft, ftRight, ftTop, ftBottom]
+          HAlign = haCenter
+          Memo.UTF8W = (
+            'Responsable')
+          ParentFont = False
+        end
+        object Memo24: TfrxMemoView
+          AllowVectorExport = True
+          Left = 526.055350000000000000
+          Top = 18.897650000000000000
+          Width = 70.677165354330700000
+          Height = 18.897650000000000000
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          Frame.Typ = [ftLeft, ftRight, ftTop, ftBottom]
+          HAlign = haCenter
+          Memo.UTF8W = (
+            'Visible')
+          ParentFont = False
+        end
+        object Memo25: TfrxMemoView
+          AllowVectorExport = True
+          Left = 596.716493930000000000
+          Top = 18.897650000000000000
+          Width = 117.165354330709000000
+          Height = 18.897650000000000000
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          Frame.Typ = [ftLeft, ftRight, ftTop, ftBottom]
+          HAlign = haCenter
+          Memo.UTF8W = (
+            'Tipo objeto')
+          ParentFont = False
+        end
+      end
+    end
+  end
+  object frxtb_sysconfig: TfrxDBDataset
+    UserName = 'tb_sysconfig'
+    CloseDataSource = False
+    DataSet = UDM.tb_sysconfig
+    BCDToCurrency = False
+    DataSetOptions = []
+    Left = 773
+    Top = 304
+  end
+  object frxPDFExport1: TfrxPDFExport
+    UseFileCache = True
+    ShowProgress = True
+    OverwritePrompt = False
+    DataOnly = False
+    EmbedFontsIfProtected = False
+    InteractiveFormsFontSubset = 'A-Z,a-z,0-9,#43-#47 '
+    OpenAfterExport = False
+    PrintOptimized = False
+    Outline = False
+    Background = False
+    HTMLTags = True
+    Quality = 95
+    Author = 'FastReport'
+    Subject = 'FastReport PDF export'
+    Creator = 'FastReport'
+    ProtectionFlags = [ePrint, eModify, eCopy, eAnnot]
+    HideToolbar = False
+    HideMenubar = False
+    HideWindowUI = False
+    FitWindow = False
+    CenterWindow = False
+    PrintScaling = False
+    PdfA = False
+    PDFStandard = psNone
+    PDFVersion = pv17
+    Left = 192
+    Top = 294
+  end
+  object frxXLSExport1: TfrxXLSExport
+    UseFileCache = True
+    ShowProgress = True
+    OverwritePrompt = False
+    DataOnly = False
+    ExportEMF = True
+    AsText = False
+    Background = True
+    FastExport = True
+    PageBreaks = True
+    EmptyLines = True
+    SuppressPageHeadersFooters = False
+    Left = 272
+    Top = 286
+  end
+  object FontDialog1: TFontDialog
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    Left = 176
+    Top = 232
+  end
+  object ppmtvTree: TAdvPopupMenu
+    Version = '2.6.4.0'
+    Left = 185
+    Top = 116
+    object MtvFont: TMenuItem
+      Caption = 'Fuente'
+      OnClick = MtvFontClick
+    end
+    object MenuItem1: TMenuItem
+      Caption = '-'
+    end
+    object pmtvReset: TMenuItem
+      Caption = 'Restablecer'
+      OnClick = pmtvResetClick
+    end
+  end
+  object PPMDescript: TAdvPopupMenu
+    Version = '2.6.4.0'
+    Left = 641
+    Top = 340
+    object MenuItem3: TMenuItem
+      Caption = 'Fuente'
+      OnClick = MenuItem3Click
+    end
+  end
+  object AdvPopupMenu1: TAdvPopupMenu
+    Version = '2.6.4.0'
+    Left = 401
+    Top = 65532
+    object MenuItem2: TMenuItem
+      Caption = 'Fuente'
+      object F1: TMenuItem
+        Caption = #193'rbol'
+        OnClick = F1Click
+      end
+      object C1: TMenuItem
+        Caption = 'Descripci'#243'n'
+        OnClick = C1Click
+      end
+    end
+    object R1: TMenuItem
+      Caption = 'Restablecer'
+      OnClick = R1Click
+    end
   end
 end

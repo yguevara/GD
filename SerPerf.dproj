@@ -160,9 +160,6 @@
         <DCCReference Include="UCLFtpServer.pas">
             <Form>frmListFTPServer</Form>
         </DCCReference>
-        <DCCReference Include="UCLProcesos.pas">
-            <Form>frmCLprocesos</Form>
-        </DCCReference>
         <DCCReference Include="UManagementPDFFile.pas">
             <Form>frmManagementProc</Form>
         </DCCReference>
@@ -171,9 +168,6 @@
         </DCCReference>
         <DCCReference Include="UGestEstruct.pas">
             <Form>frmEstructura</Form>
-        </DCCReference>
-        <DCCReference Include="UCategoria_Ocupa.pas">
-            <Form>frmCatOcupa</Form>
         </DCCReference>
         <DCCReference Include="UCL_Cargo.pas">
             <Form>frmCLCargo</Form>
@@ -202,17 +196,11 @@
         <DCCReference Include="UCL_Especialistas.pas">
             <Form>frmListEspec</Form>
         </DCCReference>
-        <DCCReference Include="UEntrada.pas">
-            <Form>FEntrada</Form>
-        </DCCReference>
         <DCCReference Include="UFVariablesAyuda.pas">
             <Form>FVariablesAyuda</Form>
         </DCCReference>
         <DCCReference Include="UManagementFileSeries.pas">
             <Form>frmManagementFile</Form>
-        </DCCReference>
-        <DCCReference Include="UICSeriesDocumentales.pas">
-            <Form>frmICSeriesDocumentales</Form>
         </DCCReference>
         <DCCReference Include="UCLTipoEstructura.pas">
             <Form>frmTipoEstructura</Form>

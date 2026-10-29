@@ -852,7 +852,7 @@ object frmDoc: TfrmDoc
     Align = alTop
     Color = 15780526
     ParentBackground = False
-    TabOrder = 2
+    TabOrder = 0
     object JvTransparentButton1: TJvTransparentButton
       Left = 1
       Top = 1
@@ -1145,15 +1145,14 @@ object frmDoc: TfrmDoc
         0000000000000000000000000000000000000000000000000000000000000000
         0000000000000000000000000000000000000000000000000000000000000000
         0000000000000000000000000000000000000000000000000000}
-      ExplicitLeft = 572
-      ExplicitTop = 4
-      ExplicitHeight = 38
+      ExplicitLeft = 524
+      ExplicitTop = -4
     end
     object Edit1: TEdit
       Left = 0
       Top = 0
-      Width = 1
-      Height = 1
+      Width = 0
+      Height = 21
       TabOrder = 0
       OnKeyDown = FormKeyDown
     end

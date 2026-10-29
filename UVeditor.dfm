@@ -813,9 +813,26 @@ object FVeditor: TFVeditor
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
+  object Editor: TDBRichEdit
+    Left = 0
+    Top = 98
+    Width = 887
+    Height = 301
+    Align = alClient
+    Font.Charset = ANSI_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    Font.Style = []
+    HideSelection = False
+    ScrollBars = ssVertical
+    TabOrder = 3
+    Zoom = 100
+    OnChange = EditorChange
+  end
   object Ruler: TPanel
     Left = 0
-    Top = 41
+    Top = 72
     Width = 887
     Height = 26
     Align = alTop
@@ -828,9 +845,8 @@ object FVeditor: TFVeditor
     Font.Name = 'Arial'
     Font.Style = []
     ParentFont = False
-    TabOrder = 0
+    TabOrder = 2
     OnResize = RulerResize
-    ExplicitTop = 71
     object FirstInd: TLabel
       Left = 2
       Top = 2
@@ -909,48 +925,6 @@ object FVeditor: TFVeditor
         Width = 50
       end>
   end
-  object DBNavigator1: TcxDBNavigator
-    Left = 0
-    Top = 374
-    Width = 884
-    Height = 25
-    Buttons.CustomButtons = <>
-    Buttons.First.Visible = False
-    Buttons.PriorPage.Visible = False
-    Buttons.Prior.Visible = False
-    Buttons.Next.Visible = False
-    Buttons.NextPage.Visible = False
-    Buttons.Last.Visible = False
-    Buttons.Insert.Visible = False
-    Buttons.Append.Visible = False
-    Buttons.Delete.Visible = False
-    Buttons.Edit.Visible = True
-    Buttons.SaveBookmark.Visible = False
-    Buttons.GotoBookmark.Visible = False
-    Buttons.Filter.Visible = False
-    Align = alBottom
-    TabOrder = 2
-    Visible = False
-  end
-  object Editor: TDBRichEdit
-    Left = 0
-    Top = 67
-    Width = 887
-    Height = 307
-    Align = alClient
-    Font.Charset = ANSI_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
-    Font.Style = []
-    ScrollBars = ssVertical
-    TabOrder = 3
-    Zoom = 100
-    OnChange = EditorChange
-    OnKeyDown = FontNameKeyDown
-    ExplicitTop = 97
-    ExplicitHeight = 277
-  end
   object pMainContainer: TPanel
     Left = 0
     Top = 0
@@ -959,9 +933,8 @@ object FVeditor: TFVeditor
     Align = alTop
     Color = 15780526
     ParentBackground = False
-    TabOrder = 4
-    ExplicitTop = 30
-    object JvTransparentButton1: TJvTransparentButton
+    TabOrder = 0
+    object btnclose: TJvTransparentButton
       Left = 1
       Top = 1
       Width = 55
@@ -980,7 +953,7 @@ object FVeditor: TFVeditor
       ParentShowHint = False
       ShowHint = True
       PressOffset = 0
-      OnClick = JvTransparentButton1Click
+      OnClick = btncloseClick
       Glyph.Data = {
         36100000424D3610000000000000360000002800000020000000200000000100
         2000000000000010000000000000000000000000000000000000000000000000
@@ -1112,11 +1085,10 @@ object FVeditor: TFVeditor
         0000000000000000000000000000000000000000000000000000000000000000
         0000000000000000000000000000000000000000000000000000000000000000
         0000000000000000000000000000000000000000000000000000}
-      ExplicitLeft = 14
-      ExplicitTop = 4
-      ExplicitHeight = 38
+      ExplicitLeft = 6
+      ExplicitTop = -4
     end
-    object btnautentica: TJvTransparentButton
+    object btnprint: TJvTransparentButton
       Left = 111
       Top = 1
       Width = 55
@@ -1137,15 +1109,19 @@ object FVeditor: TFVeditor
       PressOffset = 0
       Images.ActiveImage = ToolbarImages
       Images.ActiveIndex = 1
+      Images.GrayImage = ToolbarImages
       Images.GrayIndex = 1
+      Images.DisabledImage = ToolbarImages
       Images.DisabledIndex = 1
+      Images.DownImage = ToolbarImages
       Images.DownIndex = 1
+      Images.HotImage = ToolbarImages
       Images.HotIndex = 1
       ExplicitLeft = 77
       ExplicitTop = 4
       ExplicitHeight = 38
     end
-    object btnusercontrol: TJvTransparentButton
+    object btnPrintconfig: TJvTransparentButton
       Left = 56
       Top = 1
       Width = 55
@@ -1166,13 +1142,17 @@ object FVeditor: TFVeditor
       PressOffset = 0
       Images.ActiveImage = ToolbarImages
       Images.ActiveIndex = 0
+      Images.GrayImage = ToolbarImages
       Images.GrayIndex = 0
+      Images.DisabledImage = ToolbarImages
       Images.DisabledIndex = 0
+      Images.DownImage = ToolbarImages
       Images.DownIndex = 0
+      Images.HotImage = ToolbarImages
       Images.HotIndex = 0
       ExplicitLeft = 54
     end
-    object btnLC: TJvTransparentButton
+    object btnright: TJvTransparentButton
       Left = 661
       Top = 1
       Width = 55
@@ -1193,9 +1173,13 @@ object FVeditor: TFVeditor
       PressOffset = 0
       Images.ActiveImage = ToolbarImages
       Images.ActiveIndex = 6
+      Images.GrayImage = ToolbarImages
       Images.GrayIndex = 6
+      Images.DisabledImage = ToolbarImages
       Images.DisabledIndex = 6
+      Images.DownImage = ToolbarImages
       Images.DownIndex = 6
+      Images.HotImage = ToolbarImages
       Images.HotIndex = 6
       ExplicitLeft = 264
       ExplicitTop = 4
@@ -1220,6 +1204,7 @@ object FVeditor: TFVeditor
       ParentShowHint = False
       ShowHint = True
       PressOffset = 0
+      OnClick = btnSystemHelpClick
       Glyph.Data = {
         36100000424D3610000000000000360000002800000020000000200000000100
         2000000000000010000000000000000000000000000000000000000000000000
@@ -1351,11 +1336,10 @@ object FVeditor: TFVeditor
         0000000000000000000000000000000000000000000000000000000000000000
         0000000000000000000000000000000000000000000000000000000000000000
         0000000000000000000000000000000000000000000000000000}
-      ExplicitLeft = 572
-      ExplicitTop = 4
-      ExplicitHeight = 38
+      ExplicitLeft = 829
+      ExplicitTop = -4
     end
-    object JvTransparentButton2: TJvTransparentButton
+    object btncut: TJvTransparentButton
       Left = 166
       Top = 1
       Width = 55
@@ -1375,15 +1359,19 @@ object FVeditor: TFVeditor
       ShowHint = True
       Images.ActiveImage = ToolbarImages
       Images.ActiveIndex = 2
+      Images.GrayImage = ToolbarImages
       Images.GrayIndex = 2
+      Images.DisabledImage = ToolbarImages
       Images.DisabledIndex = 2
+      Images.DownImage = ToolbarImages
       Images.DownIndex = 2
+      Images.HotImage = ToolbarImages
       Images.HotIndex = 2
       ExplicitLeft = 139
       ExplicitTop = 4
       ExplicitHeight = 38
     end
-    object JvTransparentButton3: TJvTransparentButton
+    object btnpaste: TJvTransparentButton
       Left = 276
       Top = 1
       Width = 55
@@ -1404,9 +1392,13 @@ object FVeditor: TFVeditor
       PressOffset = 0
       Images.ActiveImage = ToolbarImages
       Images.ActiveIndex = 13
+      Images.GrayImage = ToolbarImages
       Images.GrayIndex = 13
+      Images.DisabledImage = ToolbarImages
       Images.DisabledIndex = 13
+      Images.DownImage = ToolbarImages
       Images.DownIndex = 13
+      Images.HotImage = ToolbarImages
       Images.HotIndex = 13
       ExplicitLeft = 264
       ExplicitTop = 4
@@ -1433,9 +1425,13 @@ object FVeditor: TFVeditor
       PressOffset = 0
       Images.ActiveImage = ToolbarImages
       Images.ActiveIndex = 12
+      Images.GrayImage = ToolbarImages
       Images.GrayIndex = 12
+      Images.DisabledImage = ToolbarImages
       Images.DisabledIndex = 12
+      Images.DownImage = ToolbarImages
       Images.DownIndex = 12
+      Images.HotImage = ToolbarImages
       Images.HotIndex = 12
       ExplicitLeft = 264
       ExplicitTop = 4
@@ -1460,11 +1456,16 @@ object FVeditor: TFVeditor
       ParentShowHint = False
       ShowHint = True
       PressOffset = 0
+      OnClick = ItalicButtonClick
       Images.ActiveImage = ToolbarImages
       Images.ActiveIndex = 10
+      Images.GrayImage = ToolbarImages
       Images.GrayIndex = 10
+      Images.DisabledImage = ToolbarImages
       Images.DisabledIndex = 10
+      Images.DownImage = ToolbarImages
       Images.DownIndex = 10
+      Images.HotImage = ToolbarImages
       Images.HotIndex = 10
       ExplicitLeft = 264
       ExplicitTop = 4
@@ -1491,15 +1492,19 @@ object FVeditor: TFVeditor
       PressOffset = 0
       Images.ActiveImage = ToolbarImages
       Images.ActiveIndex = 9
+      Images.GrayImage = ToolbarImages
       Images.GrayIndex = 9
+      Images.DisabledImage = ToolbarImages
       Images.DisabledIndex = 9
+      Images.DownImage = ToolbarImages
       Images.DownIndex = 9
+      Images.HotImage = ToolbarImages
       Images.HotIndex = 9
       ExplicitLeft = 264
       ExplicitTop = 4
       ExplicitHeight = 38
     end
-    object JvTransparentButton7: TJvTransparentButton
+    object btnunder: TJvTransparentButton
       Left = 331
       Top = 1
       Width = 55
@@ -1520,15 +1525,19 @@ object FVeditor: TFVeditor
       PressOffset = 0
       Images.ActiveImage = ToolbarImages
       Images.ActiveIndex = 4
+      Images.GrayImage = ToolbarImages
       Images.GrayIndex = 4
+      Images.DisabledImage = ToolbarImages
       Images.DisabledIndex = 4
+      Images.DownImage = ToolbarImages
       Images.DownIndex = 4
+      Images.HotImage = ToolbarImages
       Images.HotIndex = 4
       ExplicitLeft = 264
       ExplicitTop = 4
       ExplicitHeight = 38
     end
-    object JvTransparentButton8: TJvTransparentButton
+    object btncenter: TJvTransparentButton
       Left = 606
       Top = 1
       Width = 55
@@ -1549,15 +1558,19 @@ object FVeditor: TFVeditor
       PressOffset = 0
       Images.ActiveImage = ToolbarImages
       Images.ActiveIndex = 5
+      Images.GrayImage = ToolbarImages
       Images.GrayIndex = 5
+      Images.DisabledImage = ToolbarImages
       Images.DisabledIndex = 5
+      Images.DownImage = ToolbarImages
       Images.DownIndex = 5
+      Images.HotImage = ToolbarImages
       Images.HotIndex = 5
       ExplicitLeft = 264
       ExplicitTop = 4
       ExplicitHeight = 38
     end
-    object JvTransparentButton9: TJvTransparentButton
+    object btnleft: TJvTransparentButton
       Left = 551
       Top = 1
       Width = 55
@@ -1578,15 +1591,19 @@ object FVeditor: TFVeditor
       PressOffset = 0
       Images.ActiveImage = ToolbarImages
       Images.ActiveIndex = 11
+      Images.GrayImage = ToolbarImages
       Images.GrayIndex = 11
+      Images.DisabledImage = ToolbarImages
       Images.DisabledIndex = 11
+      Images.DownImage = ToolbarImages
       Images.DownIndex = 11
+      Images.HotImage = ToolbarImages
       Images.HotIndex = 11
       ExplicitLeft = 264
       ExplicitTop = 4
       ExplicitHeight = 38
     end
-    object JvTransparentButton10: TJvTransparentButton
+    object btncopy: TJvTransparentButton
       Left = 221
       Top = 1
       Width = 55
@@ -1607,15 +1624,19 @@ object FVeditor: TFVeditor
       PressOffset = 0
       Images.ActiveImage = ToolbarImages
       Images.ActiveIndex = 3
+      Images.GrayImage = ToolbarImages
       Images.GrayIndex = 3
+      Images.DisabledImage = ToolbarImages
       Images.DisabledIndex = 3
+      Images.DownImage = ToolbarImages
       Images.DownIndex = 3
+      Images.HotImage = ToolbarImages
       Images.HotIndex = 3
       ExplicitLeft = 264
       ExplicitTop = 4
       ExplicitHeight = 38
     end
-    object JvTransparentButton12: TJvTransparentButton
+    object font: TJvTransparentButton
       Left = 716
       Top = 1
       Width = 55
@@ -1634,7 +1655,7 @@ object FVeditor: TFVeditor
       ParentShowHint = False
       ShowHint = True
       PressOffset = 0
-      OnClick = JvTransparentButton12Click
+      OnClick = fontClick
       Glyph.Data = {
         36100000424D3610000000000000360000002800000020000000200000000100
         2000000000000010000000000000000000000000000000000000000000000000
@@ -1777,7 +1798,7 @@ object FVeditor: TFVeditor
     object Edit1: TEdit
       Left = 0
       Top = 0
-      Width = 1
+      Width = 0
       Height = 21
       TabOrder = 0
     end
@@ -1800,7 +1821,7 @@ object FVeditor: TFVeditor
     FullRepaint = False
     OutlookLook = False
     Resizable = False
-    TabOrder = 5
+    TabOrder = 4
     Visible = False
     object AdvPanel13: TAdvPanel
       Left = 1
@@ -1854,7 +1875,7 @@ object FVeditor: TFVeditor
         DataBinding.DataField = 'carpeta'
         DataBinding.DataSource = UDM.dstb_Serietree
         Properties.BlobEditKind = bekBlob
-        TabOrder = 0
+        TabOrder = 2
         Visible = False
         Width = 240
       end
@@ -1894,7 +1915,7 @@ object FVeditor: TFVeditor
         Width = 319
         Height = 24
         Align = alTop
-        TabOrder = 2
+        TabOrder = 0
         object FontName: TComboBox
           Left = 104
           Top = 1
@@ -1905,7 +1926,7 @@ object FVeditor: TFVeditor
           Ctl3D = False
           DropDownCount = 10
           ParentCtl3D = False
-          TabOrder = 0
+          TabOrder = 1
           OnChange = FontNameChange
           OnKeyDown = FontNameKeyDown
         end
@@ -1916,7 +1937,7 @@ object FVeditor: TFVeditor
           Height = 22
           Align = alLeft
           Caption = 'Fuente'
-          TabOrder = 1
+          TabOrder = 0
         end
       end
     end
@@ -2085,6 +2106,30 @@ object FVeditor: TFVeditor
         TabOrder = 0
       end
     end
+  end
+  object DBNavigator1: TcxDBNavigator
+    Tag = 1
+    Left = 0
+    Top = 41
+    Width = 887
+    Height = 31
+    Buttons.CustomButtons = <>
+    Buttons.First.Visible = False
+    Buttons.PriorPage.Visible = False
+    Buttons.Prior.Visible = False
+    Buttons.Next.Visible = False
+    Buttons.NextPage.Visible = False
+    Buttons.Last.Visible = False
+    Buttons.Insert.Visible = False
+    Buttons.Append.Visible = False
+    Buttons.Delete.Visible = False
+    Buttons.Edit.Visible = True
+    Buttons.SaveBookmark.Visible = False
+    Buttons.GotoBookmark.Visible = False
+    Buttons.Filter.Visible = False
+    Align = alTop
+    TabOrder = 1
+    ExplicitWidth = 884
   end
   object OpenDialog: TOpenDialog
     Filter = 'Rich Text Files (*.RTF)|*.RTF|Text Files (*.TXT)|*.TXT'
@@ -5927,5 +5972,10 @@ object FVeditor: TFVeditor
       Hint = 'Align Right|Aligns text at the right indent'
       ImageIndex = 6
     end
+  end
+  object Timer1: TTimer
+    Interval = 500
+    Left = 464
+    Top = 88
   end
 end

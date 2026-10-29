@@ -805,7 +805,6 @@ object frmDeposito: TfrmDeposito
   OldCreateOrder = False
   Position = poScreenCenter
   OnActivate = FormActivate
-  OnCloseQuery = FormCloseQuery
   PixelsPerInch = 96
   TextHeight = 13
   object ToolBar1: TToolBar
@@ -903,7 +902,6 @@ object frmDeposito: TfrmDeposito
       Buttons.SaveBookmark.Visible = False
       Buttons.GotoBookmark.Visible = False
       Buttons.Filter.Visible = False
-      DataSource = UDM.dscl_deposito
       InfoPanel.DisplayMask = '[RecordIndex] de [RecordCount]'
       InfoPanel.Visible = True
       Align = alRight
@@ -916,7 +914,6 @@ object frmDeposito: TfrmDeposito
       Top = 1
       Width = 406
       Height = 29
-      DataSource = UDM.dscl_deposito
       VisibleButtons = [nbPrior, nbNext, nbInsert, nbDelete, nbEdit, nbPost, nbCancel]
       Align = alClient
       Hints.Strings = (
@@ -951,7 +948,6 @@ object frmDeposito: TfrmDeposito
     TabOrder = 3
     object cxGrid1DBTableView1: TcxGridDBTableView
       Navigator.Buttons.CustomButtons = <>
-      DataController.DataSource = UDM.dscl_deposito
       DataController.Summary.DefaultGroupSummaryItems = <>
       DataController.Summary.FooterSummaryItems = <>
       DataController.Summary.SummaryGroups = <>
@@ -984,7 +980,6 @@ object frmDeposito: TfrmDeposito
         DataBinding.FieldName = 'descripcion'
         PropertiesClassName = 'TcxBlobEditProperties'
         Properties.BlobEditKind = bekBlob
-        Properties.OnButtonClick = cxGrid1DBTableView1descripcionPropertiesButtonClick
         HeaderAlignmentHorz = taCenter
         HeaderGlyphAlignmentHorz = taCenter
         Width = 120

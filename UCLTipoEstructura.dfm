@@ -1036,7 +1036,6 @@ object frmTipoEstructura: TfrmTipoEstructura
         0000000000000000000000000000000000000000000000000000}
       ParentShowHint = False
       ShowHint = True
-      OnClick = btnFuncionesClick
     end
     object cxDBNavigator1: TcxDBNavigator
       Tag = 99

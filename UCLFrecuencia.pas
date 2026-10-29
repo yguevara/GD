@@ -49,7 +49,7 @@ var
 implementation
 
 uses
-  UCapaDatos, UExcelExport;
+  UCapaDatos, UExcelExport, USecurityClass;
 
 {$R *.dfm}
 
@@ -74,8 +74,12 @@ begin
 end;
 
 procedure TfrmCLFrecuencia.FormActivate(Sender: TObject);
+var
+  acceso: TAccessLevel;
 begin
-  Security.SetModSecurity(Self, acceso);
+  // Obtener el nivel de acceso para este formulario
+  acceso := GlobalSecurity.GetAccess(UDM.Rol, Self.Name); // Self.Name es el nombre del formulario
+  GlobalSecurity.SetModuleSecurity(Self, acceso);
 end;
 
 procedure TfrmCLFrecuencia.ToolButton4Click(Sender: TObject);

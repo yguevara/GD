@@ -47,7 +47,7 @@ var
 implementation
 
 uses
-  UCapaDatos;
+  UCapaDatos, USecurityClass;
 
 {$R *.dfm}
 
@@ -119,12 +119,16 @@ begin
 end;
 
 procedure TfrmGestionarNodos.FormActivate(Sender: TObject);
+var
+  acceso: TAccessLevel;
 begin
   pcNodeAssist.ActivePageIndex := 0;
   btnBack.Enabled := False;
   btnNext.Enabled := True;
   btnFin.Enabled := False;
-  Security.SetModSecurity(Self, acceso);
+  // Obtener el nivel de acceso para este formulario
+  acceso := GlobalSecurity.GetAccess(UDM.Rol, Self.Name); // Self.Name es el nombre del formulario
+  GlobalSecurity.SetModuleSecurity(Self, acceso);
 end;
 
 procedure TfrmGestionarNodos.FormCloseQuery(Sender: TObject; var CanClose: Boolean);

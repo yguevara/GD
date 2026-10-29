@@ -88,7 +88,7 @@ var
 implementation
 
 uses
-  UCapaDatos, UVeditor, UExcelExport;
+  UCapaDatos, UVeditor, UExcelExport, UREditor;
 
 {$R *.dfm}
 

@@ -894,7 +894,7 @@ object frmCLAcceso: TfrmCLAcceso
     Width = 445
     Height = 144
     Align = alClient
-    TabOrder = 1
+    TabOrder = 2
     object cxGrid1DBTableView1: TcxGridDBTableView
       Navigator.Buttons.ConfirmDelete = True
       Navigator.Buttons.CustomButtons = <>
@@ -943,12 +943,12 @@ object frmCLAcceso: TfrmCLAcceso
     Width = 445
     Height = 31
     Align = alTop
-    TabOrder = 3
+    TabOrder = 1
     object cxDBNavigator3: TcxDBNavigator
       Tag = 99
-      Left = 402
+      Left = 400
       Top = 1
-      Width = 42
+      Width = 44
       Height = 29
       Buttons.CustomButtons = <>
       Buttons.First.Visible = False
@@ -972,12 +972,13 @@ object frmCLAcceso: TfrmCLAcceso
       Align = alRight
       ParentShowHint = False
       ShowHint = True
-      TabOrder = 0
+      TabOrder = 1
+      ExplicitLeft = 402
     end
     object DBNavigator3: TDBNavigator
       Left = 1
       Top = 1
-      Width = 401
+      Width = 399
       Height = 29
       DataSource = UDM.dscl_acceso
       VisibleButtons = [nbPrior, nbNext, nbInsert, nbDelete, nbEdit, nbPost, nbCancel]
@@ -995,7 +996,7 @@ object frmCLAcceso: TfrmCLAcceso
         'Refrescar')
       ParentShowHint = False
       ShowHint = True
-      TabOrder = 1
+      TabOrder = 0
       OnClick = DBNavigator3Click
     end
   end

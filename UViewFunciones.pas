@@ -95,7 +95,7 @@ end;
 
 procedure TfrmSelectFuncionG.FormActivate(Sender: TObject);
 begin
-  Security.SetModSecurity(Self, acceso);
+//  Security.SetModSecurity(Self, acceso);
 end;
 
 procedure TfrmSelectFuncionG.jcpSelectCargoButtonClick(Sender: TObject;
@@ -115,7 +115,7 @@ begin
       UDM.sms('No se encontró contenido para mostrar.', 3);
       Exit;
     end;
-  CampoTexto(@dscmdfun, 'funciones', 'Funciones del cargo actual...');
+//  CampoTexto(@dscmdfun, 'funciones', 'Funciones del cargo actual...');
 end;
 
 end.
