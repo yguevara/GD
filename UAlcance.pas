@@ -67,6 +67,7 @@ type
     FNodos: TArray<TAsignacionNodo>;
     FSubseries: TArray<TSubserieAsignada>;
     FSubseriesPublicas: TArray<string>;
+    FPoseeArbol: Boolean;
     function MismoNodo(const A, B: TClaveNodo): Boolean;
     function Permite(Accion: TAccion; const Nodo: TClaveNodo;
       const CodSubs: string): Boolean;
@@ -79,6 +80,7 @@ type
       const Nodos: TArray<TAsignacionNodo>;
       const Subseries: TArray<TSubserieAsignada>;
       const SubseriesPublicas: TArray<string>);
+    destructor Destroy; override;
     function PuedeVerDocumento(const Nodo: TClaveNodo; const CodSubs: string;
       NivelAcceso: Integer): Boolean;
     function PuedeRealizar(Accion: TAccion; const Nodo: TClaveNodo;
@@ -88,6 +90,8 @@ type
     { Asignaciones de subserie que conceden cobertura: nodo existente en el
       arbol y codigo no vacio. Clave de nodo y codigo normalizados. }
     function SubseriesEfectivas: TArray<TSubserieAsignada>;
+    { Si es True, el alcance libera el arbol al destruirse (lo usa CargarAlcance). }
+    property PoseeArbol: Boolean read FPoseeArbol write FPoseeArbol;
     property EsAdministrador: Boolean read FEsAdministrador;
     property SubseriesPublicas: TArray<string> read FSubseriesPublicas;
   end;
@@ -283,6 +287,13 @@ begin
   FSubseriesPublicas := Copy(SubseriesPublicas);
 end;
 
+destructor TAlcanceUsuario.Destroy;
+begin
+  if FPoseeArbol then
+    FArbol.Free;
+  inherited;
+end;
+
 function TAlcanceUsuario.MismoNodo(const A, B: TClaveNodo): Boolean;
 begin
   Result := (A.Id = B.Id) and
@@ -380,9 +391,8 @@ begin
           AcumularConAncestros(Dic, A.Nodo);
       end;
     end;
-    for S in FSubseries do
-      if FArbol.Contiene(S.Nodo) then
-        AcumularConAncestros(Dic, S.Nodo);
+    for S in SubseriesEfectivas do
+      AcumularConAncestros(Dic, S.Nodo);
     Result := Dic.Values.ToArray;
   finally
     Dic.Free;

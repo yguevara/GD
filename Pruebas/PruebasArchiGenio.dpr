@@ -12,7 +12,9 @@ uses
   UAlcance in '..\UAlcance.pas',
   UEsquemaAlcance in '..\UEsquemaAlcance.pas',
   UPruebasAlcance in 'UPruebasAlcance.pas',
-  UPruebasEsquema in 'UPruebasEsquema.pas';
+  UPruebasEsquema in 'UPruebasEsquema.pas',
+  UAlcanceDatos in '..\UAlcanceDatos.pas',
+  UPruebasAlcanceDatos in 'UPruebasAlcanceDatos.pas';
 
 var
   Corredor: ITestRunner;
