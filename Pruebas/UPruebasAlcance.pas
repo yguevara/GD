@@ -83,6 +83,12 @@ type
     procedure AsignacionANodoInexistente_NoDaAcceso;
     [Test]
     procedure NodosCompletos_DirectorYEGD;
+    [Test]
+    procedure Usuario_CodSubsVacio_NoDaAcceso;
+    [Test]
+    procedure Propiedades_AdministradorYPublicas;
+    [Test]
+    procedure SubseriesEfectivas_DescartaVaciasEInexistentes;
   end;
 
 implementation
@@ -466,6 +472,60 @@ begin
     Assert.IsTrue(EnConjunto(C, Clave('A.4', 101)));
     Assert.IsTrue(EnConjunto(C, Clave('A.4.3', 104)));
     Assert.IsTrue(EnConjunto(C, Clave('A.1', 82)));
+  finally
+    Al.Free;
+  end;
+end;
+
+procedure TPruebasAlcance.Usuario_CodSubsVacio_NoDaAcceso;
+var
+  Al: TAlcanceUsuario;
+begin
+  Al := Crear(False, nil, [Sub(Clave('A.4.3', 104), ''), Sub(Clave('A.4', 101), '   ')]);
+  try
+    Assert.IsFalse(Al.PuedeVerDocumento(Clave('A.4.3', 104), '', 2));
+    Assert.IsFalse(Al.PuedeVerDocumento(Clave('A.4.3', 104), '014001', 2));
+    Assert.IsFalse(Al.PuedeVerDocumento(Clave('A.4', 101), ' ', 3));
+    Assert.IsFalse(Al.PuedeRealizar(acEditar, Clave('A.4.3', 104), ''));
+  finally
+    Al.Free;
+  end;
+end;
+
+procedure TPruebasAlcance.Propiedades_AdministradorYPublicas;
+var
+  Al: TAlcanceUsuario;
+begin
+  Al := TAlcanceUsuario.Create(True, FArbol, nil, nil, ['074', '014001']);
+  try
+    Assert.IsTrue(Al.EsAdministrador);
+    Assert.AreEqual(2, Integer(Length(Al.SubseriesPublicas)));
+    Assert.AreEqual('074', Al.SubseriesPublicas[0]);
+  finally
+    Al.Free;
+  end;
+  Al := Crear(False, nil, nil);
+  try
+    Assert.IsFalse(Al.EsAdministrador);
+    Assert.AreEqual(0, Integer(Length(Al.SubseriesPublicas)));
+  finally
+    Al.Free;
+  end;
+end;
+
+procedure TPruebasAlcance.SubseriesEfectivas_DescartaVaciasEInexistentes;
+var
+  Al: TAlcanceUsuario;
+  E: TArray<TSubserieAsignada>;
+begin
+  Al := Crear(False, nil, [Sub(Clave('a.4.3 ', 104), ' 014001 '),
+    Sub(Clave('A.4.3', 104), ''), Sub(Clave('Z.9', 999), '074')]);
+  try
+    E := Al.SubseriesEfectivas;
+    Assert.AreEqual(1, Integer(Length(E)));
+    Assert.AreEqual('A.4.3', E[0].Nodo.IdEstructura);
+    Assert.AreEqual(104, E[0].Nodo.Id);
+    Assert.AreEqual('014001', E[0].CodSubs);
   finally
     Al.Free;
   end;

@@ -85,6 +85,11 @@ type
       const CodSubs: string): Boolean;
     function NodosVisibles: TArray<TClaveNodo>;
     function NodosCompletos: TArray<TClaveNodo>;
+    { Asignaciones de subserie que conceden cobertura: nodo existente en el
+      arbol y codigo no vacio. Clave de nodo y codigo normalizados. }
+    function SubseriesEfectivas: TArray<TSubserieAsignada>;
+    property EsAdministrador: Boolean read FEsAdministrador;
+    property SubseriesPublicas: TArray<string> read FSubseriesPublicas;
   end;
 
 implementation
@@ -312,7 +317,9 @@ begin
   if not RolPermite(rnUsuario, Accion) then
     Exit;
   for S in FSubseries do
-    if FArbol.Contiene(S.Nodo) and MismoNodo(S.Nodo, Nodo) and
+    // una asignacion sin codigo de subserie no concede nada (fallo cerrado)
+    if (NormalizaClave(S.CodSubs) <> '') and
+      FArbol.Contiene(S.Nodo) and MismoNodo(S.Nodo, Nodo) and
       (NormalizaClave(S.CodSubs) = NormalizaClave(CodSubs)) then
       Exit(True);
 end;
@@ -408,6 +415,28 @@ begin
     Result := Dic.Values.ToArray;
   finally
     Dic.Free;
+  end;
+end;
+
+function TAlcanceUsuario.SubseriesEfectivas: TArray<TSubserieAsignada>;
+var
+  Lista: TList<TSubserieAsignada>;
+  S, R: TSubserieAsignada;
+begin
+  Lista := TList<TSubserieAsignada>.Create;
+  try
+    for S in FSubseries do
+    begin
+      if (NormalizaClave(S.CodSubs) = '') or not FArbol.Contiene(S.Nodo) then
+        Continue;
+      R.Nodo.IdEstructura := NormalizaClave(S.Nodo.IdEstructura);
+      R.Nodo.Id := S.Nodo.Id;
+      R.CodSubs := NormalizaClave(S.CodSubs);
+      Lista.Add(R);
+    end;
+    Result := Lista.ToArray;
+  finally
+    Lista.Free;
   end;
 end;
 
