@@ -726,6 +726,14 @@ type
     procedure CopyColumnsAndProperties(SourceView, TargetView: TcxGridDBTableView);
     procedure ViewVarDetail(V: boolean);
     procedure PropagarCambiosTopograficos;
+    // Reglas de botones y menus del documento actual (ver cabeceras en la implementacion)
+    procedure AplicarReglasDocumento;
+    procedure AplicarReglasPorAlcance;
+    procedure AplicarReglasPorRolHeredado(Rol: string);
+    procedure AplicarReglasGestorHeredado;
+    function GetIdResp(aUser: string): Integer;
+    procedure SetVisibilityForButtons(Visible: Boolean);
+    procedure SetDbNavigatorButtons(Buttons: TNavButtonSet);
   end;
 
 var
@@ -738,7 +746,7 @@ var
 implementation
 
 uses
-  UHistory, UAbout, UAutentica, UCapaDatos, UUserGest, UDocManagement,
+  UAlcance, UHistory, UAbout, UAutentica, UCapaDatos, UUserGest, UDocManagement,
   UCLSeriesDocumentales, UCLFtpServer, UGestEstruct, UMangementArch,
   UManagementFileSeries, UViewFunciones, UVeditor, UExcelExport, UManagementNode,
   USystemMsg, UNodeProperties, UCL_TiposExp, USysConfig, UTransferencias,
@@ -4614,142 +4622,220 @@ begin
   inherited Destroy;
 end;
 
-procedure TMAIN.dstb_SeriesDatosDataChange(Sender: TObject; Field: TField);
+// Devuelve el Idresp (cl_Resp_Gest_Arch) del usuario, o -1 si no existe o la
+// consulta falla (por ejemplo durante la carga inicial). Solo lo usa la regla
+// heredada del gestor (modo Access).
+function TMAIN.GetIdResp(aUser: string): Integer;
 var
-  CantDoc: integer;
-
-  function GetIdResp(aUser: string): Integer;
-  var
-    cad: string;
-  begin
-    // Obtiene el ID del responsable de gestión de archivos para un usuario dado
-    Result := -1;
-    try
-      cad := UDM.Conn.ExecSQLScalar('SELECT cl_Resp_Gest_Arch.Idresp FROM cl_Resp_Gest_Arch WHERE lower(cl_Resp_Gest_Arch.usuario) = ' + QuotedStr(AnsiLowerCase(aUser)));
-      Result := StrToInt(cad);
-    except
-      // Ignora errores silenciosamente, ya que puede fallar durante la carga inicial
-    end;
+  cad: string;
+begin
+  // Obtiene el ID del responsable de gestión de archivos para un usuario dado
+  Result := -1;
+  try
+    cad := UDM.Conn.ExecSQLScalar('SELECT cl_Resp_Gest_Arch.Idresp FROM cl_Resp_Gest_Arch WHERE lower(cl_Resp_Gest_Arch.usuario) = ' + QuotedStr(AnsiLowerCase(aUser)));
+    Result := StrToInt(cad);
+  except
+    // Ignora errores silenciosamente, ya que puede fallar durante la carga inicial
   end;
+end;
 
-  procedure SetVisibilityForButtons(Visible: Boolean);
+// Muestra u oculta los botones de agregar y quitar fuentes y archivos digitales.
+procedure TMAIN.SetVisibilityForButtons(Visible: Boolean);
+begin
+  // Configura la visibilidad de los botones relacionados con fuentes y archivos digitales
+  btnSourceFile.Visible := Visible;
+  btnAddListSource.Visible := Visible;
+  btnRemoveSourceFileList.Visible := Visible;
+  btnDropSourceFile.Visible := Visible;
+  btnaddfile.Visible := Visible;
+  btnaddfilelist.Visible := Visible;
+  btnRemoveFileList.Visible := Visible;
+  btnremovefile.Visible := Visible;
+end;
+
+// Define los botones visibles del navegador de tb_SeriesDatos.
+procedure TMAIN.SetDbNavigatorButtons(Buttons: TNavButtonSet);
+begin
+  // Configura los botones visibles del navegador de datos
+  dbnSeriesDatos.VisibleButtons := Buttons;
+end;
+
+// Regla heredada del Gestor (modo Access, sin alcance): solo es efectiva si el
+// usuario es el 'gestor' registrado en tb_Serietree para el nodo y la subserie.
+// Puede eliminar hasta 5 dias despues de la fecha del documento.
+procedure TMAIN.AplicarReglasGestorHeredado;
+var
+  DaysElapsed: Integer;
+begin
+  // Configura la interfaz para el rol 'gestor' según el usuario y los días transcurridos
+  if UDM.tb_Serietree.FieldByName('gestor').IsNull then
+    Exit;  // Sale silenciosamente si el campo 'gestor' es nulo
+
+  if UDM.tb_Serietree.FieldByName('gestor').AsInteger = GetIdResp(UDM.UserName) then
   begin
-    // Configura la visibilidad de los botones relacionados con fuentes y archivos digitales
-    btnSourceFile.Visible := Visible;
-    btnAddListSource.Visible := Visible;
-    btnRemoveSourceFileList.Visible := Visible;
-    btnDropSourceFile.Visible := Visible;
-    btnaddfile.Visible := Visible;
-    btnaddfilelist.Visible := Visible;
-    btnRemoveFileList.Visible := Visible;
-    btnremovefile.Visible := Visible;
-  end;
-
-  procedure SetDbNavigatorButtons(Buttons: TNavButtonSet);
-  begin
-    // Configura los botones visibles del navegador de datos
-    dbnSeriesDatos.VisibleButtons := Buttons;
-  end;
-
-  procedure ConfiguracionRolGestor;
-  var
-    DaysElapsed: Integer;
-  begin
-    // Configura la interfaz para el rol 'gestor' según el usuario y los días transcurridos
-    if UDM.tb_Serietree.FieldByName('gestor').IsNull then
-      Exit;  // Sale silenciosamente si el campo 'gestor' es nulo
-
-    if UDM.tb_Serietree.FieldByName('gestor').AsInteger = GetIdResp(UDM.UserName) then
-    begin
-      if UDM.tb_SeriesDatos.FieldByName('Fecha').IsNull then
-      begin
-        SetDbNavigatorButtons([nbFirst, nbPrior, nbNext, nbLast, nbCancel]);
-        SetVisibilityForButtons(False);
-        Exit;
-      end;
-
-      DaysElapsed := GetCantOfDay(UDM.tb_SeriesDatos.FieldByName('Fecha').AsDateTime);
-      if DaysElapsed > 5 then
-      begin
-        SetDbNavigatorButtons([nbFirst, nbPrior, nbNext, nbLast, nbInsert, nbPost, nbCancel]);
-        SetVisibilityForButtons(False);
-        JvTransparentButton5.Visible := True;
-        btnViewtopoSS.Visible := True;
-        mGestionarContentFile.Visible := True;
-        Label11.Visible := False;
-        lcbGestor.Visible := False;
-      end
-      else
-      begin
-        SetDbNavigatorButtons([nbFirst, nbPrior, nbNext, nbLast, nbInsert, nbDelete, nbPost, nbCancel]);
-        SetVisibilityForButtons(True);
-        JvTransparentButton5.Visible := True;
-        btnViewtopoSS.Visible := True;
-        mGestionarContentFile.Visible := True;
-        Label11.Visible := False;
-        lcbGestor.Visible := False;
-      end;
-    end
-    else
+    if UDM.tb_SeriesDatos.FieldByName('Fecha').IsNull then
     begin
       SetDbNavigatorButtons([nbFirst, nbPrior, nbNext, nbLast, nbCancel]);
       SetVisibilityForButtons(False);
-      JvTransparentButton5.Visible := False;
-      mGestionarContentFile.Visible := False;
-      btnViewtopoSS.Visible := False;
-      Label11.Visible := False;
-      lcbGestor.Visible := False;
+      Exit;
     end;
-  end;
 
-  procedure ConfiguracionPorRol(Rol: string);
-  var
-    DaysElapsed: Integer;
-  begin
-    // Obtener el nivel de acceso para este formulario
-    // Configura la interfaz según el rol del usuario
-    if Rol = 'archivero' then
+    DaysElapsed := GetCantOfDay(UDM.tb_SeriesDatos.FieldByName('Fecha').AsDateTime);
+    if DaysElapsed > 5 then
     begin
-      SetDbNavigatorButtons([nbFirst, nbPrior, nbNext, nbLast, nbCancel]);
+      SetDbNavigatorButtons([nbFirst, nbPrior, nbNext, nbLast, nbInsert, nbPost, nbCancel]);
       SetVisibilityForButtons(False);
-      JvTransparentButton5.Visible := False;
-      btnViewtopoSS.Visible := False;
-      mGestionarContentFile.Visible := False;
-    end
-    else if Rol = 'gestor' then
-      ConfiguracionRolGestor
-    else if Rol = 'director' then
-    begin
-      SetVisibilityForButtons(False);
-      if UDM.tb_SeriesDatos.FieldByName('Fecha').IsNull then
-      begin
-        SetDbNavigatorButtons([nbFirst, nbPrior, nbNext, nbLast, nbCancel]);
-        Exit;
-      end;
-
-      DaysElapsed := GetCantOfDay(UDM.tb_SeriesDatos.FieldByName('Fecha').AsDateTime);
-      if DaysElapsed > 1 then
-        SetDbNavigatorButtons([nbFirst, nbPrior, nbNext, nbLast, nbInsert, nbPost, nbCancel])
-      else
-        SetDbNavigatorButtons([nbFirst, nbPrior, nbNext, nbLast, nbInsert, nbDelete, nbPost, nbCancel]);
-      MenuItem11.Visible := not (DaysElapsed > 1);
-      JvTransparentButton5.Visible := False;
-      btnViewtopoSS.Visible := False;
-      mGestionarContentFile.Visible := not (DaysElapsed > 1);
-    end
-    else if Rol = 'administrador' then
-    begin
-      SetDbNavigatorButtons([nbFirst, nbPrior, nbNext, nbLast, nbInsert, nbDelete, nbPost, nbCancel]);
-      SetVisibilityForButtons(True);
-      MenuItem11.Visible := True;
       JvTransparentButton5.Visible := True;
       btnViewtopoSS.Visible := True;
       mGestionarContentFile.Visible := True;
+      Label11.Visible := False;
+      lcbGestor.Visible := False;
+    end
+    else
+    begin
+      SetDbNavigatorButtons([nbFirst, nbPrior, nbNext, nbLast, nbInsert, nbDelete, nbPost, nbCancel]);
+      SetVisibilityForButtons(True);
+      JvTransparentButton5.Visible := True;
+      btnViewtopoSS.Visible := True;
+      mGestionarContentFile.Visible := True;
+      Label11.Visible := False;
+      lcbGestor.Visible := False;
+    end;
+  end
+  else
+  begin
+    SetDbNavigatorButtons([nbFirst, nbPrior, nbNext, nbLast, nbCancel]);
+    SetVisibilityForButtons(False);
+    JvTransparentButton5.Visible := False;
+    mGestionarContentFile.Visible := False;
+    btnViewtopoSS.Visible := False;
+    Label11.Visible := False;
+    lcbGestor.Visible := False;
+  end;
+end;
+
+// Reglas heredadas por nombre de rol (archivero, gestor, director,
+// administrador). Se usan en modo Access y para los roles que no dependen del
+// alcance. En SQL Server, gestor y director pasan por AplicarReglasPorAlcance.
+procedure TMAIN.AplicarReglasPorRolHeredado(Rol: string);
+var
+  DaysElapsed: Integer;
+begin
+  // Obtener el nivel de acceso para este formulario
+  // Configura la interfaz según el rol del usuario
+  if Rol = 'archivero' then
+  begin
+    SetDbNavigatorButtons([nbFirst, nbPrior, nbNext, nbLast, nbCancel]);
+    SetVisibilityForButtons(False);
+    JvTransparentButton5.Visible := False;
+    btnViewtopoSS.Visible := False;
+    mGestionarContentFile.Visible := False;
+  end
+  else if Rol = 'gestor' then
+    AplicarReglasGestorHeredado
+  else if Rol = 'director' then
+  begin
+    SetVisibilityForButtons(False);
+    if UDM.tb_SeriesDatos.FieldByName('Fecha').IsNull then
+    begin
+      SetDbNavigatorButtons([nbFirst, nbPrior, nbNext, nbLast, nbCancel]);
+      Exit;
+    end;
+
+    DaysElapsed := GetCantOfDay(UDM.tb_SeriesDatos.FieldByName('Fecha').AsDateTime);
+    if DaysElapsed > 1 then
+      SetDbNavigatorButtons([nbFirst, nbPrior, nbNext, nbLast, nbInsert, nbPost, nbCancel])
+    else
+      SetDbNavigatorButtons([nbFirst, nbPrior, nbNext, nbLast, nbInsert, nbDelete, nbPost, nbCancel]);
+    MenuItem11.Visible := not (DaysElapsed > 1);
+    JvTransparentButton5.Visible := False;
+    btnViewtopoSS.Visible := False;
+    mGestionarContentFile.Visible := not (DaysElapsed > 1);
+  end
+  else if Rol = 'administrador' then
+  begin
+    SetDbNavigatorButtons([nbFirst, nbPrior, nbNext, nbLast, nbInsert, nbDelete, nbPost, nbCancel]);
+    SetVisibilityForButtons(True);
+    MenuItem11.Visible := True;
+    JvTransparentButton5.Visible := True;
+    btnViewtopoSS.Visible := True;
+    mGestionarContentFile.Visible := True;
 //      acceso := GlobalSecurity.GetAccess(UDM.Rol, Self.Name); // Self.Name es el nombre del formulario
 //      GlobalSecurity.SetModuleSecurity(Self, acceso);
-      Security.SetModSecurity(Self, 'acceso total');
-    end;
+    Security.SetModSecurity(Self, 'acceso total');
   end;
+end;
+
+// Botones y menus del documento actual segun el alcance del usuario (SQL
+// Server). Decide por nodo y subserie del registro actual de tb_Serietree:
+//   - navegar y cancelar: siempre;
+//   - insertar y guardar: si puede agregar o editar;
+//   - borrar, botones de archivos y fuentes y el menu MenuItem11: si puede
+//     eliminar (el EGD siempre; el Director solo el primer dia);
+//   - topografia (JvTransparentButton5 y btnViewtopoSS): solo si puede
+//     editarla (administrador o EGD del nodo);
+//   - gestionar contenido (mGestionarContentFile): quien puede eliminar o
+//     editar la topografia.
+// Ya no consulta tb_Serietree.gestor, que queda como dato informativo.
+procedure TMAIN.AplicarReglasPorAlcance;
+var
+  Nodo: TClaveNodo;
+  CodSubs: string;
+  Dias: Integer;
+  PuedeAgregar, PuedeEditar, PuedeEliminar, PuedeTopografia: Boolean;
+  Botones: TNavButtonSet;
+begin
+  Botones := [nbFirst, nbPrior, nbNext, nbLast, nbCancel];
+  PuedeAgregar := False;
+  PuedeEditar := False;
+  PuedeEliminar := False;
+  PuedeTopografia := False;
+  if UDM.tb_Serietree.Active and not UDM.tb_Serietree.IsEmpty then
+  begin
+    Nodo.IdEstructura := UDM.tb_Serietree.FieldByName('IdEstructura').AsString;
+    Nodo.Id := UDM.tb_Serietree.FieldByName('id').AsInteger;
+    CodSubs := UDM.tb_Serietree.FieldByName('codsubs').AsString;
+    if UDM.tb_SeriesDatos.FieldByName('Fecha').IsNull then
+      Dias := 0
+    else
+      Dias := GetCantOfDay(UDM.tb_SeriesDatos.FieldByName('Fecha').AsDateTime);
+    PuedeAgregar := UDM.Alcance.PuedeRealizar(acAgregar, Nodo, CodSubs);
+    PuedeEditar := UDM.Alcance.PuedeRealizar(acEditar, Nodo, CodSubs);
+    PuedeEliminar := UDM.Alcance.PuedeEliminarDocumento(Nodo, CodSubs, Dias);
+    PuedeTopografia := UDM.Alcance.PuedeRealizar(acEditarTopografia, Nodo, CodSubs);
+  end;
+  if PuedeAgregar then
+    Include(Botones, nbInsert);
+  if PuedeAgregar or PuedeEditar then
+    Include(Botones, nbPost);
+  if PuedeEliminar then
+    Include(Botones, nbDelete);
+  SetDbNavigatorButtons(Botones);
+  SetVisibilityForButtons(PuedeEliminar);
+  MenuItem11.Visible := PuedeEliminar;
+  JvTransparentButton5.Visible := PuedeTopografia;
+  btnViewtopoSS.Visible := PuedeTopografia;
+  mGestionarContentFile.Visible := PuedeEliminar or PuedeTopografia;
+end;
+
+// Punto unico que configura los controles del documento actual segun el
+// usuario. Administrador, archivero y visor (y todos en modo Access, sin
+// alcance) siguen la regla heredada por rol; gestor y director con alcance
+// (SQL Server) siguen las reglas de UAlcance.
+procedure TMAIN.AplicarReglasDocumento;
+var
+  Rol: string;
+begin
+  Rol := AnsiLowerCase(UDM.Rol);
+  if (UDM.Alcance <> nil) and ((Rol = 'gestor') or (Rol = 'director')) then
+    AplicarReglasPorAlcance
+  else
+    AplicarReglasPorRolHeredado(Rol);
+end;
+
+procedure TMAIN.dstb_SeriesDatosDataChange(Sender: TObject; Field: TField);
+var
+  CantDoc: integer;
 
   procedure UpdateVariablesView;
   begin
@@ -4831,14 +4917,11 @@ var
   end;
 
   procedure ConfigureInitialUI;
-  var
-    RolLower: string;
   begin
     // Configura la interfaz inicial según el rol del usuario
     if EstoyActualizando then
       Exit;
 
-    RolLower := AnsiLowerCase(UDM.Rol);
     // Obtener el nivel de acceso para este formulario
     Security.SetModSecurity(Self, acceso);
 
@@ -4853,7 +4936,7 @@ var
     Security.SetModSecurity(Self, acceso);  }
     Label11.Visible := True;
     lcbGestor.Visible := True;
-    ConfiguracionPorRol(RolLower);
+    AplicarReglasDocumento;
   end;
 
   procedure RefreshGrid;

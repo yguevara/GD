@@ -23,6 +23,12 @@ Pendiente de ejecutar por una persona: requiere iniciar sesión en la aplicació
 | 6 | `administrador` tras `usr_sub` | Iniciar sesión | Árbol completo otra vez (no queda el filtro del usuario anterior) |  |
 | 7 | Cualquiera | Agregar y editar un nodo o documento dentro de su cobertura | Guarda sin error y el registro se sigue viendo |  |
 | 8 | Modo Access (`config.ini` con `.mdb`) | Abrir e iniciar sesión | Árbol y documentos completos, sin cambios respecto a la versión anterior |  |
+| 9 | `egd_a43` (asignado con `scripts/asignar_egd.sql`) | En `A.4.3`, elegir un documento | Ve los botones de topografía (datos topográficos y gestionar contenido) y puede editar la topografía de sus subseries |  |
+| 10 | `egd_a43` | Eliminar un documento de `A.4.3` con más de 5 días | El botón Eliminar está disponible y borra (el EGD no tiene ventana de días) |  |
+| 11 | Un Director (fila en `tb_tree_directors` con `idrol = 3`) de un nodo con hijos | Eliminar un documento de un nodo hijo | Solo puede eliminarlo el primer día; pasado ese plazo no aparece Eliminar. No ve los botones de topografía |  |
+| 12 | `usr_sub` | Agregar un documento en `A.4.3` / `014001` con la topografía incompleta (dejar vacío el depósito en `tb_Serietree`) | Mensaje: "Falta la ubicación de esta subserie en tu área. Avisa al especialista de gestión documental de tu nodo." |  |
+| 13 | `egd_a43` | El mismo caso 12 | Mensaje pidiendo especificar los datos topográficos, y puede completarlos desde el botón de topografía |  |
+| 14 | `administrador` y modo Access | Agregar, editar y eliminar | Sin cambios respecto a la versión anterior |  |
 
 ## Qué mirar además
 
