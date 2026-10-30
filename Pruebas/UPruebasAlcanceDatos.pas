@@ -103,6 +103,14 @@ type
     procedure FalloAlCargar_NoDaAccesoAlguno;
     [Test]
     procedure FalloAlCargar_AdministradorSigueVeTodo;
+    [Test]
+    procedure EGD_Real_EditaTopografiaSoloDeSuNodo;
+    [Test]
+    procedure Usuario_Director_Reales_NoEditanTopografia;
+    [Test]
+    procedure EGD_Real_EliminaDocumentoAntiguo;
+    [Test]
+    procedure Director_Real_EliminaSoloElPrimerDia;
   end;
 
   [TestFixture]
@@ -779,6 +787,70 @@ begin
     Assert.IsTrue(Error <> '', 'Debe informar el error');
     Assert.AreEqual(0, FEsc.Contar(FiltroDocumentos(Al, 'd')));
     Assert.AreEqual(0, Integer(Length(FEsc.NodosFiltrados(FiltroNodosArbol(Al, 't')))));
+  finally
+    Al.Free;
+  end;
+end;
+
+procedure TPruebasAlcanceDatosSql.EGD_Real_EditaTopografiaSoloDeSuNodo;
+var
+  Al: TAlcanceUsuario;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB'); Exit; end;
+  Al := CargarAlcance(FConn, 'prueba_alc_egd', False);
+  try
+    Assert.IsTrue(Al.PuedeRealizar(acEditarTopografia, Clave('A.4', 101), '074'));
+    Assert.IsFalse(Al.PuedeRealizar(acEditarTopografia, Clave('A.4.3', 104), '074'));
+    Assert.IsFalse(Al.PuedeRealizar(acEditarTopografia, Clave('A.4.6', 160), '074'));
+    Assert.IsFalse(Al.PuedeRealizar(acEditarTopografia, Clave('A.1.7', 160), '074'));
+  finally
+    Al.Free;
+  end;
+end;
+
+procedure TPruebasAlcanceDatosSql.Usuario_Director_Reales_NoEditanTopografia;
+const
+  USUARIOS: array[0..2] of string = ('prueba_alc_usr1', 'prueba_alc_dir4', 'prueba_alc_visor');
+var
+  U: string;
+  Al: TAlcanceUsuario;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB'); Exit; end;
+  for U in USUARIOS do
+  begin
+    Al := CargarAlcance(FConn, U, False);
+    try
+      Assert.IsFalse(Al.PuedeRealizar(acEditarTopografia, Clave('A.4', 101), '074'), U);
+      Assert.IsFalse(Al.PuedeRealizar(acEditarTopografia, Clave('A.4.3', 104), '014001'), U);
+    finally
+      Al.Free;
+    end;
+  end;
+end;
+
+procedure TPruebasAlcanceDatosSql.EGD_Real_EliminaDocumentoAntiguo;
+var
+  Al: TAlcanceUsuario;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB'); Exit; end;
+  Al := CargarAlcance(FConn, 'prueba_alc_egd', False);
+  try
+    Assert.IsTrue(Al.PuedeEliminarDocumento(Clave('A.4', 101), '014001', 4000));
+    Assert.IsFalse(Al.PuedeEliminarDocumento(Clave('A.4.3', 104), '014001', 0));
+  finally
+    Al.Free;
+  end;
+end;
+
+procedure TPruebasAlcanceDatosSql.Director_Real_EliminaSoloElPrimerDia;
+var
+  Al: TAlcanceUsuario;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB'); Exit; end;
+  Al := CargarAlcance(FConn, 'prueba_alc_dir4', False);
+  try
+    Assert.IsTrue(Al.PuedeEliminarDocumento(Clave('A.4.3', 104), '014001', 1));
+    Assert.IsFalse(Al.PuedeEliminarDocumento(Clave('A.4.3', 104), '014001', 2));
   finally
     Al.Free;
   end;
