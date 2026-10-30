@@ -19,7 +19,7 @@ Dónde vive físicamente lo que una subserie guarda en un nodo: depósito, gavet
 ## 3. Decisiones del dueño del producto (2026-10-30)
 
 1. **El EGD edita la topografía de todas las subseries de su nodo.** Solo su nodo, sin descender a hijos (igual que el resto de acciones del EGD).
-2. **Se mantiene la regla de los días** de eliminación/edición del sistema actual.
+2. **El EGD elimina documentos en cualquier momento** (sin ventana de días). **Se mantiene la regla de los días** para el resto de roles que hoy la tienen (Director: 1 día).
 3. Lo demás de este documento es decisión mía, a revisar (sección 7).
 
 ## 4. Matriz de acciones por rol
@@ -28,14 +28,14 @@ Dónde vive físicamente lo que una subserie guarda en un nodo: depósito, gavet
 |---|---|---|---|---|---|
 | Ver documentos | todos | su nodo | su nodo e hijos | lo asignado + público | solo público |
 | Agregar y editar documentos | sí | sí | sí | sí | no |
-| Eliminar documentos | no (sección 11 del diseño base) | sí, dentro de la ventana de días | sí, dentro de su ventana | no | no |
+| Eliminar documentos | no (sección 11 del diseño base) | **sí, en cualquier momento** | sí, dentro de su ventana (1 día) | no | no |
 | Prestar, transferir, depurar | no | sí | no | no | no |
 | **Editar topografía de nodo–subserie** | sí | **sí, todas las de su nodo** | no | no | no |
 | Asignar usuarios a subseries | sí | sí, dentro de su nodo | no | no | no |
 | Asignar el EGD de un nodo | sí | no | no | no | no |
 | Usuarios, clasificadores, estructura | sí | no | no | no | no |
 
-**Ventana de días (se conserva la actual):** el EGD (hoy "gestor") elimina un documento hasta 5 días después de su fecha; pasado ese plazo puede editarlo pero no eliminarlo. El Director elimina hasta 1 día después. Los plazos salen de las constantes que ya existen en `UMAINFORM.pas` (5 y 1) y no cambian en este trabajo.
+**Ventana de días:** el EGD no tiene ventana (hoy el "gestor" elimina solo hasta 5 días después de la fecha del documento; esa limitación desaparece para el EGD). El Director conserva la actual: elimina hasta 1 día después, según la lógica que ya existe en `UMAINFORM.pas`.
 
 ## 5. Cambios de interfaz y de datos
 
@@ -49,7 +49,7 @@ Dónde vive físicamente lo que una subserie guarda en un nodo: depósito, gavet
 ## 6. No objetivos y riesgos
 
 - No se migra ni se borra el campo `gestor` ni los roles viejos (`Archivero` queda tal cual).
-- No se cambian los plazos de 5 y 1 días.
+- No se cambia el plazo de 1 día del Director.
 - No se filtra por alcance préstamos, transferencias ni depuración (limitación ya aceptada).
 - Riesgo: tres copias casi iguales de `ConfiguracionPorRol` en `UMAINFORM.pas` (alrededor de las líneas 4700, 4986 y 5201); el cambio debe aplicarse a las tres o unificarse primero.
 - Riesgo: hoy el rol del login (`Gestor`) y el EGD del alcance son cosas distintas; un usuario puede ser Gestor sin ser EGD de ningún nodo (caso `egd_a43`). La regla nueva exige estar asignado como EGD; mientras no exista la pantalla de asignación se asigna por script.
@@ -58,10 +58,21 @@ Dónde vive físicamente lo que una subserie guarda en un nodo: depósito, gavet
 
 - El Usuario nunca edita topografía, solo la usa.
 - El Director no edita topografía (solo lo hace el EGD, igual que en el diseño base).
-- Los plazos de 5 y 1 días se aplican por rol viejo (Gestor y Director) tal como hoy; no se trasladan a Usuario porque el Usuario no elimina.
+- El plazo de 1 día sigue aplicándose solo al Director; el Usuario no elimina.
+- Un Gestor del sistema viejo que no es EGD de ningún nodo conserva su regla de 5 días hasta que se le asigne como EGD; con la asignación pasa a la regla del EGD.
 - Orden de trabajo: (a) acción de topografía y mensaje de agregar (arregla a `egd_a43` con la asignación por script), (b) pantalla de asignación de EGD, (c) "Permisos de mi área".
 - La comparación con AtoM se hizo con su manual y wikis públicas; no cubren quién gestiona el almacenamiento físico, así que el reparto Usuario/EGD sigue el de una wiki de biblioteca, no una norma de AtoM.
 
-## 8. Se deja al constructor
+## 8. Alcance de la refactorización (pedido del dueño: revisar, optimizar, refactorizar y documentar en español)
+
+Solo el código que este trabajo toca, pantalla por pantalla (regla del diseño base), no una refactorización global:
+
+- `ConfiguracionPorRol` y `ConfiguracionRolGestor`: hoy hay tres copias casi iguales en `UMAINFORM.pas`; se unifican en una sola rutina que consulta las reglas de `UAlcance.pas`.
+- `TUDM.tb_SeriesDatosNewRecord`: la validación topográfica pasa a una función propia y probable.
+- Las reglas nuevas (acción de topografía, eliminación del EGD sin ventana) van como reglas puras en `UAlcance.pas`, con pruebas.
+- Todo lo tocado queda documentado en español (cabecera por rutina: propósito, parámetros, efectos y quién puede usarla).
+- Los cambios en `UMAINFORM.pas` y `UCapaDatos.pas` no normalizan la codificación (ANSI/Windows-1252).
+
+## 9. Se deja al constructor
 
 Diseño visual de las pantallas, redacción exacta de los mensajes, forma de unificar las tres copias de `ConfiguracionPorRol`, y las pruebas de las reglas nuevas (las reglas puras caben en `UAlcance.pas`).
