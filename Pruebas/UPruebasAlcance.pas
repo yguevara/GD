@@ -84,6 +84,22 @@ type
     [Test]
     procedure NodosConPublica_NoDanCoberturaDeDocumentos;
     [Test]
+    procedure EGD_EditaTopografiaDeSuNodo;
+    [Test]
+    procedure Director_Usuario_Visor_NoEditanTopografia;
+    [Test]
+    procedure Administrador_EditaTopografia;
+    [Test]
+    procedure EGD_EliminaSinVentanaDeDias;
+    [Test]
+    procedure Director_EliminaSoloElPrimerDia;
+    [Test]
+    procedure Usuario_Visor_Administrador_NoEliminan;
+    [Test]
+    procedure Eliminar_NodoRepetido160_NoMezcla;
+    [Test]
+    procedure Eliminar_ClaveConEspacios;
+    [Test]
     procedure AsignacionANodoInexistente_NoDaAcceso;
     [Test]
     procedure NodosCompletos_DirectorYEGD;
@@ -96,6 +112,9 @@ type
   end;
 
 implementation
+
+uses
+  System.SysUtils;
 
 function Clave(const AIdEstructura: string; AId: Integer): TClaveNodo;
 begin
@@ -118,9 +137,13 @@ var
   R: TRolNodo;
   A: TAccion;
 begin
-  for R in [rnUsuario, rnDirector, rnAdministrador] do
+  for R in [rnUsuario, rnDirector] do
     for A := Low(TAccion) to High(TAccion) do
       Assert.AreEqual(A in [acVer, acAgregar, acEditar], RolPermite(R, A));
+  // el administrador ademas edita la topografia
+  for A := Low(TAccion) to High(TAccion) do
+    Assert.AreEqual(A in [acVer, acAgregar, acEditar, acEditarTopografia],
+      RolPermite(rnAdministrador, A));
 end;
 
 procedure TPruebasReglas.RolPermite_EGD_Todo;
@@ -473,6 +496,143 @@ begin
     Assert.IsFalse(Al.PuedeVerDocumento(Clave('A.4.3', 104), '014001', 2));
     Assert.IsFalse(Al.PuedeRealizar(acEditar, Clave('A.4.3', 104), '014001'));
     Assert.AreEqual(0, Integer(Length(Al.NodosCompletos)));
+  finally
+    Al.Free;
+  end;
+end;
+
+procedure TPruebasAlcance.EGD_EditaTopografiaDeSuNodo;
+var
+  Al: TAlcanceUsuario;
+begin
+  Al := Crear(False, [Asig(Clave('A.4', 101), rnEGD)], nil);
+  try
+    Assert.IsTrue(Al.PuedeRealizar(acEditarTopografia, Clave('A.4', 101), '074'));
+    Assert.IsFalse(Al.PuedeRealizar(acEditarTopografia, Clave('A.4.3', 104), '074'),
+      'El EGD no desciende a los hijos');
+    Assert.IsFalse(Al.PuedeRealizar(acEditarTopografia, Clave('A.1', 82), '074'));
+  finally
+    Al.Free;
+  end;
+end;
+
+procedure TPruebasAlcance.Director_Usuario_Visor_NoEditanTopografia;
+var
+  Al: TAlcanceUsuario;
+begin
+  Al := Crear(False, [Asig(Clave('A.4', 101), rnDirector)],
+    [Sub(Clave('A.4.3', 104), '074')]);
+  try
+    Assert.IsFalse(Al.PuedeRealizar(acEditarTopografia, Clave('A.4', 101), '074'));
+    Assert.IsFalse(Al.PuedeRealizar(acEditarTopografia, Clave('A.4.3', 104), '074'));
+  finally
+    Al.Free;
+  end;
+  Assert.IsFalse(RolPermite(rnVisor, acEditarTopografia));
+  Assert.IsFalse(RolPermite(rnUsuario, acEditarTopografia));
+  Assert.IsFalse(RolPermite(rnDirector, acEditarTopografia));
+end;
+
+procedure TPruebasAlcance.Administrador_EditaTopografia;
+var
+  Al: TAlcanceUsuario;
+begin
+  Al := Crear(True, nil, nil);
+  try
+    Assert.IsTrue(Al.PuedeRealizar(acEditarTopografia, Clave('A.4.3', 104), '074'));
+  finally
+    Al.Free;
+  end;
+end;
+
+procedure TPruebasAlcance.EGD_EliminaSinVentanaDeDias;
+var
+  Al: TAlcanceUsuario;
+  Dias: Integer;
+const
+  DIAS_PRUEBA: array[0..4] of Integer = (0, 1, 2, 6, 4000);
+begin
+  Al := Crear(False, [Asig(Clave('A.4', 101), rnEGD)], nil);
+  try
+    for Dias in DIAS_PRUEBA do
+      Assert.IsTrue(Al.PuedeEliminarDocumento(Clave('A.4', 101), '074', Dias),
+        'dias=' + IntToStr(Dias));
+    Assert.IsFalse(Al.PuedeEliminarDocumento(Clave('A.4.3', 104), '074', 0),
+      'El EGD no elimina en los hijos');
+  finally
+    Al.Free;
+  end;
+end;
+
+procedure TPruebasAlcance.Director_EliminaSoloElPrimerDia;
+var
+  Al: TAlcanceUsuario;
+begin
+  Al := Crear(False, [Asig(Clave('A.4', 101), rnDirector)], nil);
+  try
+    Assert.IsTrue(Al.PuedeEliminarDocumento(Clave('A.4.3', 104), '074', 0));
+    Assert.IsTrue(Al.PuedeEliminarDocumento(Clave('A.4.3', 104), '074', 1));
+    Assert.IsFalse(Al.PuedeEliminarDocumento(Clave('A.4.3', 104), '074', 2));
+    Assert.IsTrue(Al.PuedeEliminarDocumento(Clave('A.4', 101), '074', 1));
+    Assert.IsFalse(Al.PuedeEliminarDocumento(Clave('A.4', 101), '074', 3));
+    Assert.IsTrue(Al.PuedeEliminarDocumento(Clave('A.4.3', 104), '074', -5),
+      'Dias negativos cuentan como 0');
+    Assert.IsFalse(Al.PuedeEliminarDocumento(Clave('A.1', 82), '074', 0));
+  finally
+    Al.Free;
+  end;
+end;
+
+procedure TPruebasAlcance.Usuario_Visor_Administrador_NoEliminan;
+var
+  Al: TAlcanceUsuario;
+begin
+  Al := Crear(False, nil, [Sub(Clave('A.4.3', 104), '074')]);
+  try
+    Assert.IsFalse(Al.PuedeEliminarDocumento(Clave('A.4.3', 104), '074', 0));
+  finally
+    Al.Free;
+  end;
+  Al := Crear(False, nil, nil);
+  try
+    Assert.IsFalse(Al.PuedeEliminarDocumento(Clave('A.4.3', 104), '074', 0));
+  finally
+    Al.Free;
+  end;
+  Al := Crear(True, nil, nil);
+  try
+    Assert.IsFalse(Al.PuedeEliminarDocumento(Clave('A.4.3', 104), '074', 0));
+  finally
+    Al.Free;
+  end;
+end;
+
+procedure TPruebasAlcance.Eliminar_NodoRepetido160_NoMezcla;
+var
+  Al: TAlcanceUsuario;
+begin
+  FArbol.Agregar(Clave('A.4.6', 160), 101);
+  FArbol.Agregar(Clave('A.1.7', 160), 82);
+  Al := Crear(False, [Asig(Clave('A.4.6', 160), rnEGD)], nil);
+  try
+    Assert.IsTrue(Al.PuedeEliminarDocumento(Clave('A.4.6', 160), '074', 900));
+    Assert.IsFalse(Al.PuedeEliminarDocumento(Clave('A.1.7', 160), '074', 900));
+    Assert.IsTrue(Al.PuedeRealizar(acEditarTopografia, Clave('A.4.6', 160), '074'));
+    Assert.IsFalse(Al.PuedeRealizar(acEditarTopografia, Clave('A.1.7', 160), '074'));
+  finally
+    Al.Free;
+  end;
+end;
+
+procedure TPruebasAlcance.Eliminar_ClaveConEspacios;
+var
+  Al: TAlcanceUsuario;
+begin
+  FArbol.Agregar(Clave('A.4.6', 160), 101);
+  Al := Crear(False, [Asig(Clave('A.4.6', 160), rnEGD)], nil);
+  try
+    Assert.IsTrue(Al.PuedeEliminarDocumento(Clave('a.4.6 ', 160), '074', 900));
+    Assert.IsTrue(Al.PuedeRealizar(acEditarTopografia, Clave(' a.4.6', 160), '074'));
   finally
     Al.Free;
   end;

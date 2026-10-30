@@ -12,7 +12,7 @@ type
   TRolNodo = (rnVisor, rnUsuario, rnDirector, rnEGD, rnAdministrador);
 
   TAccion = (acVer, acAgregar, acEditar, acEliminar, acPrestar, acTransferir,
-    acDepurar, acAsignarUsuarios);
+    acDepurar, acAsignarUsuarios, acEditarTopografia);
 
   TClaveNodo = record
     IdEstructura: string;
@@ -86,6 +86,13 @@ type
       NivelAcceso: Integer): Boolean;
     function PuedeRealizar(Accion: TAccion; const Nodo: TClaveNodo;
       const CodSubs: string): Boolean;
+    { Indica si el usuario puede eliminar un documento del par (Nodo, CodSubs).
+      Reglas: el administrador nunca; el EGD de ese nodo siempre, sin ventana de
+      dias; el Director del nodo o de un ancestro solo el primer dia
+      (DiasDesdeFecha <= 1); el Usuario y el Visor nunca. Los dias negativos
+      cuentan como 0 y un nodo que no existe en el arbol no concede nada. }
+    function PuedeEliminarDocumento(const Nodo: TClaveNodo; const CodSubs: string;
+      DiasDesdeFecha: Integer): Boolean;
     function NodosVisibles: TArray<TClaveNodo>;
     function NodosCompletos: TArray<TClaveNodo>;
     { Asignaciones de subserie que conceden cobertura: nodo existente en el
@@ -113,8 +120,10 @@ begin
   case Rol of
     rnVisor:
       Result := Accion = acVer;
-    rnUsuario, rnDirector, rnAdministrador:
+    rnUsuario, rnDirector:
       Result := Accion in [acVer, acAgregar, acEditar];
+    rnAdministrador:
+      Result := Accion in [acVer, acAgregar, acEditar, acEditarTopografia];
     rnEGD:
       Result := True;
   else
@@ -350,6 +359,34 @@ function TAlcanceUsuario.PuedeRealizar(Accion: TAccion; const Nodo: TClaveNodo;
   const CodSubs: string): Boolean;
 begin
   Result := Permite(Accion, Nodo, CodSubs);
+end;
+
+function TAlcanceUsuario.PuedeEliminarDocumento(const Nodo: TClaveNodo;
+  const CodSubs: string; DiasDesdeFecha: Integer): Boolean;
+const
+  DIAS_VENTANA_DIRECTOR = 1;
+var
+  A: TAsignacionNodo;
+begin
+  Result := False;
+  if FEsAdministrador or not FArbol.Contiene(Nodo) then
+    Exit;
+  if DiasDesdeFecha < 0 then
+    DiasDesdeFecha := 0;
+  for A in FNodos do
+  begin
+    if not FArbol.Contiene(A.Nodo) then
+      Continue;
+    case A.Rol of
+      rnEGD:
+        if MismoNodo(A.Nodo, Nodo) then
+          Exit(True);
+      rnDirector:
+        if (DiasDesdeFecha <= DIAS_VENTANA_DIRECTOR) and
+          FArbol.EsDescendiente(A.Nodo, Nodo) then
+          Exit(True);
+    end;
+  end;
 end;
 
 procedure TAlcanceUsuario.Acumular(Dic: TDictionary<string, TClaveNodo>;
