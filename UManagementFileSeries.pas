@@ -82,7 +82,7 @@ procedure ManagementFileSeries(aDS: PQry; aFieldName, Etiq: string);
 implementation
 
 uses
-  UCapaDatos, USystemMsg;
+  UCapaDatos, USystemMsg, UAlcance;
 
 {$R *.dfm}
 
@@ -864,7 +864,16 @@ begin
   end;
 end;  }
 
+// Al abrir la gestion de ficheros decide si se ofrece "limpiar" (btnFileClean).
+// Con alcance (SQL Server) lo decide UAlcance, igual que en la ventana principal:
+// el EGD siempre, el Director el primer dia. Sin alcance (Access), o un gestor
+// que aun no es EGD de ningun nodo, conserva la regla heredada: solo el gestor
+// de la subserie y solo el primer dia.
 procedure TfrmManagementFile.FormActivate(Sender: TObject);
+var
+  Rol: string;
+  Nodo: TClaveNodo;
+  Dias: Integer;
 
   function GetIdResp(aUser: string): Integer;
   var
@@ -882,7 +891,20 @@ begin
   GestionFile := True;
   Edit1.Focused;
   Edit1.SetFocus;
-  if (ansilowercase(UDM.Rol) = 'gestor') then
+  Rol := AnsiLowerCase(UDM.Rol);
+  if (UDM.Alcance <> nil) and ((Rol = 'director') or
+    ((Rol = 'gestor') and UDM.Alcance.EsEGDDeAlgunNodo)) then
+  begin
+    Nodo.IdEstructura := UDM.tb_Serietree.FieldByName('IdEstructura').AsString;
+    Nodo.Id := UDM.tb_Serietree.FieldByName('id').AsInteger;
+    if UDM.tb_SeriesDatos.FieldByName('Fecha').IsNull then
+      Dias := 0
+    else
+      Dias := GetCantOfDay(UDM.tb_SeriesDatos.FieldByName('Fecha').AsDateTime);
+    btnFileClean.Visible := UDM.Alcance.PuedeEliminarDocumento(Nodo,
+      UDM.tb_Serietree.FieldByName('codsubs').AsString, Dias);
+  end
+  else if Rol = 'gestor' then
   begin
     if (UDM.tb_Serietree.FieldByName('gestor').asinteger = GetIdResp(UDM.UserName)) then
     begin
