@@ -14,7 +14,9 @@ uses
   UPruebasAlcance in 'UPruebasAlcance.pas',
   UPruebasEsquema in 'UPruebasEsquema.pas',
   UAlcanceDatos in '..\UAlcanceDatos.pas',
-  UPruebasAlcanceDatos in 'UPruebasAlcanceDatos.pas';
+  UPruebasAlcanceDatos in 'UPruebasAlcanceDatos.pas',
+  UTopografia in '..\UTopografia.pas',
+  UPruebasTopografia in 'UPruebasTopografia.pas';
 
 var
   Corredor: ITestRunner;

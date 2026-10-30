@@ -1118,7 +1118,7 @@ var
 implementation
 
 uses
-  UEsquemaAlcance, UAlcanceDatos;
+  UEsquemaAlcance, UAlcanceDatos, UTopografia;
 
 
 {%CLASSGROUP 'Vcl.Controls.TControl'}
@@ -5160,9 +5160,14 @@ end;
 //   - Control manual del cursor para evitar crSQLWait.
 //   - Corrección de la verificación de SerieTree para evitar errores con Active e IsEmpty.
 
+// Prepara un documento nuevo en tb_SeriesDatos.
+// Cancela el alta (con un mensaje) si no hay subserie en el nodo actual, si el
+// sistema se esta actualizando, o si faltan los datos topograficos de la
+// subserie en este nodo (ver UTopografia). El mensaje depende del permiso: quien
+// puede editar la topografia (administrador o EGD del nodo; todos en modo
+// Access) recibe que falta; el resto recibe que avise al EGD de su nodo.
 procedure TUDM.tb_SeriesDatosNewRecord(DataSet: TDataSet);
 const
-  MSG_TOPOGRAFICOS = 'Por favor especifique los datos topográficos necesarios para almacenar series en el soporte especificado.';
   MSG_SUBSERIE_REQUERIDA = 'No se puede agregar un nuevo registro porque no hay una subserie declarada en la estructura actual.';
   MSG_ACTUALIZANDO = 'No se puede agregar un registro mientras se está actualizando el sistema.';
   MSG_SUD_DETAIL_INACTIVO = 'El detalle de la subserie no está activo. Por favor, verifique la configuración.';
@@ -5175,11 +5180,9 @@ var
   IsValid: Boolean;
   IdEstructura, CodSubs, Deposito, Posicion, Gaveta, Archivo, Gestor, IdServidor: string;
   LogMessage: string;
-
-  function IsFieldEmptyOrNull(const Value: string): Boolean; inline;
-  begin
-    Result := (Trim(Value) = '') or (Value = '0');
-  end;
+  Topografia: TDatosTopografia;
+  PuedeEditarTopografia: Boolean;
+  IdNodo: TClaveNodo;
 
 begin
   // Forzar cursor predeterminado para evitar crSQLWait
@@ -5233,23 +5236,21 @@ begin
 
     // Validar datos topográficos
     SoporteId := UDM.SudSDetail.FieldByName('idsoporte').AsInteger;
-    IsValid := True;
-
-    case SoporteId of
-      1:
-        IsValid := not (IsFieldEmptyOrNull(Deposito) or IsFieldEmptyOrNull(Gaveta) or IsFieldEmptyOrNull(Archivo));
-      2:
-        IsValid := not IsFieldEmptyOrNull(IdServidor);
-      3:
-        IsValid := not (IsFieldEmptyOrNull(Deposito) or IsFieldEmptyOrNull(Gaveta) or IsFieldEmptyOrNull(Archivo) or IsFieldEmptyOrNull(IdServidor));
-    end;
+    Topografia.Deposito := Deposito;
+    Topografia.Gaveta := Gaveta;
+    Topografia.Archivo := Archivo;
+    Topografia.IdServidor := IdServidor;
+    IsValid := TopografiaCompleta(SoporteId, Topografia);
 
     if not IsValid then
     begin
-      if SoporteId = 2 then
-        UDM.sms('No ha especificado los datos topográficos de la serie actual. Por favor especifique un servidor o repositorio válido.', 3)
-      else
-        UDM.sms(MSG_TOPOGRAFICOS, 3);
+      // Sin alcance (modo Access) cualquiera puede completarla; con alcance, solo
+      // el administrador o el EGD del nodo. El resto recibe a quien pedirsela.
+      IdNodo.IdEstructura := IdEstructura;
+      IdNodo.Id := SerieTree.FieldByName('id').AsInteger;
+      PuedeEditarTopografia := (Alcance = nil) or
+        Alcance.PuedeRealizar(acEditarTopografia, IdNodo, CodSubs);
+      UDM.sms(MensajeTopografiaFaltante(SoporteId, PuedeEditarTopografia), 3);
       DataSet.Cancel;
       Exit;
     end;
