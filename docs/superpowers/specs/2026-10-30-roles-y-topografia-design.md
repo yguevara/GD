@@ -51,7 +51,7 @@ Dónde vive físicamente lo que una subserie guarda en un nodo: depósito, gavet
 - No se migra ni se borra el campo `gestor` ni los roles viejos (`Archivero` queda tal cual).
 - No se cambia el plazo de 1 día del Director.
 - No se filtra por alcance préstamos, transferencias ni depuración (limitación ya aceptada).
-- Riesgo: tres copias casi iguales de `ConfiguracionPorRol` en `UMAINFORM.pas` (alrededor de las líneas 4700, 4986 y 5201); el cambio debe aplicarse a las tres o unificarse primero.
+- Verificado: `ConfiguracionPorRol` aparece tres veces en `UMAINFORM.pas`, pero solo la de `TMAIN.dstb_SeriesDatosDataChange` (línea ~4705) está activa; las otras dos están dentro de bloques comentados (`{procedure TMAIN.dstb_SeriesDatosDataChange …}`). Se eliminan como código muerto.
 - Riesgo: hoy el rol del login (`Gestor`) y el EGD del alcance son cosas distintas; un usuario puede ser Gestor sin ser EGD de ningún nodo (caso `egd_a43`). La regla nueva exige estar asignado como EGD; mientras no exista la pantalla de asignación se asigna por script.
 
 ## 7. Decisiones mías (a revisar)
@@ -67,7 +67,7 @@ Dónde vive físicamente lo que una subserie guarda en un nodo: depósito, gavet
 
 Solo el código que este trabajo toca, pantalla por pantalla (regla del diseño base), no una refactorización global:
 
-- `ConfiguracionPorRol` y `ConfiguracionRolGestor`: hoy hay tres copias casi iguales en `UMAINFORM.pas`; se unifican en una sola rutina que consulta las reglas de `UAlcance.pas`.
+- `ConfiguracionPorRol` y `ConfiguracionRolGestor`: se elimina el código muerto (dos copias comentadas) y la copia activa se extrae a un método de `TMAIN` que consulta las reglas de `UAlcance.pas` cuando hay alcance (SQL Server) y conserva la lógica actual en modo Access.
 - `TUDM.tb_SeriesDatosNewRecord`: la validación topográfica pasa a una función propia y probable.
 - Las reglas nuevas (acción de topografía, eliminación del EGD sin ventana) van como reglas puras en `UAlcance.pas`, con pruebas.
 - Todo lo tocado queda documentado en español (cabecera por rutina: propósito, parámetros, efectos y quién puede usarla).
