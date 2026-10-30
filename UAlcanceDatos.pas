@@ -31,6 +31,11 @@ function FiltroDocumentos(Alcance: TAlcanceUsuario;
   const AliasDocumentos: string): TFiltroSql;
 function FiltroNodosArbol(Alcance: TAlcanceUsuario;
   const AliasArbol: string): TFiltroSql;
+{ Como CargarAlcance, pero nunca lanza ni devuelve nil: si la carga falla,
+  Error trae el mensaje y el alcance es el de "sin acceso" (el administrador
+  conserva el acceso total para poder reparar). }
+function CargarAlcanceSeguro(Conn: TFDConnection; const Usuario: string;
+  EsAdministrador: Boolean; out Error: string): TAlcanceUsuario;
 { Asigna los parametros del filtro a una consulta cuyo SQL ya contiene la condicion. }
 procedure AplicarParametros(Query: TFDQuery; const Filtro: TFiltroSql);
 
@@ -384,6 +389,23 @@ begin
     Subs.Free;
     Nodos.Free;
     Arbol.Free;
+  end;
+end;
+
+function CargarAlcanceSeguro(Conn: TFDConnection; const Usuario: string;
+  EsAdministrador: Boolean; out Error: string): TAlcanceUsuario;
+begin
+  Error := '';
+  try
+    Result := CargarAlcance(Conn, Usuario, EsAdministrador);
+  except
+    on E: Exception do
+    begin
+      Error := E.Message;
+      Result := TAlcanceUsuario.Create(EsAdministrador, TArbolNodos.Create,
+        nil, nil, nil);
+      Result.PoseeArbol := True;
+    end;
   end;
 end;
 

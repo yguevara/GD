@@ -99,6 +99,10 @@ type
     procedure Filtro_CoincideConReglasPuras;
     [Test]
     procedure FiltroArbol_SoloNodosVisibles;
+    [Test]
+    procedure FalloAlCargar_NoDaAccesoAlguno;
+    [Test]
+    procedure FalloAlCargar_AdministradorSigueVeTodo;
   end;
 
   [TestFixture]
@@ -753,6 +757,49 @@ begin
   try
     Assert.AreEqual(Integer(FConn.ExecSQLScalar('SELECT COUNT(*) FROM tb_tree')),
       Integer(Length(FEsc.NodosFiltrados(FiltroNodosArbol(Al, 't')))));
+  finally
+    Al.Free;
+  end;
+end;
+
+procedure TPruebasAlcanceDatosSql.FalloAlCargar_NoDaAccesoAlguno;
+var
+  Al: TAlcanceUsuario;
+  Error: string;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB'); Exit; end;
+  // la tabla de EGD "desaparece" (dentro de la transaccion de la prueba)
+  FConn.ExecSQL('EXEC sp_rename ''tb_nodo_egd'', ''tb_nodo_egd_x''');
+  Assert.WillRaiseAny(
+    procedure begin CargarAlcance(FConn, 'prueba_alc_usr1', False).Free; end,
+    'La carga debia fallar para que la prueba tenga sentido');
+  Al := CargarAlcanceSeguro(FConn, 'prueba_alc_usr1', False, Error);
+  try
+    Assert.IsNotNull(Al, 'Nunca debe devolver nil (nil = ve todo)');
+    Assert.IsTrue(Error <> '', 'Debe informar el error');
+    Assert.AreEqual(0, FEsc.Contar(FiltroDocumentos(Al, 'd')));
+    Assert.AreEqual(0, Integer(Length(FEsc.NodosFiltrados(FiltroNodosArbol(Al, 't')))));
+  finally
+    Al.Free;
+  end;
+end;
+
+procedure TPruebasAlcanceDatosSql.FalloAlCargar_AdministradorSigueVeTodo;
+var
+  Al: TAlcanceUsuario;
+  Error: string;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB'); Exit; end;
+  FConn.ExecSQL('EXEC sp_rename ''tb_tree'', ''tb_tree_x''');
+  try
+    Al := CargarAlcanceSeguro(FConn, 'administrador', True, Error);
+  finally
+    FConn.ExecSQL('EXEC sp_rename ''tb_tree_x'', ''tb_tree''');
+  end;
+  try
+    Assert.IsNotNull(Al);
+    Assert.IsTrue(Error <> '');
+    Assert.AreEqual(FTotal, FEsc.Contar(FiltroDocumentos(Al, 'd')));
   finally
     Al.Free;
   end;

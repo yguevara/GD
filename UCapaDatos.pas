@@ -4267,12 +4267,17 @@ begin
 end;
 
 procedure TUDM.EstablecerAlcance(const Usuario: string; EsAdministrador: Boolean);
+var
+  ErrorAlcance: string;
 begin
   if TBD <> 'S' then
     Exit; // Access: sin seguridad por alcance
   FreeAndNil(Alcance);
-  Alcance := CargarAlcance(Conn, Usuario, EsAdministrador);
+  Alcance := CargarAlcanceSeguro(Conn, Usuario, EsAdministrador, ErrorAlcance);
   AplicarFiltrosAlcance;
+  if ErrorAlcance <> '' then
+    sms('No se pudo cargar el alcance del usuario; no tendra acceso a datos hasta corregirlo.' +
+      sLineBreak + ErrorAlcance, 1);
 end;
 
 // Unico punto donde la seguridad por alcance toca las consultas: el arbol
