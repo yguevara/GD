@@ -282,6 +282,7 @@ var
   Nodos: TList<TAsignacionNodo>;
   Subs: TList<TSubserieAsignada>;
   Publicas: TList<string>;
+  ConPublica: TList<TClaveNodo>;
   Q: TFDQuery;
   U: string;
   A: TAsignacionNodo;
@@ -302,6 +303,7 @@ begin
   Nodos := TList<TAsignacionNodo>.Create;
   Subs := TList<TSubserieAsignada>.Create;
   Publicas := TList<string>.Create;
+  ConPublica := TList<TClaveNodo>.Create;
   Q := TFDQuery.Create(nil);
   try
     Q.Connection := Conn;
@@ -357,14 +359,27 @@ begin
         Publicas.Add(Q.Fields[0].AsString);
         Q.Next;
       end;
+
+      // nodos con alguna subserie publica: se ven en el arbol para llegar a ellas
+      Abrir('SELECT DISTINCT st.IdEstructura, st.id FROM tb_Serietree st ' +
+        'INNER JOIN cl_subseries s ON s.codsubs = st.codsubs WHERE s.acceso = 1', False);
+      while not Q.Eof do
+      begin
+        A.Nodo.IdEstructura := Q.Fields[0].AsString;
+        A.Nodo.Id := Q.Fields[1].AsInteger;
+        ConPublica.Add(A.Nodo);
+        Q.Next;
+      end;
     end;
 
     Result := TAlcanceUsuario.Create(EsAdministrador, Arbol, Nodos.ToArray,
       Subs.ToArray, Publicas.ToArray);
     Result.PoseeArbol := True;
+    Result.NodosConPublica := ConPublica.ToArray;
     Arbol := nil;
   finally
     Q.Free;
+    ConPublica.Free;
     Publicas.Free;
     Subs.Free;
     Nodos.Free;

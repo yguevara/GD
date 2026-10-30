@@ -697,6 +697,7 @@ var
   K: TClaveNodo;
   I: Integer;
   Usuarios: array[0..2] of string;
+  Q: TFDQuery;
 begin
   if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB'); Exit; end;
   Usuarios[0] := 'prueba_alc_usr1';
@@ -718,18 +719,35 @@ begin
   Al := CargarAlcance(FConn, 'prueba_alc_usr2', False);
   try
     N := FEsc.NodosFiltrados(FiltroNodosArbol(Al, 't'));
-    Assert.AreEqual(3, Integer(Length(N)));
     Assert.IsTrue(EnConjunto(N, Clave('A.4.6', 160)));
     Assert.IsFalse(EnConjunto(N, Clave('A.1.7', 160)));
     Assert.IsFalse(EnConjunto(N, Clave('A.3.3', 160)));
   finally
     Al.Free;
   end;
-  Al := CargarAlcance(FConn, 'prueba_alc_visor', False);
+  // un Visor sin asignaciones ve los nodos que tienen subseries publicas
+  Q := TFDQuery.Create(nil);
   try
-    Assert.AreEqual(0, Integer(Length(FEsc.NodosFiltrados(FiltroNodosArbol(Al, 't')))));
+    Q.Connection := FConn;
+    Q.Open('SELECT DISTINCT st.IdEstructura, st.id FROM tb_Serietree st ' +
+      'INNER JOIN cl_subseries s ON s.codsubs = st.codsubs WHERE s.acceso = 1');
+    Assert.IsFalse(Q.Eof, 'La base no tiene nodos con subseries publicas');
+    Al := CargarAlcance(FConn, 'prueba_alc_visor', False);
+    try
+      N := FEsc.NodosFiltrados(FiltroNodosArbol(Al, 't'));
+      while not Q.Eof do
+      begin
+        Assert.IsTrue(EnConjunto(N, Clave(Q.Fields[0].AsString, Q.Fields[1].AsInteger)),
+          'El Visor no ve el nodo ' + Q.Fields[0].AsString + ' con subserie publica');
+        Q.Next;
+      end;
+      Assert.IsFalse(EnConjunto(N, Clave('A.4.6', 160)) and
+        not EnConjunto(N, Clave('A.4', 101)), 'Un nodo visible sin sus ancestros');
+    finally
+      Al.Free;
+    end;
   finally
-    Al.Free;
+    Q.Free;
   end;
   Al := CargarAlcance(FConn, 'administrador', True);
   try

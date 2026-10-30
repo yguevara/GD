@@ -67,6 +67,7 @@ type
     FNodos: TArray<TAsignacionNodo>;
     FSubseries: TArray<TSubserieAsignada>;
     FSubseriesPublicas: TArray<string>;
+    FNodosConPublica: TArray<TClaveNodo>;
     FPoseeArbol: Boolean;
     function MismoNodo(const A, B: TClaveNodo): Boolean;
     function Permite(Accion: TAccion; const Nodo: TClaveNodo;
@@ -94,6 +95,10 @@ type
     property PoseeArbol: Boolean read FPoseeArbol write FPoseeArbol;
     property EsAdministrador: Boolean read FEsAdministrador;
     property SubseriesPublicas: TArray<string> read FSubseriesPublicas;
+    { Nodos que tienen alguna subserie publica. Solo ensanchan el arbol visible
+      (con sus ancestros); no dan cobertura ni permisos. }
+    property NodosConPublica: TArray<TClaveNodo> read FNodosConPublica
+      write FNodosConPublica;
   end;
 
 implementation
@@ -393,6 +398,9 @@ begin
     end;
     for S in SubseriesEfectivas do
       AcumularConAncestros(Dic, S.Nodo);
+    for T in FNodosConPublica do
+      if FArbol.Contiene(T) then
+        AcumularConAncestros(Dic, T);
     Result := Dic.Values.ToArray;
   finally
     Dic.Free;

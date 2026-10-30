@@ -80,6 +80,10 @@ type
     [Test]
     procedure NodosVisibles_IncluyeAncestros;
     [Test]
+    procedure NodosConPublica_SonVisiblesConAncestros;
+    [Test]
+    procedure NodosConPublica_NoDanCoberturaDeDocumentos;
+    [Test]
     procedure AsignacionANodoInexistente_NoDaAcceso;
     [Test]
     procedure NodosCompletos_DirectorYEGD;
@@ -434,6 +438,41 @@ begin
     Assert.IsTrue(EnConjunto(V, Clave('A.4', 101)));
     Assert.IsTrue(EnConjunto(V, Clave('A.4.3', 104)));
     Assert.IsFalse(EnConjunto(V, Clave('A.1', 82)));
+  finally
+    Al.Free;
+  end;
+end;
+
+procedure TPruebasAlcance.NodosConPublica_SonVisiblesConAncestros;
+var
+  Al: TAlcanceUsuario;
+  V: TArray<TClaveNodo>;
+begin
+  // un Visor sin asignaciones ve el arbol hasta los nodos con subserie publica
+  Al := Crear(False, nil, nil);
+  try
+    Al.NodosConPublica := [Clave('A.4.3', 104), Clave('Z.9', 999)];
+    V := Al.NodosVisibles;
+    Assert.AreEqual(3, Integer(Length(V)), 'A, A.4 y A.4.3; el nodo inexistente no cuenta');
+    Assert.IsTrue(EnConjunto(V, Clave('A', 1)));
+    Assert.IsTrue(EnConjunto(V, Clave('A.4', 101)));
+    Assert.IsTrue(EnConjunto(V, Clave('A.4.3', 104)));
+    Assert.IsFalse(EnConjunto(V, Clave('A.1', 82)));
+  finally
+    Al.Free;
+  end;
+end;
+
+procedure TPruebasAlcance.NodosConPublica_NoDanCoberturaDeDocumentos;
+var
+  Al: TAlcanceUsuario;
+begin
+  Al := Crear(False, nil, nil);
+  try
+    Al.NodosConPublica := [Clave('A.4.3', 104)];
+    Assert.IsFalse(Al.PuedeVerDocumento(Clave('A.4.3', 104), '014001', 2));
+    Assert.IsFalse(Al.PuedeRealizar(acEditar, Clave('A.4.3', 104), '014001'));
+    Assert.AreEqual(0, Integer(Length(Al.NodosCompletos)));
   finally
     Al.Free;
   end;
