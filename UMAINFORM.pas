@@ -746,7 +746,7 @@ var
 implementation
 
 uses
-  UAlcance, UHistory, UAbout, UAutentica, UCapaDatos, UUserGest, UDocManagement,
+  UAlcance, UTopografia, UHistory, UAbout, UAutentica, UCapaDatos, UUserGest, UDocManagement,
   UCLSeriesDocumentales, UCLFtpServer, UGestEstruct, UMangementArch,
   UManagementFileSeries, UViewFunciones, UVeditor, UExcelExport, UManagementNode,
   USystemMsg, UNodeProperties, UCL_TiposExp, USysConfig, UTransferencias,
@@ -6853,6 +6853,8 @@ end;
 /// Los datos topográficos incluyen los campos 'deposito', 'gaveta' y 'posicion'.
 /// Se considera que los datos están especificados si al menos uno de estos campos no está vacío.
 /// Si el DataSet está vacío, se retorna False.
+/// Un documento sin servidor propio usa el servidor de la estructura (tb_Serietree)
+/// para esta validación (ver UTopografia.ServidorEfectivo).
 /// </remarks>
 /// <exception cref="Exception">
 /// - Si no se encuentran los campos esperados en el DataSet.
@@ -6873,7 +6875,12 @@ begin
   Deposito := DataSet.FieldByName('deposito').AsString;
   Gaveta := DataSet.FieldByName('gaveta').AsString;
   Posicion := DataSet.FieldByName('posicion').AsString;
-  Server := DataSet.FieldByName('Idservidor').AsString;
+  // Un documento sin servidor propio usa el de la estructura (tb_Serietree)
+  Server := ServidorEfectivo(DataSet.FieldByName('Idservidor').AsString,
+    VarToStr(UDM.Conn.ExecSQLScalar(
+    'SELECT Idservidor FROM tb_Serietree WHERE IdEstructura = :a AND id = :b AND codsubs = :c',
+    [DataSet.FieldByName('IdEstructura').AsString, DataSet.FieldByName('id').AsInteger,
+    DataSet.FieldByName('codsubs').AsString])));
   Archivo := DataSet.FieldByName('Archivo').AsString;
   cad := 'SELECT cl_subseries.soporte FROM cl_subseries WHERE ';
   cad := cad + ' cl_subseries.codsubs=' + QuotedStr(DataSet.FieldByName('codsubs').AsString);

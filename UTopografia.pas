@@ -33,6 +33,12 @@ function TopografiaCompleta(IdSoporte: Integer; const Datos: TDatosTopografia): 
   recibe que falta; PuedeEditar = False: el usuario recibe a quien pedirselo. }
 function MensajeTopografiaFaltante(IdSoporte: Integer; PuedeEditar: Boolean): string;
 
+{ Servidor (cl_ftp_Server.Idservidor) con el que se guarda el soporte digital de
+  un documento: el del propio documento si lo tiene; si no (Idservidor nulo o
+  '0'), el definido para la subserie en el nodo (tb_Serietree). Devuelve '' si
+  ninguno esta definido. Los espacios sobrantes se descartan. }
+function ServidorEfectivo(const ServidorDocumento, ServidorEstructura: string): string;
+
 implementation
 
 uses
@@ -57,6 +63,15 @@ begin
   else
     Result := True;
   end;
+end;
+
+function ServidorEfectivo(const ServidorDocumento, ServidorEstructura: string): string;
+begin
+  Result := Trim(ServidorDocumento);
+  if CampoVacio(Result) then
+    Result := Trim(ServidorEstructura);
+  if CampoVacio(Result) then
+    Result := '';
 end;
 
 function MensajeTopografiaFaltante(IdSoporte: Integer; PuedeEditar: Boolean): string;

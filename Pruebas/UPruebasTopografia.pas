@@ -32,6 +32,14 @@ type
     procedure Mensaje_OtroSoporte_ConPermiso_PideDatos;
     [Test]
     procedure Mensaje_SinPermiso_Manda_AlEGD;
+    [Test]
+    procedure ServidorEfectivo_UsaElDelDocumentoSiLoTiene;
+    [Test]
+    procedure ServidorEfectivo_SinServidorEnElDocumento_UsaElDeLaEstructura;
+    [Test]
+    procedure ServidorEfectivo_CeroYBlancos_CuentanComoVacio;
+    [Test]
+    procedure ServidorEfectivo_NingunoDefinido_EsVacio;
   end;
 
 implementation
@@ -106,6 +114,29 @@ begin
   for S := 0 to 3 do
     Assert.IsTrue(Pos('Avisa al especialista', MensajeTopografiaFaltante(S, False)) > 0,
       'soporte ' + IntToStr(S));
+end;
+
+procedure TPruebasTopografia.ServidorEfectivo_UsaElDelDocumentoSiLoTiene;
+begin
+  Assert.AreEqual('2', ServidorEfectivo('2', '1'));
+end;
+
+procedure TPruebasTopografia.ServidorEfectivo_SinServidorEnElDocumento_UsaElDeLaEstructura;
+begin
+  Assert.AreEqual('1', ServidorEfectivo('', '1'),
+    'Documento con Idservidor nulo: vale el de la estructura (localhost)');
+end;
+
+procedure TPruebasTopografia.ServidorEfectivo_CeroYBlancos_CuentanComoVacio;
+begin
+  Assert.AreEqual('1', ServidorEfectivo('0', '1'));
+  Assert.AreEqual('1', ServidorEfectivo('   ', ' 1 '));
+  Assert.AreEqual('', ServidorEfectivo('', '0'));
+end;
+
+procedure TPruebasTopografia.ServidorEfectivo_NingunoDefinido_EsVacio;
+begin
+  Assert.AreEqual('', ServidorEfectivo('', ''));
 end;
 
 initialization
