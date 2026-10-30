@@ -100,6 +100,8 @@ type
     [Test]
     procedure Eliminar_ClaveConEspacios;
     [Test]
+    procedure EsEGDDeAlgunNodo_SoloConAsignacionEGDExistente;
+    [Test]
     procedure AsignacionANodoInexistente_NoDaAcceso;
     [Test]
     procedure NodosCompletos_DirectorYEGD;
@@ -633,6 +635,42 @@ begin
   try
     Assert.IsTrue(Al.PuedeEliminarDocumento(Clave('a.4.6 ', 160), '074', 900));
     Assert.IsTrue(Al.PuedeRealizar(acEditarTopografia, Clave(' a.4.6', 160), '074'));
+  finally
+    Al.Free;
+  end;
+end;
+
+procedure TPruebasAlcance.EsEGDDeAlgunNodo_SoloConAsignacionEGDExistente;
+var
+  Al: TAlcanceUsuario;
+begin
+  Al := Crear(False, [Asig(Clave('a.4 ', 101), rnEGD)], nil);
+  try
+    Assert.IsTrue(Al.EsEGDDeAlgunNodo);
+  finally
+    Al.Free;
+  end;
+  Al := Crear(False, [Asig(Clave('A.4', 101), rnDirector)], [Sub(Clave('A.4.3', 104), '074')]);
+  try
+    Assert.IsFalse(Al.EsEGDDeAlgunNodo, 'Director y Usuario no son EGD');
+  finally
+    Al.Free;
+  end;
+  Al := Crear(False, [Asig(Clave('Z.9', 999), rnEGD)], nil);
+  try
+    Assert.IsFalse(Al.EsEGDDeAlgunNodo, 'Un nodo inexistente no cuenta');
+  finally
+    Al.Free;
+  end;
+  Al := Crear(True, nil, nil);
+  try
+    Assert.IsFalse(Al.EsEGDDeAlgunNodo, 'El administrador no es EGD');
+  finally
+    Al.Free;
+  end;
+  Al := Crear(False, nil, nil);
+  try
+    Assert.IsFalse(Al.EsEGDDeAlgunNodo);
   finally
     Al.Free;
   end;

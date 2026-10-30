@@ -93,6 +93,10 @@ type
       cuentan como 0 y un nodo que no existe en el arbol no concede nada. }
     function PuedeEliminarDocumento(const Nodo: TClaveNodo; const CodSubs: string;
       DiasDesdeFecha: Integer): Boolean;
+    { True si el usuario es EGD de algun nodo que existe en el arbol. Lo usa la
+      interfaz para que un Gestor del sistema viejo, mientras no sea EGD de
+      ningun nodo, conserve su regla heredada. El administrador no es EGD. }
+    function EsEGDDeAlgunNodo: Boolean;
     function NodosVisibles: TArray<TClaveNodo>;
     function NodosCompletos: TArray<TClaveNodo>;
     { Asignaciones de subserie que conceden cobertura: nodo existente en el
@@ -359,6 +363,18 @@ function TAlcanceUsuario.PuedeRealizar(Accion: TAccion; const Nodo: TClaveNodo;
   const CodSubs: string): Boolean;
 begin
   Result := Permite(Accion, Nodo, CodSubs);
+end;
+
+function TAlcanceUsuario.EsEGDDeAlgunNodo: Boolean;
+var
+  A: TAsignacionNodo;
+begin
+  Result := False;
+  if FEsAdministrador then
+    Exit;
+  for A in FNodos do
+    if (A.Rol = rnEGD) and FArbol.Contiene(A.Nodo) then
+      Exit(True);
 end;
 
 function TAlcanceUsuario.PuedeEliminarDocumento(const Nodo: TClaveNodo;

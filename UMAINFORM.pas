@@ -4820,14 +4820,16 @@ end;
 
 // Punto unico que configura los controles del documento actual segun el
 // usuario. Administrador, archivero y visor (y todos en modo Access, sin
-// alcance) siguen la regla heredada por rol; gestor y director con alcance
-// (SQL Server) siguen las reglas de UAlcance.
+// alcance) siguen la regla heredada por rol. Con alcance (SQL Server) el
+// director sigue las reglas de UAlcance, y el gestor tambien una vez que es EGD
+// de algun nodo; mientras no lo sea conserva la regla heredada del gestor.
 procedure TMAIN.AplicarReglasDocumento;
 var
   Rol: string;
 begin
   Rol := AnsiLowerCase(UDM.Rol);
-  if (UDM.Alcance <> nil) and ((Rol = 'gestor') or (Rol = 'director')) then
+  if (UDM.Alcance <> nil) and ((Rol = 'director') or
+    ((Rol = 'gestor') and UDM.Alcance.EsEGDDeAlgunNodo)) then
     AplicarReglasPorAlcance
   else
     AplicarReglasPorRolHeredado(Rol);
