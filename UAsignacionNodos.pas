@@ -6,15 +6,17 @@ unit UAsignacionNodos;
   marcados". Las reglas (que nodos se afectan, escritura transaccional) viven
   en UAsignacionDatos; aqui solo se pinta y se recoge lo que el usuario marca.
 
-  El formulario se construye por codigo (sin .dfm) para no depender del
-  disenador. }
+  Mantiene el aspecto de las demas pantallas: barra superior con Cerrar,
+  Reporte y Ayuda, y barra de estado. El formulario se construye por codigo
+  (sin .dfm) para no depender del disenador. }
 
 interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes,
   System.Generics.Collections, Vcl.Controls, Vcl.Forms, Vcl.StdCtrls,
-  Vcl.ExtCtrls, Vcl.ComCtrls, Winapi.CommCtrl, UAlcance, UAsignacionDatos;
+  Vcl.ExtCtrls, Vcl.ComCtrls, Winapi.CommCtrl, JvTransparentButton, UAlcance,
+  UAsignacionDatos, UAsignacionIconos;
 
 type
   TfrmAsignacionNodos = class(TForm)
@@ -32,19 +34,22 @@ type
     FPropias: TArray<TAsignacion>;
     FSinEGD: TDictionary<string, Boolean>;
     FTree: TTreeView;
-    FLblResumen: TLabel;
+    FBarraEstado: TStatusBar;
     FChkSoloSinEGD: TCheckBox;
     FCmbUsuario: TComboBox;
     FRgRol: TRadioGroup;
     FChkHijos: TCheckBox;
     FBtnAsignar: TButton;
     FBtnQuitar: TButton;
-    FBtnCerrar: TButton;
     function Clave(const N: TClaveNodo): string;
     function NodoMarcado(Nodo: TTreeNode): Boolean;
     procedure MarcarNodo(Nodo: TTreeNode; Valor: Boolean);
+    procedure MarcarDescendientes(Nodo: TTreeNode; Valor: Boolean);
+    function CrearBoton(Barra: TPanel; Icono: TIconoAsignacion;
+      const Pista: string; Lado: TAlign; AlClick: TNotifyEvent): TJvTransparentButton;
     procedure CargarTodo;
     procedure Reconstruir;
+    function ResponsablesPropios(const N: TClaveNodo; Rol: TRolNodo): string;
     function TextoNodo(const Info: TInfoNodo): string;
     function MarcadosActuales: TArray<TClaveNodo>;
     procedure Ejecutar(Agregar: Boolean);
@@ -53,10 +58,16 @@ type
     procedure AsignarClick(Sender: TObject);
     procedure QuitarClick(Sender: TObject);
     procedure CerrarClick(Sender: TObject);
+    procedure ReporteClick(Sender: TObject);
+    procedure AyudaClick(Sender: TObject);
     procedure FiltroClick(Sender: TObject);
+    procedure HijosClick(Sender: TObject);
+    procedure TreeClick(Sender: TObject);
+    procedure TreeKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure TreeCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode;
       State: TCustomDrawState; var DefaultDraw: Boolean);
-    procedure TreeCreateWnd;
+    procedure ActivarCasillas;
   protected
     procedure DoShow; override;
   public
@@ -70,12 +81,13 @@ procedure MostrarAsignacionNodos;
 implementation
 
 uses
-  Vcl.Graphics, Vcl.Dialogs, FireDAC.Comp.Client, Data.DB, UCapaDatos;
+  Vcl.Graphics, Vcl.Dialogs, FireDAC.Comp.Client, Data.DB, frxClass, frxDBSet,
+  UCapaDatos;
 
 const
   TVS_CHECKBOXES = $00000100;
   ROL_EGD_INDICE = 0;
-  ROL_DIRECTOR_INDICE = 1;
+  TEMA_AYUDA = 12;           // mismo tema que la administracion de usuarios
   ACCION_LOG_INSERTAR = 5;   // tb_accionlog: 5 = Insertar
   ACCION_LOG_ELIMINAR = 2;   // tb_accionlog: 2 = Eliminar
 
@@ -91,65 +103,83 @@ end;
 
 { TfrmAsignacionNodos }
 
+{ Boton de la barra superior con el mismo aspecto que los de las demas
+  pantallas (55 x 39, hundido, icono blanco). }
+function TfrmAsignacionNodos.CrearBoton(Barra: TPanel; Icono: TIconoAsignacion;
+  const Pista: string; Lado: TAlign; AlClick: TNotifyEvent): TJvTransparentButton;
+begin
+  Result := TJvTransparentButton.Create(Self);
+  Result.Parent := Barra;
+  Result.Align := Lado;
+  Result.Width := 55;
+  Result.Height := 39;
+  Result.AutoGray := False;
+  Result.Color := 13135884;
+  Result.FrameStyle := fsIndent;
+  Result.Hint := Pista;
+  Result.ShowHint := True;
+  CargarIcono(Icono, Result.Glyph);
+  Result.OnClick := AlClick;
+end;
+
 constructor TfrmAsignacionNodos.Create(AOwner: TComponent);
 var
-  PnlSup, PnlDer: TPanel;
+  Barra, PnlDer: TPanel;
+  Nota: TLabel;
+  Etiqueta: TLabel;
 begin
   inherited CreateNew(AOwner);
   Caption := 'Asignaci' + #243 + 'n de responsables por nodo';
+  Color := clBtnFace;
+  Font.Name := 'Tahoma';
+  Font.Height := -11;
   Position := poScreenCenter;
   ClientWidth := 900;
   ClientHeight := 560;
-  BorderIcons := [biSystemMenu, biMaximize];
+  Icon.Assign(Application.Icon);
+  KeyPreview := True;
+  OnKeyDown := FormKeyDown;
 
   FInfos := TList<TInfoNodo>.Create;
   FSinEGD := TDictionary<string, Boolean>.Create;
 
-  PnlSup := TPanel.Create(Self);
-  PnlSup.Parent := Self;
-  PnlSup.Align := alTop;
-  PnlSup.Height := 34;
-  PnlSup.BevelOuter := bvNone;
+  FBarraEstado := TStatusBar.Create(Self);
+  FBarraEstado.Parent := Self;
+  FBarraEstado.SimplePanel := True;
 
-  FLblResumen := TLabel.Create(Self);
-  FLblResumen.Parent := PnlSup;
-  FLblResumen.Left := 8;
-  FLblResumen.Top := 9;
-
-  FChkSoloSinEGD := TCheckBox.Create(Self);
-  FChkSoloSinEGD.Parent := PnlSup;
-  FChkSoloSinEGD.Left := 420;
-  FChkSoloSinEGD.Top := 7;
-  FChkSoloSinEGD.Width := 300;
-  FChkSoloSinEGD.Caption := 'Mostrar solo los nodos sin EGD propio';
-  FChkSoloSinEGD.OnClick := FiltroClick;
+  Barra := TPanel.Create(Self);
+  Barra.Parent := Self;
+  Barra.Align := alTop;
+  Barra.Height := 41;
+  Barra.Color := 15780526;
+  Barra.ParentBackground := False;
+  Barra.Caption := '';
+  CrearBoton(Barra, iaCerrar, 'Regresar a la ventana anterior', alLeft, CerrarClick);
+  CrearBoton(Barra, iaReporte, 'Reporte de responsables por nodo', alLeft, ReporteClick);
+  CrearBoton(Barra, iaAyuda, 'Ayuda para la asignaci' + #243 + 'n de responsables',
+    alRight, AyudaClick);
 
   PnlDer := TPanel.Create(Self);
   PnlDer.Parent := Self;
   PnlDer.Align := alRight;
   PnlDer.Width := 280;
   PnlDer.BevelOuter := bvNone;
+  PnlDer.Caption := '';
+  PnlDer.ParentBackground := False;
 
-  with TLabel.Create(Self) do
-  begin
-    Parent := PnlDer;
-    Left := 12;
-    Top := 14;
-    Caption := 'Usuario';
-  end;
+  Etiqueta := TLabel.Create(Self);
+  Etiqueta.Parent := PnlDer;
+  Etiqueta.SetBounds(12, 14, 40, 13);
+  Etiqueta.Caption := 'Usuario';
+
   FCmbUsuario := TComboBox.Create(Self);
   FCmbUsuario.Parent := PnlDer;
-  FCmbUsuario.Left := 12;
-  FCmbUsuario.Top := 32;
-  FCmbUsuario.Width := 252;
+  FCmbUsuario.SetBounds(12, 32, 252, 21);
   FCmbUsuario.Style := csDropDownList;
 
   FRgRol := TRadioGroup.Create(Self);
   FRgRol.Parent := PnlDer;
-  FRgRol.Left := 12;
-  FRgRol.Top := 68;
-  FRgRol.Width := 252;
-  FRgRol.Height := 62;
+  FRgRol.SetBounds(12, 68, 252, 62);
   FRgRol.Caption := 'Rol';
   FRgRol.Items.Add('EGD (especialista de gesti' + #243 + 'n documental)');
   FRgRol.Items.Add('Director');
@@ -157,41 +187,37 @@ begin
 
   FChkHijos := TCheckBox.Create(Self);
   FChkHijos.Parent := PnlDer;
-  FChkHijos.Left := 12;
-  FChkHijos.Top := 142;
-  FChkHijos.Width := 252;
+  FChkHijos.SetBounds(12, 142, 252, 17);
   FChkHijos.Caption := 'Incluir todos los nodos hijos';
   FChkHijos.Checked := True;
+  FChkHijos.OnClick := HijosClick;
+
+  FChkSoloSinEGD := TCheckBox.Create(Self);
+  FChkSoloSinEGD.Parent := PnlDer;
+  FChkSoloSinEGD.SetBounds(12, 166, 252, 17);
+  FChkSoloSinEGD.Caption := 'Mostrar solo los nodos sin EGD propio';
+  FChkSoloSinEGD.OnClick := FiltroClick;
 
   FBtnAsignar := TButton.Create(Self);
   FBtnAsignar.Parent := PnlDer;
-  FBtnAsignar.SetBounds(12, 176, 252, 30);
+  FBtnAsignar.SetBounds(12, 198, 252, 30);
   FBtnAsignar.Caption := 'Asignar a los marcados';
   FBtnAsignar.OnClick := AsignarClick;
 
   FBtnQuitar := TButton.Create(Self);
   FBtnQuitar.Parent := PnlDer;
-  FBtnQuitar.SetBounds(12, 212, 252, 30);
+  FBtnQuitar.SetBounds(12, 234, 252, 30);
   FBtnQuitar.Caption := 'Quitar de los marcados';
   FBtnQuitar.OnClick := QuitarClick;
 
-  with TLabel.Create(Self) do
-  begin
-    Parent := PnlDer;
-    SetBounds(12, 262, 252, 120);
-    AutoSize := False;
-    WordWrap := True;
-    Caption := 'Marque los nodos en el '#225'rbol. Lo asignado a un nodo vale para ' +
-      'sus descendientes. Un nodo debe tener al menos un EGD propio; los nodos ' +
-      'sin EGD propio se muestran en rojo.';
-  end;
-
-  FBtnCerrar := TButton.Create(Self);
-  FBtnCerrar.Parent := PnlDer;
-  FBtnCerrar.SetBounds(12, 510, 252, 30);
-  FBtnCerrar.Anchors := [akLeft, akBottom];
-  FBtnCerrar.Caption := 'Cerrar';
-  FBtnCerrar.OnClick := CerrarClick;
+  Nota := TLabel.Create(Self);
+  Nota.Parent := PnlDer;
+  Nota.SetBounds(12, 284, 252, 120);
+  Nota.AutoSize := False;
+  Nota.WordWrap := True;
+  Nota.Caption := 'Marque los nodos en el '#225'rbol. Lo asignado a un nodo vale para ' +
+    'sus descendientes. Un nodo debe tener al menos un EGD propio; los nodos ' +
+    'sin EGD propio se muestran en rojo.';
 
   FTree := TTreeView.Create(Self);
   FTree.Parent := Self;
@@ -199,6 +225,8 @@ begin
   FTree.ReadOnly := True;
   FTree.HideSelection := False;
   FTree.OnCustomDrawItem := TreeCustomDrawItem;
+  FTree.OnClick := TreeClick;
+  FTree.OnKeyUp := TreeKeyUp;
 end;
 
 destructor TfrmAsignacionNodos.Destroy;
@@ -212,12 +240,12 @@ end;
 procedure TfrmAsignacionNodos.DoShow;
 begin
   inherited;
-  TreeCreateWnd;
+  ActivarCasillas;
   CargarTodo;
 end;
 
 { El TTreeView de la VCL no expone casillas: se activa el estilo de Windows. }
-procedure TfrmAsignacionNodos.TreeCreateWnd;
+procedure TfrmAsignacionNodos.ActivarCasillas;
 begin
   SetWindowLong(FTree.Handle, GWL_STYLE,
     GetWindowLong(FTree.Handle, GWL_STYLE) or TVS_CHECKBOXES);
@@ -250,6 +278,57 @@ begin
   else
     Item.state := 1 shl 12;
   SendMessage(FTree.Handle, TVM_SETITEM, 0, LPARAM(@Item));
+end;
+
+procedure TfrmAsignacionNodos.MarcarDescendientes(Nodo: TTreeNode; Valor: Boolean);
+var
+  Hijo: TTreeNode;
+begin
+  Hijo := Nodo.GetFirstChild;
+  while Hijo <> nil do
+  begin
+    MarcarNodo(Hijo, Valor);
+    MarcarDescendientes(Hijo, Valor);
+    Hijo := Nodo.GetNextChild(Hijo);
+  end;
+end;
+
+{ Con "Incluir hijos" activo, marcar o desmarcar un nodo hace lo mismo con todos
+  sus descendientes, para que se vea a que nodos se aplicara el cambio. }
+procedure TfrmAsignacionNodos.TreeClick(Sender: TObject);
+var
+  Pos: TPoint;
+  Nodo: TTreeNode;
+begin
+  if not FChkHijos.Checked then
+    Exit;
+  GetCursorPos(Pos);
+  Pos := FTree.ScreenToClient(Pos);
+  if htOnStateIcon in FTree.GetHitTestInfoAt(Pos.X, Pos.Y) then
+  begin
+    Nodo := FTree.GetNodeAt(Pos.X, Pos.Y);
+    if Nodo <> nil then
+      MarcarDescendientes(Nodo, NodoMarcado(Nodo));
+  end;
+end;
+
+procedure TfrmAsignacionNodos.TreeKeyUp(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if (Key = VK_SPACE) and FChkHijos.Checked and (FTree.Selected <> nil) then
+    MarcarDescendientes(FTree.Selected, NodoMarcado(FTree.Selected));
+end;
+
+procedure TfrmAsignacionNodos.HijosClick(Sender: TObject);
+var
+  I: Integer;
+begin
+  // al activarlo, los hijos de lo ya marcado se marcan tambien
+  if not FChkHijos.Checked then
+    Exit;
+  for I := 0 to FTree.Items.Count - 1 do
+    if NodoMarcado(FTree.Items[I]) then
+      MarcarDescendientes(FTree.Items[I], True);
 end;
 
 function TfrmAsignacionNodos.Clave(const N: TClaveNodo): string;
@@ -305,46 +384,54 @@ begin
   Reconstruir;
 end;
 
-function TfrmAsignacionNodos.TextoNodo(const Info: TInfoNodo): string;
+{ Logins asignados como propios en el nodo con ese rol, separados por coma. }
+function TfrmAsignacionNodos.ResponsablesPropios(const N: TClaveNodo;
+  Rol: TRolNodo): string;
 var
   P: TAsignacion;
-  Anc: TClaveNodo;
-  Egd, Dir, HerEgd, HerDir: string;
+begin
+  Result := '';
+  for P in FPropias do
+    if (P.Rol = Rol) and (Clave(P.Nodo) = Clave(N)) then
+    begin
+      if Result <> '' then
+        Result := Result + ', ';
+      Result := Result + P.Usuario;
+    end;
+end;
 
-  procedure Sumar(var Lista: string; const Usuario: string);
+function TfrmAsignacionNodos.TextoNodo(const Info: TInfoNodo): string;
+var
+  Anc: TClaveNodo;
+  Egd, Dir, HerEgd, HerDir, S: string;
+
+  procedure Sumar(var Lista: string; const Usuarios: string);
   begin
+    if Usuarios = '' then
+      Exit;
     if Lista <> '' then
       Lista := Lista + ', ';
-    Lista := Lista + Usuario;
+    Lista := Lista + Usuarios;
   end;
 
 begin
-  for P in FPropias do
-    if Clave(P.Nodo) = Clave(Info.Clave) then
-    begin
-      if P.Rol = rnEGD then
-        Sumar(Egd, P.Usuario)
-      else
-        Sumar(Dir, P.Usuario);
-    end;
+  Egd := ResponsablesPropios(Info.Clave, rnEGD);
+  Dir := ResponsablesPropios(Info.Clave, rnDirector);
   for Anc in FArbol.Ancestros(Info.Clave) do
-    for P in FPropias do
-      if Clave(P.Nodo) = Clave(Anc) then
-      begin
-        if P.Rol = rnEGD then
-          Sumar(HerEgd, P.Usuario)
-        else
-          Sumar(HerDir, P.Usuario);
-      end;
-  Result := Info.Etiqueta + '  [' + Info.Clave.IdEstructura + ']';
+  begin
+    Sumar(HerEgd, ResponsablesPropios(Anc, rnEGD));
+    Sumar(HerDir, ResponsablesPropios(Anc, rnDirector));
+  end;
+  S := Info.Etiqueta + '  [' + Info.Clave.IdEstructura + ']';
   if Egd <> '' then
-    Result := Result + '   EGD: ' + Egd;
+    S := S + '   EGD: ' + Egd;
   if Dir <> '' then
-    Result := Result + '   Director: ' + Dir;
+    S := S + '   Director: ' + Dir;
   if HerEgd <> '' then
-    Result := Result + '   (hereda EGD: ' + HerEgd + ')';
+    S := S + '   (hereda EGD: ' + HerEgd + ')';
   if HerDir <> '' then
-    Result := Result + '   (hereda Director: ' + HerDir + ')';
+    S := S + '   (hereda Director: ' + HerDir + ')';
+  Result := S;
 end;
 
 function TfrmAsignacionNodos.MarcadosActuales: TArray<TClaveNodo>;
@@ -385,7 +472,7 @@ begin
     Sin := NodosSinEGDPropio(FArbol, FPropias);
     for N in Sin do
       FSinEGD.AddOrSetValue(Clave(N), True);
-    FLblResumen.Caption := Format('%d nodos, %d sin EGD propio',
+    FBarraEstado.SimpleText := Format('%d nodos, %d sin EGD propio',
       [FInfos.Count, Length(Sin)]);
 
     FTree.Items.BeginUpdate;
@@ -509,6 +596,18 @@ begin
   Close;
 end;
 
+procedure TfrmAsignacionNodos.AyudaClick(Sender: TObject);
+begin
+  Application.HelpContext(TEMA_AYUDA);
+end;
+
+procedure TfrmAsignacionNodos.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if Key = VK_ESCAPE then
+    Close;
+end;
+
 procedure TfrmAsignacionNodos.FiltroClick(Sender: TObject);
 begin
   // en la lista plana filtrada no se ven los hijos: no se permite asignar a ciegas
@@ -516,6 +615,97 @@ begin
     FChkHijos.Checked := False;
   FChkHijos.Enabled := not FChkSoloSinEGD.Checked;
   Reconstruir;
+end;
+
+{ Reporte de responsables propios por nodo, en el visor de FastReport. }
+procedure TfrmAsignacionNodos.ReporteClick(Sender: TObject);
+const
+  ANCHOS: array[0..3] of Integer = (70, 250, 200, 180);
+  TITULOS: array[0..3] of string = ('Estructura', 'Nodo', 'EGD', 'Director');
+  CAMPOS: array[0..3] of string = ('Estructura', 'Nodo', 'EGD', 'Director');
+var
+  Mem: TFDMemTable;
+  DS: TfrxDBDataset;
+  Rep: TfrxReport;
+  Pagina: TfrxReportPage;
+  Titulo: TfrxReportTitle;
+  Cabecera: TfrxPageHeader;
+  Datos: TfrxMasterData;
+  Memo: TfrxMemoView;
+  Info: TInfoNodo;
+  I, X: Integer;
+begin
+  Mem := TFDMemTable.Create(nil);
+  DS := TfrxDBDataset.Create(nil);
+  Rep := TfrxReport.Create(nil);
+  try
+    for I := 0 to High(CAMPOS) do
+      Mem.FieldDefs.Add(CAMPOS[I], ftString, 250);
+    Mem.CreateDataSet;
+    for Info in FInfos do
+    begin
+      Mem.Append;
+      Mem.FieldByName('Estructura').AsString := Info.Clave.IdEstructura;
+      Mem.FieldByName('Nodo').AsString := Info.Etiqueta;
+      Mem.FieldByName('EGD').AsString := ResponsablesPropios(Info.Clave, rnEGD);
+      Mem.FieldByName('Director').AsString := ResponsablesPropios(Info.Clave, rnDirector);
+      Mem.Post;
+    end;
+    DS.DataSet := Mem;
+    DS.UserName := 'responsables';
+    Rep.DataSets.Add(DS);
+
+    Rep.Clear;
+    Pagina := TfrxReportPage.Create(Rep);
+    Pagina.CreateUniqueName;
+    Pagina.SetDefaults;
+
+    Titulo := TfrxReportTitle.Create(Pagina);
+    Titulo.CreateUniqueName;
+    Titulo.Height := 40;
+    Memo := TfrxMemoView.Create(Titulo);
+    Memo.CreateUniqueName;
+    Memo.SetBounds(0, 8, 700, 24);
+    Memo.Font.Size := 14;
+    Memo.Font.Style := [fsBold];
+    Memo.Memo.Text := 'Responsables por nodo (asignaciones propias)';
+
+    Cabecera := TfrxPageHeader.Create(Pagina);
+    Cabecera.CreateUniqueName;
+    Cabecera.Height := 20;
+    X := 0;
+    for I := 0 to High(TITULOS) do
+    begin
+      Memo := TfrxMemoView.Create(Cabecera);
+      Memo.CreateUniqueName;
+      Memo.SetBounds(X, 0, ANCHOS[I], 18);
+      Memo.Font.Style := [fsBold];
+      Memo.Frame.Typ := [ftBottom];
+      Memo.Memo.Text := TITULOS[I];
+      Inc(X, ANCHOS[I]);
+    end;
+
+    Datos := TfrxMasterData.Create(Pagina);
+    Datos.CreateUniqueName;
+    Datos.DataSet := DS;
+    Datos.Height := 18;
+    X := 0;
+    for I := 0 to High(CAMPOS) do
+    begin
+      Memo := TfrxMemoView.Create(Datos);
+      Memo.CreateUniqueName;
+      Memo.SetBounds(X, 0, ANCHOS[I], 18);
+      Memo.Memo.Text := '[responsables."' + CAMPOS[I] + '"]';
+      Inc(X, ANCHOS[I]);
+    end;
+
+    Rep.PrepareReport;
+    Rep.ShowReport;
+  finally
+    Rep.Free;
+    DS.Free;
+    Mem.Free;
+  end;
 end;
 
 end.

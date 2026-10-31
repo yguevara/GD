@@ -15,6 +15,7 @@ uses
   UAlcanceDatos in 'UAlcanceDatos.pas',
   UTopografia in 'UTopografia.pas',
   UAsignacionDatos in 'UAsignacionDatos.pas',
+  UAsignacionIconos in 'UAsignacionIconos.pas',
   UAsignacionNodos in 'UAsignacionNodos.pas',
   UAutentica in 'UAutentica.pas' {frmAutentica},
   md5 in 'md5.pas',

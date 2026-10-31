@@ -64,7 +64,7 @@ implementation
 {$R *.dfm}
 
 uses
-  UChangePass, UNewUser, UUserProperties, USystemMsg, UAsignacionNodos;
+  UChangePass, UNewUser, UUserProperties, USystemMsg, UAsignacionNodos, UAsignacionIconos;
 
 procedure TfrmGestUser.Agregar1Click(Sender: TObject);
 var
@@ -204,18 +204,26 @@ end;
 
 procedure TfrmGestUser.FormShow(Sender: TObject);
 var
-  Boton: TButton;
+  Boton: TJvTransparentButton;
 begin
   // Asignacion de EGD y Directores a los nodos: solo con SQL Server. Esta
-  // pantalla de usuarios solo la abre el administrador.
+  // pantalla de usuarios solo la abre el administrador. El boton se suma a la
+  // barra superior con el aspecto de los demas.
   if (TBD = 'S') and (FindComponent('btnAsignacionNodos') = nil) then
   begin
-    Boton := TButton.Create(Self);
+    Boton := TJvTransparentButton.Create(Self);
     Boton.Name := 'btnAsignacionNodos';
-    Boton.Parent := Self;
-    Boton.Align := alBottom;
-    Boton.Height := 28;
-    Boton.Caption := 'Asignaci' + #243 + 'n de responsables por nodo...';
+    Boton.Parent := pMainContainer;
+    Boton.Left := btnPrint.Left + btnPrint.Width;
+    Boton.Align := alLeft;
+    Boton.Width := 55;
+    Boton.Height := 39;
+    Boton.AutoGray := False;
+    Boton.Color := 13135884;
+    Boton.FrameStyle := fsIndent;
+    Boton.Hint := 'Asignaci' + #243 + 'n de responsables por nodo (EGD y Directores)';
+    Boton.ShowHint := True;
+    CargarIcono(iaAsignacion, Boton.Glyph);
     Boton.OnClick := AsignacionNodosClick;
   end;
   Edit1.Focused;
