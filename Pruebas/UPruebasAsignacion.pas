@@ -56,6 +56,8 @@ type
     [Test]
     procedure Quitar_UnEGD_NoQuitaAlOtro;
     [Test]
+    procedure Agregar_Director_ConOtroRolEnElNodo_ExplicaElMotivo;
+    [Test]
     procedure CargarAsignaciones_DevuelveLogin;
   end;
 
@@ -319,6 +321,33 @@ begin
       'usr_sub', False));
     Assert.AreEqual(1, Contar('SELECT COUNT(*) FROM tb_nodo_egd WHERE id = 104 ' +
       'AND user_id = ''egd_a43'''));
+  finally
+    Arbol.Free;
+  end;
+end;
+
+procedure TPruebasAsignacionDatos.Agregar_Director_ConOtroRolEnElNodo_ExplicaElMotivo;
+var
+  Arbol: TArbolNodos;
+  Mensaje: string;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB'); Exit; end;
+  // la clave de tb_tree_directors no incluye idrol: una fila de otro rol bloquea
+  FConn.ExecSQL('INSERT INTO tb_tree_directors (IdEstructura, id, user_id, idrol) ' +
+    'VALUES (''A.4'', 101, 2, 1)');
+  Arbol := TArbolNodos.Create;
+  try
+    Arbol.Agregar(Clave('A.4', 101), 1);
+    Mensaje := '';
+    try
+      AplicarCambios(FConn, CalcularCambios(Arbol, [Clave('A.4', 101)], False,
+        rnDirector, 'usr_sub', True));
+    except
+      on E: Exception do
+        Mensaje := E.Message;
+    end;
+    Assert.IsTrue(Mensaje.Contains('otro rol'), 'Mensaje inesperado: ' + Mensaje);
+    Assert.AreEqual(1, Contar('SELECT COUNT(*) FROM tb_tree_directors'));
   finally
     Arbol.Free;
   end;

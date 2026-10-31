@@ -356,7 +356,7 @@ begin
   try
     for I := 0 to FTree.Items.Count - 1 do
       if NodoMarcado(FTree.Items[I]) then
-        Lista.Add(FInfos[Integer(FTree.Items[I].Data)].Clave);
+        Lista.Add(FInfos[Integer(FTree.Items[I].Data) - 1].Clave);
     Result := Lista.ToArray;
   finally
     Lista.Free;
@@ -401,7 +401,7 @@ begin
         if (not FChkSoloSinEGD.Checked) and Info.TienePadre then
           Nodos.TryGetValue(Clave(Info.Padre), PadreNodo);
         Nuevo := FTree.Items.AddChild(PadreNodo, TextoNodo(Info));
-        Nuevo.Data := Pointer(I);
+        Nuevo.Data := Pointer(I + 1); // +1: Data = nil significa "sin dato"
         Nodos.AddOrSetValue(Clave(Info.Clave), Nuevo);
         if Marcados.ContainsKey(Clave(Info.Clave)) then
           MarcarNodo(Nuevo, True);
@@ -422,7 +422,7 @@ procedure TfrmAsignacionNodos.TreeCustomDrawItem(Sender: TCustomTreeView;
 begin
   // los nodos sin EGD propio se destacan en rojo (salvo el seleccionado)
   if (Node.Data <> nil) and not (cdsSelected in State) and
-    FSinEGD.ContainsKey(Clave(FInfos[Integer(Node.Data)].Clave)) then
+    FSinEGD.ContainsKey(Clave(FInfos[Integer(Node.Data) - 1].Clave)) then
     Sender.Canvas.Font.Color := clMaroon;
 end;
 
@@ -511,6 +511,10 @@ end;
 
 procedure TfrmAsignacionNodos.FiltroClick(Sender: TObject);
 begin
+  // en la lista plana filtrada no se ven los hijos: no se permite asignar a ciegas
+  if FChkSoloSinEGD.Checked then
+    FChkHijos.Checked := False;
+  FChkHijos.Enabled := not FChkSoloSinEGD.Checked;
   Reconstruir;
 end;
 

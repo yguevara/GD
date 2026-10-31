@@ -6,7 +6,7 @@ CREATE TABLE tb_nodo_egd (
   IdEstructura VARCHAR(50) NOT NULL,
   id INT NOT NULL,
   user_id VARCHAR(100) NOT NULL,
-  CONSTRAINT PK_tb_nodo_egd PRIMARY KEY (IdEstructura, id),
+  CONSTRAINT PK_tb_nodo_egd PRIMARY KEY (IdEstructura, id, user_id),
   CONSTRAINT FK_tb_nodo_egd_tree FOREIGN KEY (IdEstructura, id) REFERENCES tb_tree(IdEstructura, id),
   CONSTRAINT FK_tb_nodo_egd_user FOREIGN KEY (user_id) REFERENCES tb_user(nombreuser)
 );

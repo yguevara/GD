@@ -231,6 +231,14 @@ var
           Resp := IdResp(A.Usuario);
           if Cambio.Agregar then
           begin
+            // la clave de tb_tree_directors no incluye idrol: otra fila de la
+            // misma persona en el nodo impediria el INSERT
+            if Existe('SELECT COUNT(*) FROM tb_tree_directors WHERE IdEstructura = :a ' +
+              'AND id = :b AND user_id = :c AND idrol <> ' + IntToStr(ROL_DIRECTOR),
+              [A.Nodo.IdEstructura, A.Nodo.Id, Resp]) then
+              raise Exception.CreateFmt('%s ya tiene otro rol en el nodo %s; ' +
+                'qu'#237'telo antes de asignarlo como Director.',
+                [A.Usuario, A.Nodo.IdEstructura]);
             if not Existe('SELECT COUNT(*) FROM tb_tree_directors WHERE IdEstructura = :a ' +
               'AND id = :b AND user_id = :c AND idrol = ' + IntToStr(ROL_DIRECTOR),
               [A.Nodo.IdEstructura, A.Nodo.Id, Resp]) then
