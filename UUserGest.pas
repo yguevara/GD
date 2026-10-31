@@ -213,6 +213,7 @@ begin
   begin
     Boton := TJvTransparentButton.Create(Self);
     Boton.Name := 'btnAsignacionNodos';
+    Boton.Caption := '';
     Boton.Parent := pMainContainer;
     Boton.Left := btnPrint.Left + btnPrint.Width;
     Boton.Align := alLeft;

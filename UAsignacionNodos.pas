@@ -110,6 +110,7 @@ function TfrmAsignacionNodos.CrearBoton(Barra: TPanel; Icono: TIconoAsignacion;
 begin
   Result := TJvTransparentButton.Create(Self);
   Result.Parent := Barra;
+  Result.Caption := '';
   Result.Align := Lado;
   Result.Width := 55;
   Result.Height := 39;

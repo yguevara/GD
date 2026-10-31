@@ -56,6 +56,8 @@ type
     [Test]
     procedure Quitar_UnEGD_NoQuitaAlOtro;
     [Test]
+    procedure Administrador_NoSeListaNiSeAsigna;
+    [Test]
     procedure Agregar_Director_ConOtroRolEnElNodo_ExplicaElMotivo;
     [Test]
     procedure CargarAsignaciones_DevuelveLogin;
@@ -348,6 +350,33 @@ begin
     end;
     Assert.IsTrue(Mensaje.Contains('otro rol'), 'Mensaje inesperado: ' + Mensaje);
     Assert.AreEqual(1, Contar('SELECT COUNT(*) FROM tb_tree_directors'));
+  finally
+    Arbol.Free;
+  end;
+end;
+
+procedure TPruebasAsignacionDatos.Administrador_NoSeListaNiSeAsigna;
+var
+  Arbol: TArbolNodos;
+  U: string;
+  Lanzo: Boolean;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB'); Exit; end;
+  for U in UsuariosHabilitados(FConn) do
+    Assert.AreNotEqual('administrador', LowerCase(U), 'El administrador no se asigna');
+  Arbol := TArbolNodos.Create;
+  try
+    Arbol.Agregar(Clave('A.4', 101), 1);
+    Lanzo := False;
+    try
+      AplicarCambios(FConn, CalcularCambios(Arbol, [Clave('A.4', 101)], False, rnEGD,
+        'administrador', True));
+    except
+      on E: Exception do
+        Lanzo := True;
+    end;
+    Assert.IsTrue(Lanzo, 'Debia rechazar al administrador');
+    Assert.AreEqual(0, Contar('SELECT COUNT(*) FROM tb_nodo_egd WHERE user_id = ''administrador'''));
   finally
     Arbol.Free;
   end;

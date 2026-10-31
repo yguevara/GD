@@ -50,7 +50,8 @@ procedure AplicarCambios(Conn: TFDConnection;
 function NodosSinEGDPropio(Arbol: TArbolNodos;
   const Propias: TArray<TAsignacion>): TArray<TClaveNodo>;
 
-{ Logins habilitados de cl_Resp_Gest_Arch, ordenados. }
+{ Logins habilitados de cl_Resp_Gest_Arch, ordenados, sin los administradores
+  (tienen acceso total y no se les asignan nodos). }
 function UsuariosHabilitados(Conn: TFDConnection): TArray<string>;
 
 implementation
@@ -60,6 +61,7 @@ uses
 
 const
   ROL_DIRECTOR = 3; // tb_rol.idrol de 'Director'
+  ROL_ADMINISTRADOR = 1; // tb_rol.idrol de 'Administrador'
 
 function ClaveTexto(const N: TClaveNodo): string;
 begin
@@ -208,6 +210,12 @@ var
     Resp: Integer;
   begin
     A := Cambio.Asignacion;
+    // el administrador ve y puede todo; sus permisos no se modifican desde aqui
+    if Existe('SELECT COUNT(*) FROM cl_Resp_Gest_Arch WHERE Rol = ' +
+      IntToStr(ROL_ADMINISTRADOR) + ' AND {fn UCASE(usuario)} = {fn UCASE(:u)}',
+      [A.Usuario]) then
+      raise Exception.CreateFmt('%s es administrador: tiene acceso a todos los ' +
+        'nodos y sus permisos no se modifican.', [A.Usuario]);
     if not Existe('SELECT COUNT(*) FROM tb_tree WHERE IdEstructura = :a AND id = :b',
       [A.Nodo.IdEstructura, A.Nodo.Id]) then
       raise Exception.CreateFmt('El nodo %s (%d) no existe.',
@@ -306,7 +314,8 @@ begin
   try
     Q.Connection := Conn;
     Q.SQL.Text := 'SELECT usuario FROM cl_Resp_Gest_Arch WHERE habilitado = ''S'' ' +
-      'AND usuario IS NOT NULL ORDER BY usuario';
+      'AND usuario IS NOT NULL AND Rol <> ' + IntToStr(ROL_ADMINISTRADOR) +
+      ' ORDER BY usuario';
     Q.Open;
     while not Q.Eof do
     begin
