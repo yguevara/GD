@@ -38,7 +38,41 @@ procedure CrearEsquemaAlcance(Conn: TFDConnection; EsSqlServer: Boolean);
   end;
 
 var
-  TId, TFecha, TBit, TLargo: string;
+  TId, TFecha, TBit, TLargo, SqlNodoEgd: string;
+
+  { Bases creadas con la clave vieja (IdEstructura, id): se cambia por la nueva
+    sin perder filas. En Access la tabla nunca llego a tener datos, asi que si
+    esta vacia se recrea; si tiene filas se deja como esta. }
+  procedure MigrarClaveNodoEgd;
+  begin
+    try
+      if EsSqlServer then
+      begin
+        if Integer(Conn.ExecSQLScalar('SELECT COUNT(*) FROM INFORMATION_SCHEMA.' +
+          'KEY_COLUMN_USAGE WHERE CONSTRAINT_NAME = ''PK_tb_nodo_egd''')) = 2 then
+        begin
+          Conn.StartTransaction;
+          try
+            Conn.ExecSQL('ALTER TABLE tb_nodo_egd DROP CONSTRAINT PK_tb_nodo_egd');
+            Conn.ExecSQL('ALTER TABLE tb_nodo_egd ADD CONSTRAINT PK_tb_nodo_egd ' +
+              'PRIMARY KEY (IdEstructura, id, user_id)');
+            Conn.Commit;
+          except
+            Conn.Rollback;
+            raise;
+          end;
+        end;
+      end
+      else if Integer(Conn.ExecSQLScalar('SELECT COUNT(*) FROM tb_nodo_egd')) = 0 then
+      begin
+        Conn.ExecSQL('DROP TABLE tb_nodo_egd');
+        Conn.ExecSQL(SqlNodoEgd);
+      end;
+    except
+      // No aplica o ya esta migrada: se ignora, igual que Ejecutar.
+    end;
+  end;
+
 begin
   if EsSqlServer then
   begin
@@ -55,16 +89,19 @@ begin
     TLargo := 'VARCHAR(255)';
   end;
 
-  CrearTabla('tb_nodo_egd',
+  // Un nodo admite varios EGD: la clave incluye al usuario.
+  SqlNodoEgd :=
     'CREATE TABLE tb_nodo_egd (' +
     'IdEstructura VARCHAR(50) NOT NULL, ' +
     'id INT NOT NULL, ' +
     'user_id VARCHAR(100) NOT NULL, ' +
-    'CONSTRAINT PK_tb_nodo_egd PRIMARY KEY (IdEstructura, id), ' +
+    'CONSTRAINT PK_tb_nodo_egd PRIMARY KEY (IdEstructura, id, user_id), ' +
     'CONSTRAINT FK_tb_nodo_egd_tree FOREIGN KEY (IdEstructura, id) ' +
     'REFERENCES tb_tree(IdEstructura, id), ' +
     'CONSTRAINT FK_tb_nodo_egd_user FOREIGN KEY (user_id) ' +
-    'REFERENCES tb_user(nombreuser));');
+    'REFERENCES tb_user(nombreuser));';
+  CrearTabla('tb_nodo_egd', SqlNodoEgd);
+  MigrarClaveNodoEgd;
 
   CrearTabla('tb_usuario_subserie',
     'CREATE TABLE tb_usuario_subserie (' +

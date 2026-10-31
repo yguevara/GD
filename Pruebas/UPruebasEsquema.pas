@@ -22,7 +22,9 @@ type
     [Test]
     procedure TablasExisten;
     [Test]
-    procedure NodoNoAdmiteDosEGD;
+    procedure NodoAdmiteVariosEGD;
+    [Test]
+    procedure MigraClaveAntiguaSinPerderFilas;
     [Test]
     procedure EsIdempotente;
   end;
@@ -119,10 +121,10 @@ begin
     'Falta la columna usuario_ad');
 end;
 
-procedure TPruebasEsquema.NodoNoAdmiteDosEGD;
+procedure TPruebasEsquema.NodoAdmiteVariosEGD;
 var
   IdEstr, Usuario1, Usuario2: string;
-  IdNodo: Integer;
+  IdNodo, N: Integer;
   Lanzo: Boolean;
 begin
   if FConn = nil then
@@ -135,20 +137,60 @@ begin
   IdNodo := Integer(Escalar('SELECT TOP 1 id FROM tb_tree ORDER BY IdEstructura, id'));
   Usuario1 := VarToStr(Escalar('SELECT TOP 1 nombreuser FROM tb_user ORDER BY nombreuser'));
   Usuario2 := VarToStr(Escalar('SELECT TOP 1 nombreuser FROM tb_user ORDER BY nombreuser DESC'));
-  Assert.IsTrue((IdEstr <> '') and (Usuario1 <> ''), 'La base de pruebas no tiene nodos o usuarios');
+  Assert.IsTrue((IdEstr <> '') and (Usuario1 <> Usuario2), 'La base de pruebas necesita nodos y dos usuarios');
   FConn.ExecSQL('DELETE FROM tb_nodo_egd WHERE IdEstructura = :a AND id = :b', [IdEstr, IdNodo]);
   try
     FConn.ExecSQL('INSERT INTO tb_nodo_egd (IdEstructura, id, user_id) VALUES (:a, :b, :c)',
       [IdEstr, IdNodo, Usuario1]);
+    FConn.ExecSQL('INSERT INTO tb_nodo_egd (IdEstructura, id, user_id) VALUES (:a, :b, :c)',
+      [IdEstr, IdNodo, Usuario2]);
+    N := Integer(Escalar('SELECT COUNT(*) FROM tb_nodo_egd WHERE IdEstructura = ' +
+      QuotedStr(IdEstr) + ' AND id = ' + IntToStr(IdNodo)));
+    Assert.AreEqual(2, N, 'El nodo debe admitir dos EGD');
     Lanzo := False;
     try
       FConn.ExecSQL('INSERT INTO tb_nodo_egd (IdEstructura, id, user_id) VALUES (:a, :b, :c)',
-        [IdEstr, IdNodo, Usuario2]);
+        [IdEstr, IdNodo, Usuario1]);
     except
       on E: EFDDBEngineException do
         Lanzo := True;
     end;
-    Assert.IsTrue(Lanzo, 'Se permitio un segundo EGD en el mismo nodo');
+    Assert.IsTrue(Lanzo, 'Se permitio el mismo EGD dos veces');
+  finally
+    FConn.ExecSQL('DELETE FROM tb_nodo_egd WHERE IdEstructura = :a AND id = :b', [IdEstr, IdNodo]);
+  end;
+end;
+
+procedure TPruebasEsquema.MigraClaveAntiguaSinPerderFilas;
+var
+  IdEstr, Usuario1, Usuario2: string;
+  IdNodo: Integer;
+begin
+  if FConn = nil then
+  begin
+    Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB');
+    Exit;
+  end;
+  CrearEsquemaAlcance(FConn, True);
+  IdEstr := VarToStr(Escalar('SELECT TOP 1 IdEstructura FROM tb_tree ORDER BY IdEstructura, id'));
+  IdNodo := Integer(Escalar('SELECT TOP 1 id FROM tb_tree ORDER BY IdEstructura, id'));
+  Usuario1 := VarToStr(Escalar('SELECT TOP 1 nombreuser FROM tb_user ORDER BY nombreuser'));
+  Usuario2 := VarToStr(Escalar('SELECT TOP 1 nombreuser FROM tb_user ORDER BY nombreuser DESC'));
+  FConn.ExecSQL('DELETE FROM tb_nodo_egd WHERE IdEstructura = :a AND id = :b', [IdEstr, IdNodo]);
+  try
+    // se vuelve a la clave vieja (la tabla no debe tener dos EGD por nodo)
+    FConn.ExecSQL('ALTER TABLE tb_nodo_egd DROP CONSTRAINT PK_tb_nodo_egd');
+    FConn.ExecSQL('ALTER TABLE tb_nodo_egd ADD CONSTRAINT PK_tb_nodo_egd PRIMARY KEY (IdEstructura, id)');
+    FConn.ExecSQL('INSERT INTO tb_nodo_egd (IdEstructura, id, user_id) VALUES (:a, :b, :c)',
+      [IdEstr, IdNodo, Usuario1]);
+    CrearEsquemaAlcance(FConn, True);
+    Assert.AreEqual(1, Integer(Escalar('SELECT COUNT(*) FROM tb_nodo_egd WHERE IdEstructura = ' +
+      QuotedStr(IdEstr) + ' AND id = ' + IntToStr(IdNodo))), 'Se perdio la fila al migrar');
+    FConn.ExecSQL('INSERT INTO tb_nodo_egd (IdEstructura, id, user_id) VALUES (:a, :b, :c)',
+      [IdEstr, IdNodo, Usuario2]);
+    CrearEsquemaAlcance(FConn, True); // segunda vez: idempotente
+    Assert.AreEqual(2, Integer(Escalar('SELECT COUNT(*) FROM tb_nodo_egd WHERE IdEstructura = ' +
+      QuotedStr(IdEstr) + ' AND id = ' + IntToStr(IdNodo))));
   finally
     FConn.ExecSQL('DELETE FROM tb_nodo_egd WHERE IdEstructura = :a AND id = :b', [IdEstr, IdNodo]);
   end;
