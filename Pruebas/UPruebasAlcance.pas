@@ -58,7 +58,15 @@ type
     [Test]
     procedure Director_VeHijos;
     [Test]
-    procedure EGD_NoDesciende;
+    procedure EGD_VeDescendientes_PeroNoActuaEnEllos;
+    [Test]
+    procedure DosEGDEnElMismoNodo_AmbosActuan;
+    [Test]
+    procedure DosDirectoresEnElMismoNodo_AmbosVen;
+    [Test]
+    procedure NodosCompletos_EGDIncluyeDescendientes;
+    [Test]
+    procedure NodosVisibles_EGDIncluyeDescendientesYAncestros;
     [Test]
     procedure EGD_PuedeEliminarEnSuNodo;
     [Test]
@@ -310,14 +318,82 @@ begin
   end;
 end;
 
-procedure TPruebasAlcance.EGD_NoDesciende;
+procedure TPruebasAlcance.EGD_VeDescendientes_PeroNoActuaEnEllos;
 var
   Al: TAlcanceUsuario;
 begin
   Al := Crear(False, [Asig(Clave('A.4', 101), rnEGD)], nil);
   try
     Assert.IsTrue(Al.PuedeVerDocumento(Clave('A.4', 101), '014001', 2));
-    Assert.IsFalse(Al.PuedeVerDocumento(Clave('A.4.3', 104), '014001', 2));
+    Assert.IsTrue(Al.PuedeVerDocumento(Clave('A.4.3', 104), '014001', 2));
+    Assert.IsFalse(Al.PuedeVerDocumento(Clave('A.1', 82), '014001', 2));
+    Assert.IsTrue(Al.PuedeRealizar(acEditar, Clave('A.4', 101), '014001'));
+    Assert.IsFalse(Al.PuedeRealizar(acEditar, Clave('A.4.3', 104), '014001'));
+    Assert.IsFalse(Al.PuedeEliminarDocumento(Clave('A.4.3', 104), '014001', 0));
+  finally
+    Al.Free;
+  end;
+end;
+
+procedure TPruebasAlcance.DosEGDEnElMismoNodo_AmbosActuan;
+var
+  Al1, Al2: TAlcanceUsuario;
+begin
+  // cada usuario carga su propio alcance; el mismo nodo con dos EGD distintos
+  Al1 := Crear(False, [Asig(Clave('A.4.3', 104), rnEGD)], nil);
+  Al2 := Crear(False, [Asig(Clave('A.4.3', 104), rnEGD)], nil);
+  try
+    Assert.IsTrue(Al1.PuedeRealizar(acEliminar, Clave('A.4.3', 104), '074'));
+    Assert.IsTrue(Al2.PuedeRealizar(acEliminar, Clave('A.4.3', 104), '074'));
+  finally
+    Al2.Free;
+    Al1.Free;
+  end;
+end;
+
+procedure TPruebasAlcance.DosDirectoresEnElMismoNodo_AmbosVen;
+var
+  Al1, Al2: TAlcanceUsuario;
+begin
+  Al1 := Crear(False, [Asig(Clave('A.4', 101), rnDirector)], nil);
+  Al2 := Crear(False, [Asig(Clave('A.4', 101), rnDirector)], nil);
+  try
+    Assert.IsTrue(Al1.PuedeVerDocumento(Clave('A.4.3', 104), '014001', 2));
+    Assert.IsTrue(Al2.PuedeVerDocumento(Clave('A.4.3', 104), '014001', 2));
+  finally
+    Al2.Free;
+    Al1.Free;
+  end;
+end;
+
+procedure TPruebasAlcance.NodosCompletos_EGDIncluyeDescendientes;
+var
+  Al: TAlcanceUsuario;
+  C: TArray<TClaveNodo>;
+begin
+  Al := Crear(False, [Asig(Clave('A.4', 101), rnEGD)], nil);
+  try
+    C := Al.NodosCompletos;
+    Assert.IsTrue(EnConjunto(C, Clave('A.4', 101)));
+    Assert.IsTrue(EnConjunto(C, Clave('A.4.3', 104)));
+    Assert.IsFalse(EnConjunto(C, Clave('A.1', 82)));
+  finally
+    Al.Free;
+  end;
+end;
+
+procedure TPruebasAlcance.NodosVisibles_EGDIncluyeDescendientesYAncestros;
+var
+  Al: TAlcanceUsuario;
+  V: TArray<TClaveNodo>;
+begin
+  Al := Crear(False, [Asig(Clave('A.4', 101), rnEGD)], nil);
+  try
+    V := Al.NodosVisibles;
+    Assert.IsTrue(EnConjunto(V, Clave('A', 1)));
+    Assert.IsTrue(EnConjunto(V, Clave('A.4', 101)));
+    Assert.IsTrue(EnConjunto(V, Clave('A.4.3', 104)));
+    Assert.IsFalse(EnConjunto(V, Clave('A.1', 82)));
   finally
     Al.Free;
   end;

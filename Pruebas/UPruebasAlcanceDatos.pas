@@ -80,7 +80,7 @@ type
     [Test]
     procedure DirectorA4_NodoEHijos_SinMezclarId160;
     [Test]
-    procedure EGD_NoVeHijos;
+    procedure EGD_VeSuNodoYSusHijos;
     [Test]
     procedure Usuario_SoloSubserieAsignadaMasPublicas;
     [Test]
@@ -614,10 +614,11 @@ begin
   Assert.AreEqual(FPublicos + 37, Docs('prueba_alc_dir4', False));
 end;
 
-procedure TPruebasAlcanceDatosSql.EGD_NoVeHijos;
+procedure TPruebasAlcanceDatosSql.EGD_VeSuNodoYSusHijos;
 begin
   if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB'); Exit; end;
-  Assert.AreEqual(FPublicos + 5, Docs('prueba_alc_egd', False));
+  // 5 de A.4 mas los de sus descendientes: 27 + 2 (A.4.3) y 3 (A.4.6)
+  Assert.AreEqual(FPublicos + 37, Docs('prueba_alc_egd', False));
 end;
 
 procedure TPruebasAlcanceDatosSql.Usuario_SoloSubserieAsignadaMasPublicas;

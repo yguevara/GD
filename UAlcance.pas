@@ -87,9 +87,9 @@ type
     function PuedeRealizar(Accion: TAccion; const Nodo: TClaveNodo;
       const CodSubs: string): Boolean;
     { Indica si el usuario puede eliminar un documento del par (Nodo, CodSubs).
-      Reglas: el administrador nunca; el EGD de ese nodo siempre, sin ventana de
-      dias; el Director del nodo o de un ancestro solo el primer dia
-      (DiasDesdeFecha <= 1); el Usuario y el Visor nunca. Los dias negativos
+      Reglas (CodSubs no interviene): el administrador nunca; el EGD de ese nodo
+      siempre, sin ventana de dias, y solo en su nodo (no en los descendientes); el Director del nodo o de un
+      ancestro solo el primer dia (DiasDesdeFecha <= 1); el Usuario y el Visor nunca. Los dias negativos
       cuentan como 0 y un nodo que no existe en el arbol no concede nada. }
     function PuedeEliminarDocumento(const Nodo: TClaveNodo; const CodSubs: string;
       DiasDesdeFecha: Integer): Boolean;
@@ -339,7 +339,9 @@ begin
         if FArbol.EsDescendiente(A.Nodo, Nodo) then
           Exit(True);
       rnEGD:
-        if MismoNodo(A.Nodo, Nodo) then
+        // ve todo en sus descendientes; las demas acciones solo en su nodo
+        if MismoNodo(A.Nodo, Nodo) or
+          ((Accion = acVer) and FArbol.EsDescendiente(A.Nodo, Nodo)) then
           Exit(True);
     end;
   end;
@@ -446,7 +448,13 @@ begin
             AcumularConAncestros(Dic, A.Nodo);
           end;
         rnEGD:
-          AcumularConAncestros(Dic, A.Nodo);
+          begin
+            // ve su nodo y todos los descendientes
+            for T in FArbol.Todos do
+              if FArbol.EsDescendiente(A.Nodo, T) then
+                AcumularConAncestros(Dic, T);
+            AcumularConAncestros(Dic, A.Nodo);
+          end;
       end;
     end;
     for S in SubseriesEfectivas do
@@ -480,7 +488,9 @@ begin
             if FArbol.EsDescendiente(A.Nodo, T) then
               Acumular(Dic, T);
         rnEGD:
-          Acumular(Dic, A.Nodo);
+          for T in FArbol.Todos do
+            if FArbol.EsDescendiente(A.Nodo, T) then
+              Acumular(Dic, T);
       end;
     end;
     Result := Dic.Values.ToArray;
