@@ -46,6 +46,7 @@ type
     procedure btnSystemHelpClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);
+    procedure AsignacionNodosClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -63,7 +64,7 @@ implementation
 {$R *.dfm}
 
 uses
-  UChangePass, UNewUser, UUserProperties, USystemMsg;
+  UChangePass, UNewUser, UUserProperties, USystemMsg, UAsignacionNodos;
 
 procedure TfrmGestUser.Agregar1Click(Sender: TObject);
 var
@@ -196,8 +197,27 @@ begin
 
 end;
 
-procedure TfrmGestUser.FormShow(Sender: TObject);
+procedure TfrmGestUser.AsignacionNodosClick(Sender: TObject);
 begin
+  MostrarAsignacionNodos;
+end;
+
+procedure TfrmGestUser.FormShow(Sender: TObject);
+var
+  Boton: TButton;
+begin
+  // Asignacion de EGD y Directores a los nodos: solo con SQL Server. Esta
+  // pantalla de usuarios solo la abre el administrador.
+  if (TBD = 'S') and (FindComponent('btnAsignacionNodos') = nil) then
+  begin
+    Boton := TButton.Create(Self);
+    Boton.Name := 'btnAsignacionNodos';
+    Boton.Parent := Self;
+    Boton.Align := alBottom;
+    Boton.Height := 28;
+    Boton.Caption := 'Asignaci' + #243 + 'n de responsables por nodo...';
+    Boton.OnClick := AsignacionNodosClick;
+  end;
   Edit1.Focused;
   Edit1.SetFocus;
 end;
