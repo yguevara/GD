@@ -29,6 +29,14 @@ Pendiente de ejecutar por una persona: requiere iniciar sesión en la aplicació
 | 12 | `usr_sub` | Agregar un documento en `A.4.3` / `014001` con la topografía incompleta (dejar vacío el depósito en `tb_Serietree`) | Mensaje: "Falta la ubicación de esta subserie en tu área. Avisa al especialista de gestión documental de tu nodo." |  |
 | 13 | `egd_a43` | El mismo caso 12 | Mensaje pidiendo especificar los datos topográficos, y puede completarlos desde el botón de topografía |  |
 | 14 | `administrador` y modo Access | Agregar, editar y eliminar | Sin cambios respecto a la versión anterior |  |
+| 15 | `administrador` | Administración de usuarios → «Asignación de responsables por nodo…» | Se abre la pantalla con los 86 nodos; `egd_a43` aparece como EGD en A.4.3 y el contador dice «N nodos, N sin EGD propio» |  |
+| 16 | `administrador` | Marcar A.4, rol EGD, «Incluir todos los nodos hijos», usuario `egd_a43`, «Asignar a los marcados» | A.4 y todos sus hijos muestran `EGD: egd_a43`; el contador baja |  |
+| 17 | `administrador` | Asignar un segundo EGD (otro usuario) al mismo nodo | El nodo muestra los dos EGD; los dos pueden iniciar sesión y actuar en él |  |
+| 18 | `administrador` | Quitar a un usuario con «Incluir hijos» desde A.4 | Los hijos pierden solo a ese usuario; los demás EGD/Directores de los hijos se conservan. Pide confirmación al afectar más de un nodo |  |
+| 19 | `administrador` | Marcar «Mostrar solo los nodos sin EGD propio» | Lista plana de los nodos sin EGD propio (en rojo); un nodo que solo hereda EGD de su padre sigue apareciendo |  |
+| 20 | `egd_a43` con EGD en A.4 | Ver documentos de A.4.3 y editarlos | Los ve (lectura en descendientes) pero no puede editar, eliminar ni tocar la topografía en A.4.3 |  |
+| 21 | cualquier usuario no administrador | Abrir Administración de usuarios | No tiene acceso a la pantalla de asignación (el botón de usuarios solo es del administrador). En modo Access el botón no aparece |  |
+| 22 | `administrador` | Asignar un Director con un usuario que no está en `cl_Resp_Gest_Arch` / provocar un error a mitad | Mensaje de error y ningún cambio guardado |  |
 
 ## Qué mirar además
 
