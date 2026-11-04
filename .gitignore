@@ -6,3 +6,7 @@ __recovery/
 Win32/.superpowers/
 Pruebas/Win32/
 Pruebas/*.dcu
+Win32/
+*.mdb
+*.ldb
+*.laccdb
