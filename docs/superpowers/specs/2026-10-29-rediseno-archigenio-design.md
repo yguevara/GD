@@ -188,3 +188,9 @@ Tablas nuevas, todas aditivas y creadas en SQL Server (en Access se crean vacía
 - Captura masiva (punto 10, solo el esquema): `tb_lote_captura (idlote, fecha, user_id, origen, estado, IdEstructura, id, codsubs)`, `tb_lote_captura_item (idlote, orden, archivo, codigo_barras, estado, Codigodoc, error)` y `tb_regla_carpeta (idregla, ruta, IdEstructura, id, codsubs, user_id, activa)`.
 
 Restricción: ninguno de estos cambios puede afectar a un ejecutable antiguo ni a los datos existentes.
+
+## 15. Decisiones de la Fase 1 (dueño del producto, 2026-11-04)
+
+- **Pantalla principal: variante A (barra lateral) con el buscador arriba.** Columna de iconos a la izquierda para lo secundario (Inicio, Archivo, Traslados, Préstamos, Gestión), el árbol al lado y el trabajo a la derecha. Maqueta aprobada: https://claude.ai/artifact/Qd8aUcEcfhfHFn1UtP5c74
+- **Ámbito de la búsqueda.** La búsqueda alcanza todos los nodos de la aplicación, no solo los que el usuario ve en el árbol. En los nodos donde no tiene permiso devuelve solo la documentación pública. El usuario debe indicar si la búsqueda es **general** (todo el archivo) o **en el nodo actual**; la interfaz no elige por él en silencio. En ambos ámbitos se aplica siempre el filtro de alcance (`FiltroDocumentos`).
+- **Mis llamadas (a revisar):** el ámbito «nodo actual» incluye los descendientes del nodo; el ámbito por defecto al abrir es «general» y se recuerda la última elección durante la sesión; un resultado público de un nodo que el usuario no ve en el árbol se abre directamente, sin navegar al árbol, y muestra su ruta como texto.
