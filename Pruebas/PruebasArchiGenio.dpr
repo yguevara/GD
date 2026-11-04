@@ -18,7 +18,9 @@ uses
   UTopografia in '..\UTopografia.pas',
   UPruebasTopografia in 'UPruebasTopografia.pas',
   UAsignacionDatos in '..\UAsignacionDatos.pas',
-  UPruebasAsignacion in 'UPruebasAsignacion.pas';
+  UPruebasAsignacion in 'UPruebasAsignacion.pas',
+  UBusqueda in '..\UBusqueda.pas',
+  UPruebasBusqueda in 'UPruebasBusqueda.pas';
 
 var
   Corredor: ITestRunner;
