@@ -30,13 +30,21 @@ type
     Hasta: string;
   end;
 
+  { abGeneral: todos los nodos (sin permiso solo salen los documentos publicos,
+    lo garantiza el filtro de alcance). abNodoActual: un nodo y sus descendientes. }
+  TAmbitoBusqueda = (abGeneral, abNodoActual);
+
   { CodSubs = '' busca en todas las subseries del alcance. Limite <= 0 usa
-    LIMITE_BUSQUEDA_DEFECTO. }
+    LIMITE_BUSQUEDA_DEFECTO. IdsNodo: los IdEstructura LITERALES (tal como estan
+    guardados) del nodo y sus descendientes; vacio con abGeneral. El ambito solo
+    agrega una restriccion mas: el filtro de alcance siempre se aplica. }
   TPedidoBusqueda = record
     Texto: string;
     CodSubs: string;
     Condiciones: TArray<TCondicionCampo>;
     Limite: Integer;
+    Ambito: TAmbitoBusqueda;
+    IdsNodo: TArray<string>;
   end;
 
 const
@@ -126,6 +134,8 @@ var
   FS: TFormatSettings;
 begin
   Result := '';
+  if (P.Ambito = abNodoActual) and (Length(P.IdsNodo) = 0) then
+    Exit('Elija un nodo del arbol para buscar en el nodo actual.');
   if (Trim(P.Texto) = '') and (P.CodSubs = '') and (Length(P.Condiciones) = 0) then
     Exit('Escriba un texto, o elija una subserie o un filtro, para buscar.');
   FS := FormatoInvariante;
@@ -263,6 +273,20 @@ begin
 
     if Pedido.CodSubs <> '' then
       Y('S.codsubs = ' + NuevoParam(Pedido.CodSubs));
+
+    if Pedido.Ambito = abNodoActual then
+    begin
+      if Length(Pedido.IdsNodo) = 0 then
+        raise EArgumentException.Create('El ambito nodo actual requiere nodos');
+      Partes := '';
+      for Nombre in Pedido.IdsNodo do
+      begin
+        if Partes <> '' then
+          Partes := Partes + ', ';
+        Partes := Partes + NuevoParam(Nombre);
+      end;
+      Y('S.IdEstructura IN (' + Partes + ')');
+    end;
 
     Texto := Trim(Pedido.Texto);
     if Texto <> '' then

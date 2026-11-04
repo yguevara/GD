@@ -44,6 +44,18 @@ type
     procedure Buscar_PorcientoYApostrofeSonLiterales;
     [Test]
     procedure Buscar_ConTablaMd;
+    [Test]
+    procedure Buscar_GeneralUsuarioSinAsignaciones_SoloPublicas;
+    [Test]
+    procedure Buscar_NodoActualSinPermiso_SoloPublicas;
+    [Test]
+    procedure Buscar_NodoActualConPermiso;
+    [Test]
+    procedure Buscar_NodoActualIncluyeDescendientes;
+    [Test]
+    procedure NodosDelAmbito_ClavesIrregulares;
+    [Test]
+    procedure Buscar_AccesoSeMapeaDeLaSubserie;
   end;
 
   [TestFixture]
@@ -68,6 +80,8 @@ type
     procedure Access_PorcientoYApostrofeSonLiterales;
     [Test]
     procedure Access_ConTablaMd;
+    [Test]
+    procedure Access_NodoActualIncluyeDescendientes;
   end;
 
 implementation
@@ -180,6 +194,8 @@ begin
   P.Texto := Texto;
   P.CodSubs := '014001';
   P.Limite := 100000;
+  P.Ambito := abGeneral;
+  P.IdsNodo := nil;
   if Campo = '' then
     P.Condiciones := nil
   else
@@ -229,6 +245,100 @@ begin
     'texto y campo a la vez');
 end;
 
+function ClaveN(const AIdEstructura: string; AId: Integer): TClaveNodo;
+begin
+  Result.IdEstructura := AIdEstructura;
+  Result.Id := AId;
+end;
+
+{ Documento propio de la prueba (titulo TITULO_PRUEBA), dentro de la transaccion. }
+procedure SembrarDocPropio(Conn: TFDConnection; const IdEstr: string; Id: Integer;
+  const CodSubs, Codigodoc: string);
+begin
+  if Integer(Conn.ExecSQLScalar('SELECT COUNT(*) FROM tb_Serietree WHERE ' +
+    'IdEstructura = :a AND id = :b AND codsubs = :c', [IdEstr, Id, CodSubs])) = 0 then
+    Conn.ExecSQL('INSERT INTO tb_Serietree (IdEstructura, id, codsubs) ' +
+      'VALUES (:a, :b, :c)', [IdEstr, Id, CodSubs]);
+  Conn.ExecSQL('INSERT INTO tb_SeriesDatos (IdEstructura, id, codsubs, Fecha, ' +
+    'Version, Codigodoc, titulodoc) VALUES (:a, :b, :c, :d, :e, :f, :g)',
+    [IdEstr, Id, CodSubs, EncodeDate(2026, 10, 29), '1', Codigodoc, TITULO_PRUEBA]);
+end;
+
+{ Busca TITULO_PRUEBA con el ambito dado; el llamador libera la tabla. }
+function BuscarEnAmbito(Conn: TFDConnection; ConSqlServer: Boolean;
+  const Usuario: string; EsAdmin: Boolean; Ambito: TAmbitoBusqueda;
+  const Nodo: TClaveNodo): TFDMemTable;
+var
+  Al: TAlcanceUsuario;
+  P: TPedidoBusqueda;
+  Trunc: Boolean;
+begin
+  P.Texto := TITULO_PRUEBA;
+  P.CodSubs := '';
+  P.Condiciones := nil;
+  P.Limite := 100000;
+  P.Ambito := Ambito;
+  P.IdsNodo := nil;
+  if Ambito = abNodoActual then
+    P.IdsNodo := NodosDelAmbito(Conn, Nodo);
+  if ConSqlServer then
+    Al := CargarAlcance(Conn, Usuario, EsAdmin)
+  else
+    Al := nil;
+  try
+    Result := UBusquedaDatos.Buscar(Conn, Al, P, ConSqlServer, Trunc);
+  finally
+    Al.Free;
+  end;
+end;
+
+function FilasEn(T: TFDMemTable; const IdEstr: string): Integer;
+var
+  Marca: TBookmark;
+begin
+  Result := 0;
+  Marca := T.GetBookmark;
+  T.DisableControls;
+  try
+    T.First;
+    while not T.Eof do
+    begin
+      if SameText(Trim(T.FieldByName('IdEstructura').AsString), IdEstr) then
+        Inc(Result);
+      T.Next;
+    end;
+  finally
+    T.GotoBookmark(Marca);
+    T.FreeBookmark(Marca);
+    T.EnableControls;
+  end;
+end;
+
+{ Filas cuyo Acceso es distinto de Valor. }
+function FilasConAccesoDistinto(T: TFDMemTable; const Valor: string): Integer;
+begin
+  Result := 0;
+  T.First;
+  while not T.Eof do
+  begin
+    if T.FieldByName('Acceso').AsString <> Valor then
+      Inc(Result);
+    T.Next;
+  end;
+end;
+
+function FilasConCodsubs(T: TFDMemTable; const CodSubs: string): Integer;
+begin
+  Result := 0;
+  T.First;
+  while not T.Eof do
+  begin
+    if T.FieldByName('codsubs').AsString = CodSubs then
+      Inc(Result);
+    T.Next;
+  end;
+end;
+
 { TPruebasBusquedaDatos }
 
 procedure TPruebasBusquedaDatos.Buscar_PedidoVacio_Lanza;
@@ -240,6 +350,8 @@ begin
   P.CodSubs := '';
   P.Condiciones := nil;
   P.Limite := 0;
+  P.Ambito := abGeneral;
+  P.IdsNodo := nil;
   Assert.WillRaise(
     procedure begin UBusquedaDatos.Buscar(nil, nil, P, True, Trunc).Free; end,
     Exception);
@@ -257,6 +369,8 @@ begin
   P.Condiciones[0].Desde := 'x';
   P.Condiciones[0].Hasta := '';
   P.Limite := 0;
+  P.Ambito := abGeneral;
+  P.IdsNodo := nil;
   Assert.WillRaise(
     procedure begin UBusquedaDatos.Buscar(nil, nil, P, True, Trunc).Free; end,
     Exception);
@@ -326,6 +440,8 @@ begin
   P.CodSubs := CodSubs;
   P.Condiciones := nil;
   P.Limite := Limite;
+  P.Ambito := abGeneral;
+  P.IdsNodo := nil;
   Al := CargarAlcance(FConn, Usuario, EsAdmin);
   try
     T := UBusquedaDatos.Buscar(FConn, Al, P, True, Truncado);
@@ -388,6 +504,157 @@ begin
     'un % solo debe buscar el caracter, no todo');
 end;
 
+procedure TPruebasBusquedaSql.Buscar_GeneralUsuarioSinAsignaciones_SoloPublicas;
+var
+  T: TFDMemTable;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB'); Exit; end;
+  // 074 es la unica subserie publica de la base de prueba
+  SembrarDocPropio(FConn, 'A.4.6', 160, '074', 'PBAMB-1');
+  T := BuscarEnAmbito(FConn, True, 'prueba_alc_vacio', False, abGeneral, ClaveN('', 0));
+  try
+    Assert.IsTrue(T.RecordCount > 0, 'debe devolver al menos el documento publico');
+    Assert.AreEqual(0, FilasConAccesoDistinto(T, 'Publica'), 'solo publicas');
+  finally
+    T.Free;
+  end;
+end;
+
+procedure TPruebasBusquedaSql.Buscar_NodoActualSinPermiso_SoloPublicas;
+var
+  T: TFDMemTable;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB'); Exit; end;
+  SembrarDocPropio(FConn, 'A.4.6', 160, '074', 'PBAMB-1');
+  T := BuscarEnAmbito(FConn, True, 'prueba_alc_usr1', False, abNodoActual,
+    ClaveN('A.4.6', 160));
+  try
+    Assert.IsTrue(T.RecordCount > 0, 'debe devolver al menos el documento publico');
+    Assert.AreEqual(0, FilasConAccesoDistinto(T, 'Publica'), 'solo publicas');
+  finally
+    T.Free;
+  end;
+end;
+
+procedure TPruebasBusquedaSql.Buscar_NodoActualConPermiso;
+var
+  T: TFDMemTable;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB'); Exit; end;
+  SembrarDocPropio(FConn, 'A.4.3', 104, '014001', 'PBAMB-1');
+  SembrarDocPropio(FConn, 'A.4.3', 104, '074', 'PBAMB-2');
+  T := BuscarEnAmbito(FConn, True, 'prueba_alc_usr1', False, abNodoActual,
+    ClaveN('A.4.3', 104));
+  try
+    // el de 014001 (permitido) y el publico; no los 2 de '003' del mismo nodo
+    Assert.AreEqual(2, T.RecordCount);
+    Assert.AreEqual(1, FilasConCodsubs(T, '014001'), '014001 del nodo');
+    Assert.AreEqual(1, FilasConCodsubs(T, '074'), 'publico del nodo');
+    Assert.AreEqual(2, FilasEn(T, 'A.4.3'), 'todas del nodo');
+  finally
+    T.Free;
+  end;
+  // en A.4 (padre) tampoco ve los de 014001 de A.4 ni los de A.4.6
+  T := BuscarEnAmbito(FConn, True, 'prueba_alc_usr1', False, abNodoActual,
+    ClaveN('A.4', 101));
+  try
+    Assert.AreEqual(2, T.RecordCount, 'misma cobertura dentro del padre');
+  finally
+    T.Free;
+  end;
+end;
+
+procedure TPruebasBusquedaSql.Buscar_NodoActualIncluyeDescendientes;
+var
+  T: TFDMemTable;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB'); Exit; end;
+  T := BuscarEnAmbito(FConn, True, 'administrador', True, abNodoActual,
+    ClaveN('A.4', 101));
+  try
+    Assert.AreEqual(3, FilasEn(T, 'A.4.6'), 'descendiente A.4.6');
+    Assert.AreEqual(5, FilasEn(T, 'A.4'), 'el propio nodo');
+    Assert.AreEqual(2, FilasEn(T, 'A.4.3'), 'descendiente A.4.3');
+    Assert.AreEqual(0, FilasEn(T, 'A.1.7'), 'otra rama');
+    Assert.AreEqual(10, T.RecordCount, 'nada mas');
+  finally
+    T.Free;
+  end;
+end;
+
+procedure TPruebasBusquedaSql.NodosDelAmbito_ClavesIrregulares;
+var
+  IdA1: Integer;
+  Ids: TArray<string>;
+  S: string;
+  Minus, ConEspacio, ElPropio: Boolean;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB'); Exit; end;
+  IdA1 := Integer(FConn.ExecSQLScalar(
+    'SELECT MIN(id) FROM tb_tree WHERE IdEstructura = ''A.1'''));
+  Assert.IsTrue(IdA1 > 0, 'la base de prueba debe tener el nodo A.1');
+  FConn.ExecSQL('INSERT INTO tb_tree (IdEstructura, id, padre) VALUES (:a, :b, :c)',
+    ['a.1.4', 990101, IdA1]);
+  FConn.ExecSQL('INSERT INTO tb_tree (IdEstructura, id, padre) VALUES (:a, :b, :c)',
+    ['A.1.6 ', 990102, IdA1]);
+  Ids := NodosDelAmbito(FConn, ClaveN('A.1', IdA1));
+  Minus := False;
+  ConEspacio := False;
+  ElPropio := False;
+  for S in Ids do
+  begin
+    if S = 'a.1.4' then Minus := True;
+    if S = 'A.1.6 ' then ConEspacio := True;
+    if S = 'A.1' then ElPropio := True;
+  end;
+  Assert.IsTrue(Minus, 'a.1.4 con su escritura literal');
+  Assert.IsTrue(ConEspacio, 'A.1.6 con el espacio final');
+  Assert.IsTrue(ElPropio, 'el propio nodo');
+end;
+
+procedure TPruebasBusquedaSql.Buscar_AccesoSeMapeaDeLaSubserie;
+var
+  T: TFDMemTable;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB'); Exit; end;
+  // 003: acceso 0; 074: 1; 014001 pasa a 3
+  FConn.ExecSQL('UPDATE cl_subseries SET acceso = 3 WHERE codsubs = ''014001''');
+  SembrarDocPropio(FConn, 'A.4.3', 104, '074', 'PBAMB-1');
+  T := BuscarEnAmbito(FConn, True, 'administrador', True, abGeneral, ClaveN('', 0));
+  try
+    Assert.IsTrue(T.RecordCount > 0);
+    T.First;
+    while not T.Eof do
+    begin
+      if T.FieldByName('codsubs').AsString = '014001' then
+        Assert.AreEqual('Secreta', T.FieldByName('Acceso').AsString)
+      else if T.FieldByName('codsubs').AsString = '074' then
+        Assert.AreEqual('Publica', T.FieldByName('Acceso').AsString)
+      else if T.FieldByName('codsubs').AsString = '003' then
+        Assert.AreEqual('Sin definir', T.FieldByName('Acceso').AsString);
+      T.Next;
+    end;
+    Assert.IsTrue(FilasConCodsubs(T, '014001') > 0, 'hay secretas');
+    Assert.IsTrue(FilasConCodsubs(T, '074') > 0, 'hay publicas');
+    Assert.IsTrue(FilasConCodsubs(T, '003') > 0, 'hay sin definir');
+  finally
+    T.Free;
+  end;
+  FConn.ExecSQL('UPDATE cl_subseries SET acceso = 2 WHERE codsubs = ''014001''');
+  T := BuscarEnAmbito(FConn, True, 'administrador', True, abGeneral, ClaveN('', 0));
+  try
+    T.First;
+    while not T.Eof do
+    begin
+      if T.FieldByName('codsubs').AsString = '014001' then
+        Assert.AreEqual('Restringida', T.FieldByName('Acceso').AsString);
+      T.Next;
+    end;
+  finally
+    T.Free;
+  end;
+end;
+
 { TPruebasBusquedaAccess }
 { Contra la COPIA de una base .mdb (ARCHIGENIO_TEST_MDB). En Access no hay
   alcance (Alcance = nil, como en la aplicacion real). }
@@ -430,6 +697,8 @@ begin
   P.CodSubs := CodSubs;
   P.Condiciones := nil;
   P.Limite := Limite;
+  P.Ambito := abGeneral;
+  P.IdsNodo := nil;
   T := UBusquedaDatos.Buscar(FConn, nil, P, False, Truncado);
   try
     Result := T.RecordCount;
@@ -491,6 +760,22 @@ procedure TPruebasBusquedaAccess.Access_ConTablaMd;
 begin
   if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_MDB'); Exit; end;
   VerificarMd(FConn, False);
+end;
+
+procedure TPruebasBusquedaAccess.Access_NodoActualIncluyeDescendientes;
+var
+  T: TFDMemTable;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_MDB'); Exit; end;
+  T := BuscarEnAmbito(FConn, False, '', True, abNodoActual, ClaveN('A.4', 101));
+  try
+    Assert.IsTrue(FilasEn(T, 'A.4.6') > 0, 'descendiente A.4.6');
+    Assert.IsTrue(FilasEn(T, 'A.4') > 0, 'el propio nodo');
+    Assert.AreEqual(0, FilasEn(T, 'A.1.7'), 'otra rama');
+    Assert.IsNotNull(T.FindField('Acceso'), 'columna Acceso presente');
+  finally
+    T.Free;
+  end;
 end;
 
 initialization

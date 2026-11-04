@@ -301,7 +301,9 @@ begin
   Result.Texto := Trim(FTexto.Text);
   Result.CodSubs := FCodigos[FSubserie.ItemIndex];
   Result.Limite := 0;
-  L := TList<TCondicionCampo>.Create;
+  Result.Ambito := abGeneral;
+  Result.IdsNodo := nil;
+  L :=TList<TCondicionCampo>.Create;
   try
     for Ed in FEditores do
     begin

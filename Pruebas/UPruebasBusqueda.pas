@@ -42,6 +42,12 @@ type
     procedure SqlSubserie_IncluyeAlcance;
     [Test]
     procedure SqlSubserie_FechaHastaIncluyeElDia;
+    [Test]
+    procedure ValidarPedido_NodoActualSinNodo;
+    [Test]
+    procedure SqlSubserie_NodoActualRestringeIdEstructura;
+    [Test]
+    procedure SqlSubserie_NodoActualConservaElAlcance;
   end;
 
 implementation
@@ -64,6 +70,8 @@ begin
   Result.CodSubs := '014001';
   Result.Condiciones := nil;
   Result.Limite := 0;
+  Result.Ambito := abGeneral;
+  Result.IdsNodo := nil;
 end;
 
 function TPruebasBusqueda.Cond(const Campo, Desde, Hasta: string): TCondicionCampo;
@@ -229,6 +237,60 @@ begin
         'la cota superior es el dia siguiente a Hasta');
     end;
   Assert.AreEqual(2, Fechas);
+end;
+
+procedure TPruebasBusqueda.ValidarPedido_NodoActualSinNodo;
+var
+  P: TPedidoBusqueda;
+begin
+  P := Pedido('acta');
+  P.Ambito := abNodoActual;
+  P.IdsNodo := nil;
+  Assert.AreEqual('Elija un nodo del arbol para buscar en el nodo actual.',
+    ValidarPedido(P));
+  P.Ambito := abGeneral;
+  Assert.AreEqual('', ValidarPedido(P));
+  P.Ambito := abNodoActual;
+  P.IdsNodo := ['A.4.3'];
+  Assert.AreEqual('', ValidarPedido(P));
+end;
+
+procedure TPruebasBusqueda.SqlSubserie_NodoActualRestringeIdEstructura;
+var
+  P: TPedidoBusqueda;
+  F: TFiltroSql;
+begin
+  P := Pedido('acta');
+  P.Ambito := abNodoActual;
+  P.IdsNodo := ['A.4.3', 'A.4.3.1'];
+  F := SqlSubserie(P, Campos, '', SinAlcance, True);
+  Assert.IsTrue(Pos('S.IdEstructura IN (', F.Condicion) > 0, 'falta el IN');
+  Assert.AreEqual(0, Pos('A.4.3', F.Condicion), 'los nodos no van en el SQL');
+  Assert.IsTrue(TieneValor(F, 'A.4.3'), 'falta el primer nodo como parametro');
+  Assert.IsTrue(TieneValor(F, 'A.4.3.1'), 'falta el segundo nodo como parametro');
+  P.Ambito := abGeneral;
+  P.IdsNodo := nil;
+  F := SqlSubserie(P, Campos, '', SinAlcance, True);
+  Assert.AreEqual(0, Pos('S.IdEstructura IN (', F.Condicion), 'el general no restringe');
+end;
+
+procedure TPruebasBusqueda.SqlSubserie_NodoActualConservaElAlcance;
+var
+  A, F: TFiltroSql;
+  P: TPedidoBusqueda;
+begin
+  A.Condicion := '(S.IdEstructura = :alcd_1)';
+  SetLength(A.Parametros, 1);
+  A.Parametros[0].Nombre := 'alcd_1';
+  A.Parametros[0].Valor := 'A.4.3';
+  P := Pedido('acta');
+  P.Ambito := abNodoActual;
+  P.IdsNodo := ['A.4.3', 'A.4.3.1'];
+  F := SqlSubserie(P, Campos, '', A, True);
+  Assert.IsTrue(Pos('WHERE ((S.IdEstructura = :alcd_1)) AND', F.Condicion) > 0,
+    'el alcance debe seguir antes de las demas restricciones');
+  Assert.IsTrue(Pos(' AND S.IdEstructura IN (', F.Condicion) > 0);
+  Assert.IsTrue(TieneValor(F, 'A.4.3'), 'se pierde el parametro del alcance');
 end;
 
 initialization

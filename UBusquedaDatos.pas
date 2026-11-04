@@ -20,8 +20,14 @@ function CargarCamposSubserie(Conn: TFDConnection;
   seguro o si la tabla no existe. }
 function TablaMetadatos(Conn: TFDConnection; const CodSubs: string): string;
 
+{ Los IdEstructura LITERALES (tal como estan guardados en tb_tree, con su
+  mayuscula y espacios) del nodo y de todos sus descendientes. Es el valor de
+  TPedidoBusqueda.IdsNodo para el ambito abNodoActual. }
+function NodosDelAmbito(Conn: TFDConnection; const Nodo: TClaveNodo): TArray<string>;
+
 { El resultado es del llamador. Columnas: IdEstructura, id, codsubs, Fecha,
-  Version, Codigodoc, titulodoc, NombreSubserie. Lanza Exception con el
+  Version, Codigodoc, titulodoc, NombreSubserie, Acceso (Publica, Restringida,
+  Secreta o Sin definir, segun cl_subseries.acceso). Lanza Exception con el
   mensaje para el usuario si el pedido no es valido. Alcance = nil: todo. }
 function Buscar(Conn: TFDConnection; Alcance: TAlcanceUsuario;
   const Pedido: TPedidoBusqueda; ConSqlServer: Boolean;
@@ -156,21 +162,73 @@ begin
   end;
 end;
 
-function NombreDeSubserie(Conn: TFDConnection; const CodSubs: string): string;
+{ Nombre y nivel de acceso de la subserie. cl_acceso: 1 Publica, 2 Restringida,
+  3 Secreta; cualquier otro valor (0, NULL, sin fila) es 'Sin definir'. }
+procedure DatosDeSubserie(Conn: TFDConnection; const CodSubs: string;
+  out Nombre, Acceso: string);
 var
   Q: TFDQuery;
 begin
-  Result := CodSubs;
+  Nombre := CodSubs;
+  Acceso := 'Sin definir';
   Q := TFDQuery.Create(nil);
   try
     Q.Connection := Conn;
-    Q.SQL.Text := 'SELECT subserie FROM cl_subseries WHERE codsubs = :cod';
+    Q.SQL.Text := 'SELECT subserie, acceso FROM cl_subseries WHERE codsubs = :cod';
     Q.ParamByName('cod').AsString := CodSubs;
     Q.Open;
     if not Q.IsEmpty then
-      Result := Q.Fields[0].AsString;
+    begin
+      Nombre := Q.Fields[0].AsString;
+      if not Q.Fields[1].IsNull then
+        case Q.Fields[1].AsInteger of
+          1: Acceso := 'Publica';
+          2: Acceso := 'Restringida';
+          3: Acceso := 'Secreta';
+        end;
+    end;
   finally
     Q.Free;
+  end;
+end;
+
+function NodosDelAmbito(Conn: TFDConnection; const Nodo: TClaveNodo): TArray<string>;
+var
+  Arbol: TArbolNodos;
+  Q: TFDQuery;
+  Claves: TList<TClaveNodo>;
+  Lit, Res: TList<string>;
+  C: TClaveNodo;
+  I: Integer;
+begin
+  Arbol := TArbolNodos.Create;
+  Q := TFDQuery.Create(nil);
+  Lit := TList<string>.Create;
+  Claves := TList<TClaveNodo>.Create;
+  Res := TList<string>.Create;
+  try
+    Q.Connection := Conn;
+    Q.SQL.Text := 'SELECT IdEstructura, id, padre FROM tb_tree';
+    Q.Open;
+    while not Q.Eof do
+    begin
+      C.IdEstructura := Q.Fields[0].AsString;
+      C.Id := Q.Fields[1].AsInteger;
+      Arbol.Agregar(C, Q.Fields[2].AsInteger); // padre NULL = 0 = raiz
+      Lit.Add(C.IdEstructura);                 // escritura literal, como esta guardada
+      Claves.Add(C);
+      Q.Next;
+    end;
+    for I := 0 to Claves.Count - 1 do
+      if Arbol.EsDescendiente(Nodo, Claves[I]) and not Res.Contains(Lit[I]) then
+        Res.Add(Lit[I]);
+    Result := Res.ToArray;
+  finally
+    Res.Free;
+    Claves.Free;
+    Lit.Free;
+    Q.Free;
+    Arbol.Free;
   end;
 end;
 
@@ -188,6 +246,7 @@ begin
       Add('Codigodoc', ftString, 20);
       Add('titulodoc', ftString, 255);
       Add('NombreSubserie', ftString, 255);
+      Add('Acceso', ftString, 20);
     end;
     Result.CreateDataSet;
   except
@@ -200,7 +259,7 @@ function Buscar(Conn: TFDConnection; Alcance: TAlcanceUsuario;
   const Pedido: TPedidoBusqueda; ConSqlServer: Boolean;
   out Truncado: Boolean): TFDMemTable;
 var
-  Msg, Cod, Tabla, Nombre: string;
+  Msg, Cod, Tabla, Nombre, Acceso: string;
   Limite, I: Integer;
   Alc, F: TFiltroSql;
   Subs: TArray<string>;
@@ -249,7 +308,7 @@ begin
         Q.SQL.Text := F.Condicion;
         AplicarParametros(Q, F);
         Q.Open;
-        Nombre := NombreDeSubserie(Conn, Cod);
+        DatosDeSubserie(Conn, Cod, Nombre, Acceso);
         while (not Q.Eof) and (not Truncado) do
         begin
           if Result.RecordCount >= Limite then
@@ -260,6 +319,7 @@ begin
             for I := 0 to 6 do
               Result.Fields[I].Value := Q.Fields[I].Value;
             Result.FieldByName('NombreSubserie').AsString := Nombre;
+            Result.FieldByName('Acceso').AsString := Acceso;
             Result.Post;
             Q.Next;
           end;
