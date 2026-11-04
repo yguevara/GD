@@ -20,7 +20,9 @@ uses
   UAsignacionDatos in '..\UAsignacionDatos.pas',
   UPruebasAsignacion in 'UPruebasAsignacion.pas',
   UBusqueda in '..\UBusqueda.pas',
-  UPruebasBusqueda in 'UPruebasBusqueda.pas';
+  UBusquedaDatos in '..\UBusquedaDatos.pas',
+  UPruebasBusqueda in 'UPruebasBusqueda.pas',
+  UPruebasBusquedaDatos in 'UPruebasBusquedaDatos.pas';
 
 var
   Corredor: ITestRunner;
