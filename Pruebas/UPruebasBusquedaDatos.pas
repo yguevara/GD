@@ -2,6 +2,7 @@ unit UPruebasBusquedaDatos;
 
 { Pruebas de UBusquedaDatos.
   - TPruebasBusquedaDatos: validaciones de Buscar que no tocan la base.
+  - TPruebasBusquedaAccess: contra la copia de un .mdb (ARCHIGENIO_TEST_MDB).
   - TPruebasBusquedaSql: contra SQL Server (ARCHIGENIO_TEST_DB), con los datos
     de TEscenario sembrados dentro de una transaccion que se deshace. }
 
@@ -43,17 +44,40 @@ type
     procedure Buscar_PorcientoYApostrofeSonLiterales;
   end;
 
+  [TestFixture]
+  TPruebasBusquedaAccess = class
+  private
+    FConn: TFDConnection;
+    FEsc: TEscenario;
+    function Buscar(const Texto, CodSubs: string; Limite: Integer;
+      out Truncado: Boolean): Integer;
+  public
+    [Setup]
+    procedure Preparar;
+    [TearDown]
+    procedure Limpiar;
+    [Test]
+    procedure Access_BuscaTextoEnTitulo;
+    [Test]
+    procedure Access_Truncado;
+    [Test]
+    procedure Access_TablaMdInexistente;
+    [Test]
+    procedure Access_PorcientoYApostrofeSonLiterales;
+  end;
+
 implementation
 
 uses
   System.SysUtils, Data.DB, UAlcance, UAlcanceDatos, UBusqueda, UBusquedaDatos,
   FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.UI.Intf,
   FireDAC.Phys.Intf, FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Stan.Async,
-  FireDAC.Phys, FireDAC.Phys.MSSQL, FireDAC.DApt, FireDAC.ConsoleUI.Wait,
+  FireDAC.Phys, FireDAC.Phys.MSSQL, FireDAC.Phys.MSAcc, FireDAC.DApt, FireDAC.ConsoleUI.Wait,
   FireDAC.Stan.Param, UEsquemaAlcance;
 
 const
   VAR_BD = 'ARCHIGENIO_TEST_DB';
+  VAR_MDB = 'ARCHIGENIO_TEST_MDB';
   TITULO_PRUEBA = 'prueba alcance';
 
 { TPruebasBusquedaDatos }
@@ -215,8 +239,102 @@ begin
     'un % solo debe buscar el caracter, no todo');
 end;
 
+{ TPruebasBusquedaAccess }
+{ Contra la COPIA de una base .mdb (ARCHIGENIO_TEST_MDB). En Access no hay
+  alcance (Alcance = nil, como en la aplicacion real). }
+
+procedure TPruebasBusquedaAccess.Preparar;
+var
+  Ruta: string;
+begin
+  FConn := nil;
+  FEsc := nil;
+  Ruta := GetEnvironmentVariable(VAR_MDB);
+  if Ruta = '' then
+    Exit;
+  FConn := TFDConnection.Create(nil);
+  FConn.LoginPrompt := False;
+  FConn.DriverName := 'MSAcc';
+  FConn.Params.Values['Database'] := Ruta;
+  FConn.Connected := True;
+  CrearEsquemaAlcance(FConn, False);
+  FEsc := TEscenario.Create(FConn);
+  FConn.StartTransaction;
+  FEsc.Sembrar;
+end;
+
+procedure TPruebasBusquedaAccess.Limpiar;
+begin
+  if (FConn <> nil) and FConn.InTransaction then
+    FConn.Rollback;
+  FreeAndNil(FEsc);
+  FreeAndNil(FConn);
+end;
+
+function TPruebasBusquedaAccess.Buscar(const Texto, CodSubs: string;
+  Limite: Integer; out Truncado: Boolean): Integer;
+var
+  P: TPedidoBusqueda;
+  T: TFDMemTable;
+begin
+  P.Texto := Texto;
+  P.CodSubs := CodSubs;
+  P.Condiciones := nil;
+  P.Limite := Limite;
+  T := UBusquedaDatos.Buscar(FConn, nil, P, False, Truncado);
+  try
+    Result := T.RecordCount;
+  finally
+    T.Free;
+  end;
+end;
+
+procedure TPruebasBusquedaAccess.Access_BuscaTextoEnTitulo;
+var
+  Trunc: Boolean;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_MDB'); Exit; end;
+  // Sembrar() crea 2 + 3 + 4 + 5 documentos de prueba
+  Assert.AreEqual(14, Buscar(TITULO_PRUEBA, '', 100000, Trunc));
+  Assert.IsFalse(Trunc);
+end;
+
+procedure TPruebasBusquedaAccess.Access_Truncado;
+var
+  Trunc: Boolean;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_MDB'); Exit; end;
+  Assert.AreEqual(2, Buscar(TITULO_PRUEBA, '', 2, Trunc));
+  Assert.IsTrue(Trunc);
+end;
+
+procedure TPruebasBusquedaAccess.Access_TablaMdInexistente;
+var
+  Trunc: Boolean;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_MDB'); Exit; end;
+  FConn.ExecSQL('UPDATE cl_subseries SET NombreTablaMetadatos = ''md_no_existe_xyz'' ' +
+    'WHERE codsubs = ''014001''');
+  Assert.AreEqual(12, Buscar(TITULO_PRUEBA, '014001', 100000, Trunc));
+end;
+
+procedure TPruebasBusquedaAccess.Access_PorcientoYApostrofeSonLiterales;
+var
+  Trunc: Boolean;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_MDB'); Exit; end;
+  FConn.ExecSQL('INSERT INTO tb_SeriesDatos (IdEstructura, id, codsubs, Fecha, Version, ' +
+    'Codigodoc, titulodoc) VALUES (''A.4.3'', 104, ''003'', :f, ''1'', ''PBUS-1'', :t)',
+    [EncodeDate(2026, 10, 29), 'Acta 100% O''Brien']);
+  Assert.AreEqual(1, Buscar('100%', '', 100000, Trunc), 'porciento');
+  Assert.AreEqual(1, Buscar('O''Brien', '', 100000, Trunc), 'apostrofe');
+  Assert.AreEqual(1, Buscar('%', '', 100000, Trunc),
+    'un % solo debe buscar el caracter, no todo');
+end;
+
 initialization
   TDUnitX.RegisterTestFixture(TPruebasBusquedaDatos);
   TDUnitX.RegisterTestFixture(TPruebasBusquedaSql);
+  TDUnitX.RegisterTestFixture(TPruebasBusquedaAccess);
 
 end.
