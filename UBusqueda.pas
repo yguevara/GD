@@ -49,6 +49,9 @@ type
 
 const
   LIMITE_BUSQUEDA_DEFECTO = 500;
+  { Nodos del ambito que viajan como parametro; el resto, como literal. Evita
+    pasar del tope de parametros de SQL Server (~2100) en subarboles grandes. }
+  LIMITE_NODOS_PARAMETRO = 500;
 
 function TipoDeNombre(const Nombre: string): TTipoCampo;
 function NombreSeguro(const Nombre: string): Boolean;
@@ -169,6 +172,7 @@ var
   Campo: TCampoBusqueda;
   Hallado: Boolean;
   C: TCampoBusqueda;
+  NumNodo: Integer;
 
   function NuevoParam(const Valor: Variant): string;
   var
@@ -279,11 +283,19 @@ begin
       if Length(Pedido.IdsNodo) = 0 then
         raise EArgumentException.Create('El ambito nodo actual requiere nodos');
       Partes := '';
+      // Pasado el tope, los ids van como literal con el apostrofe doblado. Es
+      // seguro: vienen de tb_tree (la base), no de texto del usuario.
+      NumNodo := 0;
       for Nombre in Pedido.IdsNodo do
       begin
         if Partes <> '' then
           Partes := Partes + ', ';
-        Partes := Partes + NuevoParam(Nombre);
+        Inc(NumNodo);
+        if NumNodo <= LIMITE_NODOS_PARAMETRO then
+          Partes := Partes + NuevoParam(Nombre)
+        else
+          Partes := Partes + '''' + StringReplace(Nombre, '''', '''''',
+            [rfReplaceAll]) + '''';
       end;
       Y('S.IdEstructura IN (' + Partes + ')');
     end;

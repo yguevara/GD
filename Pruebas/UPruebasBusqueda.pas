@@ -48,6 +48,8 @@ type
     procedure SqlSubserie_NodoActualRestringeIdEstructura;
     [Test]
     procedure SqlSubserie_NodoActualConservaElAlcance;
+    [Test]
+    procedure SqlSubserie_NodoActualMuchosNodos;
   end;
 
 implementation
@@ -292,6 +294,29 @@ begin
   Assert.IsTrue(Pos(' AND S.IdEstructura IN (', F.Condicion) > 0);
   Assert.IsTrue(TieneValor(F, 'A.4.3'), 'se pierde el parametro del alcance');
 end;
+
+procedure TPruebasBusqueda.SqlSubserie_NodoActualMuchosNodos;
+var
+  P: TPedidoBusqueda;
+  F, F1: TFiltroSql;
+  I: Integer;
+begin
+  P := Pedido('acta');
+  P.Ambito := abNodoActual;
+  SetLength(P.IdsNodo, 1200);
+  for I := 0 to 1198 do
+    P.IdsNodo[I] := 'A.9.' + IntToStr(I + 1);
+  P.IdsNodo[1199] := 'A.9''x'; // despues del tope
+  F := SqlSubserie(P, Campos, '', SinAlcance, True);
+  P.IdsNodo := ['A.9.1'];
+  F1 := SqlSubserie(P, Campos, '', SinAlcance, True);
+  Assert.IsTrue(Length(F.Parametros) <= Length(F1.Parametros) + LIMITE_NODOS_PARAMETRO,
+    'los parametros de nodo no pasan del tope');
+  Assert.IsTrue(Pos('''A.9''''x''', F.Condicion) > 0, 'literal con apostrofe doblado');
+  Assert.IsTrue(TieneValor(F, 'A.9.1'), 'los primeros van como parametro');
+  Assert.AreEqual(0, Pos('''A.9.1''', F.Condicion), 'los primeros no son literales');
+  Assert.IsFalse(TieneValor(F, 'A.9.1100'), 'los ultimos no son parametros');
+  Assert.IsTrue(Pos('''A.9.1100''', F.Condicion) > 0, 'los ultimos son literales');end;
 
 initialization
   TDUnitX.RegisterTestFixture(TPruebasBusqueda);
