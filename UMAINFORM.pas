@@ -701,6 +701,7 @@ type
     procedure CreateVerticalGridRows(DBVerticalGrid: TcxDBVerticalGrid; Query: TFDQuery; LabelQuery: TFDQuery);
     procedure ConfigureNavigatorBar(DBVerticalGrid: TcxDBVerticalGrid);
     procedure ApplyBestFit(DBVerticalGrid: TcxDBVerticalGrid);
+    procedure BuscarDocumentosClick(Sender: TObject);
     function BuscarSeriesDatosDinamico(const Busqueda: string; AConnection: TFDConnection): TFDQuery;
     function BuscarSeriesDatosDinamicoSQLServer(const Busqueda: string; AConnection: TFDConnection): TFDQuery;
     function BuscarSeriesDatosDinamicoMSAccess(const Busqueda: string; AConnection: TFDConnection): TFDQuery;
@@ -746,7 +747,7 @@ var
 implementation
 
 uses
-  UAlcance, UTopografia, UHistory, UAbout, UAutentica, UCapaDatos, UUserGest, UDocManagement,
+  UAlcance, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UCapaDatos, UUserGest, UDocManagement,
   UCLSeriesDocumentales, UCLFtpServer, UGestEstruct, UMangementArch,
   UManagementFileSeries, UViewFunciones, UVeditor, UExcelExport, UManagementNode,
   USystemMsg, UNodeProperties, UCL_TiposExp, USysConfig, UTransferencias,
@@ -6732,6 +6733,21 @@ const
     end;
   end;
 
+  procedure AgregarMenuBusqueda;
+  var
+    Item: TMenuItem;
+  begin
+    // Entrada "Buscar documentos" en el menu de herramientas (por codigo, sin
+    // tocar el .dfm). FormShow puede ejecutarse mas de una vez: no se duplica.
+    if FindComponent('miBuscarDocumentos') <> nil then
+      Exit;
+    Item := TMenuItem.Create(Self);
+    Item.Name := 'miBuscarDocumentos';
+    Item.Caption := 'Buscar documentos';
+    Item.OnClick := BuscarDocumentosClick;
+    PMTool.Items.Insert(0, Item);
+  end;
+
   procedure FinalizeUI;
   begin
     // Restablece el estado y ajusta la interfaz de usuario
@@ -6746,7 +6762,13 @@ const
 begin
   // Ejecuta la carga de configuraciones y ajustes finales
   LoadTreeViewSettings;
+  AgregarMenuBusqueda;
   FinalizeUI;
+end;
+
+procedure TMAIN.BuscarDocumentosClick(Sender: TObject);
+begin
+  AbrirBusquedaDocumentos;
 end;
 {begin
   //show
