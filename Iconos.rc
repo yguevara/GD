@@ -1,5 +1,5 @@
 // Recursos de iconos (Tabler Icons, licencia MIT). Compilar con:
-//   "C:\Program Files (x86)\Embarcadero\Studio.0inrcc32.exe" Iconos.rc
+//   "C:\Program Files (x86)\Embarcadero\Studio\20.0\bin\brcc32.exe" -fo Iconos.res Iconos.rc
 // y generar Iconos.res en esta misma carpeta (se enlaza con {$R Iconos.res}).
 
 ICO_INICIO RCDATA "Iconos/inicio.png"

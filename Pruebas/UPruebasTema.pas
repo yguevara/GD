@@ -71,6 +71,9 @@ begin
   Assert.IsTrue(RazonContraste(T.Texto, T.Superficie) >= 4.5, 'Texto/Superficie');
   Assert.IsTrue(RazonContraste(T.TextoSobreAcento, T.Acento) >= 4.5, 'TextoSobreAcento/Acento');
   Assert.IsTrue(RazonContraste(T.Acento, T.Superficie) >= 3.0, 'Acento/Superficie');
+  Assert.IsTrue(RazonContraste(T.TextoSuave, T.Superficie) >= 4.5, 'TextoSuave/Superficie');
+  Assert.IsTrue(RazonContraste(T.TextoSuave, T.Fondo) >= 4.5, 'TextoSuave/Fondo');
+  Assert.IsTrue(RazonContraste(T.Aviso, T.Superficie) >= 4.5, 'Aviso/Superficie');
 end;
 
 procedure TPruebasTema.TemaClaro_Contrastes;
@@ -88,10 +91,16 @@ var
   T: TTemaColores;
 begin
   T := TemaClaro;
-  Assert.AreEqual(Integer(ColorDeHex('#e9edf1')), Integer(T.Fondo));
-  Assert.AreEqual(Integer(ColorDeHex('#ffffff')), Integer(T.Superficie));
-  Assert.AreEqual(Integer(ColorDeHex('#1b2733')), Integer(T.Texto));
-  Assert.AreEqual(Integer(ColorDeHex('#1d5fa6')), Integer(T.Acento));
+  Assert.AreEqual(Integer(ColorDeHex('#e9edf1')), Integer(T.Fondo), 'Fondo');
+  Assert.AreEqual(Integer(ColorDeHex('#ffffff')), Integer(T.Superficie), 'Superficie');
+  Assert.AreEqual(Integer(ColorDeHex('#f4f6f8')), Integer(T.Superficie2), 'Superficie2');
+  Assert.AreEqual(Integer(ColorDeHex('#1b2733')), Integer(T.Texto), 'Texto');
+  Assert.AreEqual(Integer(ColorDeHex('#5a6877')), Integer(T.TextoSuave), 'TextoSuave');
+  Assert.AreEqual(Integer(ColorDeHex('#d3dae1')), Integer(T.Linea), 'Linea');
+  Assert.AreEqual(Integer(ColorDeHex('#1d5fa6')), Integer(T.Acento), 'Acento');
+  Assert.AreEqual(Integer(ColorDeHex('#ffffff')), Integer(T.TextoSobreAcento), 'TextoSobreAcento');
+  Assert.AreEqual(Integer(ColorDeHex('#dfecf9')), Integer(T.AcentoSuave), 'AcentoSuave');
+  Assert.AreEqual(Integer(ColorDeHex('#9a5b00')), Integer(T.Aviso), 'Aviso');
 end;
 
 procedure TPruebasTema.TemaOscuro_ValoresDeLaMaqueta;
@@ -99,10 +108,16 @@ var
   T: TTemaColores;
 begin
   T := TemaOscuro;
-  Assert.AreEqual(Integer(ColorDeHex('#12181e')), Integer(T.Fondo));
-  Assert.AreEqual(Integer(ColorDeHex('#1a232c')), Integer(T.Superficie));
-  Assert.AreEqual(Integer(ColorDeHex('#e5ebf1')), Integer(T.Texto));
-  Assert.AreEqual(Integer(ColorDeHex('#6aa8ea')), Integer(T.Acento));
+  Assert.AreEqual(Integer(ColorDeHex('#12181e')), Integer(T.Fondo), 'Fondo');
+  Assert.AreEqual(Integer(ColorDeHex('#1a232c')), Integer(T.Superficie), 'Superficie');
+  Assert.AreEqual(Integer(ColorDeHex('#222d38')), Integer(T.Superficie2), 'Superficie2');
+  Assert.AreEqual(Integer(ColorDeHex('#e5ebf1')), Integer(T.Texto), 'Texto');
+  Assert.AreEqual(Integer(ColorDeHex('#9aa8b6')), Integer(T.TextoSuave), 'TextoSuave');
+  Assert.AreEqual(Integer(ColorDeHex('#33414f')), Integer(T.Linea), 'Linea');
+  Assert.AreEqual(Integer(ColorDeHex('#6aa8ea')), Integer(T.Acento), 'Acento');
+  Assert.AreEqual(Integer(ColorDeHex('#0c1620')), Integer(T.TextoSobreAcento), 'TextoSobreAcento');
+  Assert.AreEqual(Integer(ColorDeHex('#1f3550')), Integer(T.AcentoSuave), 'AcentoSuave');
+  Assert.AreEqual(Integer(ColorDeHex('#e8b25a')), Integer(T.Aviso), 'Aviso');
 end;
 
 initialization

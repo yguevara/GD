@@ -99,18 +99,17 @@ end;
 
 function TemaClaro: TTemaColores;
 begin
-  // Fondo, Superficie, Texto y Acento vienen de la maqueta; los demas tokens
-  // son derivados de la misma familia (no fijados por la maqueta).
+  // Valores de la maqueta aprobada.
   Result.Fondo := ColorDeHex('#e9edf1');
   Result.Superficie := ColorDeHex('#ffffff');
   Result.Superficie2 := ColorDeHex('#f4f6f8');
   Result.Texto := ColorDeHex('#1b2733');
-  Result.TextoSuave := ColorDeHex('#566574');
+  Result.TextoSuave := ColorDeHex('#5a6877');
   Result.Linea := ColorDeHex('#d3dae1');
   Result.Acento := ColorDeHex('#1d5fa6');
   Result.TextoSobreAcento := ColorDeHex('#ffffff');
-  Result.AcentoSuave := ColorDeHex('#dce9f7');
-  Result.Aviso := ColorDeHex('#b3501a');
+  Result.AcentoSuave := ColorDeHex('#dfecf9');
+  Result.Aviso := ColorDeHex('#9a5b00');
 end;
 
 function TemaOscuro: TTemaColores;
@@ -119,12 +118,12 @@ begin
   Result.Superficie := ColorDeHex('#1a232c');
   Result.Superficie2 := ColorDeHex('#222d38');
   Result.Texto := ColorDeHex('#e5ebf1');
-  Result.TextoSuave := ColorDeHex('#9aa9b8');
-  Result.Linea := ColorDeHex('#2e3b48');
+  Result.TextoSuave := ColorDeHex('#9aa8b6');
+  Result.Linea := ColorDeHex('#33414f');
   Result.Acento := ColorDeHex('#6aa8ea');
-  Result.TextoSobreAcento := ColorDeHex('#0d1620');
+  Result.TextoSobreAcento := ColorDeHex('#0c1620');
   Result.AcentoSuave := ColorDeHex('#1f3550');
-  Result.Aviso := ColorDeHex('#e0904f');
+  Result.Aviso := ColorDeHex('#e8b25a');
 end;
 
 end.
