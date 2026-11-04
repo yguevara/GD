@@ -272,12 +272,37 @@ begin
   end;
 end;
 
+{ Cada valor se enlaza con su tipo: una fecha, un numero o un booleano enviados
+  como texto dependen del formato regional del cliente (dd/mm/yyyy) y del idioma
+  del servidor, y en Access dan "no coinciden los tipos de datos". }
 procedure AplicarParametros(Query: TFDQuery; const Filtro: TFiltroSql);
 var
   P: TParametroSql;
+  Par: TFDParam;
+  Grande: Int64;
 begin
   for P in Filtro.Parametros do
-    Query.ParamByName(P.Nombre).AsString := VarToStr(P.Valor);
+  begin
+    Par := Query.ParamByName(P.Nombre);
+    case VarType(P.Valor) and varTypeMask of
+      varDate:
+        Par.AsDateTime := VarToDateTime(P.Valor);
+      varBoolean:
+        Par.AsBoolean := Boolean(P.Valor);
+      varShortInt, varSmallint, varInteger, varByte, varWord, varLongWord, varInt64:
+        begin
+          Grande := P.Valor;
+          if (Grande >= Low(Integer)) and (Grande <= High(Integer)) then
+            Par.AsInteger := Integer(Grande)
+          else
+            Par.AsLargeInt := Grande;
+        end;
+      varSingle, varDouble, varCurrency:
+        Par.AsFloat := P.Valor;
+    else
+      Par.AsString := VarToStr(P.Valor);
+    end;
+  end;
 end;
 
 function CargarAlcance(Conn: TFDConnection; const Usuario: string;

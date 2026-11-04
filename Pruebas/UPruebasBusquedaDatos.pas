@@ -42,6 +42,8 @@ type
     procedure Buscar_TablaMdInexistente;
     [Test]
     procedure Buscar_PorcientoYApostrofeSonLiterales;
+    [Test]
+    procedure Buscar_ConTablaMd;
   end;
 
   [TestFixture]
@@ -64,12 +66,14 @@ type
     procedure Access_TablaMdInexistente;
     [Test]
     procedure Access_PorcientoYApostrofeSonLiterales;
+    [Test]
+    procedure Access_ConTablaMd;
   end;
 
 implementation
 
 uses
-  System.SysUtils, Data.DB, UAlcance, UAlcanceDatos, UBusqueda, UBusquedaDatos,
+  System.SysUtils, System.Variants, Data.DB, UAlcance, UAlcanceDatos, UBusqueda, UBusquedaDatos,
   FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.UI.Intf,
   FireDAC.Phys.Intf, FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Stan.Async,
   FireDAC.Phys, FireDAC.Phys.MSSQL, FireDAC.Phys.MSAcc, FireDAC.DApt, FireDAC.ConsoleUI.Wait,
@@ -79,6 +83,151 @@ const
   VAR_BD = 'ARCHIGENIO_TEST_DB';
   VAR_MDB = 'ARCHIGENIO_TEST_MDB';
   TITULO_PRUEBA = 'prueba alcance';
+
+{ Siembra, dentro de la transaccion de la prueba, una tabla md_prueba_busq con
+  tres filas para tres documentos de 014001 (los de Sembrar), y apunta la
+  subserie 014001 a ella con cuatro campos: Depto (Caracteres), Fecha_ing
+  (Fecha), Folios (Entero) y Activo (Boolean).
+    Doc 1: Camaguey    2026-01-31  Folios 0   Activo si
+    Doc 2: Villa_Clara 2026-02-05  Folios 7   Activo no
+    Doc 3: Holguin     2026-03-15  Folios 12  Activo si
+  El 31 de enero es a proposito un dia mayor que 12: una fecha enviada como
+  texto dd/mm/yyyy se confunde con mm/dd en un servidor en ingles.
+  Devuelve False si la subserie 014001 no existe en la base. }
+function SembrarMd(Conn: TFDConnection; ConSqlServer: Boolean): Boolean;
+const
+  DEPTOS: array[0..2] of string = ('Camaguey', 'Villa_Clara', 'Holguin');
+  FOLIOS: array[0..2] of Integer = (0, 7, 12);
+  ACTIVO_SS: array[0..2] of string = ('1', '0', '1');
+  ACTIVO_ACC: array[0..2] of string = ('True', 'False', 'True');
+var
+  Q: TFDQuery;
+  Codigos: array[0..2] of string;
+  Serie, TipoBit, Activo: string;
+  I: Integer;
+  Fechas: array[0..2] of TDateTime;
+begin
+  Result := Integer(Conn.ExecSQLScalar(
+    'SELECT COUNT(*) FROM cl_subseries WHERE codsubs = ''014001''')) > 0;
+  if not Result then
+    Exit;
+  Fechas[0] := EncodeDate(2026, 1, 31);
+  Fechas[1] := EncodeDate(2026, 2, 5);
+  Fechas[2] := EncodeDate(2026, 3, 15);
+  Q := TFDQuery.Create(nil);
+  try
+    Q.Connection := Conn;
+    Q.SQL.Text := 'SELECT Codigodoc FROM tb_SeriesDatos WHERE codsubs = ''014001'' ' +
+      'AND titulodoc = ''' + TITULO_PRUEBA + ''' ORDER BY Codigodoc';
+    Q.Open;
+    for I := 0 to 2 do
+    begin
+      Codigos[I] := Q.Fields[0].AsString;
+      Q.Next;
+    end;
+  finally
+    Q.Free;
+  end;
+  if ConSqlServer then
+    TipoBit := 'BIT'
+  else
+    TipoBit := 'YESNO';
+  try
+    Conn.ExecSQL('DROP TABLE md_prueba_busq');
+  except
+    // no existia
+  end;
+  Conn.ExecSQL('CREATE TABLE md_prueba_busq (IdEstructura VARCHAR(50), id INT, ' +
+    'codsubs VARCHAR(50), Fecha DATETIME, Version VARCHAR(12), Codigodoc VARCHAR(20), ' +
+    'Depto VARCHAR(50), Fecha_ing DATETIME, Folios INT, Activo ' + TipoBit + ')');
+  for I := 0 to 2 do
+  begin
+    if ConSqlServer then
+      Activo := ACTIVO_SS[I]
+    else
+      Activo := ACTIVO_ACC[I];
+    Conn.ExecSQL('INSERT INTO md_prueba_busq (IdEstructura, id, codsubs, Fecha, ' +
+      'Version, Codigodoc, Depto, Fecha_ing, Folios, Activo) ' +
+      'SELECT IdEstructura, id, codsubs, Fecha, Version, Codigodoc, :d, :f, :n, ' +
+      Activo + ' FROM tb_SeriesDatos WHERE codsubs = ''014001'' AND Codigodoc = :c',
+      [DEPTOS[I], Fechas[I], FOLIOS[I], Codigos[I]]);
+  end;
+  Serie := VarToStr(Conn.ExecSQLScalar(
+    'SELECT codserie FROM cl_subseries WHERE codsubs = ''014001'''));
+  Conn.ExecSQL('DELETE FROM cl_VarSubserie WHERE codsubs = ''014001''');
+  Conn.ExecSQL('INSERT INTO cl_VarSubserie (codserie, codsubs, Orden, NomVariable, ' +
+    'Etiqueta, tipo, longitud) VALUES (:s, ''014001'', 1, ''Depto'', ''Departamento'', 1, 50)', [Serie]);
+  Conn.ExecSQL('INSERT INTO cl_VarSubserie (codserie, codsubs, Orden, NomVariable, ' +
+    'Etiqueta, tipo, longitud) VALUES (:s, ''014001'', 2, ''Fecha_ing'', ''Ingreso'', 2, 0)', [Serie]);
+  Conn.ExecSQL('INSERT INTO cl_VarSubserie (codserie, codsubs, Orden, NomVariable, ' +
+    'Etiqueta, tipo, longitud) VALUES (:s, ''014001'', 3, ''Folios'', ''Folios'', 3, 0)', [Serie]);
+  Conn.ExecSQL('INSERT INTO cl_VarSubserie (codserie, codsubs, Orden, NomVariable, ' +
+    'Etiqueta, tipo, longitud) VALUES (:s, ''014001'', 4, ''Activo'', ''Activo'', 6, 0)', [Serie]);
+  Conn.ExecSQL('UPDATE cl_subseries SET NombreTablaMetadatos = ''md_prueba_busq'' ' +
+    'WHERE codsubs = ''014001''');
+end;
+
+{ Busca en 014001 con un texto y/o una condicion de campo. SQL Server: como
+  administrador; Access: sin alcance. }
+function CuentaMd(Conn: TFDConnection; ConSqlServer: Boolean; const Texto: string;
+  const Campo, Desde, Hasta: string): Integer;
+var
+  P: TPedidoBusqueda;
+  Al: TAlcanceUsuario;
+  T: TFDMemTable;
+  Trunc: Boolean;
+begin
+  P.Texto := Texto;
+  P.CodSubs := '014001';
+  P.Limite := 100000;
+  if Campo = '' then
+    P.Condiciones := nil
+  else
+  begin
+    SetLength(P.Condiciones, 1);
+    P.Condiciones[0].Campo := Campo;
+    P.Condiciones[0].Desde := Desde;
+    P.Condiciones[0].Hasta := Hasta;
+  end;
+  if ConSqlServer then
+    Al := CargarAlcance(Conn, 'administrador', True)
+  else
+    Al := nil;
+  try
+    T := UBusquedaDatos.Buscar(Conn, Al, P, ConSqlServer, Trunc);
+    try
+      Result := T.RecordCount;
+    finally
+      T.Free;
+    end;
+  finally
+    Al.Free;
+  end;
+end;
+
+{ Los casos con tabla md_* comunes a los dos motores. }
+procedure VerificarMd(Conn: TFDConnection; ConSqlServer: Boolean);
+begin
+  if not SembrarMd(Conn, ConSqlServer) then
+  begin
+    Assert.Pass('omitida: la subserie 014001 no existe en esta base');
+    Exit;
+  end;
+  Assert.AreEqual(1, CuentaMd(Conn, ConSqlServer, 'camaguey', '', '', ''),
+    'texto en un metadato');
+  Assert.AreEqual(1, CuentaMd(Conn, ConSqlServer, 'a_C', '', '', ''),
+    'el guion bajo es literal');
+  Assert.AreEqual(1, CuentaMd(Conn, ConSqlServer, '', 'Fecha_ing', '2026-01-01', '2026-01-31'),
+    'rango de fechas con dia mayor que 12, incluye el ultimo dia');
+  Assert.AreEqual(2, CuentaMd(Conn, ConSqlServer, '', 'Fecha_ing', '2026-02-05', ''),
+    'solo desde');
+  Assert.AreEqual(1, CuentaMd(Conn, ConSqlServer, '', 'Folios', '5', '10'),
+    'rango entero');
+  Assert.AreEqual(2, CuentaMd(Conn, ConSqlServer, '', 'Activo', '1', ''), 'booleano si');
+  Assert.AreEqual(1, CuentaMd(Conn, ConSqlServer, '', 'Activo', '0', ''), 'booleano no');
+  Assert.AreEqual(1, CuentaMd(Conn, ConSqlServer, 'holguin', 'Folios', '10', '20'),
+    'texto y campo a la vez');
+end;
 
 { TPruebasBusquedaDatos }
 
@@ -330,6 +479,18 @@ begin
   Assert.AreEqual(1, Buscar('O''Brien', '', 100000, Trunc), 'apostrofe');
   Assert.AreEqual(1, Buscar('%', '', 100000, Trunc),
     'un % solo debe buscar el caracter, no todo');
+end;
+
+procedure TPruebasBusquedaSql.Buscar_ConTablaMd;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB'); Exit; end;
+  VerificarMd(FConn, True);
+end;
+
+procedure TPruebasBusquedaAccess.Access_ConTablaMd;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_MDB'); Exit; end;
+  VerificarMd(FConn, False);
 end;
 
 initialization
