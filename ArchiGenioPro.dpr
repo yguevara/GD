@@ -22,6 +22,7 @@ uses
   UBusquedaDocumentos in 'UBusquedaDocumentos.pas',
   UTema in 'UTema.pas',
   UIconos in 'UIconos.pas',
+  UShellPrincipal in 'UShellPrincipal.pas',
   UAutentica in 'UAutentica.pas' {frmAutentica},
   md5 in 'md5.pas',
   UUserGest in 'UUserGest.pas' {frmGestUser},

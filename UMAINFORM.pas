@@ -31,7 +31,8 @@ uses
   IdExplicitTLSClientServerBase, IdFTP, IdException, adoint, adodb, Math,
   cxDBRichEdit, System.Generics.Collections, cxSplitter, AdvListV, DBAdvLst,
   IniFiles, cxSpinEdit, Vcl.Grids, Vcl.DBGrids, JvDBControls, cxMaskEdit,
-  dxScreenTip, dxCustomHint, cxHint, cxEditRepositoryItems, cxGroupBox;
+  dxScreenTip, dxCustomHint, cxHint, cxEditRepositoryItems, cxGroupBox,
+  UBusqueda;
 
 type
   TComboBoxFieldAssociation = record
@@ -732,6 +733,13 @@ type
     function GetIdResp(aUser: string): Integer;
     procedure SetVisibilityForButtons(Visible: Boolean);
     procedure SetDbNavigatorButtons(Buttons: TNavButtonSet);
+    // Respuestas al shell de la variante A (UShellPrincipal)
+    procedure ConectarShell;
+    procedure ShellAgregarDocumento(Sender: TObject);
+    procedure ShellBuscar(const Texto: string; Ambito: TAmbitoBusqueda);
+    procedure ShellSeccion(const Nombre: string);
+    function ShellSeccionDisponible(const Nombre: string): Boolean;
+    function ShellTextoUsuario: string;
   end;
 
 var
@@ -749,7 +757,8 @@ uses
   UManagementFileSeries, UViewFunciones, UVeditor, UExcelExport, UManagementNode,
   USystemMsg, UNodeProperties, UCL_TiposExp, USysConfig, UTransferencias,
   UExportImportDocumentSubSeries, UManagementIndex, UAdminLog, UManagementTrans,
-  UDepuracion, UTopoDocActual, UREditor, UNodeInfo, frmTransferencia, UPrestamos;
+  UDepuracion, UTopoDocActual, UREditor, UNodeInfo, frmTransferencia, UPrestamos,
+  UShellPrincipal;
 
 {$R *.dfm}
 
@@ -6598,13 +6607,113 @@ const
 begin
   // Ejecuta la carga de configuraciones y ajustes finales
   LoadTreeViewSettings;
-  AgregarMenuBusqueda;
+  // Shell de la variante A (sin efecto con shell_clasico.flag). Con el shell
+  // activo, el buscador de la cabecera sustituye a "Buscar documentos".
+  AplicarShell(Self);
+  if ShellActivo then
+    ConectarShell
+  else
+    AgregarMenuBusqueda;
   FinalizeUI;
 end;
 
 procedure TMAIN.BuscarDocumentosClick(Sender: TObject);
 begin
   AbrirBusquedaDocumentos;
+end;
+
+// Conecta los eventos del shell (UShellPrincipal) con los flujos existentes
+// y quita "Buscar documentos" de PMTool: lo sustituye el buscador del shell.
+procedure TMAIN.ConectarShell;
+var
+  Item: TComponent;
+begin
+  Item := FindComponent('miBuscarDocumentos');
+  if Item <> nil then
+    Item.Free;
+  ShellPrincipal.OnAgregarDocumento := ShellAgregarDocumento;
+  ShellPrincipal.OnBuscar := ShellBuscar;
+  ShellPrincipal.OnSeccion := ShellSeccion;
+  ShellPrincipal.OnSeccionDisponible := ShellSeccionDisponible;
+  ShellPrincipal.OnTextoUsuario := ShellTextoUsuario;
+  ShellPrincipal.Refrescar;
+end;
+
+// "Agregar documento" del shell: el mismo alta que el boton Insertar del
+// navegador de documentos (dbnSeriesDatos) sobre el nodo y la subserie
+// elegidos (tb_Serietree). Ese boton solo es visible si el rol o el alcance
+// permiten agregar (SetModSecurity y AplicarReglasDocumento); se respeta igual.
+procedure TMAIN.ShellAgregarDocumento(Sender: TObject);
+begin
+  if (tvTree.Selected = nil) or not PContainer.Visible or not PSeriesDatos.Visible or
+    not UDM.tb_Serietree.Active or UDM.tb_Serietree.IsEmpty or
+    not UDM.tb_SeriesDatos.Active then
+  begin
+    UDM.sms('Elija en el arbol el nodo y la subserie donde agregar el documento.', 3);
+    Exit;
+  end;
+  if not (nbInsert in dbnSeriesDatos.VisibleButtons) or not UDM.tb_SeriesDatos.CanModify then
+  begin
+    UDM.sms('No tiene permiso para agregar documentos en esta subserie.', 3);
+    Exit;
+  end;
+  if cxPageControl2.ActivePage <> cxTabSheet1 then
+    cxPageControl2.ActivePage := cxTabSheet1;
+  dbnSeriesDatos.BtnClick(nbInsert);
+end;
+
+// Buscador del shell. Ambito general: la pantalla de busqueda existente (que
+// siempre aplica el alcance del usuario). El ambito "nodo actual" toma el
+// nodo de tvTree y llega con la Tarea 4; hasta entonces se avisa en lugar de
+// buscar en silencio en todo el archivo.
+procedure TMAIN.ShellBuscar(const Texto: string; Ambito: TAmbitoBusqueda);
+begin
+  if Ambito = abNodoActual then
+  begin
+    if tvTree.Selected = nil then
+      UDM.sms('Elija un nodo en el arbol para buscar en el nodo actual.', 2)
+    else
+      UDM.sms('La busqueda en el nodo actual aun no esta disponible.', 2);
+    Exit;
+  end;
+  AbrirBusquedaDocumentos(Texto);
+end;
+
+// Secciones de la columna del shell. Inicio y Archivo muestran el arbol;
+// Traslados y Prestamos abren lo mismo que sus items de PMTool.
+procedure TMAIN.ShellSeccion(const Nombre: string);
+begin
+  if (Nombre = SECCION_INICIO) or (Nombre = SECCION_ARCHIVO) then
+  begin
+    if not nbMain.Visible then
+      nbMain.Show;
+    if (Nombre = SECCION_INICIO) and (tvTree.Items.GetFirstNode <> nil) then
+      tvTree.Items.GetFirstNode.MakeVisible;
+    if tvTree.CanFocus then
+      tvTree.SetFocus;
+  end
+  else if (Nombre = SECCION_TRASLADOS) and ShellSeccionDisponible(Nombre) then
+    btnTransfer.Click
+  else if (Nombre = SECCION_PRESTAMOS) and ShellSeccionDisponible(Nombre) then
+    P3.Click;
+end;
+
+// Traslados y Prestamos solo se alcanzaban desde el boton Herramientas
+// (btnTool, visible segun el rol) y sus items de PMTool: se ofrecen solo
+// si el boton y el item estan visibles.
+function TMAIN.ShellSeccionDisponible(const Nombre: string): Boolean;
+begin
+  if Nombre = SECCION_TRASLADOS then
+    Result := btnTool.Visible and btnTransfer.Visible and btnTransfer.Enabled
+  else if Nombre = SECCION_PRESTAMOS then
+    Result := btnTool.Visible and P3.Visible and P3.Enabled
+  else
+    Result := True;
+end;
+
+function TMAIN.ShellTextoUsuario: string;
+begin
+  Result := UDM.UserName + ' - ' + UDM.Rol;
 end;
 {begin
   //show

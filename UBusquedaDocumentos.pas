@@ -29,6 +29,7 @@ type
     FBarra: TStatusBar;
     FEditores: TList<TEditorFiltro>;
     FCodigos: TStringList;
+    FBuscarAlMostrar: Boolean;
     procedure CargarSubseries;
     procedure ConstruirFiltros(const CodSubs: string);
     procedure LimpiarFiltros;
@@ -38,12 +39,16 @@ type
     procedure BuscarClick(Sender: TObject);
     procedure CerrarClick(Sender: TObject);
     procedure ListaDblClick(Sender: TObject);
+  protected
+    procedure DoShow; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   end;
 
-procedure AbrirBusquedaDocumentos;
+{ TextoInicial (el del buscador del shell) se copia en la caja de texto y, si
+  no esta vacio, la busqueda se ejecuta al abrir la pantalla. }
+procedure AbrirBusquedaDocumentos(const TextoInicial: string = '');
 
 implementation
 
@@ -53,12 +58,14 @@ uses
 const
   ALTO_FILA = 28;
 
-procedure AbrirBusquedaDocumentos;
+procedure AbrirBusquedaDocumentos(const TextoInicial: string = '');
 var
   F: TfrmBusquedaDocumentos;
 begin
   F := TfrmBusquedaDocumentos.Create(Application);
   try
+    F.FTexto.Text := TextoInicial;
+    F.FBuscarAlMostrar := Trim(TextoInicial) <> '';
     F.ShowModal;
   finally
     F.Free;
@@ -374,6 +381,16 @@ begin
   if FLista.Selected <> nil then
     Application.MessageBox(PChar('Documento ' + FLista.Selected.Caption +
       ' en el nodo ' + FLista.Selected.SubItems[2]), 'Buscar documentos', 64);
+end;
+
+procedure TfrmBusquedaDocumentos.DoShow;
+begin
+  inherited;
+  if FBuscarAlMostrar then
+  begin
+    FBuscarAlMostrar := False;
+    BuscarClick(nil);
+  end;
 end;
 
 procedure TfrmBusquedaDocumentos.CerrarClick(Sender: TObject);
