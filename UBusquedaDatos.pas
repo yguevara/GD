@@ -30,7 +30,7 @@ function Buscar(Conn: TFDConnection; Alcance: TAlcanceUsuario;
 implementation
 
 uses
-  Data.DB, UAlcanceDatos;
+  Data.DB, FireDAC.Stan.Param, UAlcanceDatos;
 
 function ColumnasDeTabla(Conn: TFDConnection; const Tabla: string): TArray<string>;
 var
