@@ -22,7 +22,9 @@ uses
   UBusqueda in '..\UBusqueda.pas',
   UBusquedaDatos in '..\UBusquedaDatos.pas',
   UPruebasBusqueda in 'UPruebasBusqueda.pas',
-  UPruebasBusquedaDatos in 'UPruebasBusquedaDatos.pas';
+  UPruebasBusquedaDatos in 'UPruebasBusquedaDatos.pas',
+  UTema in '..\UTema.pas',
+  UPruebasTema in 'UPruebasTema.pas';
 
 var
   Corredor: ITestRunner;

@@ -20,6 +20,8 @@ uses
   UBusqueda in 'UBusqueda.pas',
   UBusquedaDatos in 'UBusquedaDatos.pas',
   UBusquedaDocumentos in 'UBusquedaDocumentos.pas',
+  UTema in 'UTema.pas',
+  UIconos in 'UIconos.pas',
   UAutentica in 'UAutentica.pas' {frmAutentica},
   md5 in 'md5.pas',
   UUserGest in 'UUserGest.pas' {frmGestUser},
