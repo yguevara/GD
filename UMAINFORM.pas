@@ -32,7 +32,7 @@ uses
   cxDBRichEdit, System.Generics.Collections, cxSplitter, AdvListV, DBAdvLst,
   IniFiles, cxSpinEdit, Vcl.Grids, Vcl.DBGrids, JvDBControls, cxMaskEdit,
   dxScreenTip, dxCustomHint, cxHint, cxEditRepositoryItems, cxGroupBox,
-  UBusqueda, UAlcance, UPanelDocumentos, UDocumentoVista;
+  UBusqueda, UAlcance, UPanelDocumentos, UDocumentoVista, UMigracionPantalla;
 
 type
   TComboBoxFieldAssociation = record
@@ -762,6 +762,7 @@ type
     function ShellMenuDesde(var Menu: TPopupMenu; const Origenes: array of TMenuItem;
       const Iconos: array of string): TPopupMenu;
     procedure ShellMenuConfiguracionClick(Sender: TObject);
+    procedure ShellMigrarFicheros(Sender: TObject);
     procedure ShellSeccion(const Nombre: string);
     function ShellSeccionDisponible(const Nombre: string): Boolean;
     function ShellTextoUsuario: string;
@@ -7149,16 +7150,28 @@ begin
     end;
   end;
   for I := 0 to Menu.Items.Count - 1 do
-    Menu.Items[I].Enabled := TMenuItem(Menu.Items[I].Tag).Enabled;
+    if Menu.Items[I].Tag <> 0 then
+      Menu.Items[I].Enabled := TMenuItem(Menu.Items[I].Tag).Enabled;
   Result := Menu;
 end;
 
 // Configuracion del sistema: los items de PMTool que no son de gestion
 // documental (configuracion, cambio de base de datos, registros).
 procedure TMAIN.ShellMenuConfiguracion;
+var
+  Item: TMenuItem;
 begin
-  ShellMenuDesde(FShellMenuConfig, [B1, C1, log],
-    ['configuracion', 'basedatos', 'logs']).Popup(Mouse.CursorPos.X, Mouse.CursorPos.Y);
+  ShellMenuDesde(FShellMenuConfig, [B1, C1, log], ['configuracion', 'basedatos', 'logs']);
+  // Entrada propia (Tag = 0): migrar ficheros del FTP a MinIO
+  if FShellMenuConfig.Items.Count = 3 then
+  begin
+    Item := TMenuItem.Create(FShellMenuConfig);
+    Item.Caption := 'Migrar ficheros a MinIO...';
+    Item.ImageIndex := IndiceIcono('servidor');
+    Item.OnClick := ShellMigrarFicheros;
+    FShellMenuConfig.Items.Add(Item);
+  end;
+  FShellMenuConfig.Popup(Mouse.CursorPos.X, Mouse.CursorPos.Y);
 end;
 
 // Clasificadores: los items de PMListascod (listas de codigos).
@@ -7166,6 +7179,11 @@ procedure TMAIN.ShellMenuClasificadores;
 begin
   ShellMenuDesde(FShellMenuClasif, [A1, L1, S1],
     ['archivos', 'servidor', 'series']).Popup(Mouse.CursorPos.X, Mouse.CursorPos.Y);
+end;
+
+procedure TMAIN.ShellMigrarFicheros(Sender: TObject);
+begin
+  MostrarMigracionFicheros(UDM.Conn);
 end;
 
 procedure TMAIN.ShellMenuConfiguracionClick(Sender: TObject);

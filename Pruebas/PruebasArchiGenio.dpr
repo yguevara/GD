@@ -40,7 +40,9 @@ uses
   UPruebasEsquemaAlmacen in 'UPruebasEsquemaAlmacen.pas',
   UAlmacenFtp in '..\UAlmacenFtp.pas',
   UAlmacenServidor in '..\UAlmacenServidor.pas',
-  UPruebasAlmacenServidor in 'UPruebasAlmacenServidor.pas';
+  UPruebasAlmacenServidor in 'UPruebasAlmacenServidor.pas',
+  UMigracionFicheros in '..\UMigracionFicheros.pas',
+  UPruebasMigracion in 'UPruebasMigracion.pas';
 
 var
   Corredor: ITestRunner;

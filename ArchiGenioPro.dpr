@@ -20,6 +20,8 @@ uses
   UAlmacenFtp in 'UAlmacenFtp.pas',
   UAlmacenServidor in 'UAlmacenServidor.pas',
   UProgresoTransferencia in 'UProgresoTransferencia.pas',
+  UMigracionFicheros in 'UMigracionFicheros.pas',
+  UMigracionPantalla in 'UMigracionPantalla.pas',
   UAlcanceDatos in 'UAlcanceDatos.pas',
   UTopografia in 'UTopografia.pas',
   UAsignacionDatos in 'UAsignacionDatos.pas',
