@@ -24,10 +24,59 @@ uses
   System.SysUtils, System.Classes, System.TypInfo, System.Generics.Collections,
   Winapi.Windows, Vcl.Controls, Vcl.Graphics, Vcl.ExtCtrls, Vcl.StdCtrls,
   cxGraphics, cxStyles, cxGridTableView, cxGridCustomTableView, cxVGrid, JvTransparentButton,
-  UShellPrincipal;
+  UShellPrincipal, UIconos;
+
+type
+  TBotonIcono = record
+    Nombre: string;
+    Icono: string;
+  end;
 
 const
   NOMBRE_MARCA = 'ArchiGenioApariencia';
+
+  { Botones de la pantalla principal (TMAIN) y el icono Tabler que los
+    reemplaza. Los iconos son blancos: el boton tiene cara opaca oscura. }
+  BOTONES_ICONO: array[0..38] of TBotonIcono = (
+    (Nombre: 'btnExportExcelCC'; Icono: 'excel'),
+    (Nombre: 'btnExportExcelDoc'; Icono: 'excel'),
+    (Nombre: 'btnExcelExportSSD'; Icono: 'excel'),
+    (Nombre: 'btnAdjustColumnCC'; Icono: 'columnas'),
+    (Nombre: 'btnAdjustColumnSSD'; Icono: 'columnas'),
+    (Nombre: 'JvTransparentButton9'; Icono: 'columnas'),
+    (Nombre: 'btnRemoveSerieAsig'; Icono: 'eliminar'),
+    (Nombre: 'btnRemoveAllSeriesAsig'; Icono: 'eliminartodo'),
+    (Nombre: 'btnViewtopoSS'; Icono: 'topografia'),
+    (Nombre: 'JvTransparentButton5'; Icono: 'topografia'),
+    (Nombre: 'btnviewTopoDocActual'; Icono: 'topografia'),
+    (Nombre: 'btnAsignSS'; Icono: 'vincular'),
+    (Nombre: 'btnAsignarSS'; Icono: 'vinculartodo'),
+    (Nombre: 'btnquickFill'; Icono: 'filtro'),
+    (Nombre: 'JvTransparentButton1'; Icono: 'filtro'),
+    (Nombre: 'btnSourceFile'; Icono: 'archivomas'),
+    (Nombre: 'btnaddfile'; Icono: 'archivomas'),
+    (Nombre: 'btnAddListSource'; Icono: 'carpetamas'),
+    (Nombre: 'btnaddfilelist'; Icono: 'carpetamas'),
+    (Nombre: 'btnDropSourceFile'; Icono: 'archivoquitar'),
+    (Nombre: 'btnremovefile'; Icono: 'archivoquitar'),
+    (Nombre: 'btnRemoveSourceFileList'; Icono: 'eliminartodo'),
+    (Nombre: 'btnRemoveFileList'; Icono: 'eliminartodo'),
+    (Nombre: 'btnExecuteSourceFile'; Icono: 'ejecutar'),
+    (Nombre: 'btnExecFileAD'; Icono: 'ejecutar'),
+    (Nombre: 'JvTransparentButton4'; Icono: 'volver'),
+    (Nombre: 'btnClosejvcpExpediente'; Icono: 'volver'),
+    (Nombre: 'JvTransparentButton11'; Icono: 'ayuda'),
+    (Nombre: 'JvTransparentButton6'; Icono: 'ayuda'),
+    (Nombre: 'btnClose'; Icono: 'salir'),
+    (Nombre: 'btnautentica'; Icono: 'usuario'),
+    (Nombre: 'btnusercontrol'; Icono: 'usuarios'),
+    (Nombre: 'btnLC'; Icono: 'clasificadores'),
+    (Nombre: 'btnPrint'; Icono: 'reportes'),
+    (Nombre: 'btnSystemHelp'; Icono: 'ayuda'),
+    (Nombre: 'btnRecuperacion'; Icono: 'buscar'),
+    (Nombre: 'btnManagementTree'; Icono: 'cuadro'),
+    (Nombre: 'btnTool'; Icono: 'configuracion'),
+    (Nombre: 'btnViewPanel'; Icono: 'gestion'));
 
 type
   { Juego de estilos cx compartido por todas las rejillas. }
@@ -250,6 +299,36 @@ begin
   end;
 end;
 
+{ Cambia el icono de los botones de la pantalla principal por el Tabler
+  equivalente: se dibuja sobre la cara del boton (su Color ya adaptado). }
+procedure AplicarIconosBotones(Form: TForm);
+var
+  I: Integer;
+  C: TComponent;
+  B: TJvTransparentButton;
+  Bmp: TBitmap;
+begin
+  for I := Low(BOTONES_ICONO) to High(BOTONES_ICONO) do
+  begin
+    C := Form.FindComponent(BOTONES_ICONO[I].Nombre);
+    if not (C is TJvTransparentButton) then
+      Continue;
+    B := TJvTransparentButton(C);
+    Bmp := TBitmap.Create;
+    try
+      Bmp.PixelFormat := pf24bit;
+      Bmp.SetSize(24, 24);
+      Bmp.Canvas.Brush.Color := B.Color;
+      Bmp.Canvas.FillRect(Rect(0, 0, 24, 24));
+      TIconos.Lista.Draw(Bmp.Canvas, 0, 0, IndiceIconoBlanco(BOTONES_ICONO[I].Icono));
+      B.Glyph.Assign(Bmp);
+      B.NumGlyphs := 1;
+    finally
+      Bmp.Free;
+    end;
+  end;
+end;
+
 procedure AplicarAparienciaLegacy(Form: TForm; const Tema: TTemaColores);
 var
   I: Integer;
@@ -273,6 +352,12 @@ begin
     end;
   finally
     Form.EnableAlign;
+  end;
+  if Form.ClassName = 'TMAIN' then
+  try
+    AplicarIconosBotones(Form);
+  except
+    // Solo apariencia: quedan los iconos anteriores
   end;
 end;
 
