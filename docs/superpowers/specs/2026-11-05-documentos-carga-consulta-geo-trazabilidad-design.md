@@ -49,21 +49,22 @@ La lista de documentos sustituye a la rejilla como vista principal de la subseri
 
 ### 3.3 Almacenamiento en MinIO
 
-MinIO (compatible con S3) sustituye al FTP para los ficheros nuevos. Detalles:
+**La versión 2.0 parte de MinIO** (decisión del dueño, 2026-11-05): los ficheros nuevos van siempre a MinIO (compatible con S3). Los clientes que tienen la versión 1.0 reciben una **utilidad de migración de FTP a MinIO** (parte de la F4). Detalles:
 
-- Se introduce una interfaz de almacenamiento (`IAlmacenFicheros`: subir, descargar, abrir con URL temporal, borrar, existe) con dos implementaciones, FTP (la actual) y S3/MinIO. El resto del código no sabe cuál usa. Así la pantalla 3.1 se puede entregar antes que MinIO y los ficheros viejos en FTP siguen abriéndose.
+- Se introduce una interfaz de almacenamiento (`IAlmacenFicheros`: subir, descargar, abrir con URL temporal, borrar, existe) con la implementación S3/MinIO y una de solo lectura para FTP, que existe únicamente para que la utilidad de migración y los ficheros todavía no migrados sigan abriéndose. El resto del código no sabe cuál usa.
 - El clasificador «Servidores» gana un tipo de servidor (FTP o S3) y los datos de MinIO (endpoint, bucket, clave de acceso, secreto, HTTPS). El secreto se guarda cifrado, nunca en claro en `config.ini`.
 - Clave del objeto: `IdEstructura/id/codsubs/Codigodoc/Version/<idhijo>-<nombre>`; `tb_ssArchdigital.path` y `urlraiz` siguen identificando el fichero (un `urlraiz` de tipo S3 lo distingue).
 - Subida con barra de progreso por archivo, en segundo plano, con reintento. Sin cargar el fichero entero en memoria.
-- Migración de los ficheros ya existentes en FTP: herramienta opcional, no obligatoria (ver sección 6).
+- **Utilidad de migración FTP → MinIO**: recorre `tb_ssArchdigital`, copia cada fichero al bucket, actualiza `urlraiz` y `path` de su registro solo cuando la copia se verificó (tamaño y suma de control), es reanudable, informa de lo que falló y no borra nada del FTP hasta que se confirme. Hasta que termine, cada fichero se abre según su propio `urlraiz`.
 - Funciona igual con base SQL Server y con Access.
 
 ### 3.4 Documentos georreferenciados y mapas
 
 ArchiGenio gestiona planos y mapas; esa condición debe ser visible y utilizable.
 
-- **Clasificación.** Un documento es *georreferenciado* si tiene coordenadas (`tb_DocCoord`, al menos un vértice) y es *mapa* si además su fichero principal es de un formato cartográfico acordado (GeoTIFF/TIF, SHP, KML, GeoJSON, DWG/DXF: lista a confirmar). Se muestra con su icono e insignia (3.2).
-- **Sistema de coordenadas.** `tb_DocCoord` guarda x, y sin sistema. Se añade una tabla aditiva `tb_doc_geo (claves del documento, srid, tipo_geometria, minx, miny, maxx, maxy)` con el sistema de referencia y la caja envolvente. Sin tipos espaciales del motor, para que funcione en SQL Server y en Access.
+- **Clasificación.** Un documento es *georreferenciado* si tiene coordenadas (`tb_DocCoord`, al menos un vértice). Es *mapa* si su fichero principal es de uno de estos formatos, confirmados por el dueño: **GeoTIFF/TIF, SHP, KML, GeoJSON, DWG y DXF** (y GeoPackage, `.gpkg`, que mencionó al responder). Un TIF solo cuenta como mapa si el documento tiene coordenadas, porque un TIF puede ser un escaneo normal. Se muestra con su icono e insignia (3.2).
+- **Sistema de coordenadas (decidido).** Las coordenadas se **almacenan siempre en WGS84** (EPSG:4326). Si la persona las introduce en coordenadas planas o locales, indica su sistema de origen (código EPSG o parámetros) y la conversión a WGS84 es automática; el valor original y su sistema se conservan en `tb_doc_geo` para poder reproducirlo. Se añade esa tabla aditiva `tb_doc_geo (claves del documento, srid_origen, tipo_geometria, minx, miny, maxx, maxy)`; `tb_DocCoord` guarda los vértices ya en WGS84 y la caja envolvente permite buscar por zona. Sin tipos espaciales del motor mientras la base siga siendo SQL Server/Access. Los ficheros DXF/SHP/GeoPackage se leen con una biblioteca externa (GDAL/OGR) invocada por el programa; la tecnología concreta se confirma con una prueba corta.
+- **¿Migrar a PostgreSQL/PostGIS?** Valorado el 2026-11-05: **no en la versión 2.0**. Motivo: el acceso a datos (`UCapaDatos`, unas 5 500 líneas, más cada consulta que debe valer en Access y en SQL Server) y las migraciones de esquema están construidos sobre dos motores; añadir un tercero y quitar Access afecta a todos los clientes, a la instalación y a la migración de datos, y compite con las fases F2-F9. PostGIS aporta reproyección y búsqueda espacial nativas, pero esas dos cosas se resuelven en 2.0 con una biblioteca de conversión y la caja envolvente. Para no cerrar la puerta, la parte geográfica se escribe detrás de una interfaz (`IRepositorioGeo`) con la implementación actual (tablas + caja envolvente); si más adelante se decide PostgreSQL, solo cambia esa implementación. La decisión se revisa cuando haya clientes con volumen de planos que exija consultas espaciales complejas.
 - **Alta.** En «Agregar documentos», si la subserie está marcada como georreferenciable, aparece el paso «Ubicación en el mapa»: escribir vértices, importarlos de KML/GeoJSON, o dibujar sobre el mapa.
 - **Vista de mapa.** Pantalla que muestra la huella de los documentos del nodo o de la búsqueda sobre un mapa; clic en una huella abre sus propiedades; doble clic abre el contenido.
 - **Búsqueda espacial.** «Documentos que tocan esta zona o este punto», usando la caja envolvente. Se integra en la búsqueda como un filtro más.
@@ -83,7 +84,8 @@ Se mantiene la búsqueda actual (nombre, metadatos, propiedades de la subserie, 
 Objetivo: ver la vida de un documento desde que se genera y por qué departamentos del Cuadro de Clasificación ha pasado, y usarlo para gestionar mejor el trabajo.
 
 - **Eventos del documento** en una línea de tiempo (en el panel de propiedades y en una pestaña «Historia»): creado (quién, nodo origen), nueva versión, modificado, consultado/descargado, prestado y devuelto, transferido, enviado a otro departamento, recibido, depurado. La mayor parte sale de lo que ya se registra (`tb_log`, préstamos, transferencias); hace falta añadir `Codigodoc` a `tb_log` de forma aditiva (ya previsto en el diseño del 2026-10-29, sección 14) y consultar por documento.
-- **Circulación entre departamentos.** Tabla aditiva `tb_documento_movimiento (idmov, claves del documento, fecha, user_id, nodo_origen (IdEstructura,id), nodo_destino, tipo, estado, observacion, fecha_recepcion)`. El documento **no cambia de nodo de archivo** (las claves de `tb_SeriesDatos` incluyen el nodo); lo que se mueve y se registra es la *custodia*: dónde está ahora y quién lo tiene. La pantalla «Enviar a…» elige el nodo destino; el destino recibe una notificación y confirma la recepción (si se decide con confirmación, ver sección 6, pregunta 2).
+- **Circulación entre departamentos.** Tabla aditiva `tb_documento_movimiento (idmov, claves del documento, fecha, user_id, nodo_origen (IdEstructura,id), nodo_destino, tipo, estado, observacion, fecha_recepcion)`. El documento **no cambia de nodo de archivo** (las claves de `tb_SeriesDatos` incluyen el nodo); lo que se mueve y se registra es la *custodia*: dónde está ahora y quién lo tiene. La pantalla «Enviar a…» elige el nodo destino y el destino recibe una notificación.
+- **Reglas de la circulación (decididas).** Quien tiene la custodia **solo ve que el documento existe**; **solo lo abre quien tenga permiso** por su alcance (la custodia no da acceso, así que no hay regla nueva en `UAlcanceDatos`). **Ni el administrador ni el EGD pueden revertir un envío.** Solo lo puede revertir **quien lo envió o el director del área desde donde se envió**; los directores de niveles superiores no pueden cancelarlo.
 - **Para la gestión.** Tablero por departamento: documentos en custodia, tiempo medio de permanencia, los que llevan más tiempo sin moverse, recorridos más largos. Exportable a Excel/PDF. Respeta el alcance: cada responsable ve su área; el administrador y el EGD ven lo de su alcance.
 - Reutiliza las notificaciones internas y el tablero del EGD de la Fase 5 del diseño original.
 
@@ -119,7 +121,12 @@ Objetivo: ver la vida de un documento desde que se genera y por qué departament
 
 ## 6. Decisiones
 
-### Decididas por el dueño del producto (2026-11-05)
+### Decididas por el dueño del producto (2026-11-05, respuestas a las preguntas del diseño)
+- **OCR y TIFF escaneados**: se retoman en una fase posterior; la búsqueda por contenido de la F7 cubre solo documentos con texto.
+- Coordenadas siempre en WGS84, con conversión automática desde coordenadas planas o locales (3.4). Formatos de mapa: GeoTIFF/TIF, SHP, KML, GeoJSON, DWG y DXF.
+- La versión 2.0 parte de MinIO; los clientes de la 1.0 reciben una utilidad de migración (3.3).
+- Georreferenciable = marca de la subserie (`georef`). Expediente engloba subexpedientes y documentos, y debe poder verse cada documento u obtenerse el expediente completo (la vista en la F2; obtener el expediente completo, tras la F4, porque necesita los ficheros).
+- Reglas de la circulación y de la custodia (3.6).
 - Variante de carga: A con el asistente de B integrado.
 - Pantalla de documentos con doble clic = contenido y un clic = propiedades (posición, fecha, expediente, ficheros fuente).
 - Campos de metadatos generados en tiempo de ejecución según lo definido por el usuario.
@@ -130,22 +137,19 @@ Objetivo: ver la vida de un documento desde que se genera y por qué departament
 - MinIO en lugar de FTP.
 
 ### Mías, a revisar
-- Interfaz `IAlmacenFicheros` con FTP y S3 conviviendo; MinIO sin migrar lo viejo.
-- Sin tipos espaciales: caja envolvente en `tb_doc_geo` y vértices en `tb_DocCoord`.
+- Interfaz `IAlmacenFicheros` con S3/MinIO como almacén de la versión 2.0 y FTP solo de lectura para migrar.
+- Sin tipos espaciales por ahora: caja envolvente en `tb_doc_geo` y vértices en `tb_DocCoord`; geografía detrás de `IRepositorioGeo` por si se migra a PostGIS (3.4).
 - Custodia separada del nodo de archivo (el documento no cambia de claves).
 - Texto extraído al subir, índice en `tb_doc_texto`, `LIKE` como camino común.
 - Reutilizar `tb_lote_captura` para registrar y retomar cada carga.
 - Un documento es expediente si otros lo referencian en `IDExpediente` o se marca al crearlo.
-- **FTP y MinIO conviven sin plazo.** Cada fichero se abre según el servidor con el que se guardó (`Idservidor` y `urlraiz` del propio registro); cambiar el servidor de una subserie solo afecta a lo que se suba después. No se mueve nada viejo sin que alguien lo pida con la herramienta de migración.
+- **Resolución del almacén por registro**: cada fichero se abre según el `urlraiz` de su propio registro, de modo que ficheros migrados y no migrados conviven durante la transición.
 - **«Georreferenciable» es una marca de la subserie**: columna aditiva `georef` (sí/no, por defecto no) en `cl_subseries`, editada en el clasificador de series y subseries. Con la marca, la carga ofrece el paso «Ubicación en el mapa». Un documento de otra subserie también puede recibir coordenadas después, desde sus propiedades.
 - **Expediente.** Se respeta lo que ya hay: un documento es expediente si otros lo referencian en `IDExpediente` o si se marca al crearlo (columna aditiva en `tb_SeriesDatos`), un expediente vacío cuenta como expediente, y el nivel de anidación es el que ya permite `subexp`. La carga en lote puede asignar un mismo expediente a todos los archivos de golpe.
 
-### Pendientes del dueño del producto (cambian lo que se construye)
-1. **OCR.** En el diseño del 2026-10-29 el OCR de PDF y TIFF quedó fuera de alcance. Sin OCR, la búsqueda por contenido no encuentra nada en escaneos (imagen sin texto). ¿Se mantiene fuera (solo documentos con texto) o se reabre para una fase posterior?
-2. **Circulación.** ¿«Enviar a otro departamento» es un trámite con confirmación del que recibe, o solo un registro de dónde está cada documento sin confirmación?
-3. **Sistema de coordenadas y mapa base.** ¿Qué sistema usan los planos (p. ej. WGS84 o el sistema cartográfico oficial del país) y el mapa base debe funcionar sin internet?
-4. **Qué es un «mapa».** ¿Qué formatos de fichero se consideran mapa o plano georreferenciable?
-5. **Custodia y acceso.** Cuando un documento se envía a otro departamento, ¿quien lo tiene en custodia puede abrirlo aunque esté fuera de su alcance (mientras lo tenga), o solo ve que existe? Si lo puede abrir, `UAlcanceDatos` necesita una regla nueva de acceso por custodia. Relacionado con la pregunta 2: ¿quién puede enviar un documento, y pueden el EGD o el administrador forzar o revertir un envío?
+### Pendientes del dueño del producto (se resuelven antes de la fase que los necesita)
+1. **Confirmación de recepción** (antes de la F9): cuando se envía un documento a otro departamento, ¿el destino debe confirmar que lo recibió (estados pendiente/recibido/rechazado y notificaciones) o basta registrar dónde está?
+2. **Mapa base sin internet** (antes de la F8): ¿el mapa de fondo debe funcionar sin conexión (teselas propias) o se acepta un mapa en línea?
 
 ### Se deja al constructor
 Tecnología del mapa y de la extracción de texto (con una prueba corta previa), forma exacta de la pantalla de dibujo de la huella, nombres de pantallas y de tablas dentro de lo descrito, orden interno de las tareas dentro de cada fase, y la biblioteca para hablar con S3 (firma AWS v4 con Indy, o el componente de Delphi si admite un endpoint propio).
@@ -158,15 +162,15 @@ Estado: **Hecho** / **Parcial** / **Nuevo**. Tamaño: S pocos días, M una o dos
 |---|---|---|---|---|
 | F0 | Base visual: shell, iconos, splash, «Acerca de», pantalla de inicio | — | **Hecho** (falta la lista manual y la prueba con usuarios) | — |
 | F1 | Búsqueda por nombre, metadato, propiedades y alcance | alcance | **Hecho** (falta la lista manual) | — |
-| F2 | **Lista de documentos y panel de propiedades** (3.2): iconos documento/expediente/geo, doble clic y un clic, posición, ficheros y fuente. Sin tocar la carga todavía | F0 | Nuevo | M |
-| F3 | **Agregar documentos A+B con metadatos dinámicos** (3.1), usando el almacén FTP actual detrás de `IAlmacenFicheros`; registro del lote | F2 | Nuevo | L |
-| F4 | **MinIO** (3.3): implementación S3, tipo de servidor en el clasificador, subida con progreso; herramienta de migración opcional | F3 | Nuevo | L |
+| F2 | **Lista de documentos y panel de propiedades** (3.2): iconos documento/expediente/geo, doble clic y un clic, posición, ficheros y fuente, filtro por expediente. Sin tocar la carga todavía | F0 | Nuevo (plan: `2026-11-05-lista-documentos-f2.md`) | M |
+| F4 | **MinIO** (3.3): almacén S3, tipo de servidor en el clasificador, subida con progreso, **utilidad de migración FTP → MinIO** para clientes de la 1.0, y «obtener el expediente completo» | F2 | Nuevo | L |
+| F3 | **Agregar documentos A+B con metadatos dinámicos** (3.1) sobre el almacén MinIO; registro del lote | F2, F4 | Nuevo | L |
 | F5 | **Trazabilidad, parte 1** (3.6): `Codigodoc` en `tb_log`, línea de tiempo por documento en el panel y «Historia» | F2 | Parcial (hay `tb_log`) | M |
-| F6 | **Georreferenciación, parte 1** (3.4): `tb_doc_geo`, clasificación geo/mapa, entrada de vértices (escribir e importar KML/GeoJSON), insignia | F2, F3, decisiones 3 y 4 | Parcial (hay `tb_DocCoord`) | M |
-| F7 | **Búsqueda por contenido** (3.5): extracción al subir, `tb_doc_texto`, índice de documentos existentes, casilla en la búsqueda | F3, decisión 1 | Nuevo | L |
-| F8 | **Georreferenciación, parte 2**: vista de mapa y búsqueda espacial | F6 | Nuevo | L |
-| F9 | **Trazabilidad, parte 2**: circulación entre departamentos (`tb_documento_movimiento`), notificaciones, tablero y reportes para la gestión | F5, decisión 2, notificaciones de la Fase 5 original | Nuevo | L |
+| F6 | **Georreferenciación, parte 1** (3.4): `tb_doc_geo`, WGS84 con conversión automática, clasificación geo/mapa, entrada de vértices (escribir e importar KML/GeoJSON), insignia | F2, F3 | Parcial (hay `tb_DocCoord`) | M |
+| F7 | **Búsqueda por contenido** (3.5) de documentos con texto: extracción al subir, `tb_doc_texto`, índice de los existentes, casilla en la búsqueda. OCR y TIFF escaneados, fase posterior | F3 | Nuevo | L |
+| F8 | **Georreferenciación, parte 2**: vista de mapa y búsqueda espacial; lectura de DXF/SHP/GeoPackage | F6, decisión pendiente 2 | Nuevo | L |
+| F9 | **Trazabilidad, parte 2**: circulación entre departamentos (`tb_documento_movimiento`), reglas de reversión, notificaciones, tablero y reportes para la gestión | F5, decisión pendiente 1, notificaciones de la Fase 5 original | Nuevo | L |
 
-Orden recomendado: F2 → F3 → F4 → F5 → F6 → F7 → F8 → F9. F2 y F5 son de bajo riesgo y dan valor enseguida; F3 es la que más valor da a quien carga; F4 se puede adelantar si el cambio de FTP es urgente (la interfaz de F3 lo permite). Antes de F4, F6/F8 y F7 se hace una prueba corta (spike) de la tecnología (S3 con Indy o el componente de Delphi, mapa, extracción de PDF) para confirmar el camino.
+Orden recomendado: F2 → F4 → F3 → F5 → F6 → F7 → F8 → F9. La F4 va antes que la F3 porque la versión 2.0 parte de MinIO y la carga no debe escribirse dos veces; por eso su prueba corta (S3 con Indy o el componente de Delphi) se hace al empezar. F2 y F5 son de bajo riesgo y dan valor enseguida. Antes de la F6/F8 y la F7 hay otra prueba corta (conversión de coordenadas y lectura de formatos con GDAL/OGR; extracción de PDF).
 
 Cada fase tendrá su plan con tareas (`docs/superpowers/plans/`) cuando le toque, empezando por F2.
