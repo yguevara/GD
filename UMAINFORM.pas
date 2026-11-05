@@ -955,7 +955,7 @@ var
 
   function GetRootUrl: string;
   begin
-    Result := UDM.cmdServer.FieldByName('Path').AsString;
+    Result := UDM.UrlRaizNuevos;
   end;
 
   function BuildStoragePath: string;
@@ -1176,7 +1176,7 @@ var
 
   function GetURLRaiz: string;
   begin
-    Result := UDM.cmdServer.FieldByName('Path').AsString; //UDM.SudSDetail.FieldByName('carpeta').AsString;
+    Result := UDM.UrlRaizNuevos; //UDM.SudSDetail.FieldByName('carpeta').AsString;
   end;
 
   function GetPath: string;
@@ -1368,7 +1368,7 @@ var
 
   function GetURLRaiz: string;
   begin
-    Result := UDM.cmdServer.FieldByName('Path').AsString; //UDM.SudSDetail.FieldByName('carpeta').AsString;
+    Result := UDM.UrlRaizNuevos; //UDM.SudSDetail.FieldByName('carpeta').AsString;
   end;
 
   function GetPath: string;
@@ -1688,7 +1688,7 @@ var
 
   function GetURLRaiz: string;
   begin
-    Result := UDM.cmdServer.FieldByName('Path').AsString;
+    Result := UDM.UrlRaizNuevos;
   end;
 
   function GetPath: string;
@@ -3058,7 +3058,7 @@ var
 
   function GetURLRaiz: string;
   begin
-    Result := UDM.cmdServer.FieldByName('Path').AsString; //UDM.SudSDetail.FieldByName('carpeta').AsString;
+    Result := UDM.UrlRaizNuevos; //UDM.SudSDetail.FieldByName('carpeta').AsString;
   end;
 
   function GetPath: string;

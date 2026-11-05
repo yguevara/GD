@@ -35,6 +35,9 @@ function ClaveObjeto(const IdEstructura: string; Id: Integer; const CodSubs,
 function UrlRaizS3(Idservidor: Integer): string;
 function EsUrlRaizS3(const UrlRaiz: string; out Idservidor: Integer): Boolean;
 function NormalizarRutaFtp(const S: string): string;
+{ Reconoce 's3://<n>/clave' tambien con barras invertidas y con '//' ya colapsado ('s3:/<n>/clave',
+  como lo dejan los llamadores historicos). Clave sale con '/' y sin '/' inicial. }
+function ParsearRutaS3(const Ruta: string; out Idservidor: Integer; out Clave: string): Boolean;
 
 implementation
 
@@ -76,6 +79,31 @@ begin
   Result := StringReplace(S, '\', '/', [rfReplaceAll]);
   while Pos('//', Result) > 0 do
     Result := StringReplace(Result, '//', '/', [rfReplaceAll]);
+end;
+
+function ParsearRutaS3(const Ruta: string; out Idservidor: Integer; out Clave: string): Boolean;
+var
+  N: string;
+  P: Integer;
+begin
+  Idservidor := 0;
+  Clave := '';
+  Result := False;
+  N := NormalizarRutaFtp(Ruta);
+  if not N.StartsWith('s3:/') then
+    Exit;
+  N := Copy(N, 5, MaxInt);
+  P := Pos('/', N);
+  if P = 0 then
+  begin
+    Result := TryStrToInt(N, Idservidor) and (Idservidor > 0);
+    Exit;
+  end;
+  Result := TryStrToInt(Copy(N, 1, P - 1), Idservidor) and (Idservidor > 0);
+  if Result then
+    Clave := Copy(N, P + 1, MaxInt)
+  else
+    Idservidor := 0;
 end;
 
 end.

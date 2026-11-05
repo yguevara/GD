@@ -27,6 +27,8 @@ type
     procedure UrlRaizS3_Forma;
     [Test]
     procedure NormalizarRutaFtp_Casos;
+    [Test]
+    procedure ParsearRutaS3_Casos;
   end;
 
 implementation
@@ -105,6 +107,25 @@ procedure TPruebasSigV4.NormalizarRutaFtp_Casos;
 begin
   Assert.AreEqual('a/b/c', NormalizarRutaFtp('a\\b//c'));
   Assert.AreEqual('/x/y.pdf', NormalizarRutaFtp('\x\\y.pdf'));
+end;
+
+procedure TPruebasSigV4.ParsearRutaS3_Casos;
+var
+  N: Integer;
+  K: string;
+begin
+  Assert.IsTrue(ParsearRutaS3('s3://7/\Est\Serie\a b.pdf', N, K));
+  Assert.AreEqual(7, N);
+  Assert.AreEqual('Est/Serie/a b.pdf', K);
+  // ya colapsada por los llamadores (// -> /)
+  Assert.IsTrue(ParsearRutaS3('s3:/12/Est/x.pdf', N, K));
+  Assert.AreEqual(12, N);
+  Assert.AreEqual('Est/x.pdf', K);
+  Assert.IsTrue(ParsearRutaS3('s3://7/', N, K));
+  Assert.AreEqual('', K);
+  Assert.IsFalse(ParsearRutaS3('/docs/x.pdf', N, K));
+  Assert.IsFalse(ParsearRutaS3('s3://x/y', N, K));
+  Assert.IsFalse(ParsearRutaS3('', N, K));
 end;
 
 initialization

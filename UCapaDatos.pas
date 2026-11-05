@@ -992,6 +992,11 @@ type
     procedure MueveBar(aBAR: PBarra; increment: integer);
     function DownloadFileFromFTP(const Host, Username, Password, RemoteFile, LocalFile: string; Puerto: Integer): boolean;
     procedure DeleteFTPFile(const Host, UserName, Password, FileName: string; Puerto: Integer);
+    // Ficheros en S3/MinIO (F4): las rutas 's3://<servidor>/clave' van al almacen S3
+    function UrlRaizNuevos: string;
+    procedure SubirAS3(const Local: string; Idservidor: Integer; const Clave: string);
+    function DescargarDeS3(Idservidor: Integer; const Clave, Local: string): Boolean;
+    procedure BorrarDeS3(Idservidor: Integer; const Clave: string);
     procedure DeleteFTPDirectoryRecursive(const Host, UserName, Password, Directory: string; Puerto: Integer);
     procedure DeleteFTPDirectory(const Host, UserName, Password, Directory: string; Puerto: Integer);
     //ZIP
@@ -1118,7 +1123,8 @@ var
 implementation
 
 uses
-  UEsquemaAlcance, UEsquemaAlmacen, UAlcanceDatos, UTopografia;
+  UEsquemaAlcance, UEsquemaAlmacen, UAlcanceDatos, UTopografia,
+  UAlmacenFicheros, UAlmacenServidor, UProgresoTransferencia;
 
 
 {%CLASSGROUP 'Vcl.Controls.TControl'}
@@ -1343,7 +1349,14 @@ procedure TUDM.CopyFileToFtpServer(const AServer, AUsername, APassword, ALocalFi
 var
   FTP: TIdFTP;
   Path, NombreFichero: string;
+  IdS3: Integer;
+  ClaveS3: string;
 begin
+  if ParsearRutaS3(ARemotePath, IdS3, ClaveS3) then
+  begin
+    SubirAS3(ALocalFile, IdS3, ClaveS3);
+    Exit;
+  end;
   FTP := TIdFTP.Create(nil);
   try
     FTP.Host := AServer;
@@ -1384,6 +1397,83 @@ begin
   finally
     FTP.Free;
   end;
+end;
+
+// F4: los ficheros nuevos van al primer servidor de tipo S3; sin uno, la ruta
+// del servidor FTP de siempre
+function TUDM.UrlRaizNuevos: string;
+var
+  Id: Integer;
+begin
+  Id := 0;
+  try
+    Id := ServidorDestinoNuevos(Conn);
+  except
+    Id := 0;
+  end;
+  if Id > 0 then
+    Result := UrlRaizS3(Id)
+  else
+    Result := cmdServer.FieldByName('Path').AsString;
+end;
+
+procedure TUDM.SubirAS3(const Local: string; Idservidor: Integer; const Clave: string);
+var
+  Alm: IAlmacenFicheros;
+  Prog: TProgresoTransferencia;
+begin
+  Prog := TProgresoTransferencia.Create(nil, 'Subiendo fichero', ExtractFileName(Local));
+  try
+    try
+      Alm := CrearAlmacen(Conn, Idservidor);
+      Alm.Subir(Local, Clave,
+        procedure(Hecho, Total: Int64; var Cancelar: Boolean)
+        begin
+          Prog.Actualizar(Hecho, Total, Cancelar);
+        end);
+    except
+      on E: EAlmacen do
+      begin
+        sms('No se pudo subir el fichero. ' + E.Message, 1);
+        // sin fichero no debe quedar el registro a medio crear
+        if tb_ssArchdigital.State in dsEditModes then
+          tb_ssArchdigital.Cancel;
+        Abort;
+      end;
+    end;
+  finally
+    Prog.Free;
+  end;
+end;
+
+function TUDM.DescargarDeS3(Idservidor: Integer; const Clave, Local: string): Boolean;
+var
+  Alm: IAlmacenFicheros;
+  Prog: TProgresoTransferencia;
+begin
+  Result := False;
+  Prog := TProgresoTransferencia.Create(nil, 'Descargando fichero', ExtractFileName(Local));
+  try
+    try
+      Alm := CrearAlmacen(Conn, Idservidor);
+      Alm.Descargar(Clave, Local,
+        procedure(Hecho, Total: Int64; var Cancelar: Boolean)
+        begin
+          Prog.Actualizar(Hecho, Total, Cancelar);
+        end);
+      Result := True;
+    except
+      on E: EAlmacen do
+        sms('No se puede descargar el fichero especificado. Motivo: ' + E.Message, 1);
+    end;
+  finally
+    Prog.Free;
+  end;
+end;
+
+procedure TUDM.BorrarDeS3(Idservidor: Integer; const Clave: string);
+begin
+  CrearAlmacen(Conn, Idservidor).Borrar(Clave);
 end;
 
 procedure TUDM.ActualizaConfig(aVER: string);
@@ -2162,7 +2252,14 @@ end;
 procedure TUDM.DeleteFTPFile(const Host, UserName, Password, FileName: string; Puerto: Integer);
 var
   FTP: TIdFTP;
+  IdS3: Integer;
+  ClaveS3: string;
 begin
+  if ParsearRutaS3(FileName, IdS3, ClaveS3) then
+  begin
+    BorrarDeS3(IdS3, ClaveS3);
+    Exit;
+  end;
   FTP := TIdFTP.Create(nil);
   try
     FTP.Host := Host;
@@ -2413,8 +2510,15 @@ end;
 function TUDM.DownloadFileFromFTP(const Host, Username, Password, RemoteFile, LocalFile: string; Puerto: Integer): boolean;
 var
   FTP: TIdFTP;
+  IdS3: Integer;
+  ClaveS3: string;
 begin
   result := False;
+  if ParsearRutaS3(RemoteFile, IdS3, ClaveS3) then
+  begin
+    Result := DescargarDeS3(IdS3, ClaveS3, LocalFile);
+    Exit;
+  end;
   FTP := TIdFTP.Create(nil);
   try
     FTP.Host := Host;
