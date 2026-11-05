@@ -28,7 +28,10 @@ uses
   UDocumentoVista in '..\UDocumentoVista.pas',
   UPruebasDocumentoVista in 'UPruebasDocumentoVista.pas',
   UDocumentoVistaDatos in '..\UDocumentoVistaDatos.pas',
-  UPruebasDocumentoVistaDatos in 'UPruebasDocumentoVistaDatos.pas';
+  UPruebasDocumentoVistaDatos in 'UPruebasDocumentoVistaDatos.pas',
+  USigV4 in '..\USigV4.pas',
+  UAlmacenFicheros in '..\UAlmacenFicheros.pas',
+  UPruebasSigV4 in 'UPruebasSigV4.pas';
 
 var
   Corredor: ITestRunner;
