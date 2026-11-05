@@ -46,9 +46,11 @@ type
     FScroll: TScrollBox;
     FPie: TPanel;
     FBtnAbrir: TButton;
+    FBtnExpediente: TButton;
     FEnlaceExp: TLabel;
     FOnSeleccion: TClaveEvent;
     FOnAbrirContenido: TClaveEvent;
+    FOnExpedienteCompleto: TClaveEvent;
     FOnPedirFicheros: TSolicitudFicheros;
     FOnAlternarVista: TNotifyEvent;
     FConstruido: Boolean;
@@ -66,6 +68,7 @@ type
     procedure ListaDblClick(Sender: TObject);
     procedure ListaKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure AbrirClick(Sender: TObject);
+    procedure ExpedienteClick(Sender: TObject);
     procedure VistaClick(Sender: TObject);
     procedure EnlaceExpClick(Sender: TObject);
     procedure EnlaceTodosClick(Sender: TObject);
@@ -90,6 +93,8 @@ type
     property ExpedienteFiltrado: string read FExpFiltrado;
     property OnSeleccion: TClaveEvent read FOnSeleccion write FOnSeleccion;
     property OnAbrirContenido: TClaveEvent read FOnAbrirContenido write FOnAbrirContenido;
+    { Obtener el expediente completo (ficheros del expediente y de sus documentos) }
+    property OnExpedienteCompleto: TClaveEvent read FOnExpedienteCompleto write FOnExpedienteCompleto;
     property OnPedirFicheros: TSolicitudFicheros read FOnPedirFicheros write FOnPedirFicheros;
     property OnAlternarVista: TNotifyEvent read FOnAlternarVista write FOnAlternarVista;
   end;
@@ -250,7 +255,7 @@ begin
   FPie := TPanel.Create(Self);
   FPie.Parent := FDer;
   FPie.Align := alBottom;
-  FPie.Height := 74;
+  FPie.Height := 112;
   FPie.BevelOuter := bvNone;
   FPie.ParentBackground := False;
   FPie.StyleElements := [];
@@ -264,11 +269,18 @@ begin
   FBtnAbrir.Enabled := False;
   FBtnAbrir.OnClick := AbrirClick;
 
+  FBtnExpediente := TButton.Create(Self);
+  FBtnExpediente.Parent := FPie;
+  FBtnExpediente.Caption := 'Obtener expediente completo';
+  FBtnExpediente.SetBounds(12, 46, 230, 30);
+  FBtnExpediente.Visible := False;
+  FBtnExpediente.OnClick := ExpedienteClick;
+
   FEnlaceExp := NuevaEtiqueta('Mostrar solo este expediente', 9, FTema.Acento, False);
   FEnlaceExp.Parent := FPie;
   FEnlaceExp.Font.Style := [fsUnderline];
   FEnlaceExp.Cursor := crHandPoint;
-  FEnlaceExp.SetBounds(14, 48, 200, 16);
+  FEnlaceExp.SetBounds(14, 86, 200, 16);
   FEnlaceExp.Visible := False;
   FEnlaceExp.OnClick := EnlaceExpClick;
 
@@ -477,6 +489,15 @@ begin
   AbrirSeleccionado;
 end;
 
+procedure TPanelDocumentos.ExpedienteClick(Sender: TObject);
+var
+  I: Integer;
+begin
+  I := IndiceSeleccionado;
+  if (I >= 0) and (I <= High(FVisibles)) and Assigned(FOnExpedienteCompleto) then
+    FOnExpedienteCompleto(FVisibles[I].Clave);
+end;
+
 procedure TPanelDocumentos.VistaClick(Sender: TObject);
 begin
   if Assigned(FOnAlternarVista) then
@@ -553,6 +574,7 @@ begin
   FEtiquetas.OwnsObjects := True;
   FEtiquetas.Clear;
   FBtnAbrir.Enabled := False;
+  FBtnExpediente.Visible := False;
   FEnlaceExp.Visible := False;
   L := NuevaEtiqueta('Elija un documento para ver sus propiedades', 9,
     FTema.TextoSuave, False);
@@ -639,6 +661,8 @@ begin
   else
     Digitales := D.NumFicheros;
   FBtnAbrir.Enabled := Digitales > 0;
+  FBtnExpediente.Visible := (FClases[Indice].Tipo = tdExpediente) and
+    Assigned(FOnExpedienteCompleto);
   // Solo si hay documentos del expediente en esta lista (los de otras subseries
   // no estan aqui: el filtro dejaria solo el expediente)
   FEnlaceExp.Visible := (FClases[Indice].Tipo = tdExpediente) and

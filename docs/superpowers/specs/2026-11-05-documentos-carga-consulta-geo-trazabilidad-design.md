@@ -163,7 +163,7 @@ Estado: **Hecho** / **Parcial** / **Nuevo**. Tamaño: S pocos días, M una o dos
 | F0 | Base visual: shell, iconos, splash, «Acerca de», pantalla de inicio | — | **Hecho** (falta la lista manual y la prueba con usuarios) | — |
 | F1 | Búsqueda por nombre, metadato, propiedades y alcance | alcance | **Hecho** (falta la lista manual) | — |
 | F2 | **Lista de documentos y panel de propiedades** (3.2): iconos documento/expediente/geo, doble clic y un clic, posición, ficheros y fuente, filtro por expediente. Sin tocar la carga todavía | F0 | **Implementada** (plan `2026-11-05-lista-documentos-f2.md`; falta ejecutar la lista manual `2026-11-05-verificacion-f2.md` con un administrador) | M |
-| F4 | **MinIO** (3.3): almacén S3, tipo de servidor en el clasificador, subida con progreso, **utilidad de migración FTP → MinIO** para clientes de la 1.0, y «obtener el expediente completo» | F2 | Nuevo | L |
+| F4 | **MinIO** (3.3): almacén S3, tipo de servidor en el clasificador, subida con progreso, **utilidad de migración FTP → MinIO** para clientes de la 1.0, y «obtener el expediente completo» | F2 | **Implementada** (plan `2026-11-05-minio-f4.md`; falta ejecutar la lista manual `2026-11-05-verificacion-f4.md`) | L |
 | F3 | **Agregar documentos A+B con metadatos dinámicos** (3.1) sobre el almacén MinIO; registro del lote | F2, F4 | Nuevo | L |
 | F5 | **Trazabilidad, parte 1** (3.6): `Codigodoc` en `tb_log`, línea de tiempo por documento en el panel y «Historia» | F2 | Parcial (hay `tb_log`) | M |
 | F6 | **Georreferenciación, parte 1** (3.4): `tb_doc_geo`, WGS84 con conversión automática, clasificación geo/mapa, entrada de vértices (escribir e importar KML/GeoJSON), insignia | F2, F3 | Parcial (hay `tb_DocCoord`) | M |

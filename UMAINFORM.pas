@@ -32,7 +32,8 @@ uses
   cxDBRichEdit, System.Generics.Collections, cxSplitter, AdvListV, DBAdvLst,
   IniFiles, cxSpinEdit, Vcl.Grids, Vcl.DBGrids, JvDBControls, cxMaskEdit,
   dxScreenTip, dxCustomHint, cxHint, cxEditRepositoryItems, cxGroupBox,
-  UBusqueda, UAlcance, UPanelDocumentos, UDocumentoVista, UMigracionPantalla;
+  UBusqueda, UAlcance, UPanelDocumentos, UDocumentoVista, UMigracionPantalla, UExpedienteCompleto, UProgresoTransferencia,
+  UAlmacenFicheros, UAlmacenServidor;
 
 type
   TComboBoxFieldAssociation = record
@@ -752,6 +753,7 @@ type
     function ListaDocsLocalizar(const Clave: TClaveDocumento): Boolean;
     procedure ListaDocsSeleccion(const Clave: TClaveDocumento);
     procedure ListaDocsAbrir(const Clave: TClaveDocumento);
+    procedure ListaDocsExpediente(const Clave: TClaveDocumento);
     function ListaDocsFicheros(const Clave: TClaveDocumento): TArray<TFicheroDoc>;
     procedure ListaDocsAlternar(Sender: TObject);
     procedure ShellAgregarDocumento(Sender: TObject);
@@ -6737,6 +6739,7 @@ begin
     FListaDocs.Align := alClient;
     FListaDocs.OnSeleccion := ListaDocsSeleccion;
     FListaDocs.OnAbrirContenido := ListaDocsAbrir;
+    FListaDocs.OnExpedienteCompleto := ListaDocsExpediente;
     FListaDocs.OnPedirFicheros := ListaDocsFicheros;
     FListaDocs.OnAlternarVista := ListaDocsAlternar;
 
@@ -6909,6 +6912,60 @@ begin
     'IdEstructura;id;codsubs;Fecha;Version;Codigodoc',
     VarArrayOf([Clave.IdEstructura, Clave.Id, Clave.CodSubs,
     VarFromDateTime(Clave.Fecha), Clave.Version, Clave.Codigodoc]), []);
+end;
+
+// Obtener el expediente completo (F4): copia a un ZIP los ficheros del
+// expediente y de los documentos que lo referencian (lo que el usuario puede ver)
+procedure TMAIN.ListaDocsExpediente(const Clave: TClaveDocumento);
+var
+  L: TArray<TFicheroExpediente>;
+  R: TResumenExportacion;
+  Dlg: TSaveDialog;
+  Prog: TProgresoTransferencia;
+  Defecto: Integer;
+begin
+  L := ListarFicherosExpediente(UDM.Conn, UDM.Alcance, Clave.IdEstructura, Clave.Id,
+    Trim(Clave.Codigodoc));
+  if Length(L) = 0 then
+  begin
+    UDM.sms('Este expediente no tiene ficheros digitales que obtener.', 2);
+    Exit;
+  end;
+  Defecto := UDM.cmdServer.FieldByName('Idservidor').AsInteger;
+  Dlg := TSaveDialog.Create(nil);
+  try
+    Dlg.Title := 'Guardar el expediente completo';
+    Dlg.Filter := 'Archivo ZIP (*.zip)|*.zip';
+    Dlg.DefaultExt := 'zip';
+    Dlg.FileName := 'Expediente ' + Trim(Clave.Codigodoc) + '.zip';
+    Dlg.Options := Dlg.Options + [ofOverwritePrompt];
+    if not Dlg.Execute then
+      Exit;
+    Prog := TProgresoTransferencia.Create(nil, 'Preparando el expediente completo',
+      Trim(Clave.Codigodoc));
+    try
+      R := ExportarExpediente(L,
+        function(const F: TFicheroExpediente; out ClaveFich: string): IAlmacenFicheros
+        begin
+          Result := AlmacenParaFichero(UDM.Conn, F.UrlRaiz, Defecto, ClaveFich, F.Path, F.Nombre);
+        end,
+        Dlg.FileName, True,
+        procedure(Hecho, Total: Int64; var Cancelar: Boolean)
+        begin
+          Prog.Actualizar(Hecho, Total, Cancelar);
+        end);
+    finally
+      Prog.Free;
+    end;
+    if R.Fallidos = 0 then
+      UDM.sms(Format('Se copiaron %d ficheros del expediente al archivo "%s".',
+        [R.Copiados, Dlg.FileName]), 3)
+    else
+      UDM.sms(Format('Se copiaron %d ficheros; %d no se pudieron copiar:' + sLineBreak + '%s',
+        [R.Copiados, R.Fallidos, Copy(R.Fallos, 1, 600)]), 2);
+  finally
+    Dlg.Free;
+  end;
 end;
 
 procedure TMAIN.ListaDocsSeleccion(const Clave: TClaveDocumento);

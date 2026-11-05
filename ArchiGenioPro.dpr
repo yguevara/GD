@@ -23,6 +23,7 @@ uses
   UMigracionFicheros in 'UMigracionFicheros.pas',
   UMigracionPantalla in 'UMigracionPantalla.pas',
   UServidorS3Dialogo in 'UServidorS3Dialogo.pas',
+  UExpedienteCompleto in 'UExpedienteCompleto.pas',
   UAlcanceDatos in 'UAlcanceDatos.pas',
   UTopografia in 'UTopografia.pas',
   UAsignacionDatos in 'UAsignacionDatos.pas',
