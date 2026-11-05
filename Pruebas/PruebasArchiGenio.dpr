@@ -37,7 +37,10 @@ uses
   USecretoServidor in '..\USecretoServidor.pas',
   UPruebasSecreto in 'UPruebasSecreto.pas',
   UEsquemaAlmacen in '..\UEsquemaAlmacen.pas',
-  UPruebasEsquemaAlmacen in 'UPruebasEsquemaAlmacen.pas';
+  UPruebasEsquemaAlmacen in 'UPruebasEsquemaAlmacen.pas',
+  UAlmacenFtp in '..\UAlmacenFtp.pas',
+  UAlmacenServidor in '..\UAlmacenServidor.pas',
+  UPruebasAlmacenServidor in 'UPruebasAlmacenServidor.pas';
 
 var
   Corredor: ITestRunner;

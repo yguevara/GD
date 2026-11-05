@@ -46,6 +46,12 @@ begin
   Columna('usohttps', 'BIT');
   Columna('clave_acceso', 'VARCHAR(100)');
   Columna('secreto_cifrado', 'VARCHAR(500)');
+  // ipserver admitia 20 caracteres: un nombre DNS de MinIO puede ser mas largo
+  if EsSqlServer then
+    Ejecutar('IF COL_LENGTH(''dbo.cl_ftp_Server'', ''ipserver'') < 100 ' +
+      'ALTER TABLE cl_ftp_Server ALTER COLUMN ipserver VARCHAR(100) NULL')
+  else
+    Ejecutar('ALTER TABLE cl_ftp_Server ALTER COLUMN ipserver TEXT(100)');
   // Los servidores que ya existian son FTP
   Ejecutar('UPDATE cl_ftp_Server SET tipo = ''FTP'' WHERE tipo IS NULL');
 end;
