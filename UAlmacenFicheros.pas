@@ -90,7 +90,7 @@ begin
   Clave := '';
   Result := False;
   N := NormalizarRutaFtp(Ruta);
-  if not N.StartsWith('s3:/') then
+  if not N.StartsWith('s3:/', True) then
     Exit;
   N := Copy(N, 5, MaxInt);
   P := Pos('/', N);

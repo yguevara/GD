@@ -83,6 +83,7 @@ begin
   Assert.AreEqual(0, Integer(FConn.ExecSQLScalar(
     'SELECT COUNT(*) FROM cl_ftp_Server WHERE tipo IS NULL')),
     'filas existentes deben quedar como FTP');
+  Assert.IsTrue(EsquemaAlmacenCompleto(FConn), 'el esquema debe quedar completo');
 end;
 
 procedure TPruebasEsquemaAlmacen.Access_AgregaColumnasYEsIdempotente;
@@ -105,6 +106,7 @@ begin
   Assert.AreEqual(0, Integer(FConn.ExecSQLScalar(
     'SELECT COUNT(*) FROM cl_ftp_Server WHERE tipo IS NULL')),
     'filas existentes deben quedar como FTP');
+  Assert.IsTrue(EsquemaAlmacenCompleto(FConn), 'el esquema debe quedar completo');
 end;
 
 initialization

@@ -20,6 +20,21 @@ uses
   UAlmacenS3, UAlmacenServidor, USecretoServidor;
 
 type
+  { Estado compartido con el hilo de la prueba: sobrevive al formulario }
+  IEstadoDialogo = interface
+    ['{3F0A8C52-6E0B-4B7B-9D43-7C1D5A2E9B10}']
+    function GetCerrado: Boolean;
+    procedure SetCerrado(Valor: Boolean);
+  end;
+
+  TEstadoDialogo = class(TInterfacedObject, IEstadoDialogo)
+  private
+    FCerrado: Boolean;
+  public
+    function GetCerrado: Boolean;
+    procedure SetCerrado(Valor: Boolean);
+  end;
+
   TDialogoS3 = class(TForm)
   private
     FConn: TFDConnection;
@@ -28,23 +43,34 @@ type
     FHttps: TCheckBox;
     FResultado: TLabel;
     FProbar, FGuardar, FCancelar: TButton;
-    FCerrando: Boolean;
+    FEstado: IEstadoDialogo;
     FSecretoGuardado: string;
     function Fila(const Texto: string; Y: Integer; Ancho: Integer = 300): TEdit;
     procedure Cargar;
     function Leer: TDatosServidorS3;
     procedure AlProbar(Sender: TObject);
     procedure AlGuardar(Sender: TObject);
-    procedure AlCerrarForm(Sender: TObject; var Action: TCloseAction);
   public
     constructor Crear(AOwner: TComponent; Conn: TFDConnection; Id: Integer);
+    destructor Destroy; override;
   end;
+
+function TEstadoDialogo.GetCerrado: Boolean;
+begin
+  Result := FCerrado;
+end;
+
+procedure TEstadoDialogo.SetCerrado(Valor: Boolean);
+begin
+  FCerrado := Valor;
+end;
 
 constructor TDialogoS3.Crear(AOwner: TComponent; Conn: TFDConnection; Id: Integer);
 var
   T: TTemaColores;
 begin
   inherited CreateNew(AOwner);
+  FEstado := TEstadoDialogo.Create;
   FConn := Conn;
   FId := Id;
   T := TemaClaro;
@@ -56,7 +82,6 @@ begin
   Color := T.Fondo;
   Font.Name := 'Segoe UI';
   Font.Size := 9;
-  OnClose := AlCerrarForm;
 
   FEtiqueta := Fila('Nombre del servidor', 16);
   FServidor := Fila('Servidor (nombre o IP, sin puerto)', 62);
@@ -96,6 +121,13 @@ begin
   FHttps.Checked := False;
   if FId <> 0 then
     Cargar;
+end;
+
+destructor TDialogoS3.Destroy;
+begin
+  // la prueba en curso (otro hilo) ya no debe tocar este formulario
+  FEstado.SetCerrado(True);
+  inherited;
 end;
 
 function TDialogoS3.Fila(const Texto: string; Y: Integer; Ancho: Integer): TEdit;
@@ -155,6 +187,7 @@ procedure TDialogoS3.AlProbar(Sender: TObject);
 var
   D: TDatosServidorS3;
   Secreto, Host: string;
+  Estado: IEstadoDialogo;
 begin
   D := Leer;
   Secreto := D.Secreto;
@@ -168,6 +201,7 @@ begin
     Exit;
   end;
   Host := Trim(D.Endpoint) + ':' + IntToStr(D.Puerto);
+  Estado := FEstado;
   FProbar.Enabled := False;
   FGuardar.Enabled := False;
   FResultado.Font.Color := clWindowText;
@@ -188,7 +222,7 @@ begin
       TThread.Queue(nil,
         procedure
         begin
-          if FCerrando then
+          if Estado.GetCerrado then
             Exit;
           FProbar.Enabled := True;
           FGuardar.Enabled := True;
@@ -213,11 +247,6 @@ begin
       FResultado.Caption := E.Message;
     end;
   end;
-end;
-
-procedure TDialogoS3.AlCerrarForm(Sender: TObject; var Action: TCloseAction);
-begin
-  FCerrando := True;
 end;
 
 function EditarServidorS3(Conn: TFDConnection; Idservidor: Integer): Boolean;

@@ -123,6 +123,10 @@ begin
   Assert.AreEqual('Est/x.pdf', K);
   Assert.IsTrue(ParsearRutaS3('s3://7/', N, K));
   Assert.AreEqual('', K);
+  // el prefijo no distingue mayusculas (igual que EsUrlRaizS3)
+  Assert.IsTrue(ParsearRutaS3('S3://7/A/x.pdf', N, K));
+  Assert.AreEqual(7, N);
+  Assert.AreEqual('A/x.pdf', K);
   Assert.IsFalse(ParsearRutaS3('/docs/x.pdf', N, K));
   Assert.IsFalse(ParsearRutaS3('s3://x/y', N, K));
   Assert.IsFalse(ParsearRutaS3('', N, K));

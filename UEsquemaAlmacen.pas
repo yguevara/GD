@@ -12,6 +12,9 @@ uses
   FireDAC.Comp.Client;
 
 procedure CrearEsquemaAlmacen(Conn: TFDConnection; EsSqlServer: Boolean);
+{ True si cl_ftp_Server ya tiene todas las columnas de S3 (la DDL se ignora en
+  silencio si falla, p. ej. sin permiso). }
+function EsquemaAlmacenCompleto(Conn: TFDConnection): Boolean;
 
 implementation
 
@@ -54,6 +57,22 @@ begin
     Ejecutar('ALTER TABLE cl_ftp_Server ALTER COLUMN ipserver TEXT(100)');
   // Los servidores que ya existian son FTP
   Ejecutar('UPDATE cl_ftp_Server SET tipo = ''FTP'' WHERE tipo IS NULL');
+end;
+
+function EsquemaAlmacenCompleto(Conn: TFDConnection): Boolean;
+const
+  COLUMNAS: array[0..5] of string = ('tipo', 'bucket', 'region', 'usohttps',
+    'clave_acceso', 'secreto_cifrado');
+var
+  I: Integer;
+begin
+  Result := True;
+  for I := Low(COLUMNAS) to High(COLUMNAS) do
+    try
+      Conn.ExecSQLScalar('SELECT COUNT(' + COLUMNAS[I] + ') FROM cl_ftp_Server');
+    except
+      Exit(False);
+    end;
 end;
 
 end.

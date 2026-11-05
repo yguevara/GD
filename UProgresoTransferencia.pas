@@ -18,9 +18,11 @@ type
     FEstado: TLabel;
     FCancelar: TButton;
     FCancelado: Boolean;
+    FVentanas: Pointer;
     procedure AlCancelar(Sender: TObject);
   public
     constructor Create(AOwner: TComponent; const Titulo, Archivo: string); reintroduce;
+    destructor Destroy; override;
     { Compatible con TProgresoEvento: Actualizar(Hecho, Total, Cancelar) }
     procedure Actualizar(Hecho, Total: Int64; var Cancelar: Boolean);
     property Cancelado: Boolean read FCancelado;
@@ -80,6 +82,14 @@ begin
   FCancelar.OnClick := AlCancelar;
 end;
 
+destructor TProgresoTransferencia.Destroy;
+begin
+  // reactiva las ventanas que se deshabilitaron mientras duraba la operacion
+  if FVentanas <> nil then
+    EnableTaskWindows(FVentanas);
+  inherited;
+end;
+
 procedure TProgresoTransferencia.AlCancelar(Sender: TObject);
 begin
   FCancelado := True;
@@ -90,7 +100,13 @@ end;
 procedure TProgresoTransferencia.Actualizar(Hecho, Total: Int64; var Cancelar: Boolean);
 begin
   if not Visible then
+  begin
     Show;
+    // Durante la operacion no se puede tocar el resto de la aplicacion (el dataset
+    // del documento esta en edicion): solo esta ventana responde
+    if FVentanas = nil then
+      FVentanas := DisableTaskWindows(Handle);
+  end;
   if Total > 0 then
   begin
     FBarra.Position := Integer((Hecho * 1000) div Total);

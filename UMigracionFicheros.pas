@@ -14,6 +14,17 @@ uses
   System.SysUtils, System.Classes, FireDAC.Comp.Client, UAlmacenFicheros;
 
 type
+  TFilaFichero = record
+    IdEstructura: string;
+    Id: Integer;
+    CodSubs: string;
+    Fecha: TDateTime;
+    Version: string;
+    Codigodoc: string;
+    IdHijo: Integer;
+    Nombre, UrlRaiz, Path: string;
+  end;
+
   TResumenMigracion = record
     Total, Migrados, YaMigrados, Fallidos: Integer;
   end;
@@ -25,6 +36,7 @@ type
     FIdservidorDestino: Integer;
     FFiltro: string;
     FFallos: TStringList;
+    function ActualizarUrlRaiz(const Fila: TFilaFichero): Integer;
   public
     constructor Create(Conn: TFDConnection; Origen, Destino: IAlmacenFicheros;
       IdservidorDestino: Integer);
@@ -43,19 +55,10 @@ type
 implementation
 
 uses
-  System.IOUtils, System.Hash, System.Variants, Data.DB;
+  System.IOUtils, System.Hash, System.Variants, Data.DB, FireDAC.Stan.Param;
 
-type
-  TFilaFichero = record
-    IdEstructura: string;
-    Id: Integer;
-    CodSubs: string;
-    Fecha: TDateTime;
-    Version: string;
-    Codigodoc: string;
-    IdHijo: Integer;
-    Nombre, UrlRaiz, Path: string;
-  end;
+const
+  TOLERANCIA_FECHA = 10 / 86400000; // 10 ms en dias
 
 function TamanoDe(const Ruta: string): Int64;
 var
@@ -78,6 +81,34 @@ begin
   FDestino := Destino;
   FIdservidorDestino := IdservidorDestino;
   FFallos := TStringList.Create;
+end;
+
+function TMigracionFicheros.ActualizarUrlRaiz(const Fila: TFilaFichero): Integer;
+var
+  Q: TFDQuery;
+begin
+  // La fecha se compara con una tolerancia de 10 ms: datetime de SQL Server
+  // redondea a 1/300 s y la igualdad exacta fallaria con milisegundos.
+  Q := TFDQuery.Create(nil);
+  try
+    Q.Connection := FConn;
+    Q.SQL.Text := 'UPDATE tb_ssArchdigital SET urlraiz = :u WHERE ' +
+      'IdEstructura = :a AND id = :b AND codsubs = :c AND Version = :e AND ' +
+      'Codigodoc = :f AND idhijo = :g AND Fecha >= :d AND Fecha <= :h';
+    Q.ParamByName('u').AsString := UrlRaizS3(FIdservidorDestino);
+    Q.ParamByName('a').AsString := Fila.IdEstructura;
+    Q.ParamByName('b').AsInteger := Fila.Id;
+    Q.ParamByName('c').AsString := Fila.CodSubs;
+    Q.ParamByName('e').AsString := Fila.Version;
+    Q.ParamByName('f').AsString := Fila.Codigodoc;
+    Q.ParamByName('g').AsInteger := Fila.IdHijo;
+    Q.ParamByName('d').AsDateTime := Fila.Fecha - TOLERANCIA_FECHA;
+    Q.ParamByName('h').AsDateTime := Fila.Fecha + TOLERANCIA_FECHA;
+    Q.ExecSQL;
+    Result := Q.RowsAffected;
+  finally
+    Q.Free;
+  end;
 end;
 
 destructor TMigracionFicheros.Destroy;
@@ -140,11 +171,9 @@ var
         if TamDestino <> Tam then
           raise EAlmacen.Create('El tamano en el destino no coincide con el del origen.');
         // Verificado: recien ahora se cambia la fila (una sola sentencia, atomica)
-        Filas := FConn.ExecSQL('UPDATE tb_ssArchdigital SET urlraiz = :u WHERE ' +
-          'IdEstructura = :a AND id = :b AND codsubs = :c AND Fecha = :d AND ' +
-          'Version = :e AND Codigodoc = :f AND idhijo = :g',
-          [UrlRaizS3(FIdservidorDestino), Fila.IdEstructura, Fila.Id, Fila.CodSubs,
-          Fila.Fecha, Fila.Version, Fila.Codigodoc, Fila.IdHijo]);
+        // La fecha se compara con una tolerancia de 10 ms: datetime de SQL Server
+        // redondea a 1/300 s y la igualdad exacta fallaria con milisegundos.
+        Filas := ActualizarUrlRaiz(Fila);
         if Filas <> 1 then
           raise EAlmacen.Create('No se pudo actualizar el registro del fichero.');
         Inc(Result.Migrados);

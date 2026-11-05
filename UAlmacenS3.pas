@@ -10,10 +10,14 @@ interface
 uses
   System.SysUtils, System.Classes, System.Net.HttpClient, UAlmacenFicheros;
 
+{ El Host que envia WinHTTP omite el puerto por defecto (443 con HTTPS, 80 sin
+  HTTPS): la firma debe usar ese mismo valor. }
+function HostFirmado(const Endpoint: string; Https: Boolean): string;
+
 type
   TAlmacenS3 = class(TInterfacedObject, IAlmacenFicheros)
   private
-    FEndpoint, FBucket, FAccessKey, FSecretKey, FRegion: string;
+    FEndpoint, FHostFirmado, FBucket, FAccessKey, FSecretKey, FRegion: string;
     FHttps: Boolean;
     function RutaDe(const Clave: string): string;
     function Esquema: string;
@@ -21,7 +25,7 @@ type
       const HashCuerpo: string; Destino: TStream; AlRecibir: TReceiveDataEvent): IHTTPResponse;
     function PeticionConReintento(const Metodo, Ruta, Consulta: string; const Local: string;
       const HashCuerpo: string; Progreso: TProgresoEvento; Total: Int64): IHTTPResponse;
-    procedure ExigirOk(const R: IHTTPResponse; const Accion: string);
+    procedure ExigirOk(const R: IHTTPResponse; const Accion: string; LeerCuerpo: Boolean = True);
     procedure ProgresoDescarga(const Sender: TObject; AContentLength, AReadCount: Int64;
       var Abort: Boolean);
   private
@@ -112,6 +116,15 @@ begin
   Result := FInterno.Seek(Offset, Origin);
 end;
 
+function HostFirmado(const Endpoint: string; Https: Boolean): string;
+begin
+  Result := Endpoint;
+  if Https and Result.EndsWith(':443') then
+    Result := Copy(Result, 1, Length(Result) - 4)
+  else if (not Https) and Result.EndsWith(':80') then
+    Result := Copy(Result, 1, Length(Result) - 3);
+end;
+
 function UtcAhora: TDateTime;
 begin
   Result := TTimeZone.Local.ToUniversalTime(Now);
@@ -140,6 +153,7 @@ begin
   if FRegion = '' then
     FRegion := 'us-east-1';
   FHttps := Https;
+  FHostFirmado := HostFirmado(FEndpoint, FHttps);
 end;
 
 function TAlmacenS3.Esquema: string;
@@ -167,7 +181,7 @@ begin
   try
     Cli.CustomHeaders['x-amz-content-sha256'] := HashCuerpo;
     Cli.CustomHeaders['Authorization'] := FirmarPeticion(Metodo, Ruta, Consulta,
-      FEndpoint, FRegion, FAccessKey, FSecretKey, HashCuerpo, UtcAhora, Fecha);
+      FHostFirmado, FRegion, FAccessKey, FSecretKey, HashCuerpo, UtcAhora, Fecha);
     Cli.CustomHeaders['x-amz-date'] := Fecha;
     Cli.OnReceiveData := AlRecibir;
     Url := Esquema + '://' + FEndpoint + UriEncode(Ruta, True);
@@ -185,18 +199,20 @@ begin
   end;
 end;
 
-procedure TAlmacenS3.ExigirOk(const R: IHTTPResponse; const Accion: string);
+procedure TAlmacenS3.ExigirOk(const R: IHTTPResponse; const Accion: string;
+  LeerCuerpo: Boolean);
 var
   Codigo, Motivo: string;
 begin
   if (R.StatusCode >= 200) and (R.StatusCode < 300) then
     Exit;
   Codigo := '';
-  try
-    Codigo := CodigoS3(R.ContentAsString(TEncoding.UTF8));
-  except
-    Codigo := '';
-  end;
+  if LeerCuerpo then
+    try
+      Codigo := CodigoS3(R.ContentAsString(TEncoding.UTF8));
+    except
+      Codigo := '';
+    end;
   case R.StatusCode of
     403: Motivo := 'acceso denegado (revise la clave de acceso, el secreto y los permisos)';
     404: Motivo := 'no encontrado (revise el bucket y la clave)';
@@ -254,9 +270,13 @@ procedure TAlmacenS3.AsegurarBucket;
 var
   R: IHTTPResponse;
 begin
-  R := Peticion('HEAD', '/' + FBucket, '', nil, HexSha256(nil), nil, nil);
-  if R.StatusCode = 404 then
-    R := Peticion('PUT', '/' + FBucket, '', nil, HexSha256(nil), nil, nil);
+  try
+    R := Peticion('HEAD', '/' + FBucket, '', nil, HexSha256(nil), nil, nil);
+    if R.StatusCode = 404 then
+      R := Peticion('PUT', '/' + FBucket, '', nil, HexSha256(nil), nil, nil);
+  except
+    raise EAlmacen.CreateFmt('No se pudo conectar con el servidor S3 (%s).', [FEndpoint]);
+  end;
   if R.StatusCode = 409 then
     Exit; // ya existe
   ExigirOk(R, 'preparar el bucket');
@@ -363,7 +383,7 @@ begin
     raise EAlmacen.Create('Descarga cancelada.');
   end;
   if not Ok then
-    ExigirOk(R, 'descargar el fichero');
+    ExigirOk(R, 'descargar el fichero', False); // el cuerpo fue al flujo ya liberado
   if TFile.Exists(Local) then
     TFile.Delete(Local);
   TFile.Move(Parte, Local);
@@ -402,7 +422,7 @@ end;
 
 function TAlmacenS3.UrlTemporal(const Clave: string; Segundos: Integer): string;
 begin
-  Result := UrlPrefirmada('GET', RutaDe(Clave), FEndpoint, FRegion, FAccessKey,
+  Result := UrlPrefirmada('GET', RutaDe(Clave), FHostFirmado, FRegion, FAccessKey,
     FSecretKey, UtcAhora, Segundos, FHttps);
 end;
 

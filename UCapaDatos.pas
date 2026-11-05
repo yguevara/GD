@@ -5660,6 +5660,16 @@ begin              //
   CrearEsquemaAlcance(Conn, TBD = 'S');
   // Tipo de servidor S3/MinIO en cl_ftp_Server (ver UEsquemaAlmacen.pas)
   CrearEsquemaAlmacen(Conn, TBD = 'S');
+  if not EsquemaAlmacenCompleto(Conn) then
+  begin
+    // Sin permiso para alterar cl_ftp_Server: la aplicacion arranca igual con la
+    // consulta de siempre; los servidores S3 no estaran disponibles
+    cmdServer.SQL.Text := 'SELECT Idservidor, etiquetaServ, ipserver, path, ' +
+      'usuarioftp, pass, puerto FROM cl_ftp_Server';
+    sms('No se pudieron agregar las columnas de los servidores S3 en la base de ' +
+      'datos (se necesita permiso para modificar tablas). Los servidores S3 no ' +
+      'estaran disponibles hasta que el administrador ejecute SCRIPTS/almacen_columnas.sql.', 2);
+  end;
 //  execSQLUPD('DELETE FROM tb_rol WHERE rol = ' + QuotedStr('Visor'));
   execSQLUPD('DELETE FROM tb_rol WHERE rol = ' + QuotedStr('Archivero'));
   if TBD = 'S' then

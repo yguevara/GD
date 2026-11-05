@@ -58,6 +58,8 @@ type
     [Test]
     procedure SqlServer_OrigenNuncaRecibeSubirNiBorrar;
     [Test]
+    procedure SqlServer_FechaConHoraYMilisegundos_Migra;
+    [Test]
     procedure Access_MigraTodasYEsIdempotente;
   end;
 
@@ -408,6 +410,36 @@ begin
   Assert.AreEqual(0, FOrigen.Subidas);
   Assert.AreEqual(0, FOrigen.Borrados);
   Assert.AreEqual(0, FDestino.Borrados);
+end;
+
+procedure TPruebasMigracion.SqlServer_FechaConHoraYMilisegundos_Migra;
+var
+  M: TMigracionFicheros;
+  R: TResumenMigracion;
+  F: TDateTime;
+begin
+  if GetEnvironmentVariable('ARCHIGENIO_TEST_DB') = '' then
+    Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB');
+  Conectar(True);
+  // Documento con fecha-hora real (no medianoche) y milisegundos
+  F := EncodeDate(2026, 2, 3) + EncodeTime(13, 45, 27, 123);
+  FConn.ExecSQL('INSERT INTO tb_SeriesDatos (IdEstructura, id, codsubs, Fecha, Version, ' +
+    'Codigodoc, titulodoc) VALUES (:a, :b, :c, :d, :e, :f, :g)',
+    [EST, NODO, '014001', F, '1', 'F2T-EXP', 'prueba hora']);
+  FConn.ExecSQL('INSERT INTO tb_ssArchdigital (IdEstructura, id, codsubs, Fecha, ' +
+    'Version, Codigodoc, idhijo, nombre, extnombre, fuente, urlraiz, path) ' +
+    'VALUES (:a, :b, :c, :d, :e, :f, 30, ''hora.pdf'', ''pdf'', ''N'', ''/docs/'', ''\A.4.3\104\'')',
+    [EST, NODO, '014001', F, '1', 'F2T-EXP']);
+  FOrigen.Objetos.AddOrSetValue('/docs/A.4.3/104/hora.pdf', TBytes.Create(1, 2, 3));
+  M := TMigracionFicheros(Migrador);
+  try
+    R := M.Migrar(nil, nil, nil);
+    Assert.AreEqual(0, R.Fallidos, M.InformeFallos);
+  finally
+    M.Free;
+  end;
+  Assert.AreEqual('s3://77/', VarToStr(FConn.ExecSQLScalar(
+    'SELECT urlraiz FROM tb_ssArchdigital WHERE idhijo = 30 AND Codigodoc = ''F2T-EXP''')));
 end;
 
 procedure TPruebasMigracion.Access_MigraTodasYEsIdempotente;

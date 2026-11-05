@@ -17,7 +17,8 @@ implementation
 uses
   System.SysUtils, System.Classes, System.UITypes, Winapi.Windows, Winapi.ShellAPI,
   Vcl.Forms, Vcl.Controls, Vcl.StdCtrls, Vcl.ComCtrls, Vcl.Dialogs, Vcl.Graphics, Data.DB,
-  UTema, UAlmacenFicheros, UAlmacenServidor, UMigracionFicheros;
+  System.IOUtils, UTema, UAlmacenFicheros, UAlmacenS3, UAlmacenServidor,
+  UMigracionFicheros;
 
 type
   TFormMigracion = class(TForm)
@@ -113,7 +114,9 @@ begin
   FCerrar.Caption := 'Cerrar';
   FCerrar.OnClick := AlCerrar;
 
-  FRutaInforme := ExtractFilePath(ParamStr(0)) + 'migracion_fallos.log';
+  // Carpeta del usuario: junto al ejecutable (Program Files) no se puede escribir
+  FRutaInforme := TPath.Combine(TPath.Combine(TPath.GetHomePath, 'ArchiGenio'),
+    'migracion_fallos.log');
   if (FOrigen.Items.Count = 0) or (FDestino.Items.Count = 0) then
   begin
     FIniciar.Enabled := False;
@@ -153,6 +156,8 @@ var
   M: TMigracionFicheros;
   R: TResumenMigracion;
   IdOrigen, IdDestino: Integer;
+  Destino: IAlmacenFicheros;
+  Msg: string;
 begin
   IdOrigen := Integer(FOrigen.Items.Objects[FOrigen.ItemIndex]);
   IdDestino := Integer(FDestino.Items.Objects[FDestino.ItemIndex]);
@@ -166,8 +171,17 @@ begin
   Application.ProcessMessages;
   try
     try
+      Destino := CrearAlmacen(FConn, IdDestino);
+      // Comprobar el destino antes de empezar: con MinIO caido o credenciales
+      // malas cada fichero fallaria despues de bajarlo del FTP
+      if (Destino as TObject) is TAlmacenS3 then
+        if not TAlmacenS3(Destino as TObject).Probar(Msg) then
+        begin
+          FEstado.Caption := 'No se puede migrar: ' + Msg;
+          Exit;
+        end;
       M := TMigracionFicheros.Create(FConn, CrearAlmacen(FConn, IdOrigen),
-        CrearAlmacen(FConn, IdDestino), IdDestino);
+        Destino, IdDestino);
       try
         R := M.Migrar(
           procedure(Nombre: string; Hecho, Total: Integer)
@@ -184,11 +198,15 @@ begin
             Result := FCancelado;
           end);
         if R.Fallidos > 0 then
-        begin
-          M.GuardarInforme(FRutaInforme);
-          FInforme.Enabled := True;
-        end;
-        FResumen.Caption := Format('Migrados: %d. Ya estaban en S3: %d. Fallidos: %d. Total: %d.',
+          try
+            TDirectory.CreateDirectory(ExtractFilePath(FRutaInforme));
+            M.GuardarInforme(FRutaInforme);
+            FInforme.Enabled := True;
+          except
+            // no poder guardar el informe no debe perder el resumen
+            FResumen.Caption := 'No se pudo guardar el informe de fallos. ';
+          end;
+        FResumen.Caption := FResumen.Caption + Format('Migrados: %d. Ya estaban en S3: %d. Fallidos: %d. Total: %d.',
           [R.Migrados, R.YaMigrados, R.Fallidos, R.Total]);
         if FCancelado then
           FEstado.Caption := 'Cancelado. Puede reanudar cuando quiera.'

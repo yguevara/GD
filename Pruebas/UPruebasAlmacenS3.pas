@@ -45,6 +45,18 @@ type
     procedure CredencialesMalas_NoRevelanElSecreto;
     [Test]
     procedure Subir_DevuelveMd5YTamano;
+    [Test]
+    procedure Descargar_Inexistente_DaErrorClaro;
+  end;
+
+  { Sin servidor: no necesitan ARCHIGENIO_TEST_S3 }
+  [TestFixture]
+  TPruebasAlmacenS3Local = class
+  public
+    [Test]
+    procedure HostFirmado_QuitaElPuertoPorDefecto;
+    [Test]
+    procedure Probar_PuertoCerrado_DaMensajeClaro;
   end;
 
 implementation
@@ -293,7 +305,50 @@ begin
   I.Borrar(Clave('m.bin'));
 end;
 
+procedure TPruebasAlmacenS3.Descargar_Inexistente_DaErrorClaro;
+var
+  I: IAlmacenFicheros;
+  Mensaje: string;
+begin
+  if not Disponible then Assert.Pass('sin ARCHIGENIO_TEST_S3');
+  I := FAlmacen;
+  Mensaje := '';
+  try
+    I.Descargar(Clave('no-existe.bin'), Temporal(0), nil);
+  except
+    on E: EAlmacen do
+      Mensaje := E.Message;
+  end;
+  Assert.AreNotEqual('', Mensaje, 'debia lanzar EAlmacen');
+  Assert.IsTrue(Mensaje.Contains('404') and Mensaje.Contains('no encontrado'), Mensaje);
+end;
+
+{ TPruebasAlmacenS3Local }
+
+procedure TPruebasAlmacenS3Local.HostFirmado_QuitaElPuertoPorDefecto;
+begin
+  Assert.AreEqual('minio.local', HostFirmado('minio.local:443', True));
+  Assert.AreEqual('minio.local', HostFirmado('minio.local:80', False));
+  Assert.AreEqual('minio.local:9000', HostFirmado('minio.local:9000', True));
+  Assert.AreEqual('minio.local:443', HostFirmado('minio.local:443', False));
+  Assert.AreEqual('minio.local', HostFirmado('minio.local', True));
+end;
+
+procedure TPruebasAlmacenS3Local.Probar_PuertoCerrado_DaMensajeClaro;
+var
+  A: TAlmacenS3;
+  Ref: IAlmacenFicheros;
+  Mensaje: string;
+begin
+  A := TAlmacenS3.Create('127.0.0.1:1', 'b', 'u', 'secreto-xyz', '', False);
+  Ref := A;
+  Assert.IsFalse(A.Probar(Mensaje));
+  Assert.IsTrue(Mensaje.Contains('No se pudo conectar'), Mensaje);
+  Assert.IsFalse(Mensaje.Contains('secreto-xyz'));
+end;
+
 initialization
   TDUnitX.RegisterTestFixture(TPruebasAlmacenS3);
+  TDUnitX.RegisterTestFixture(TPruebasAlmacenS3Local);
 
 end.

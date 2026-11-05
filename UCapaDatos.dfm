@@ -31849,7 +31849,9 @@ object UDM: TUDM
         ' cl_ftp_Server.bucket, cl_ftp_Server.region, cl_ftp_Server.usoh' +
         'ttps, cl_ftp_Server.clave_acceso, cl_ftp_Server.secreto_cifrad' +
         'o'
-      'FROM cl_ftp_Server')
+      'FROM cl_ftp_Server'
+      'WHERE cl_ftp_Server.tipo IS NULL OR cl_ftp_Server.tipo <> ''S3'''
+      'ORDER BY cl_ftp_Server.Idservidor')
     Left = 1033
     Top = 233
   end
