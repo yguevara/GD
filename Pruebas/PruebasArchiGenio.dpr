@@ -33,7 +33,11 @@ uses
   UAlmacenFicheros in '..\UAlmacenFicheros.pas',
   UPruebasSigV4 in 'UPruebasSigV4.pas',
   UAlmacenS3 in '..\UAlmacenS3.pas',
-  UPruebasAlmacenS3 in 'UPruebasAlmacenS3.pas';
+  UPruebasAlmacenS3 in 'UPruebasAlmacenS3.pas',
+  USecretoServidor in '..\USecretoServidor.pas',
+  UPruebasSecreto in 'UPruebasSecreto.pas',
+  UEsquemaAlmacen in '..\UEsquemaAlmacen.pas',
+  UPruebasEsquemaAlmacen in 'UPruebasEsquemaAlmacen.pas';
 
 var
   Corredor: ITestRunner;

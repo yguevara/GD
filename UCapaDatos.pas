@@ -1118,7 +1118,7 @@ var
 implementation
 
 uses
-  UEsquemaAlcance, UAlcanceDatos, UTopografia;
+  UEsquemaAlcance, UEsquemaAlmacen, UAlcanceDatos, UTopografia;
 
 
 {%CLASSGROUP 'Vcl.Controls.TControl'}
@@ -5554,6 +5554,8 @@ begin              //
 
   // Seguridad por alcance y captura masiva (ver UEsquemaAlcance.pas)
   CrearEsquemaAlcance(Conn, TBD = 'S');
+  // Tipo de servidor S3/MinIO en cl_ftp_Server (ver UEsquemaAlmacen.pas)
+  CrearEsquemaAlmacen(Conn, TBD = 'S');
 //  execSQLUPD('DELETE FROM tb_rol WHERE rol = ' + QuotedStr('Visor'));
   execSQLUPD('DELETE FROM tb_rol WHERE rol = ' + QuotedStr('Archivero'));
   if TBD = 'S' then

@@ -31845,7 +31845,10 @@ object UDM: TUDM
       
         'SELECT cl_ftp_Server.Idservidor, cl_ftp_Server.etiquetaServ, cl_' +
         'ftp_Server.ipserver, cl_ftp_Server.path, cl_ftp_Server.usuarioft' +
-        'p, cl_ftp_Server.pass, cl_ftp_Server.puerto'
+        'p, cl_ftp_Server.pass, cl_ftp_Server.puerto, cl_ftp_Server.tipo,' +
+        ' cl_ftp_Server.bucket, cl_ftp_Server.region, cl_ftp_Server.usoh' +
+        'ttps, cl_ftp_Server.clave_acceso, cl_ftp_Server.secreto_cifrad' +
+        'o'
       'FROM cl_ftp_Server')
     Left = 1033
     Top = 233

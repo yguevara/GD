@@ -12,6 +12,8 @@ uses
   UCapaDatos in 'UCapaDatos.pas' {UDM: TDataModule},
   UAlcance in 'UAlcance.pas',
   UEsquemaAlcance in 'UEsquemaAlcance.pas',
+  UEsquemaAlmacen in 'UEsquemaAlmacen.pas',
+  USecretoServidor in 'USecretoServidor.pas',
   UAlcanceDatos in 'UAlcanceDatos.pas',
   UTopografia in 'UTopografia.pas',
   UAsignacionDatos in 'UAsignacionDatos.pas',
