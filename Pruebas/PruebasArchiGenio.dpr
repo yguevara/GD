@@ -44,7 +44,9 @@ uses
   UMigracionFicheros in '..\UMigracionFicheros.pas',
   UPruebasMigracion in 'UPruebasMigracion.pas',
   UExpedienteCompleto in '..\UExpedienteCompleto.pas',
-  UPruebasExpedienteCompleto in 'UPruebasExpedienteCompleto.pas';
+  UPruebasExpedienteCompleto in 'UPruebasExpedienteCompleto.pas',
+  UCargaModelo in '..\UCargaModelo.pas',
+  UPruebasCargaModelo in 'UPruebasCargaModelo.pas';
 
 var
   Corredor: ITestRunner;
