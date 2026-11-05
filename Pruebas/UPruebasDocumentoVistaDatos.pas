@@ -58,6 +58,10 @@ type
     [Test]
     procedure Hijos_ExpedienteInexistente_NoFalla;
     [Test]
+    procedure Hijos_OtroNodoConElMismoCodigo_NoCuenta;
+    [Test]
+    procedure Hijos_ReferenciasConEspacios_SeSuman;
+    [Test]
     procedure Geo_CuentaVertices;
     [Test]
     procedure Ficheros_DigitalesYFuentes;
@@ -262,6 +266,49 @@ begin
     if R.TryGetValue(ClaveTexto(TSembradoVista.Clave('F2T-X', '014001')), I) then
       Assert.AreEqual(0, I.NumHijos);
     Assert.IsTrue(True, 'no lanzo');
+  finally
+    R.Free;
+  end;
+end;
+
+procedure TPruebasDocumentoVistaSql.Hijos_OtroNodoConElMismoCodigo_NoCuenta;
+var
+  R: TIndicadoresDocs;
+  I: TIndicadoresDoc;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB'); Exit; end;
+  // Un documento de OTRO nodo (mismo IdEstructura, otro id) que apunta al mismo
+  // codigo de expediente no es hijo del expediente de este nodo
+  FConn.ExecSQL('INSERT INTO tb_tree (IdEstructura, id, etiqueta, padre, visible) ' +
+    'VALUES (:a, :b, ''prueba vista'', 1, 1)', [EST, 99104]);
+  FConn.ExecSQL('INSERT INTO tb_Serietree (IdEstructura, id, codsubs) VALUES (:a, :b, :c)',
+    [EST, 99104, '074']);
+  FConn.ExecSQL('INSERT INTO tb_SeriesDatos (IdEstructura, id, codsubs, Fecha, Version, ' +
+    'Codigodoc, titulodoc, IDExpediente) VALUES (:a, :b, :c, :d, :e, :f, :g, :h)',
+    [EST, 99104, '074', EncodeDate(2026, 1, 31), '1', 'F2T-AJENO', 'prueba vista', 'F2T-EXP']);
+  R := Cargar('administrador', True);
+  try
+    Assert.IsTrue(R.TryGetValue(ClaveTexto(TSembradoVista.Clave('F2T-EXP', '014001')), I));
+    Assert.AreEqual(3, I.NumHijos, 'el documento del otro nodo no cuenta');
+  finally
+    R.Free;
+  end;
+end;
+
+procedure TPruebasDocumentoVistaSql.Hijos_ReferenciasConEspacios_SeSuman;
+var
+  R: TIndicadoresDocs;
+  I: TIndicadoresDoc;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB'); Exit; end;
+  // ' F2T-EXP' y 'F2T-EXP' son el mismo expediente: los hijos se suman
+  FConn.ExecSQL('INSERT INTO tb_SeriesDatos (IdEstructura, id, codsubs, Fecha, Version, ' +
+    'Codigodoc, titulodoc, IDExpediente) VALUES (:a, :b, :c, :d, :e, :f, :g, :h)',
+    [EST, NODO, '074', EncodeDate(2026, 1, 31), '1', 'F2T-H4', 'prueba vista', ' F2T-EXP']);
+  R := Cargar('administrador', True);
+  try
+    Assert.IsTrue(R.TryGetValue(ClaveTexto(TSembradoVista.Clave('F2T-EXP', '014001')), I));
+    Assert.AreEqual(4, I.NumHijos, '3 con el codigo exacto + 1 con espacio');
   finally
     R.Free;
   end;

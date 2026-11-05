@@ -656,6 +656,7 @@ type
     FEnlaceDocs: TObject;
     FTimerDocs: TTimer;
     FModoLista: Boolean;
+    FCargandoDocs: Boolean;
     FComboBoxAssociations: TComboBoxFieldAssociations;
     FIsAuthenticated: Boolean; // RASTREA SI EL USUARIO ESTÁ AUTENTICADO
     FLoginImage: TBitmap; // Imagen para el estado "no autenticado"
@@ -747,6 +748,7 @@ type
     procedure ListaDocsCambio(Sender: TObject);
     procedure ListaDocsRefrescar(Sender: TObject);
     procedure ListaDocsCargar;
+    procedure RegistrarErrorLista(const Texto: string);
     function ListaDocsLocalizar(const Clave: TClaveDocumento): Boolean;
     procedure ListaDocsSeleccion(const Clave: TClaveDocumento);
     procedure ListaDocsAbrir(const Clave: TClaveDocumento);
@@ -6686,6 +6688,24 @@ begin
     FAlCambiar(Self);
 end;
 
+// Guarda el motivo de un fallo de la lista en lista_error.log (junto al
+// ejecutable) sin molestar al usuario.
+procedure TMAIN.RegistrarErrorLista(const Texto: string);
+begin
+  try
+    with TStringList.Create do
+    try
+      if FileExists(ExtractFilePath(ParamStr(0)) + 'lista_error.log') then
+        LoadFromFile(ExtractFilePath(ParamStr(0)) + 'lista_error.log');
+      Add(DateTimeToStr(Now) + ' ' + Texto);
+      SaveToFile(ExtractFilePath(ParamStr(0)) + 'lista_error.log');
+    finally
+      Free;
+    end;
+  except
+  end;
+end;
+
 // Lista de documentos de la subserie (F2): vista de la subserie en lugar de la
 // rejilla cxGrid, que queda como vista alternativa (alta y edicion) hasta que
 // exista la carga nueva. Se alimenta de UDM.tb_SeriesDatos, el mismo dataset
@@ -6738,16 +6758,7 @@ begin
     begin
       // Si algo falla queda la rejilla de siempre, sin mensajes; el motivo se
       // guarda en lista_error.log junto al ejecutable
-      try
-        with TStringList.Create do
-        try
-          Add(DateTimeToStr(Now) + ' ' + E.ClassName + ': ' + E.Message);
-          SaveToFile(ExtractFilePath(ParamStr(0)) + 'lista_error.log');
-        finally
-          Free;
-        end;
-      except
-      end;
+      RegistrarErrorLista(E.ClassName + ': ' + E.Message);
       FModoLista := False;
       cxPageControl2.Visible := True;
       FreeAndNil(FListaDocs);
@@ -6759,7 +6770,8 @@ end;
 // Varios cambios seguidos (p. ej. al cambiar de subserie) se agrupan en una carga
 procedure TMAIN.ListaDocsCambio(Sender: TObject);
 begin
-  if (FTimerDocs = nil) or not FModoLista then
+  // La propia carga (DisableControls/EnableControls) emite cambios de datos: se ignoran
+  if FCargandoDocs or (FTimerDocs = nil) or not FModoLista then
     Exit;
   FTimerDocs.Enabled := False;
   FTimerDocs.Enabled := True;
@@ -6796,7 +6808,7 @@ begin
   DS := UDM.tb_SeriesDatos;
   if not DS.Active then
   begin
-    FListaDocs.Cargar(nil, '');
+    FListaDocs.MostrarSinSubserie;
     Exit;
   end;
   Est := '';
@@ -6808,6 +6820,11 @@ begin
     IdNodo := UDM.tb_Serietree.FieldByName('id').AsInteger;
     CodSubs := UDM.tb_Serietree.FieldByName('codsubs').AsString;
   end;
+  if CodSubs = '' then
+  begin
+    FListaDocs.MostrarSinSubserie;
+    Exit;
+  end;
   Titulo := CodSubs;
   try
     if CodSubs <> '' then
@@ -6817,16 +6834,22 @@ begin
     Titulo := CodSubs;
   end;
 
+  FCargandoDocs := True;
   Ind := nil;
   try
     if CodSubs <> '' then
       Ind := CargarIndicadores(UDM.Conn, UDM.Alcance, Est, IdNodo, CodSubs);
   except
-    Ind := nil; // sin indicadores: se listan igual, como documentos simples
+    on E: Exception do
+    begin
+      // sin indicadores: se listan igual, como documentos simples
+      Ind := nil;
+      RegistrarErrorLista('Indicadores: ' + E.ClassName + ': ' + E.Message);
+    end;
   end;
   try
-    Docs := nil;
     N := 0;
+    SetLength(Docs, DS.RecordCount);
     Bm := DS.GetBookmark;
     DS.DisableControls;
     try
@@ -6859,7 +6882,8 @@ begin
           if Indic.ExtPrincipal <> '' then
             D.ExtPrincipal := Indic.ExtPrincipal;
         end;
-        SetLength(Docs, N + 1);
+        if N > High(Docs) then
+          SetLength(Docs, N + 1);
         Docs[N] := D;
         Inc(N);
         DS.Next;
@@ -6870,9 +6894,11 @@ begin
       DS.FreeBookmark(Bm);
       DS.EnableControls;
     end;
+    SetLength(Docs, N);
     FListaDocs.Cargar(Docs, Titulo);
   finally
     Ind.Free;
+    FCargandoDocs := False;
   end;
 end;
 
@@ -6935,8 +6961,16 @@ begin
   N := 0;
   if not ListaDocsLocalizar(Clave) then
     Exit;
-  Leer(UDM.qryAnexosDig, False);
-  Leer(UDM.qryFuentesDig, True);
+  try
+    Leer(UDM.qryAnexosDig, False);
+    Leer(UDM.qryFuentesDig, True);
+  except
+    on E: Exception do
+    begin
+      RegistrarErrorLista('Ficheros: ' + E.ClassName + ': ' + E.Message);
+      raise;
+    end;
+  end;
 end;
 
 procedure TMAIN.ListaDocsAlternar(Sender: TObject);

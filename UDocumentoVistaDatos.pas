@@ -124,22 +124,28 @@ begin
         Q.Free;
       end;
 
-      // Hijos de cada expediente: documentos del mismo IdEstructura que lo
-      // referencian en IDExpediente y que el alcance deja ver
+      // Hijos de cada expediente: documentos del mismo nodo (IdEstructura e id)
+      // que lo referencian en IDExpediente y que el alcance deja ver
       Filtro := FiltroDocumentos(Alcance, 'H');
       Q := NuevaConsulta(Conn, 'SELECT H.IDExpediente AS Cod, COUNT(*) AS N ' +
-        'FROM tb_SeriesDatos H WHERE H.IdEstructura = :est ' +
+        'FROM tb_SeriesDatos H WHERE H.IdEstructura = :est AND H.id = :id ' +
         'AND H.IDExpediente IS NOT NULL AND H.IDExpediente <> '''' AND (' +
         Filtro.Condicion + ') GROUP BY H.IDExpediente');
       try
         Q.ParamByName('est').AsString := IdEstructura;
+        Q.ParamByName('id').AsInteger := Id;
         AplicarParametros(Q, Filtro);
         Q.Open;
         while not Q.Eof do
         begin
           K := LowerCase(Trim(Q.FieldByName('Cod').AsString));
           if K <> '' then
-            Hijos.AddOrSetValue(K, Q.FieldByName('N').AsInteger);
+          begin
+            // ' EXP-1' y 'EXP-1' son el mismo expediente: se suman
+            if not Hijos.TryGetValue(K, N) then
+              N := 0;
+            Hijos.AddOrSetValue(K, N + Q.FieldByName('N').AsInteger);
+          end;
           Q.Next;
         end;
       finally

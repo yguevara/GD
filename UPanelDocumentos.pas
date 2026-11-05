@@ -52,6 +52,7 @@ type
     FOnPedirFicheros: TSolicitudFicheros;
     FOnAlternarVista: TNotifyEvent;
     FConstruido: Boolean;
+    FErrorFicheros: Boolean;
     function IconoIdx(const Nombre: string): Integer;
     function NuevaEtiqueta(const Texto: string; Tam: Integer; Color: TColor;
       Negrita: Boolean): TLabel;
@@ -84,6 +85,8 @@ type
     { Selecciona el documento de esa clave si esta en la lista (sin disparar
       OnSeleccion). }
     procedure SeleccionarClave(const Clave: TClaveDocumento);
+    { Sin subserie elegida: lista vacia con su propio texto guia. }
+    procedure MostrarSinSubserie;
     property ExpedienteFiltrado: string read FExpFiltrado;
     property OnSeleccion: TClaveEvent read FOnSeleccion write FOnSeleccion;
     property OnAbrirContenido: TClaveEvent read FOnAbrirContenido write FOnAbrirContenido;
@@ -334,6 +337,15 @@ begin
     SeleccionarClave(Previa);
 end;
 
+procedure TPanelDocumentos.MostrarSinSubserie;
+begin
+  FTodos := nil;
+  FTitulo := '';
+  FExpFiltrado := '';
+  AplicarFiltro;
+  FVacio.Caption := 'Elija una subserie para ver sus documentos';
+end;
+
 procedure TPanelDocumentos.AplicarFiltro;
 var
   I: Integer;
@@ -355,6 +367,7 @@ begin
   FLista.Items.Count := 0;
   FLista.Items.Count := Length(FVisibles);
   FLista.Invalidate;
+  FVacio.Caption := 'Esta subserie aun no tiene documentos';
   FVacio.Visible := Length(FVisibles) = 0;
   LimpiarPropiedades;
   ActualizarBarra;
@@ -436,6 +449,9 @@ procedure TPanelDocumentos.AbrirSeleccionado;
 var
   I: Integer;
 begin
+  // Misma condicion que el boton: sin ficheros digitales no hay contenido que abrir
+  if not FBtnAbrir.Enabled then
+    Exit;
   I := IndiceSeleccionado;
   if (I >= 0) and (I <= High(FVisibles)) and Assigned(FOnAbrirContenido) then
     FOnAbrirContenido(FVisibles[I].Clave);
@@ -559,13 +575,20 @@ begin
     Exit;
   D := FVisibles[Indice];
   FFicherosActuales := nil;
+  FErrorFicheros := False;
   if Assigned(FOnPedirFicheros) then
   try
     FFicherosActuales := FOnPedirFicheros(D.Clave);
   except
     FFicherosActuales := nil;
+    FErrorFicheros := True;
   end;
   Props := ConstruirPropiedades(D, FFicherosActuales);
+  if FErrorFicheros then
+    // no decir "Sin ficheros" cuando en realidad no se pudieron leer
+    for I := 0 to High(Props) do
+      if Props[I].Grupo = 'Ficheros' then
+        Props[I].Valor := 'No se pudieron leer los ficheros';
 
   FScroll.DisableAlign;
   try
@@ -616,7 +639,10 @@ begin
   else
     Digitales := D.NumFicheros;
   FBtnAbrir.Enabled := Digitales > 0;
-  FEnlaceExp.Visible := FClases[Indice].Tipo = tdExpediente;
+  // Solo si hay documentos del expediente en esta lista (los de otras subseries
+  // no estan aqui: el filtro dejaria solo el expediente)
+  FEnlaceExp.Visible := (FClases[Indice].Tipo = tdExpediente) and
+    (Length(FiltrarPorExpediente(FTodos, Trim(D.Clave.Codigodoc))) > 1);
 end;
 
 end.
