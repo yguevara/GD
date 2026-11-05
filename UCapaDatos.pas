@@ -1123,7 +1123,7 @@ var
 implementation
 
 uses
-  UEsquemaAlcance, UEsquemaAlmacen, UAlcanceDatos, UTopografia,
+  UEsquemaAlcance, UEsquemaAlmacen, UEsquemaCarga, UAlcanceDatos, UTopografia,
   UAlmacenFicheros, UAlmacenServidor, UProgresoTransferencia;
 
 
@@ -5660,6 +5660,8 @@ begin              //
   CrearEsquemaAlcance(Conn, TBD = 'S');
   // Tipo de servidor S3/MinIO en cl_ftp_Server (ver UEsquemaAlmacen.pas)
   CrearEsquemaAlmacen(Conn, TBD = 'S');
+  // Carga de documentos: columna obligatorio y ultimos valores (ver UEsquemaCarga.pas)
+  CrearEsquemaCarga(Conn, TBD = 'S');
   if not EsquemaAlmacenCompleto(Conn) then
   begin
     // Sin permiso para alterar cl_ftp_Server: la aplicacion arranca igual con la

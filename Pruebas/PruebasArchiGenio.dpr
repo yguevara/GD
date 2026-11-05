@@ -46,7 +46,11 @@ uses
   UExpedienteCompleto in '..\UExpedienteCompleto.pas',
   UPruebasExpedienteCompleto in 'UPruebasExpedienteCompleto.pas',
   UCargaModelo in '..\UCargaModelo.pas',
-  UPruebasCargaModelo in 'UPruebasCargaModelo.pas';
+  UPruebasCargaModelo in 'UPruebasCargaModelo.pas',
+  UEsquemaCarga in '..\UEsquemaCarga.pas',
+  UMetadatosSubserie in '..\UMetadatosSubserie.pas',
+  UPruebasEsquemaCarga in 'UPruebasEsquemaCarga.pas',
+  UPruebasMetadatosSubserie in 'UPruebasMetadatosSubserie.pas';
 
 var
   Corredor: ITestRunner;
