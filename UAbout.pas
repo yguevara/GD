@@ -7,7 +7,7 @@ uses
   System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
   dxGDIPlusClasses, Vcl.ExtCtrls, Vcl.StdCtrls, acPNG, cxGraphics, cxControls,
   cxLookAndFeels, cxLookAndFeelPainters, cxContainer, cxEdit, dxSkinsCore,
-  dxSkinsDefaultPainters, cxTextEdit, cxMemo, cxRichEdit, Vcl.ComCtrls;
+  dxSkinsDefaultPainters, cxTextEdit, cxMemo, cxRichEdit, Vcl.ComCtrls, UTema;
 
 type
   TfrmAbout = class(TForm)
@@ -19,6 +19,8 @@ type
     procedure FormActivate(Sender: TObject);
   private
     { Private declarations }
+    FAplicada: Boolean;
+    procedure AplicarApariencia;
   public
     { Public declarations }
     function Sto_GetFmtFileVersion(const FileName: string = ''; const Fmt: string = '%d.%d.%d.%d'): string;
@@ -30,9 +32,106 @@ var
 implementation
 
 uses
-  UCapaDatos;
+  UCapaDatos, UShellPrincipal;
 
 {$R *.dfm}
+
+// Apariencia de ArchiGenio con los colores de UTema (claro u oscuro segun
+// Windows). Los datos salen de programver, VersionProgram y buildprogram.
+procedure TfrmAbout.AplicarApariencia;
+const
+  ANCHO = 420;
+  ALTO = 330;
+var
+  T: TTemaColores;
+  Cabecera: TPanel;
+  L: TLabel;
+
+  function Etiqueta(const Texto: string; Y, Tam: Integer; Color: TColor;
+    Negrita: Boolean): TLabel;
+  begin
+    Result := TLabel.Create(Self);
+    Result.Parent := Self;
+    Result.AutoSize := True;
+    Result.Transparent := True;
+    Result.Font.Name := 'Segoe UI';
+    Result.Font.Size := Tam;
+    Result.Font.Color := Color;
+    if Negrita then
+      Result.Font.Style := [fsBold];
+    Result.Caption := Texto;
+    Result.Left := 28;
+    Result.Top := Y;
+  end;
+
+begin
+  if FAplicada then
+    Exit;
+  FAplicada := True;
+  if TemaWindowsOscuro then
+    T := TemaOscuro
+  else
+    T := TemaClaro;
+  BAS.Visible := False;
+  pro.Visible := False;
+  Panel1.Visible := False;
+  Color := T.Superficie;
+  ClientWidth := ANCHO;
+  ClientHeight := ALTO;
+
+  Cabecera := TPanel.Create(Self);
+  Cabecera.Parent := Self;
+  Cabecera.Align := alTop;
+  Cabecera.Height := 110;
+  Cabecera.BevelOuter := bvNone;
+  Cabecera.ParentBackground := False;
+  Cabecera.StyleElements := [];
+  Cabecera.Color := T.Acento;
+  Cabecera.OnClick := BASClick;
+
+  L := TLabel.Create(Self);
+  L.Parent := Cabecera;
+  L.AutoSize := True;
+  L.Transparent := True;
+  L.Font.Name := 'Segoe UI Semibold';
+  L.Font.Size := 26;
+  L.Font.Color := T.TextoSobreAcento;
+  L.Caption := 'ArchiGenio';
+  L.Left := 28;
+  L.Top := 26;
+  L.OnClick := BASClick;
+
+  L := TLabel.Create(Self);
+  L.Parent := Cabecera;
+  L.AutoSize := True;
+  L.Transparent := True;
+  L.Font.Name := 'Segoe UI';
+  L.Font.Size := 11;
+  L.Font.Color := T.TextoSobreAcento;
+  L.Caption := 'Gestion de archivo documental';
+  L.Left := 30;
+  L.Top := 72;
+  L.OnClick := BASClick;
+
+  // lblBuild conserva el texto "ArchiGenio vX.X.X.XXXX" que arma FormActivate
+  lblBuild.Parent := Self;
+  lblBuild.Transparent := True;
+  lblBuild.ParentColor := True;
+  lblBuild.Font.Name := 'Segoe UI';
+  lblBuild.Font.Size := 11;
+  lblBuild.Font.Color := T.Texto;
+  lblBuild.Left := 28;
+  lblBuild.Top := 134;
+  lblBuild.BringToFront;
+
+  if programver = 'PROFESIONAL' then
+    Etiqueta('Edicion: Profesional', 168, 10, T.Texto, False)
+  else
+    Etiqueta('Edicion: Basica', 168, 10, T.Texto, False);
+  Etiqueta('Compilacion: ' + buildprogram, 218, 10, T.TextoSuave, False);
+  Etiqueta('Clic en cualquier parte para cerrar', ALTO - 36, 9, T.TextoSuave, False);
+  OnClick := BASClick;
+end;
 
 procedure TfrmAbout.FormActivate(Sender: TObject);
 begin
@@ -49,6 +148,7 @@ begin
     Pro.Visible:=False;
     lblBuild.Caption:='ArchiGenio v' + Sto_GetFmtFileVersion(Application.ExeName, '%.d.%.d.%.d.%.4d');
   end;
+  AplicarApariencia;
  { if UDM.tb_sysconfig.RecordCount > 0 then
   begin
     lblBuild.Visible:=False;

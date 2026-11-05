@@ -7,7 +7,7 @@ uses
   System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
   Vcl.Samples.Gauges, dxGDIPlusClasses, Vcl.ExtCtrls, Vcl.StdCtrls, acPNG,
   mxProtector, CBIOSInfo, CProcessorInfo, CWMIBase, CDiskDriveInfo,
-  IdHashMessageDigest, IdGlobal, IdHash;
+  IdHashMessageDigest, IdGlobal, IdHash, UTema;
 
 type
   TNCB = record
@@ -79,6 +79,7 @@ type
     procedure FormShow(Sender: TObject);
   private
     { Private declarations }
+    procedure AplicarApariencia;
   public
     { Public declarations }
     procedure Inici(aBAR: PGauge; Min, Max: integer);
@@ -103,6 +104,9 @@ var
 implementation
 
 {$R *.dfm}
+
+uses
+  UShellPrincipal;
 
 { TfrmSplash }
 
@@ -177,6 +181,80 @@ begin
   end;
 end;
 
+// Apariencia de ArchiGenio: colores de UTema (claro u oscuro segun Windows).
+// Solo toca controles visuales; la imagen de fondo anterior queda oculta.
+procedure TfrmSplash.AplicarApariencia;
+var
+  T: TTemaColores;
+  Banda: TPanel;
+  Nombre, Edicion: TLabel;
+begin
+  if TemaWindowsOscuro then
+    T := TemaOscuro
+  else
+    T := TemaClaro;
+  PRO.Visible := False;
+  BAS.Visible := False;
+  Color := T.Superficie;
+
+  Banda := TPanel.Create(Self);
+  Banda.Parent := Self;
+  Banda.Align := alLeft;
+  Banda.Width := 12;
+  Banda.BevelOuter := bvNone;
+  Banda.ParentBackground := False;
+  Banda.StyleElements := [];
+  Banda.Color := T.Acento;
+
+  Nombre := TLabel.Create(Self);
+  Nombre.Parent := Self;
+  Nombre.AutoSize := True;
+  Nombre.Transparent := True;
+  Nombre.Font.Name := 'Segoe UI Semibold';
+  Nombre.Font.Size := 34;
+  Nombre.Font.Color := T.Texto;
+  Nombre.Caption := 'ArchiGenio';
+  Nombre.Left := 58;
+  Nombre.Top := 110;
+
+  Edicion := TLabel.Create(Self);
+  Edicion.Parent := Self;
+  Edicion.AutoSize := True;
+  Edicion.Transparent := True;
+  Edicion.Font.Name := 'Segoe UI';
+  Edicion.Font.Size := 13;
+  Edicion.Font.Color := T.Acento;
+  if VERS = 'PROFESIONAL' then
+    Edicion.Caption := 'Edicion Profesional - gestion de archivo documental'
+  else
+    Edicion.Caption := 'Edicion Basica - gestion de archivo documental';
+  Edicion.Left := 60;
+  Edicion.Top := 168;
+
+  lblBuild.Transparent := True;
+  lblBuild.ParentColor := True;
+  lblBuild.Font.Name := 'Segoe UI';
+  lblBuild.Font.Size := 10;
+  lblBuild.Font.Style := [];
+  lblBuild.Font.Color := T.TextoSuave;
+  lblBuild.Left := 60;
+  lblBuild.Top := 202;
+  lblBuild.BringToFront;
+
+  Gauge1.BorderStyle := bsNone;
+  Gauge1.ForeColor := T.Acento;
+  Gauge1.BackColor := T.Linea;
+  Gauge1.SetBounds(60, ClientHeight - 70, ClientWidth - 60 - 48, 6);
+  Gauge1.BringToFront;
+  Label1.Transparent := True;
+  Label1.Font.Name := 'Segoe UI';
+  Label1.Font.Size := 9;
+  Label1.Font.Color := T.TextoSuave;
+  Label1.Caption := 'Iniciando...';
+  Label1.SetBounds(60, ClientHeight - 56, 300, 16);
+  Label1.BringToFront;
+end;
+
 procedure TfrmSplash.FormCreate(Sender: TObject);
 var
   List: TStringList;
@@ -198,18 +276,7 @@ begin
       VersionAprobada := True;
   end;
   List.Free;
-  if VERS = 'PROFESIONAL' then
-  begin
-    PRO.Visible := true;
-    PRO.Align := alClient;
-    BAS.Visible := False;
-  end
-  else
-  begin
-    BAS.Visible := true;
-    BAS.Align := alClient;
-    PRO.Visible := False;
-  end;
+  AplicarApariencia;
   Gauge1.MaxValue := 4;
   Gauge1.MinValue := 0;
   Gauge1.Progress := 0;
