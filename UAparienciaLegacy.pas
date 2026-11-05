@@ -299,28 +299,134 @@ begin
   end;
 end;
 
-{ Cambia el icono de los botones de la pantalla principal por el Tabler
-  equivalente: se dibuja sobre la cara del boton (su Color ya adaptado). }
+{ Texto sin acentos y en minusculas, para comparar pistas de botones. }
+function Plano(const S: string): string;
+const
+  CON = #225#233#237#243#250#241#193#201#205#211#218#209;
+  SIN = 'aeiounAEIOUN';
+var
+  I, P: Integer;
+begin
+  Result := LowerCase(S);
+  for I := 1 to Length(Result) do
+  begin
+    P := Pos(Result[I], CON);
+    if P > 0 then
+      Result[I] := LowerCase(SIN[P])[1];
+  end;
+end;
+
+type
+  TReglaIcono = record
+    Clave: string;
+    Icono: string;
+  end;
+
+const
+  { Pista (en la ayuda o el titulo del boton) -> icono. Gana la primera. }
+  REGLAS_ICONO: array[0..43] of TReglaIcono = (
+    (Clave: 'salir del sistema'; Icono: 'salir'),
+    (Clave: 'regresar a la ventana'; Icono: 'volver'),
+    (Clave: 'salir del panel'; Icono: 'volver'),
+    (Clave: 'cerrar la ventana'; Icono: 'volver'),
+    (Clave: 'aceptar y cerrar'; Icono: 'aceptar'),
+    (Clave: 'aceptar'; Icono: 'aceptar'),
+    (Clave: 'cancelar'; Icono: 'cancelar'),
+    (Clave: 'ayuda'; Icono: 'ayuda'),
+    (Clave: 'exportar a excel'; Icono: 'excel'),
+    (Clave: 'imprimir'; Icono: 'imprimir'),
+    (Clave: 'ajustar el ancho'; Icono: 'columnas'),
+    (Clave: 'ejecutar'; Icono: 'ejecutar'),
+    (Clave: 'eliminar'; Icono: 'eliminar'),
+    (Clave: 'limpiar'; Icono: 'eliminar'),
+    (Clave: 'fuente'; Icono: 'fuente'),
+    (Clave: 'salvar'; Icono: 'guardar'),
+    (Clave: 'guardar'; Icono: 'guardar'),
+    (Clave: 'importar'; Icono: 'importar'),
+    (Clave: 'exportar'; Icono: 'exportar'),
+    (Clave: 'cargar'; Icono: 'cargar'),
+    (Clave: 'prueba de conexion'; Icono: 'conexion'),
+    (Clave: 'ver todas'; Icono: 'ver'),
+    (Clave: 'mostrar'; Icono: 'ver'),
+    (Clave: 'ocultar'; Icono: 'ocultar'),
+    (Clave: 'variables'; Icono: 'variables'),
+    (Clave: 'nuevo usuario'; Icono: 'usuarioagregar'),
+    (Clave: 'agregar nodo'; Icono: 'carpetamas'),
+    (Clave: 'agregar'; Icono: 'agregar'),
+    (Clave: 'nuevo'; Icono: 'agregar'),
+    (Clave: 'contrasena'; Icono: 'clave'),
+    (Clave: 'propiedades'; Icono: 'configuracion'),
+    (Clave: 'tipo de licencia'; Icono: 'licencia'),
+    (Clave: 'informacion'; Icono: 'acerca'),
+    (Clave: 'modificar'; Icono: 'editar'),
+    (Clave: 'editar'; Icono: 'editar'),
+    (Clave: 'buscar'; Icono: 'buscar'),
+    (Clave: 'localizar'; Icono: 'buscar'),
+    (Clave: 'filtr'; Icono: 'filtro'),
+    (Clave: 'usuario'; Icono: 'usuarios'),
+    (Clave: 'topograf'; Icono: 'topografia'),
+    (Clave: 'trasl'; Icono: 'traslados'),
+    (Clave: 'prestamo'; Icono: 'prestamos'),
+    (Clave: 'subserie'; Icono: 'series'),
+    (Clave: 'log'; Icono: 'logs'));
+
+{ Icono para un boton segun su ayuda o titulo; '' si ninguna regla aplica. }
+function IconoPorTexto(const Ayuda, Titulo: string): string;
+var
+  I: Integer;
+  T: string;
+begin
+  Result := '';
+  T := Plano(Ayuda);
+  if T = '' then
+    T := Plano(Titulo);
+  if T = '' then
+    Exit;
+  for I := Low(REGLAS_ICONO) to High(REGLAS_ICONO) do
+    if Pos(REGLAS_ICONO[I].Clave, T) > 0 then
+      Exit(REGLAS_ICONO[I].Icono);
+end;
+
+function IconoPorNombre(const Nombre: string): string;
+var
+  I: Integer;
+begin
+  Result := '';
+  for I := Low(BOTONES_ICONO) to High(BOTONES_ICONO) do
+    if SameText(BOTONES_ICONO[I].Nombre, Nombre) then
+      Exit(BOTONES_ICONO[I].Icono);
+end;
+
+{ Cambia el icono de los botones por el Tabler equivalente: primero por el
+  nombre (botones de TMAIN), luego por la pista de su ayuda o titulo. Se dibuja
+  sobre la cara del boton (su Color ya adaptado), asi que solo se tocan los
+  botones con cara opaca; uno transparente queda como esta. }
 procedure AplicarIconosBotones(Form: TForm);
 var
   I: Integer;
-  C: TComponent;
   B: TJvTransparentButton;
+  Icono: string;
   Bmp: TBitmap;
 begin
-  for I := Low(BOTONES_ICONO) to High(BOTONES_ICONO) do
+  for I := 0 to Form.ComponentCount - 1 do
   begin
-    C := Form.FindComponent(BOTONES_ICONO[I].Nombre);
-    if not (C is TJvTransparentButton) then
+    if not (Form.Components[I] is TJvTransparentButton) then
       Continue;
-    B := TJvTransparentButton(C);
+    B := TJvTransparentButton(Form.Components[I]);
+    Icono := '';
+    if Form.ClassName = 'TMAIN' then
+      Icono := IconoPorNombre(B.Name);
+    if (Icono = '') and not B.Transparent then
+      Icono := IconoPorTexto(B.Hint, B.Caption);
+    if Icono = '' then
+      Continue;
     Bmp := TBitmap.Create;
     try
       Bmp.PixelFormat := pf24bit;
       Bmp.SetSize(24, 24);
       Bmp.Canvas.Brush.Color := B.Color;
       Bmp.Canvas.FillRect(Rect(0, 0, 24, 24));
-      TIconos.Lista.Draw(Bmp.Canvas, 0, 0, IndiceIconoBlanco(BOTONES_ICONO[I].Icono));
+      TIconos.Lista.Draw(Bmp.Canvas, 0, 0, IndiceIconoBlanco(Icono));
       B.Glyph.Assign(Bmp);
       B.NumGlyphs := 1;
     finally
@@ -353,7 +459,6 @@ begin
   finally
     Form.EnableAlign;
   end;
-  if Form.ClassName = 'TMAIN' then
   try
     AplicarIconosBotones(Form);
   except
