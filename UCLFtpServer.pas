@@ -16,7 +16,7 @@ uses
   FireDAC.Stan.Option, FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS,
   FireDAC.Phys.Intf, FireDAC.DApt.Intf, FireDAC.Stan.Async, FireDAC.DApt,
   FireDAC.Comp.DataSet, FireDAC.Comp.Client, frxDBSet, cxCheckBox, IdFTP,
-  IdTCPClient, IdException;
+  IdTCPClient, IdException, UServidorS3Dialogo;
 
 type
   TfrmListFTPServer = class(TForm)
@@ -63,7 +63,9 @@ type
     procedure btnPrintClick(Sender: TObject);
     procedure cxGrid1DBTableView1pathPropertiesButtonClick(Sender: TObject; AButtonIndex: Integer);
     procedure btnTestConnClick(Sender: TObject);
+    procedure BotonS3Click(Sender: TObject);
   private
+    FBotonS3: TButton;
     { Private declarations }
   public
     { Public declarations }
@@ -315,8 +317,35 @@ begin
   end;
 end;
 
+// Edita el servidor S3 seleccionado; si el seleccionado es FTP, crea uno nuevo
+procedure TfrmListFTPServer.BotonS3Click(Sender: TObject);
+var
+  Id: Integer;
+begin
+  Id := 0;
+  if UDM.cl_ftp_Server.Active and not UDM.cl_ftp_Server.IsEmpty and
+    (UpperCase(Trim(UDM.cl_ftp_Server.FieldByName('tipo').AsString)) = 'S3') then
+    Id := UDM.cl_ftp_Server.FieldByName('Idservidor').AsInteger;
+  if EditarServidorS3(UDM.Conn, Id) then
+  begin
+    UDM.cl_ftp_Server.Refresh;
+    if UDM.cmdServer.Active then
+      UDM.cmdServer.Refresh;
+  end;
+end;
+
 procedure TfrmListFTPServer.FormShow(Sender: TObject);
 begin
+  // Servidor S3 (MinIO): boton propio, sin tocar el .dfm de la rejilla
+  if FBotonS3 = nil then
+  begin
+    FBotonS3 := TButton.Create(Self);
+    FBotonS3.Parent := Panel6;
+    FBotonS3.Align := alLeft;
+    FBotonS3.Width := 190;
+    FBotonS3.Caption := 'Servidor S3 (MinIO)...';
+    FBotonS3.OnClick := BotonS3Click;
+  end;
   Edit1.Focused;
   Edit1.SetFocus;
 end;

@@ -9,6 +9,22 @@ interface
 uses
   FireDAC.Comp.Client, UAlmacenFicheros;
 
+type
+  TDatosServidorS3 = record
+    Id: Integer;          // 0 = servidor nuevo
+    Etiqueta: string;
+    Endpoint: string;     // host o DNS, sin puerto
+    Puerto: Integer;
+    Bucket: string;
+    Region: string;
+    ClaveAcceso: string;
+    Secreto: string;      // vacio al editar = conservar el anterior
+    UsoHttps: Boolean;
+  end;
+
+{ Alta o edicion de un servidor S3 en cl_ftp_Server; el secreto se guarda
+  cifrado. Devuelve el Idservidor. EAlmacen si faltan datos (no escribe). }
+function GuardarServidorS3(Conn: TFDConnection; const D: TDatosServidorS3): Integer;
 { Servidor S3 o FTP segun su columna tipo. EAlmacen si no existe o esta incompleto. }
 function CrearAlmacen(Conn: TFDConnection; Idservidor: Integer): IAlmacenFicheros;
 { Almacen de un fichero segun su urlraiz: 's3://<n>/' usa el servidor n y la
@@ -79,6 +95,44 @@ begin
   begin
     Clave := NormalizarRutaFtp(UrlRaiz + Path + Nombre);
     Result := CrearAlmacen(Conn, IdservidorPorDefecto);
+  end;
+end;
+
+function GuardarServidorS3(Conn: TFDConnection; const D: TDatosServidorS3): Integer;
+var
+  Cifrado: string;
+  V: Variant;
+begin
+  if (Trim(D.Endpoint) = '') or (Trim(D.Bucket) = '') or (Trim(D.ClaveAcceso) = '') or
+    (D.Puerto <= 0) then
+    raise EAlmacen.Create('Complete el servidor, el puerto, el bucket y la clave de acceso.');
+  if (D.Id = 0) and (D.Secreto = '') then
+    raise EAlmacen.Create('Indique el secreto de acceso.');
+  if D.Secreto <> '' then
+    Cifrado := CifrarSecreto(D.Secreto);
+  if D.Id = 0 then
+  begin
+    V := Conn.ExecSQLScalar('SELECT MAX(Idservidor) FROM cl_ftp_Server');
+    if VarIsNull(V) or VarIsEmpty(V) then
+      Result := 1
+    else
+      Result := Integer(V) + 1;
+    Conn.ExecSQL('INSERT INTO cl_ftp_Server (Idservidor, etiquetaServ, ipserver, path, ' +
+      'pass, puerto, usuarioftp, tipo, bucket, region, usohttps, clave_acceso, ' +
+      'secreto_cifrado) VALUES (:id, :e, :h, :p, :pw, :pu, :u, :t, :b, :r, :s, :ca, :sc)',
+      [Result, Trim(D.Etiqueta), Trim(D.Endpoint), '', '', D.Puerto, '', 'S3',
+      Trim(D.Bucket), Trim(D.Region), D.UsoHttps, Trim(D.ClaveAcceso), Cifrado]);
+  end
+  else
+  begin
+    Result := D.Id;
+    Conn.ExecSQL('UPDATE cl_ftp_Server SET etiquetaServ = :e, ipserver = :h, puerto = :pu, ' +
+      'bucket = :b, region = :r, usohttps = :s, clave_acceso = :ca WHERE Idservidor = :id',
+      [Trim(D.Etiqueta), Trim(D.Endpoint), D.Puerto, Trim(D.Bucket), Trim(D.Region),
+      D.UsoHttps, Trim(D.ClaveAcceso), Result]);
+    if D.Secreto <> '' then
+      Conn.ExecSQL('UPDATE cl_ftp_Server SET secreto_cifrado = :sc WHERE Idservidor = :id',
+        [Cifrado, Result]);
   end;
 end;
 

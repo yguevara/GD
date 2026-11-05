@@ -20,6 +20,7 @@ type
       Puerto: Integer);
     procedure Borrar;
     procedure VerificarTodo;
+    procedure VerificarGuardado;
   public
     [TearDown]
     procedure Limpiar;
@@ -76,6 +77,7 @@ end;
 procedure TPruebasAlmacenServidor.Borrar;
 begin
   FConn.ExecSQL('DELETE FROM cl_ftp_Server WHERE Idservidor IN (9001, 9002, 9003)');
+  FConn.ExecSQL('DELETE FROM cl_ftp_Server WHERE etiquetaServ = ''prueba guardado''');
 end;
 
 procedure TPruebasAlmacenServidor.Limpiar;
@@ -203,12 +205,76 @@ begin
   end;
 end;
 
+procedure TPruebasAlmacenServidor.VerificarGuardado;
+var
+  D: TDatosServidorS3;
+  Id, Filas: Integer;
+  Lanzo: Boolean;
+begin
+  D := Default(TDatosServidorS3);
+  D.Etiqueta := 'prueba guardado';
+  D.Endpoint := 'minio.local';
+  D.Puerto := 9000;
+  D.Bucket := 'archigenio';
+  D.ClaveAcceso := 'usuario-servicio';
+  D.Secreto := 'secreto-original-1';
+  D.UsoHttps := True;
+  Id := GuardarServidorS3(FConn, D);
+  Assert.IsTrue(Id > 0, 'debe devolver el id nuevo');
+  Assert.AreEqual('S3', VarToStr(FConn.ExecSQLScalar('SELECT tipo FROM cl_ftp_Server WHERE Idservidor = ' + IntToStr(Id))));
+  Assert.AreEqual('minio.local', VarToStr(FConn.ExecSQLScalar('SELECT ipserver FROM cl_ftp_Server WHERE Idservidor = ' + IntToStr(Id))));
+  Assert.AreEqual('archigenio', VarToStr(FConn.ExecSQLScalar('SELECT bucket FROM cl_ftp_Server WHERE Idservidor = ' + IntToStr(Id))));
+  Assert.AreNotEqual('secreto-original-1', VarToStr(FConn.ExecSQLScalar('SELECT secreto_cifrado FROM cl_ftp_Server WHERE Idservidor = ' + IntToStr(Id))), 'el secreto no debe guardarse en claro');
+  Assert.AreEqual('secreto-original-1', DescifrarSecreto(VarToStr(FConn.ExecSQLScalar('SELECT secreto_cifrado FROM cl_ftp_Server WHERE Idservidor = ' + IntToStr(Id)))));
+
+  // Editar con secreto vacio conserva el anterior
+  D.Id := Id;
+  D.Bucket := 'otro-bucket';
+  D.Secreto := '';
+  Assert.AreEqual(Id, GuardarServidorS3(FConn, D));
+  Assert.AreEqual('otro-bucket', VarToStr(FConn.ExecSQLScalar('SELECT bucket FROM cl_ftp_Server WHERE Idservidor = ' + IntToStr(Id))));
+  Assert.AreEqual('secreto-original-1', DescifrarSecreto(VarToStr(FConn.ExecSQLScalar('SELECT secreto_cifrado FROM cl_ftp_Server WHERE Idservidor = ' + IntToStr(Id)))));
+  // Editar con secreto nuevo lo reemplaza
+  D.Secreto := 'secreto-nuevo-2';
+  GuardarServidorS3(FConn, D);
+  Assert.AreEqual('secreto-nuevo-2', DescifrarSecreto(VarToStr(FConn.ExecSQLScalar('SELECT secreto_cifrado FROM cl_ftp_Server WHERE Idservidor = ' + IntToStr(Id)))));
+
+  // Datos incompletos: no escribe
+  Filas := Integer(FConn.ExecSQLScalar('SELECT COUNT(*) FROM cl_ftp_Server'));
+  D := Default(TDatosServidorS3);
+  D.Etiqueta := 'prueba guardado';
+  D.Endpoint := '';
+  D.Puerto := 9000;
+  D.Bucket := 'b';
+  D.ClaveAcceso := 'u';
+  D.Secreto := 's';
+  Lanzo := False;
+  try
+    GuardarServidorS3(FConn, D);
+  except
+    on EAlmacen do Lanzo := True;
+  end;
+  Assert.IsTrue(Lanzo, 'endpoint vacio debe lanzar EAlmacen');
+  // Alta sin secreto
+  D.Endpoint := 'h';
+  D.Secreto := '';
+  Lanzo := False;
+  try
+    GuardarServidorS3(FConn, D);
+  except
+    on EAlmacen do Lanzo := True;
+  end;
+  Assert.IsTrue(Lanzo, 'alta sin secreto debe lanzar EAlmacen');
+  Assert.AreEqual(Filas, Integer(FConn.ExecSQLScalar('SELECT COUNT(*) FROM cl_ftp_Server')), 'no debe escribir filas');
+end;
+
 procedure TPruebasAlmacenServidor.SqlServer_Todo;
 begin
   if GetEnvironmentVariable('ARCHIGENIO_TEST_DB') = '' then
     Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB');
   Conectar(True);
   VerificarTodo;
+  VerificarGuardado;
 end;
 
 procedure TPruebasAlmacenServidor.Access_Todo;
@@ -217,6 +283,7 @@ begin
     Assert.Pass('omitida: falta ARCHIGENIO_TEST_MDB');
   Conectar(False);
   VerificarTodo;
+  VerificarGuardado;
 end;
 
 initialization

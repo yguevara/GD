@@ -22,6 +22,7 @@ uses
   UProgresoTransferencia in 'UProgresoTransferencia.pas',
   UMigracionFicheros in 'UMigracionFicheros.pas',
   UMigracionPantalla in 'UMigracionPantalla.pas',
+  UServidorS3Dialogo in 'UServidorS3Dialogo.pas',
   UAlcanceDatos in 'UAlcanceDatos.pas',
   UTopografia in 'UTopografia.pas',
   UAsignacionDatos in 'UAsignacionDatos.pas',
