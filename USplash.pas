@@ -82,6 +82,7 @@ type
     procedure AplicarApariencia;
   public
     { Public declarations }
+    procedure Paso(const Texto: string; Avance: Integer);
     procedure Inici(aBAR: PGauge; Min, Max: integer);
     procedure MueveBar(aBAR: PGauge; increment: integer);
     function getMd5HashString(const vValue: string): string;
@@ -106,7 +107,7 @@ implementation
 {$R *.dfm}
 
 uses
-  UShellPrincipal;
+  System.Math, UShellPrincipal;
 
 { TfrmSplash }
 
@@ -196,11 +197,16 @@ begin
   PRO.Visible := False;
   BAS.Visible := False;
   Color := T.Superficie;
+  // Mas grande que el .dfm (558x380); se vuelve a centrar en pantalla
+  ClientWidth := 760;
+  ClientHeight := 480;
+  Left := (Screen.Width - Width) div 2;
+  Top := (Screen.Height - Height) div 2;
 
   Banda := TPanel.Create(Self);
   Banda.Parent := Self;
   Banda.Align := alLeft;
-  Banda.Width := 12;
+  Banda.Width := 16;
   Banda.BevelOuter := bvNone;
   Banda.ParentBackground := False;
   Banda.StyleElements := [];
@@ -211,34 +217,34 @@ begin
   Nombre.AutoSize := True;
   Nombre.Transparent := True;
   Nombre.Font.Name := 'Segoe UI Semibold';
-  Nombre.Font.Size := 34;
+  Nombre.Font.Size := 46;
   Nombre.Font.Color := T.Texto;
   Nombre.Caption := 'ArchiGenio';
   Nombre.Left := 58;
-  Nombre.Top := 110;
+  Nombre.Top := 140;
 
   Edicion := TLabel.Create(Self);
   Edicion.Parent := Self;
   Edicion.AutoSize := True;
   Edicion.Transparent := True;
   Edicion.Font.Name := 'Segoe UI';
-  Edicion.Font.Size := 13;
+  Edicion.Font.Size := 15;
   Edicion.Font.Color := T.Acento;
   if VERS = 'PROFESIONAL' then
     Edicion.Caption := 'Edicion Profesional - gestion de archivo documental'
   else
     Edicion.Caption := 'Edicion Basica - gestion de archivo documental';
   Edicion.Left := 60;
-  Edicion.Top := 168;
+  Edicion.Top := 222;
 
   lblBuild.Transparent := True;
   lblBuild.ParentColor := True;
   lblBuild.Font.Name := 'Segoe UI';
-  lblBuild.Font.Size := 10;
+  lblBuild.Font.Size := 11;
   lblBuild.Font.Style := [];
   lblBuild.Font.Color := T.TextoSuave;
   lblBuild.Left := 60;
-  lblBuild.Top := 202;
+  lblBuild.Top := 262;
   lblBuild.BringToFront;
 
   Gauge1.BorderStyle := bsNone;
@@ -299,6 +305,16 @@ begin
   finally
     vHashMD5.Free;
   end;
+end;
+
+// Avanza la barra y cambia el texto de estado (arranque de la aplicacion).
+procedure TfrmSplash.Paso(const Texto: string; Avance: Integer);
+begin
+  Label1.Caption := Texto;
+  Label1.Update;
+  Gauge1.Progress := Min(Gauge1.MaxValue, Gauge1.Progress + Avance);
+  Gauge1.Update;
+  Application.ProcessMessages;
 end;
 
 procedure TfrmSplash.Inici(aBAR: PGauge; Min, Max: integer);

@@ -150,6 +150,7 @@ begin
     frmSplash.Gauge1.MinValue := 0;
     frmSplash.Gauge1.Progress := 0;
     frmSplash.MueveBar(@frmSplash.Gauge1, 1);   }
+    frmSplash.Paso('Leyendo la configuracion...', 1);
     AppPath := ExtractFilePath(Application.ExeName);
     programver := VERSION;
     if FileExists(AppPath + 'config.ini') then
@@ -165,22 +166,28 @@ begin
         DeleteFile(AppPath + 'config.ini');
         Configurasys(True);
       end;
+      frmSplash.Paso('Conectando con la base de datos...', 0);
       Application.CreateForm(TUDM, UDM);
+      frmSplash.Paso('Cargando la interfaz...', 1);
   VersionProgram := cad;
       buildprogram := build;
       if not CAPP then
         Application.CreateForm(TMAIN, MAIN);
+        frmSplash.Paso('Listo', 2);
     end
     else
     begin
       Configurasys(True);
       if FileExists(AppPath + 'config.ini') then
       begin
+        frmSplash.Paso('Conectando con la base de datos...', 0);
         Application.CreateForm(TUDM, UDM);
+        frmSplash.Paso('Cargando la interfaz...', 1);
         VersionProgram := cad;
         buildprogram := build;
         if not CAPP then
           Application.CreateForm(TMAIN, MAIN);
+          frmSplash.Paso('Listo', 2);
       end;
     end;
     if not CAPP then
