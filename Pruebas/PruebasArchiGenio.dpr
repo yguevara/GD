@@ -26,7 +26,9 @@ uses
   UTema in '..\UTema.pas',
   UPruebasTema in 'UPruebasTema.pas',
   UDocumentoVista in '..\UDocumentoVista.pas',
-  UPruebasDocumentoVista in 'UPruebasDocumentoVista.pas';
+  UPruebasDocumentoVista in 'UPruebasDocumentoVista.pas',
+  UDocumentoVistaDatos in '..\UDocumentoVistaDatos.pas',
+  UPruebasDocumentoVistaDatos in 'UPruebasDocumentoVistaDatos.pas';
 
 var
   Corredor: ITestRunner;
