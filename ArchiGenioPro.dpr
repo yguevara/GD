@@ -21,6 +21,7 @@ uses
   UBusquedaDatos in 'UBusquedaDatos.pas',
   UBusquedaDocumentos in 'UBusquedaDocumentos.pas',
   UTema in 'UTema.pas',
+  UDocumentoVista in 'UDocumentoVista.pas',
   UIconos in 'UIconos.pas',
   UShellPrincipal in 'UShellPrincipal.pas',
   UAparienciaLegacy in 'UAparienciaLegacy.pas',

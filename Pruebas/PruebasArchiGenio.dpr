@@ -24,7 +24,9 @@ uses
   UPruebasBusqueda in 'UPruebasBusqueda.pas',
   UPruebasBusquedaDatos in 'UPruebasBusquedaDatos.pas',
   UTema in '..\UTema.pas',
-  UPruebasTema in 'UPruebasTema.pas';
+  UPruebasTema in 'UPruebasTema.pas',
+  UDocumentoVista in '..\UDocumentoVista.pas',
+  UPruebasDocumentoVista in 'UPruebasDocumentoVista.pas';
 
 var
   Corredor: ITestRunner;
