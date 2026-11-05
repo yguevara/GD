@@ -60,6 +60,17 @@ Plan: `2026-11-04-fase1-base-visual.md`, Tarea 3. Pendiente de ejecutar por una 
 | 38b | Cualquiera | Doble clic en un resultado publico de un nodo que el arbol no muestra | Muestra codigo, titulo, subserie, ruta del nodo y acceso; el arbol no cambia | |
 | 39 | Modo Access | Ambitos general y nodo actual | Funciona igual (sin alcance: se ve todo) | |
 | 40 | 1366x768 al 125 % | Revisar la cabecera con el selector de ambito | Sin solapes; el buscador se achica antes que el titulo | |
+| 41 | Administrador | Mirar la columna | Arriba: Inicio, Archivo, Clasificad., Cuadro, Traslados, Prestamos, Depuracion, Indices. Abajo: Usuarios, Config. y Gestion. Todos con icono y texto completo | |
+| 42 | Administrador | Clasificad. | Menu con Archivos, Servidores (FTP) y Series y Subseries Documentales; cada uno abre lo mismo que en la pantalla clasica | |
+| 43 | Administrador | Cuadro, Traslados, Depuracion, Indices, Usuarios | Abren Administrar cuadro de clasificacion, Transferencias, Depuracion, Gestion de indices y Administracion de usuarios | |
+| 44 | Administrador | Config. | Menu con Configuracion del sistema, Cambiar Base de Datos y Logs del sistema | |
+| 45 | Gestor, Director y Visor/Invitado | Mirar la columna | Solo ven las secciones que su rol veia en la barra antigua; ninguno ve Clasificad., Cuadro, Traslados, Depuracion, Indices, Usuarios ni Config. si antes no veia esos botones | |
+| 46 | Cualquiera | Abrir Ayuda -> Acerca de | Cabecera con el nombre, version 2.x con la compilacion de siempre, edicion, logo de EMSERGO S.R.L. y derechos reservados; claro y oscuro | |
+| 47 | Cualquiera | Propiedades del .exe -> Detalles | Version de archivo 2.0.9299.15405, empresa EMSERGO S.R.L | |
+| 48 | Cualquiera | Arrancar la aplicacion | La barra del splash avanza por pasos (configuracion, base de datos, interfaz, listo) y el texto de estado cambia | |
+| 49 | Cualquiera | Mirar el arbol del cuadro de clasificacion | Iconos Tabler: edificio (entidad), etiqueta (unidad), carpeta (nodo), jerarquia, etc.; los nodos invisibles (si se muestran) en gris. Mismos significados que antes | |
+| 50 | Cualquiera | Mirar el pie de la columna | Gestion y, debajo, Acerca de, siempre visibles; Acerca de abre el mismo cuadro que Ayuda -> Acerca de | |
+| 51 | Administrador | Menu Gestion, Clasificad. y Config. | Todas las entradas llevan su icono | |
 
 ## Resultado
 

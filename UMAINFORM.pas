@@ -648,6 +648,8 @@ type
     procedure cxGrid2DBTableView1StylesGetContentStyle(Sender: TcxCustomGridTableView; ARecord: TcxCustomGridRecord; AItem: TcxCustomGridTableItem; var AStyle: TcxStyle);
     procedure P3Click(Sender: TObject);
   private
+    FShellMenuConfig: TPopupMenu;
+    FShellMenuClasif: TPopupMenu;
     FComboBoxAssociations: TComboBoxFieldAssociations;
     FIsAuthenticated: Boolean; // RASTREA SI EL USUARIO ESTÁ AUTENTICADO
     FLoginImage: TBitmap; // Imagen para el estado "no autenticado"
@@ -738,6 +740,11 @@ type
     procedure ShellAgregarDocumento(Sender: TObject);
     procedure ShellBuscar(const Texto: string; Ambito: TAmbitoBusqueda);
     function SeleccionarNodoEnArbol(const Nodo: TClaveNodo): Boolean;
+    procedure ShellMenuConfiguracion;
+    procedure ShellMenuClasificadores;
+    function ShellMenuDesde(var Menu: TPopupMenu; const Origenes: array of TMenuItem;
+      const Iconos: array of string): TPopupMenu;
+    procedure ShellMenuConfiguracionClick(Sender: TObject);
     procedure ShellSeccion(const Nombre: string);
     function ShellSeccionDisponible(const Nombre: string): Boolean;
     function ShellTextoUsuario: string;
@@ -753,7 +760,7 @@ var
 implementation
 
 uses
-  UAparienciaLegacy, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UCapaDatos, UUserGest, UDocManagement,
+  UAparienciaLegacy, UIconos, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UCapaDatos, UUserGest, UDocManagement,
   UCLSeriesDocumentales, UCLFtpServer, UGestEstruct, UMangementArch,
   UManagementFileSeries, UViewFunciones, UVeditor, UExcelExport, UManagementNode,
   USystemMsg, UNodeProperties, UCL_TiposExp, USysConfig, UTransferencias,
@@ -6613,6 +6620,12 @@ begin
   AplicarShell(Self);
   // Paleta de UTema en las pantallas viejas (rejillas, iconos, paneles)
   InstalarAparienciaLegacy;
+  // Iconos del arbol del cuadro de clasificacion (mismos indices, nuevas imagenes)
+  try
+    ReemplazarIconosArbol(UDM.ImageList3);
+  except
+    // Solo apariencia: si falla quedan los iconos anteriores
+  end;
   if ShellActivo then
     ConectarShell
   else
@@ -6732,22 +6745,104 @@ begin
       tvTree.Items.GetFirstNode.MakeVisible;
     if tvTree.CanFocus then
       tvTree.SetFocus;
-  end
-  else if (Nombre = SECCION_TRASLADOS) and ShellSeccionDisponible(Nombre) then
+    Exit;
+  end;
+  // Las demas secciones solo se atienden si el rol actual las ve
+  if not ShellSeccionDisponible(Nombre) then
+    Exit;
+  if Nombre = SECCION_TRASLADOS then
     btnTransfer.Click
-  else if (Nombre = SECCION_PRESTAMOS) and ShellSeccionDisponible(Nombre) then
-    P3.Click;
+  else if Nombre = SECCION_PRESTAMOS then
+    P3.Click
+  else if Nombre = SECCION_DEPURACION then
+    D3.Click
+  else if Nombre = SECCION_INDICES then
+    I2.Click
+  else if Nombre = SECCION_CUADRO then
+    btnManagementTree.Click
+  else if Nombre = SECCION_USUARIOS then
+    btnusercontrol.Click
+  else if Nombre = SECCION_CLASIFICADORES then
+    ShellMenuClasificadores
+  else if Nombre = SECCION_CONFIGURACION then
+    ShellMenuConfiguracion
+  else if Nombre = SECCION_ACERCA then
+    Acercade1Click(Self);
 end;
 
-// Traslados y Prestamos solo se alcanzaban desde el boton Herramientas
-// (btnTool, visible segun el rol) y sus items de PMTool: se ofrecen solo
-// si el boton y el item estan visibles.
+// Menu de configuracion del sistema: los items de PMTool que no son de
+// gestion documental (configuracion, cambio de base de datos, registros).
+// Cada entrada ejecuta el item original.
+// Arma una sola vez un menu con copias (y su icono) de items existentes; cada
+// entrada ejecuta el item original y refleja su Enabled actual.
+function TMAIN.ShellMenuDesde(var Menu: TPopupMenu; const Origenes: array of TMenuItem;
+  const Iconos: array of string): TPopupMenu;
+var
+  I: Integer;
+  Item: TMenuItem;
+begin
+  if Menu = nil then
+  begin
+    Menu := TPopupMenu.Create(Self);
+    Menu.Images := TIconos.Lista;
+    for I := Low(Origenes) to High(Origenes) do
+    begin
+      Item := TMenuItem.Create(Menu);
+      Item.Caption := Origenes[I].Caption;
+      Item.ImageIndex := IndiceIcono(Iconos[I]);
+      Item.Tag := NativeInt(Origenes[I]);
+      Item.OnClick := ShellMenuConfiguracionClick;
+      Menu.Items.Add(Item);
+    end;
+  end;
+  for I := 0 to Menu.Items.Count - 1 do
+    Menu.Items[I].Enabled := TMenuItem(Menu.Items[I].Tag).Enabled;
+  Result := Menu;
+end;
+
+// Configuracion del sistema: los items de PMTool que no son de gestion
+// documental (configuracion, cambio de base de datos, registros).
+procedure TMAIN.ShellMenuConfiguracion;
+begin
+  ShellMenuDesde(FShellMenuConfig, [B1, C1, log],
+    ['configuracion', 'basedatos', 'logs']).Popup(Mouse.CursorPos.X, Mouse.CursorPos.Y);
+end;
+
+// Clasificadores: los items de PMListascod (listas de codigos).
+procedure TMAIN.ShellMenuClasificadores;
+begin
+  ShellMenuDesde(FShellMenuClasif, [A1, L1, S1],
+    ['archivos', 'servidor', 'series']).Popup(Mouse.CursorPos.X, Mouse.CursorPos.Y);
+end;
+
+procedure TMAIN.ShellMenuConfiguracionClick(Sender: TObject);
+begin
+  TMenuItem(TMenuItem(Sender).Tag).Click;
+end;
+
+// Disponibilidad por permiso. Los botones de la barra antigua (btnLC,
+// btnusercontrol, btnManagementTree, btnTool...) los muestra u oculta el
+// codigo por rol (adminOptions, GestorOptions...), asi que son la fuente del
+// permiso. Transferencias, Depuracion e Indices estan ocultos en el .dfm pero
+// cuelgan de Herramientas (btnTool): se ofrecen a quien ve Herramientas.
 function TMAIN.ShellSeccionDisponible(const Nombre: string): Boolean;
 begin
   if Nombre = SECCION_TRASLADOS then
-    Result := btnTool.Visible and btnTransfer.Visible and btnTransfer.Enabled
+    Result := btnTool.Visible and btnTransfer.Enabled
   else if Nombre = SECCION_PRESTAMOS then
     Result := btnTool.Visible and P3.Visible and P3.Enabled
+  else if Nombre = SECCION_DEPURACION then
+    Result := btnTool.Visible and D3.Enabled
+  else if Nombre = SECCION_INDICES then
+    Result := btnTool.Visible and I2.Enabled
+  else if Nombre = SECCION_CUADRO then
+    Result := btnManagementTree.Visible and btnManagementTree.Enabled
+  else if Nombre = SECCION_USUARIOS then
+    Result := btnusercontrol.Visible and btnusercontrol.Enabled
+  else if Nombre = SECCION_CLASIFICADORES then
+    Result := btnLC.Visible and btnLC.Enabled
+  else if Nombre = SECCION_CONFIGURACION then
+    Result := btnTool.Visible and (B1.Enabled or C1.Enabled or log.Enabled)
   else
     Result := True;
 end;

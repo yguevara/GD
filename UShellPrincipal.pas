@@ -31,6 +31,13 @@ const
   SECCION_ARCHIVO = 'archivo';
   SECCION_TRASLADOS = 'traslados';
   SECCION_PRESTAMOS = 'prestamos';
+  SECCION_CLASIFICADORES = 'clasificadores';
+  SECCION_CUADRO = 'cuadro';
+  SECCION_DEPURACION = 'depuracion';
+  SECCION_INDICES = 'indices';
+  SECCION_USUARIOS = 'usuarios';
+  SECCION_CONFIGURACION = 'configuracion';
+  SECCION_ACERCA = 'acerca';
 
 type
   TBuscarEvent = procedure(const Texto: string; Ambito: TAmbitoBusqueda) of object;
@@ -122,8 +129,7 @@ type
     FColumna: TPanel;
     FBtnInicio: TBotonShell;
     FBtnArchivo: TBotonShell;
-    FBtnTraslados: TBotonShell;
-    FBtnPrestamos: TBotonShell;
+    FSecciones: array of TBotonShell;  // botones por permiso (SECCIONES_PERMISO)
     FBtnGestion: TBotonShell;
     FCabecera: TPanel;
     FRuta: TLabel;
@@ -133,6 +139,11 @@ type
     FSelAmbito: TComboBox;
     FBtnAgregar: TBotonShell;
     FChipUsuario: TBotonShell;
+    // Pantalla de inicio: se muestra sobre el area de trabajo sin nodo elegido
+    FInicio: TPanel;
+    FInicioGrupo: TPanel;
+    FInicioAgregar: TBotonShell;
+    FInicioBuscar: TBotonShell;
     FMenuGestion: TPopupMenu;
     FOrigenes: TDictionary<TMenuItem, TMenuItem>;
     FTimer: TTimer;
@@ -162,6 +173,10 @@ type
     function CrearBotonColumna(const Texto, Icono: string; Alineacion: TAlign): TBotonShell;
     procedure OrdenarColumna;
     procedure CrearCabecera;
+    procedure CrearInicio;
+    procedure ActualizarInicio;
+    procedure InicioResize(Sender: TObject);
+    procedure InicioBuscarClick(Sender: TObject);
     procedure Desenganchar;
     procedure ContenedorWndProc(var Msg: TMessage);
     procedure SincronizarCabecera;
@@ -231,7 +246,38 @@ type
     Grupo: Integer;
   end;
 
+type
+  { Seccion de la columna que solo se ofrece a quien tiene permiso para ella
+    (lo decide OnSeccionDisponible). Abajo: junto a Gestion. }
+  TSeccionDef = record
+    Nombre: string;
+    Texto: string;
+    Icono: string;
+    Ayuda: string;
+    Abajo: Boolean;
+  end;
+
 const
+  SECCIONES_PERMISO: array[0..8] of TSeccionDef = (
+    (Nombre: SECCION_CLASIFICADORES; Texto: 'Clasificad.'; Icono: 'clasificadores';
+      Ayuda: 'Clasificadores: archivos, servidores FTP, series y subseries'; Abajo: False),
+    (Nombre: SECCION_CUADRO; Texto: 'Cuadro'; Icono: 'cuadro';
+      Ayuda: 'Administrar el cuadro de clasificacion'; Abajo: False),
+    (Nombre: SECCION_TRASLADOS; Texto: 'Traslados'; Icono: 'traslados';
+      Ayuda: 'Transferencias de documentos entre archivos'; Abajo: False),
+    (Nombre: SECCION_PRESTAMOS; Texto: 'Prestamos'; Icono: 'prestamos';
+      Ayuda: 'Prestamos de documentos'; Abajo: False),
+    (Nombre: SECCION_DEPURACION; Texto: 'Depuracion'; Icono: 'depuracion';
+      Ayuda: 'Depuracion de documentos'; Abajo: False),
+    (Nombre: SECCION_INDICES; Texto: 'Indices'; Icono: 'indices';
+      Ayuda: 'Gestion e indices de archivos'; Abajo: False),
+    (Nombre: SECCION_USUARIOS; Texto: 'Usuarios'; Icono: 'usuarios';
+      Ayuda: 'Administracion de usuarios'; Abajo: True),
+    (Nombre: SECCION_CONFIGURACION; Texto: 'Config.'; Icono: 'configuracion';
+      Ayuda: 'Configuracion del sistema, base de datos y registros'; Abajo: True),
+    (Nombre: SECCION_ACERCA; Texto: 'Acerca de'; Icono: 'acerca';
+      Ayuda: 'Acerca de ArchiGenio: version, edicion y creditos'; Abajo: True));
+
   { Botones de la barra antigua (pMainContainer), en el orden del menu
     Gestion. Grupo distinto = separador. }
   BOTONES_CLASICOS: array[0..9] of TBotonClasico = (
@@ -246,8 +292,13 @@ const
     (Nombre: 'btnSystemHelp'; Texto: 'Ayuda del sistema'; Grupo: 2),
     (Nombre: 'btnClose'; Texto: 'Salir del sistema'; Grupo: 3));
 
+  { Icono de cada entrada de BOTONES_CLASICOS en el menu Gestion. }
+  ICONOS_CLASICOS: array[0..9] of string = (
+    'usuario', 'buscar', 'usuarios', 'clasificadores', 'reportes', 'cuadro',
+    'configuracion', 'gestion', 'ayuda', 'salir');
+
   FUENTE = 'Segoe UI';
-  ANCHO_COLUMNA = 58;
+  ANCHO_COLUMNA = 74;
   ANCHO_ARBOL = 270;
   ALTO_CABECERA = 64;
   ANCHO_BUSQUEDA = 260;
@@ -696,8 +747,10 @@ begin
     // 2. Controles propios
     CrearColumna;
     CrearCabecera;
+    CrearInicio;
     FMenuGestion := TPopupMenu.Create(Self);
     FMenuGestion.AutoHotkeys := maManual;
+    FMenuGestion.Images := TIconos.Lista;
 
     // 3. Cambios sobre los controles existentes (Deshacer los revierte)
     FBarraVisibleAntes := FBarraClasica.Visible;
@@ -762,8 +815,7 @@ begin
   // Los controles propios se liberan con sus hijos
   FBtnInicio := nil;
   FBtnArchivo := nil;
-  FBtnTraslados := nil;
-  FBtnPrestamos := nil;
+  SetLength(FSecciones, 0);
   FBtnGestion := nil;
   FRuta := nil;
   FTitulo := nil;
@@ -772,6 +824,10 @@ begin
   FSelAmbito := nil;
   FBtnAgregar := nil;
   FChipUsuario := nil;
+  FInicioGrupo := nil;
+  FInicioAgregar := nil;
+  FInicioBuscar := nil;
+  FreeAndNil(FInicio);
   FreeAndNil(FColumna);
   FreeAndNil(FCabecera);
 end;
@@ -798,6 +854,9 @@ begin
 end;
 
 procedure TShellPrincipal.CrearColumna;
+var
+  I: Integer;
+  A: TAlign;
 begin
   FColumna := TPanel.Create(Self);
   FColumna.BevelOuter := bvNone;
@@ -811,8 +870,17 @@ begin
 
   FBtnInicio := CrearBotonColumna('Inicio', 'inicio', alTop);
   FBtnArchivo := CrearBotonColumna('Archivo', 'archivo', alTop);
-  FBtnTraslados := CrearBotonColumna('Traslados', 'traslados', alTop);
-  FBtnPrestamos := CrearBotonColumna('Prestamos', 'prestamos', alTop);
+  SetLength(FSecciones, Length(SECCIONES_PERMISO));
+  for I := Low(SECCIONES_PERMISO) to High(SECCIONES_PERMISO) do
+  begin
+    if SECCIONES_PERMISO[I].Abajo then
+      A := alBottom
+    else
+      A := alTop;
+    FSecciones[I] := CrearBotonColumna(SECCIONES_PERMISO[I].Texto,
+      SECCIONES_PERMISO[I].Icono, A);
+    FSecciones[I].Hint := SECCIONES_PERMISO[I].Ayuda;
+  end;
   FBtnGestion := CrearBotonColumna('Gestion', 'gestion', alBottom);
   FBtnGestion.OnClick := GestionClick;
   FBtnArchivo.Seleccionado := True;
@@ -832,10 +900,10 @@ begin
   Result.Colores(FTema.Columna, FTema.Columna,
     Mezcla(FTema.Columna, FTema.Acento, 0.18), FTema.TextoColumna, clNone);
   Result.Font.Name := FUENTE;
-  Result.Font.Height := -Esc(11);
+  Result.Font.Height := -Esc(10);
   Result.AlignWithMargins := True;
-  Result.Margins.SetBounds(Esc(4), Esc(4), Esc(4), Esc(4));
-  Result.SetBounds(0, FColumna.ControlCount * Esc(60), Esc(50), Esc(52));
+  Result.Margins.SetBounds(Esc(4), Esc(2), Esc(4), Esc(2));
+  Result.SetBounds(0, FColumna.ControlCount * Esc(52), Esc(66), Esc(46));
   Result.Align := Alineacion;
   Result.OnClick := SeccionClick;
   Result.Parent := FColumna;
@@ -845,18 +913,35 @@ end;
   despues de ocultar o mostrar Traslados o Prestamos. }
 procedure TShellPrincipal.OrdenarColumna;
 var
-  Orden: array[0..3] of TBotonShell;
-  I: Integer;
+  I, Arriba, Abajo: Integer;
 begin
-  Orden[0] := FBtnInicio;
-  Orden[1] := FBtnArchivo;
-  Orden[2] := FBtnTraslados;
-  Orden[3] := FBtnPrestamos;
   FColumna.DisableAlign;
   try
-    for I := Low(Orden) to High(Orden) do
-      if Orden[I] <> nil then
-        Orden[I].Top := I * Esc(60);
+    // alTop y alBottom se ordenan por Top: se renumera tambien tras mostrar
+    // u ocultar secciones
+    FBtnInicio.Top := 0;
+    FBtnArchivo.Top := Esc(52);
+    Arriba := 2;
+    Abajo := 0;
+    for I := Low(FSecciones) to High(FSecciones) do
+      if FSecciones[I] <> nil then
+        if SECCIONES_PERMISO[I].Nombre = SECCION_ACERCA then
+          Continue
+        else if SECCIONES_PERMISO[I].Abajo then
+        begin
+          FSecciones[I].Top := Esc(2000) + Abajo * Esc(52);
+          Inc(Abajo);
+        end
+        else
+        begin
+          FSecciones[I].Top := Arriba * Esc(52);
+          Inc(Arriba);
+        end;
+    FBtnGestion.Top := Esc(2000) + Abajo * Esc(52);
+    // Acerca de queda siempre en el extremo inferior, bajo Gestion
+    for I := Low(FSecciones) to High(FSecciones) do
+      if (FSecciones[I] <> nil) and (SECCIONES_PERMISO[I].Nombre = SECCION_ACERCA) then
+        FSecciones[I].Top := Esc(2000) + (Abajo + 1) * Esc(52);
   finally
     FColumna.EnableAlign;
   end;
@@ -973,6 +1058,120 @@ begin
   Reacomodar;
 end;
 
+{ Pantalla de inicio minima: con ningun nodo elegido, el area de trabajo
+  muestra dos acciones grandes y una linea guia. "Mis pendientes" y
+  "recientes" quedan para la Fase 5. }
+procedure TShellPrincipal.CrearInicio;
+var
+  Titulo, Guia: TLabel;
+begin
+  FInicio := TPanel.Create(Self);
+  FInicio.BevelOuter := bvNone;
+  FInicio.ParentBackground := False;
+  FInicio.StyleElements := [];
+  FInicio.ShowCaption := False;
+  FInicio.Color := FTema.Fondo;
+  FInicio.Align := alClient;
+  FInicio.AlignWithMargins := True;
+  FInicio.Margins.SetBounds(0, FCabecera.Height, 0, 0);
+  FInicio.Visible := False;
+  FInicio.Parent := FMain;
+  FInicio.OnResize := InicioResize;
+
+  FInicioGrupo := TPanel.Create(Self);
+  FInicioGrupo.Parent := FInicio;
+  FInicioGrupo.BevelOuter := bvNone;
+  FInicioGrupo.ParentBackground := False;
+  FInicioGrupo.StyleElements := [];
+  FInicioGrupo.ShowCaption := False;
+  FInicioGrupo.Color := FTema.Fondo;
+  FInicioGrupo.SetBounds(0, 0, Esc(560), Esc(190));
+
+  Titulo := TLabel.Create(Self);
+  Titulo.Parent := FInicioGrupo;
+  Titulo.AutoSize := False;
+  Titulo.Alignment := taCenter;
+  Titulo.Transparent := True;
+  Titulo.Font.Name := FUENTE;
+  Titulo.Font.Height := -Esc(26);
+  Titulo.Font.Style := [fsBold];
+  Titulo.Font.Color := FTema.Texto;
+  Titulo.Caption := 'Que quiere hacer?';
+  Titulo.SetBounds(0, 0, FInicioGrupo.Width, Esc(40));
+
+  FInicioAgregar := TBotonShell.Create(Self);
+  FInicioAgregar.Estilo := ebPrimario;
+  FInicioAgregar.Texto := 'Agregar un documento';
+  FInicioAgregar.Icono := IconoSobre('agregar', FTema.Acento);
+  FInicioAgregar.Colores(FTema.Fondo, FTema.Acento,
+    Mezcla(FTema.Acento, FTema.TextoSobreAcento, 0.15), FTema.TextoSobreAcento, clNone);
+  FInicioAgregar.Font.Name := FUENTE;
+  FInicioAgregar.Font.Height := -Esc(16);
+  FInicioAgregar.Font.Style := [fsBold];
+  FInicioAgregar.OnClick := AgregarClick;
+  FInicioAgregar.Parent := FInicioGrupo;
+  FInicioAgregar.SetBounds(0, Esc(64), Esc(270), Esc(64));
+
+  FInicioBuscar := TBotonShell.Create(Self);
+  FInicioBuscar.Estilo := ebPrimario;
+  FInicioBuscar.Texto := 'Buscar un documento';
+  FInicioBuscar.Icono := IconoSobre('buscar', FTema.Superficie);
+  FInicioBuscar.Colores(FTema.Fondo, FTema.Superficie, FTema.AcentoSuave,
+    FTema.Texto, FTema.Linea);
+  FInicioBuscar.Font.Name := FUENTE;
+  FInicioBuscar.Font.Height := -Esc(16);
+  FInicioBuscar.Font.Style := [fsBold];
+  FInicioBuscar.OnClick := InicioBuscarClick;
+  FInicioBuscar.Parent := FInicioGrupo;
+  FInicioBuscar.SetBounds(Esc(290), Esc(64), Esc(270), Esc(64));
+
+  Guia := TLabel.Create(Self);
+  Guia.Parent := FInicioGrupo;
+  Guia.AutoSize := False;
+  Guia.Alignment := taCenter;
+  Guia.Transparent := True;
+  Guia.Font.Name := FUENTE;
+  Guia.Font.Height := -Esc(14);
+  Guia.Font.Color := FTema.TextoSuave;
+  Guia.Caption := 'Para trabajar en su area, elijala en el arbol de la izquierda.';
+  Guia.SetBounds(0, Esc(150), FInicioGrupo.Width, Esc(24));
+  InicioResize(nil);
+end;
+
+procedure TShellPrincipal.InicioResize(Sender: TObject);
+begin
+  if (FInicio = nil) or (FInicioGrupo = nil) then
+    Exit;
+  FInicioGrupo.SetBounds(Max(0, (FInicio.ClientWidth - FInicioGrupo.Width) div 2),
+    Max(0, (FInicio.ClientHeight - FInicioGrupo.Height) div 2 - Esc(30)),
+    FInicioGrupo.Width, FInicioGrupo.Height);
+end;
+
+{ Visible solo sin nodo elegido y con el arbol a la vista. }
+procedure TShellPrincipal.ActualizarInicio;
+var
+  Mostrar: Boolean;
+begin
+  if FInicio = nil then
+    Exit;
+  Mostrar := (FArbol <> nil) and (FArbol.Selected = nil);
+  if FInicio.Visible <> Mostrar then
+  begin
+    FInicio.Visible := Mostrar;
+    if Mostrar then
+    begin
+      FInicio.BringToFront;
+      FCabecera.BringToFront;
+    end;
+  end;
+end;
+
+procedure TShellPrincipal.InicioBuscarClick(Sender: TObject);
+begin
+  // Misma accion que el buscador de la cabecera, con el texto que haya
+  BusquedaBuscar(Sender);
+end;
+
 procedure TShellPrincipal.CabeceraResize(Sender: TObject);
 begin
   Reacomodar;
@@ -1072,6 +1271,8 @@ begin
       FCabecera.SetBounds(X, 0, W, H);
     if FContenedor.Margins.Top <> H then
       FContenedor.Margins.Top := H;
+    if (FInicio <> nil) and (FInicio.Margins.Top <> H) then
+      FInicio.Margins.Top := H;
   finally
     FSincronizando := False;
   end;
@@ -1081,6 +1282,7 @@ procedure TShellPrincipal.Refrescar;
 begin
   SincronizarCabecera;
   ActualizarUbicacion;
+  ActualizarInicio;
   ActualizarUsuario;
   ActualizarSecciones;
 end;
@@ -1175,6 +1377,7 @@ end;
 procedure TShellPrincipal.ActualizarSecciones;
 var
   Cambio: Boolean;
+  I: Integer;
 
   procedure Ajustar(B: TBotonShell; const Nombre: string);
   var
@@ -1192,8 +1395,8 @@ var
 
 begin
   Cambio := False;
-  Ajustar(FBtnTraslados, SECCION_TRASLADOS);
-  Ajustar(FBtnPrestamos, SECCION_PRESTAMOS);
+  for I := Low(FSecciones) to High(FSecciones) do
+    Ajustar(FSecciones[I], SECCIONES_PERMISO[I].Nombre);
   if Cambio and (FColumna <> nil) then
     OrdenarColumna;
 end;
@@ -1201,17 +1404,21 @@ end;
 procedure TShellPrincipal.SeccionClick(Sender: TObject);
 var
   Nombre: string;
+  I: Integer;
 begin
   if Sender = FBtnInicio then
     Nombre := SECCION_INICIO
   else if Sender = FBtnArchivo then
     Nombre := SECCION_ARCHIVO
-  else if Sender = FBtnTraslados then
-    Nombre := SECCION_TRASLADOS
-  else if Sender = FBtnPrestamos then
-    Nombre := SECCION_PRESTAMOS
   else
-    Exit;
+  begin
+    Nombre := '';
+    for I := Low(FSecciones) to High(FSecciones) do
+      if Sender = FSecciones[I] then
+        Nombre := SECCIONES_PERMISO[I].Nombre;
+    if Nombre = '' then
+      Exit;
+  end;
   if (Sender = FBtnInicio) or (Sender = FBtnArchivo) then
   begin
     FBtnInicio.Seleccionado := Sender = FBtnInicio;
@@ -1297,6 +1504,7 @@ begin
     Item := TMenuItem.Create(FMenuGestion);
     Item.Caption := BOTONES_CLASICOS[I].Texto;
     Item.Tag := I;
+    Item.ImageIndex := IndiceIcono(ICONOS_CLASICOS[I]);
     Desplegable := nil;
     if IsPublishedProp(C, 'DropDownMenu') then
     begin
@@ -1316,6 +1524,27 @@ begin
   end;
 end;
 
+{ Icono de los items de los menus heredados, por el nombre del item original. }
+function IconoDeItem(const Nombre: string): Integer;
+const
+  PARES: array[0..15] of array[0..1] of string = (
+    ('A1', 'archivos'), ('L1', 'servidor'), ('S1', 'series'),
+    ('B1', 'configuracion'), ('C1', 'basedatos'), ('log', 'logs'),
+    ('P3', 'prestamos'), ('btnTransfer', 'traslados'), ('D3', 'depuracion'),
+    ('I2', 'indices'), ('Ayuda1', 'ayuda'), ('Acercade1', 'acerca'),
+    ('ControldeVersiones1', 'versiones'), ('cclasificacion', 'cuadro'),
+    ('registrotopografico', 'topografia'), ('plazoretencion', 'reportes'));
+var
+  I: Integer;
+begin
+  Result := -1;
+  for I := Low(PARES) to High(PARES) do
+    if SameText(PARES[I][0], Nombre) then
+      Exit(IndiceIcono(PARES[I][1]));
+  if SameText(Nombre, 'seriesvalorar') then
+    Result := IndiceIcono('series');
+end;
+
 procedure TShellPrincipal.CopiarItems(Origen, Destino: TMenuItem);
 var
   J: Integer;
@@ -1326,6 +1555,7 @@ begin
     O := Origen.Items[J];
     N := TMenuItem.Create(FMenuGestion);
     N.Caption := O.Caption;
+    N.ImageIndex := IconoDeItem(O.Name);
     N.Hint := O.Hint;
     N.Visible := O.Visible;
     N.Enabled := O.Enabled;
