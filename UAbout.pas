@@ -7,7 +7,7 @@ uses
   System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
   dxGDIPlusClasses, Vcl.ExtCtrls, Vcl.StdCtrls, acPNG, cxGraphics, cxControls,
   cxLookAndFeels, cxLookAndFeelPainters, cxContainer, cxEdit, dxSkinsCore,
-  dxSkinsDefaultPainters, cxTextEdit, cxMemo, cxRichEdit, Vcl.ComCtrls, UTema;
+  dxSkinsDefaultPainters, cxTextEdit, cxMemo, cxRichEdit, Vcl.ComCtrls, Vcl.Imaging.pngimage, UTema;
 
 type
   TfrmAbout = class(TForm)
@@ -41,11 +41,14 @@ uses
 procedure TfrmAbout.AplicarApariencia;
 const
   ANCHO = 420;
-  ALTO = 330;
+  ALTO = 400;
 var
   T: TTemaColores;
   Cabecera: TPanel;
   L: TLabel;
+  Logo: TImage;
+  Png: TPngImage;
+  Flujo: TResourceStream;
 
   function Etiqueta(const Texto: string; Y, Tam: Integer; Color: TColor;
     Negrita: Boolean): TLabel;
@@ -129,7 +132,30 @@ begin
   else
     Etiqueta('Edicion: Basica', 168, 10, T.Texto, False);
   Etiqueta('Compilacion: ' + buildprogram, 218, 10, T.TextoSuave, False);
-  Etiqueta('Clic en cualquier parte para cerrar', ALTO - 36, 9, T.TextoSuave, False);
+  Etiqueta('Desarrollado por', 258, 9, T.TextoSuave, False);
+  // Logo de EMSERGO S.R.L. (recurso LOGO_EMSERGO de Iconos.rc)
+  Logo := TImage.Create(Self);
+  Logo.Parent := Self;
+  Logo.Transparent := True;
+  Logo.Proportional := True;
+  Logo.Stretch := True;
+  Logo.SetBounds(28, 276, 240, 58);
+  Png := TPngImage.Create;
+  try
+    Flujo := TResourceStream.Create(HInstance, 'LOGO_EMSERGO', RT_RCDATA);
+    try
+      Png.LoadFromStream(Flujo);
+    finally
+      Flujo.Free;
+    end;
+    Logo.Picture.Assign(Png);
+  finally
+    Png.Free;
+  end;
+  Logo.OnClick := BASClick;
+  Etiqueta('EMSERGO S.R.L. - Empresa de Servicios Geomaticos del Oriente.', 342, 8, T.TextoSuave, False);
+  Etiqueta('Todos los derechos reservados.', 358, 8, T.TextoSuave, False);
+  Etiqueta('Clic en cualquier parte para cerrar', ALTO - 22, 8, T.TextoSuave, False);
   OnClick := BASClick;
 end;
 
