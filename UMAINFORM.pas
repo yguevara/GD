@@ -32,7 +32,7 @@ uses
   cxDBRichEdit, System.Generics.Collections, cxSplitter, AdvListV, DBAdvLst,
   IniFiles, cxSpinEdit, Vcl.Grids, Vcl.DBGrids, JvDBControls, cxMaskEdit,
   dxScreenTip, dxCustomHint, cxHint, cxEditRepositoryItems, cxGroupBox,
-  UBusqueda, UAlcance;
+  UBusqueda, UAlcance, UPanelDocumentos, UDocumentoVista;
 
 type
   TComboBoxFieldAssociation = record
@@ -650,6 +650,12 @@ type
   private
     FShellMenuConfig: TPopupMenu;
     FShellMenuClasif: TPopupMenu;
+    // Lista de documentos de la subserie (F2)
+    FListaDocs: TPanelDocumentos;
+    FBarraRejilla: TPanel;
+    FEnlaceDocs: TObject;
+    FTimerDocs: TTimer;
+    FModoLista: Boolean;
     FComboBoxAssociations: TComboBoxFieldAssociations;
     FIsAuthenticated: Boolean; // RASTREA SI EL USUARIO ESTÁ AUTENTICADO
     FLoginImage: TBitmap; // Imagen para el estado "no autenticado"
@@ -737,6 +743,15 @@ type
     procedure SetDbNavigatorButtons(Buttons: TNavButtonSet);
     // Respuestas al shell de la variante A (UShellPrincipal)
     procedure ConectarShell;
+    procedure ConectarListaDocumentos;
+    procedure ListaDocsCambio(Sender: TObject);
+    procedure ListaDocsRefrescar(Sender: TObject);
+    procedure ListaDocsCargar;
+    function ListaDocsLocalizar(const Clave: TClaveDocumento): Boolean;
+    procedure ListaDocsSeleccion(const Clave: TClaveDocumento);
+    procedure ListaDocsAbrir(const Clave: TClaveDocumento);
+    function ListaDocsFicheros(const Clave: TClaveDocumento): TArray<TFicheroDoc>;
+    procedure ListaDocsAlternar(Sender: TObject);
     procedure ShellAgregarDocumento(Sender: TObject);
     procedure ShellBuscar(const Texto: string; Ambito: TAmbitoBusqueda);
     function SeleccionarNodoEnArbol(const Nodo: TClaveNodo): Boolean;
@@ -760,7 +775,7 @@ var
 implementation
 
 uses
-  UAparienciaLegacy, UIconos, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UCapaDatos, UUserGest, UDocManagement,
+  UAparienciaLegacy, UIconos, UDocumentoVistaDatos, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UCapaDatos, UUserGest, UDocManagement,
   UCLSeriesDocumentales, UCLFtpServer, UGestEstruct, UMangementArch,
   UManagementFileSeries, UViewFunciones, UVeditor, UExcelExport, UManagementNode,
   USystemMsg, UNodeProperties, UCL_TiposExp, USysConfig, UTransferencias,
@@ -4472,6 +4487,7 @@ end;
 
 destructor TMAIN.Destroy;
 begin
+  FreeAndNil(FEnlaceDocs);
   FComboBoxAssociations.Free; // Liberar la lista
   inherited Destroy;
 end;
@@ -6627,7 +6643,10 @@ begin
     // Solo apariencia: si falla quedan los iconos anteriores
   end;
   if ShellActivo then
-    ConectarShell
+  begin
+    ConectarShell;
+    ConectarListaDocumentos;
+  end
   else
     AgregarMenuBusqueda;
   FinalizeUI;
@@ -6640,6 +6659,303 @@ end;
 
 // Conecta los eventos del shell (UShellPrincipal) con los flujos existentes
 // y quita "Buscar documentos" de PMTool: lo sustituye el buscador del shell.
+type
+  { Avisa cuando cambian los datos de tb_SeriesDatos (otra subserie, refresco,
+    alta, baja). Los desplazamientos entre registros no lo disparan. }
+  TEnlaceDocumentos = class(TDataLink)
+  private
+    FAlCambiar: TNotifyEvent;
+  protected
+    procedure ActiveChanged; override;
+    procedure DataSetChanged; override;
+  public
+    property AlCambiar: TNotifyEvent read FAlCambiar write FAlCambiar;
+  end;
+
+procedure TEnlaceDocumentos.ActiveChanged;
+begin
+  inherited ActiveChanged;
+  if Assigned(FAlCambiar) then
+    FAlCambiar(Self);
+end;
+
+procedure TEnlaceDocumentos.DataSetChanged;
+begin
+  inherited DataSetChanged;
+  if Assigned(FAlCambiar) then
+    FAlCambiar(Self);
+end;
+
+// Lista de documentos de la subserie (F2): vista de la subserie en lugar de la
+// rejilla cxGrid, que queda como vista alternativa (alta y edicion) hasta que
+// exista la carga nueva. Se alimenta de UDM.tb_SeriesDatos, el mismo dataset
+// de la rejilla, de modo que lista lo que el usuario ya veia. Sin efecto con
+// shell_clasico.flag (ConectarShell solo corre con el shell activo).
+procedure TMAIN.ConectarListaDocumentos;
+begin
+  if FListaDocs <> nil then
+    Exit;
+  try
+    FBarraRejilla := TPanel.Create(Self);
+    FBarraRejilla.Parent := PSeriesDatos;
+    FBarraRejilla.Align := alTop;
+    FBarraRejilla.Height := 34;
+    FBarraRejilla.BevelOuter := bvNone;
+    FBarraRejilla.ShowCaption := False;
+    FBarraRejilla.Visible := False;
+    with TButton.Create(FBarraRejilla) do
+    begin
+      Parent := FBarraRejilla;
+      Caption := 'Ver lista';
+      SetBounds(8, 4, 110, 26);
+      OnClick := ListaDocsAlternar;
+    end;
+
+    FListaDocs := TPanelDocumentos.Create(Self);
+    FListaDocs.Parent := PSeriesDatos;
+    FListaDocs.Align := alClient;
+    FListaDocs.OnSeleccion := ListaDocsSeleccion;
+    FListaDocs.OnAbrirContenido := ListaDocsAbrir;
+    FListaDocs.OnPedirFicheros := ListaDocsFicheros;
+    FListaDocs.OnAlternarVista := ListaDocsAlternar;
+
+    FTimerDocs := TTimer.Create(Self);
+    FTimerDocs.Enabled := False;
+    FTimerDocs.Interval := 150;
+    FTimerDocs.OnTimer := ListaDocsRefrescar;
+
+    FEnlaceDocs := TEnlaceDocumentos.Create;
+    TEnlaceDocumentos(FEnlaceDocs).DataSource := UDM.dstb_SeriesDatos;
+    TEnlaceDocumentos(FEnlaceDocs).AlCambiar := ListaDocsCambio;
+
+    FModoLista := True;
+    cxPageControl2.Visible := False;
+    FListaDocs.Visible := True;
+    FListaDocs.BringToFront;
+    ListaDocsCargar;
+  except
+    on E: Exception do
+    begin
+      // Si algo falla queda la rejilla de siempre, sin mensajes; el motivo se
+      // guarda en lista_error.log junto al ejecutable
+      try
+        with TStringList.Create do
+        try
+          Add(DateTimeToStr(Now) + ' ' + E.ClassName + ': ' + E.Message);
+          SaveToFile(ExtractFilePath(ParamStr(0)) + 'lista_error.log');
+        finally
+          Free;
+        end;
+      except
+      end;
+      FModoLista := False;
+      cxPageControl2.Visible := True;
+      FreeAndNil(FListaDocs);
+      FreeAndNil(FBarraRejilla);
+    end;
+  end;
+end;
+
+// Varios cambios seguidos (p. ej. al cambiar de subserie) se agrupan en una carga
+procedure TMAIN.ListaDocsCambio(Sender: TObject);
+begin
+  if (FTimerDocs = nil) or not FModoLista then
+    Exit;
+  FTimerDocs.Enabled := False;
+  FTimerDocs.Enabled := True;
+end;
+
+procedure TMAIN.ListaDocsRefrescar(Sender: TObject);
+begin
+  FTimerDocs.Enabled := False;
+  ListaDocsCargar;
+end;
+
+procedure TMAIN.ListaDocsCargar;
+var
+  DS: TFDQuery;
+  Docs: TArray<TDatosDocumento>;
+  N, IdNodo: Integer;
+  Ind: TIndicadoresDocs;
+  Indic: TIndicadoresDoc;
+  Est, CodSubs, Titulo: string;
+  Bm: TBookmark;
+  D: TDatosDocumento;
+
+  function Texto0(const Campo: string): string;
+  begin
+    // 0 y vacio cuentan como "sin dato", igual que la validacion topografica
+    Result := Trim(DS.FieldByName(Campo).AsString);
+    if Result = '0' then
+      Result := '';
+  end;
+
+begin
+  if (FListaDocs = nil) or not FModoLista then
+    Exit;
+  DS := UDM.tb_SeriesDatos;
+  if not DS.Active then
+  begin
+    FListaDocs.Cargar(nil, '');
+    Exit;
+  end;
+  Est := '';
+  CodSubs := '';
+  IdNodo := 0;
+  if UDM.tb_Serietree.Active and not UDM.tb_Serietree.IsEmpty then
+  begin
+    Est := UDM.tb_Serietree.FieldByName('IdEstructura').AsString;
+    IdNodo := UDM.tb_Serietree.FieldByName('id').AsInteger;
+    CodSubs := UDM.tb_Serietree.FieldByName('codsubs').AsString;
+  end;
+  Titulo := CodSubs;
+  try
+    if CodSubs <> '' then
+      Titulo := VarToStr(UDM.Conn.ExecSQLScalar(
+        'SELECT subserie FROM cl_subseries WHERE codsubs = :c', [CodSubs]));
+  except
+    Titulo := CodSubs;
+  end;
+
+  Ind := nil;
+  try
+    if CodSubs <> '' then
+      Ind := CargarIndicadores(UDM.Conn, UDM.Alcance, Est, IdNodo, CodSubs);
+  except
+    Ind := nil; // sin indicadores: se listan igual, como documentos simples
+  end;
+  try
+    Docs := nil;
+    N := 0;
+    Bm := DS.GetBookmark;
+    DS.DisableControls;
+    try
+      DS.First;
+      while not DS.Eof do
+      begin
+        D := Default(TDatosDocumento);
+        D.Clave.IdEstructura := DS.FieldByName('IdEstructura').AsString;
+        D.Clave.Id := DS.FieldByName('id').AsInteger;
+        D.Clave.CodSubs := DS.FieldByName('codsubs').AsString;
+        D.Clave.Fecha := DS.FieldByName('Fecha').AsDateTime;
+        D.Clave.Version := DS.FieldByName('Version').AsString;
+        D.Clave.Codigodoc := DS.FieldByName('Codigodoc').AsString;
+        D.Titulo := DS.FieldByName('titulodoc').AsString;
+        D.IdExpediente := Trim(DS.FieldByName('IDExpediente').AsString);
+        D.SubExp := Trim(DS.FieldByName('subexp').AsString);
+        D.Servidor := Texto0('Idservidor');
+        D.Archivo := Texto0('Archivo');
+        D.Deposito := Texto0('deposito');
+        D.Gaveta := Texto0('gaveta');
+        D.Posicion := Texto0('posicion');
+        D.Observaciones := DS.FieldByName('observaciones').AsString;
+        D.ExtPrincipal := ExtensionNormal(ExtractFileExt(DS.FieldByName('fichero').AsString));
+        if (Ind <> nil) and Ind.TryGetValue(ClaveTexto(D.Clave), Indic) then
+        begin
+          D.NumHijos := Indic.NumHijos;
+          D.NumVerticesGeo := Indic.NumVerticesGeo;
+          D.NumFicheros := Indic.NumFicheros;
+          D.NumFuentes := Indic.NumFuentes;
+          if Indic.ExtPrincipal <> '' then
+            D.ExtPrincipal := Indic.ExtPrincipal;
+        end;
+        SetLength(Docs, N + 1);
+        Docs[N] := D;
+        Inc(N);
+        DS.Next;
+      end;
+    finally
+      if DS.BookmarkValid(Bm) then
+        DS.GotoBookmark(Bm);
+      DS.FreeBookmark(Bm);
+      DS.EnableControls;
+    end;
+    FListaDocs.Cargar(Docs, Titulo);
+  finally
+    Ind.Free;
+  end;
+end;
+
+function TMAIN.ListaDocsLocalizar(const Clave: TClaveDocumento): Boolean;
+begin
+  Result := UDM.tb_SeriesDatos.Active and UDM.tb_SeriesDatos.Locate(
+    'IdEstructura;id;codsubs;Fecha;Version;Codigodoc',
+    VarArrayOf([Clave.IdEstructura, Clave.Id, Clave.CodSubs,
+    VarFromDateTime(Clave.Fecha), Clave.Version, Clave.Codigodoc]), []);
+end;
+
+procedure TMAIN.ListaDocsSeleccion(const Clave: TClaveDocumento);
+begin
+  // el registro actual de tb_SeriesDatos sigue a la lista: los datasets de
+  // ficheros (maestro-detalle) y los botones por rol trabajan sobre el
+  if not ListaDocsLocalizar(Clave) then
+    UDM.sms('No se pudo localizar el documento seleccionado.', 2);
+end;
+
+procedure TMAIN.ListaDocsAbrir(const Clave: TClaveDocumento);
+begin
+  if ListaDocsLocalizar(Clave) then
+    MenuItem5Click(Self) // el mismo "Abrir" del menu de ficheros
+  else
+    UDM.sms('No se pudo localizar el documento seleccionado.', 2);
+end;
+
+function TMAIN.ListaDocsFicheros(const Clave: TClaveDocumento): TArray<TFicheroDoc>;
+var
+  N: Integer;
+
+  procedure Leer(Q: TFDQuery; EsFuente: Boolean);
+  var
+    F: TFicheroDoc;
+  begin
+    if not Q.Active then
+      Exit;
+    Q.DisableControls;
+    try
+      Q.First;
+      while not Q.Eof do
+      begin
+        F.Nombre := Q.FieldByName('nombre').AsString;
+        F.Extension := Q.FieldByName('extnombre').AsString;
+        F.Tamano := Q.FieldByName('tamano').AsFloat;
+        F.EsFuente := EsFuente;
+        SetLength(Result, N + 1);
+        Result[N] := F;
+        Inc(N);
+        Q.Next;
+      end;
+      Q.First;
+    finally
+      Q.EnableControls;
+    end;
+  end;
+
+begin
+  Result := nil;
+  N := 0;
+  if not ListaDocsLocalizar(Clave) then
+    Exit;
+  Leer(UDM.qryAnexosDig, False);
+  Leer(UDM.qryFuentesDig, True);
+end;
+
+procedure TMAIN.ListaDocsAlternar(Sender: TObject);
+begin
+  if FListaDocs = nil then
+    Exit;
+  FModoLista := not FModoLista;
+  FListaDocs.Visible := FModoLista;
+  cxPageControl2.Visible := not FModoLista;
+  FBarraRejilla.Visible := not FModoLista;
+  if FModoLista then
+  begin
+    FListaDocs.BringToFront;
+    ListaDocsCargar;
+  end
+  else
+    FBarraRejilla.BringToFront;
+end;
+
 procedure TMAIN.ConectarShell;
 var
   Item: TComponent;
@@ -6661,6 +6977,9 @@ end;
 // permiten agregar (SetModSecurity y AplicarReglasDocumento); se respeta igual.
 procedure TMAIN.ShellAgregarDocumento(Sender: TObject);
 begin
+  // El alta se llena en la rejilla: con la lista a la vista se pasa a ella
+  if (FListaDocs <> nil) and FModoLista then
+    ListaDocsAlternar(nil);
   if (tvTree.Selected = nil) or not PContainer.Visible or not PSeriesDatos.Visible or
     not UDM.tb_Serietree.Active or UDM.tb_Serietree.IsEmpty or
     not UDM.tb_SeriesDatos.Active then

@@ -51,6 +51,7 @@ type
     FOnAbrirContenido: TClaveEvent;
     FOnPedirFicheros: TSolicitudFicheros;
     FOnAlternarVista: TNotifyEvent;
+    FConstruido: Boolean;
     function IconoIdx(const Nombre: string): Integer;
     function NuevaEtiqueta(const Texto: string; Tam: Integer; Color: TColor;
       Negrita: Boolean): TLabel;
@@ -70,6 +71,10 @@ type
     procedure ScrollResize(Sender: TObject);
     function IndiceSeleccionado: Integer;
     procedure AbrirSeleccionado;
+  protected
+    { Los controles hijos se crean al recibir el padre: un control con
+      ventana necesita que toda la cadena de padres exista. }
+    procedure SetParent(AParent: TWinControl); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -116,7 +121,16 @@ begin
     FTema := TemaClaro;
   FEtiquetas := TObjectList<TControl>.Create(True);
   FIndiceActual := -1;
-  Construir;
+end;
+
+procedure TPanelDocumentos.SetParent(AParent: TWinControl);
+begin
+  inherited SetParent(AParent);
+  if (AParent <> nil) and not FConstruido then
+  begin
+    FConstruido := True;
+    Construir;
+  end;
 end;
 
 destructor TPanelDocumentos.Destroy;
@@ -259,6 +273,7 @@ begin
   FScroll.Parent := FDer;
   FScroll.Align := alClient;
   FScroll.BorderStyle := bsNone;
+  FScroll.HorzScrollBar.Visible := False;
   FScroll.StyleElements := [];
   FScroll.Color := FTema.Superficie;
   FScroll.OnResize := ScrollResize;
@@ -280,12 +295,12 @@ begin
   FLista.Font.Color := FTema.Texto;
   FLista.BorderStyle := bsNone;
   FLista.SmallImages := TIconos.Lista;
-  Col('Codigo', 150);
-  Col('Titulo', 340);
-  Col('Fecha', 90);
-  Col('Tipo', 100);
+  Col('Codigo', 175);
+  Col('Titulo', 270);
+  Col('Fecha', 105);
+  Col('Tipo', 115);
   Col('Ficheros', 110);
-  Col('Geo', 50);
+  Col('Geo', 40);
   FLista.OnData := ListaData;
   FLista.OnSelectItem := ListaSelectItem;
   FLista.OnDblClick := ListaDblClick;
@@ -509,7 +524,9 @@ end;
 procedure TPanelDocumentos.ScrollResize(Sender: TObject);
 begin
   if (FIndiceActual >= 0) and (FIndiceActual < Length(FVisibles)) then
-    MostrarPropiedades(FIndiceActual);
+    MostrarPropiedades(FIndiceActual)
+  else
+    LimpiarPropiedades;
 end;
 
 procedure TPanelDocumentos.LimpiarPropiedades;
@@ -524,10 +541,9 @@ begin
   L := NuevaEtiqueta('Elija un documento para ver sus propiedades', 9,
     FTema.TextoSuave, False);
   L.Parent := FScroll;
-  L.SetBounds(14, 16, FScroll.ClientWidth - 28, 18);
   L.AutoSize := False;
   L.WordWrap := True;
-  L.Height := 34;
+  L.SetBounds(14, 16, Max(120, FScroll.ClientWidth - 28), 40);
   FEtiquetas.Add(L);
 end;
 
@@ -580,9 +596,9 @@ begin
       Val.AutoSize := False;
       Val.WordWrap := True;
       Val.Parent := FScroll;
-      Val.SetBounds(14, Y, Ancho, 18);
+      Val.SetBounds(14, Y, Ancho, 20);
       Val.Caption := Props[I].Valor;
-      Val.Height := Max(18, ((Length(Props[I].Valor) * 7) div Ancho + 1) * 18);
+      Val.AutoSize := True; // con WordWrap el alto sale del ancho fijado
       FEtiquetas.Add(Val);
       Inc(Y, Val.Height + 4);
     end;
