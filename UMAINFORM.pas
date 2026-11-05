@@ -32,7 +32,7 @@ uses
   cxDBRichEdit, System.Generics.Collections, cxSplitter, AdvListV, DBAdvLst,
   IniFiles, cxSpinEdit, Vcl.Grids, Vcl.DBGrids, JvDBControls, cxMaskEdit,
   dxScreenTip, dxCustomHint, cxHint, cxEditRepositoryItems, cxGroupBox,
-  UBusqueda;
+  UBusqueda, UAlcance;
 
 type
   TComboBoxFieldAssociation = record
@@ -737,6 +737,7 @@ type
     procedure ConectarShell;
     procedure ShellAgregarDocumento(Sender: TObject);
     procedure ShellBuscar(const Texto: string; Ambito: TAmbitoBusqueda);
+    function SeleccionarNodoEnArbol(const Nodo: TClaveNodo): Boolean;
     procedure ShellSeccion(const Nombre: string);
     function ShellSeccionDisponible(const Nombre: string): Boolean;
     function ShellTextoUsuario: string;
@@ -752,7 +753,7 @@ var
 implementation
 
 uses
-  UAlcance, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UCapaDatos, UUserGest, UDocManagement,
+  UAparienciaLegacy, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UCapaDatos, UUserGest, UDocManagement,
   UCLSeriesDocumentales, UCLFtpServer, UGestEstruct, UMangementArch,
   UManagementFileSeries, UViewFunciones, UVeditor, UExcelExport, UManagementNode,
   USystemMsg, UNodeProperties, UCL_TiposExp, USysConfig, UTransferencias,
@@ -6610,6 +6611,8 @@ begin
   // Shell de la variante A (sin efecto con shell_clasico.flag). Con el shell
   // activo, el buscador de la cabecera sustituye a "Buscar documentos".
   AplicarShell(Self);
+  // Paleta de UTema en las pantallas viejas (rejillas, iconos, paneles)
+  InstalarAparienciaLegacy;
   if ShellActivo then
     ConectarShell
   else
@@ -6662,21 +6665,59 @@ begin
   dbnSeriesDatos.BtnClick(nbInsert);
 end;
 
-// Buscador del shell. Ambito general: la pantalla de busqueda existente (que
-// siempre aplica el alcance del usuario). El ambito "nodo actual" toma el
-// nodo de tvTree y llega con la Tarea 4; hasta entonces se avisa en lugar de
-// buscar en silencio en todo el archivo.
+// Buscador del shell. Abre la pantalla de busqueda (que siempre aplica el
+// alcance del usuario) con el ambito elegido; "nodo actual" usa el nodo de
+// tvTree y sus descendientes.
 procedure TMAIN.ShellBuscar(const Texto: string; Ambito: TAmbitoBusqueda);
+var
+  Nodo: TClaveNodo;
+  TieneNodo: Boolean;
 begin
-  if Ambito = abNodoActual then
+  Nodo.IdEstructura := '';
+  Nodo.Id := 0;
+  TieneNodo := (tvTree.Selected <> nil) and (tvTree.Selected.Data <> nil);
+  if TieneNodo then
   begin
-    if tvTree.Selected = nil then
-      UDM.sms('Elija un nodo en el arbol para buscar en el nodo actual.', 2)
-    else
-      UDM.sms('La busqueda en el nodo actual aun no esta disponible.', 2);
-    Exit;
+    Nodo.IdEstructura := PDataRec(tvTree.Selected.Data).estruct;
+    Nodo.Id := PDataRec(tvTree.Selected.Data).Id;
   end;
-  AbrirBusquedaDocumentos(Texto);
+  // Con "nodo actual" y sin nodo elegido la pantalla avisa; no cae a general
+  AbrirBusquedaDocumentos(Texto, Ambito, Nodo, TieneNodo, SeleccionarNodoEnArbol);
+end;
+
+// Selecciona en tvTree el nodo indicado y ejecuta el mismo manejo que un clic
+// real (tvTreeMouseDown actualiza PContainer, tb_tree, etc.). False si el
+// arbol del usuario no muestra ese nodo.
+function TMAIN.SeleccionarNodoEnArbol(const Nodo: TClaveNodo): Boolean;
+var
+  I: Integer;
+  N, Hallado: TTreeNode;
+  R: TRect;
+begin
+  Result := False;
+  Hallado := nil;
+  for I := 0 to tvTree.Items.Count - 1 do
+  begin
+    N := tvTree.Items[I];
+    if (N.Data <> nil) and (PDataRec(N.Data).Id = Nodo.Id) and
+      SameText(Trim(PDataRec(N.Data).estruct), Trim(Nodo.IdEstructura)) then
+    begin
+      Hallado := N;
+      Break;
+    end;
+  end;
+  if Hallado = nil then
+    Exit;
+  if not nbMain.Visible then
+    nbMain.Show;
+  Hallado.MakeVisible;
+  tvTree.Selected := Hallado;
+  R := Hallado.DisplayRect(True);
+  tvTreeMouseDown(tvTree, mbLeft, [], R.Left + (R.Right - R.Left) div 2,
+    R.Top + (R.Bottom - R.Top) div 2);
+  if tvTree.CanFocus then
+    tvTree.SetFocus;
+  Result := True;
 end;
 
 // Secciones de la columna del shell. Inicio y Archivo muestran el arbol;

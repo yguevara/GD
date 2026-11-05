@@ -130,6 +130,7 @@ type
     FTitulo: TLabel;
     FBusqueda: TCajaBusqueda;
     FRanuraAmbito: TPanel;
+    FSelAmbito: TComboBox;
     FBtnAgregar: TBotonShell;
     FChipUsuario: TBotonShell;
     FMenuGestion: TPopupMenu;
@@ -175,6 +176,7 @@ type
     procedure AgregarClick(Sender: TObject);
     procedure ChipClick(Sender: TObject);
     procedure BusquedaBuscar(Sender: TObject);
+    procedure SelAmbitoChange(Sender: TObject);
     procedure ConstruirMenuGestion;
     procedure CopiarItems(Origen, Destino: TMenuItem);
     procedure ItemBotonClick(Sender: TObject);
@@ -767,6 +769,7 @@ begin
   FTitulo := nil;
   FBusqueda := nil;
   FRanuraAmbito := nil;
+  FSelAmbito := nil;
   FBtnAgregar := nil;
   FChipUsuario := nil;
   FreeAndNil(FColumna);
@@ -801,7 +804,7 @@ begin
   FColumna.ParentBackground := False;
   FColumna.StyleElements := [];
   FColumna.ShowCaption := False;
-  FColumna.Color := FTema.Acento;
+  FColumna.Color := FTema.Columna;
   FColumna.SetBounds(0, 0, Esc(ANCHO_COLUMNA), FMain.ClientHeight);
   FColumna.Align := alLeft;
   FColumna.Parent := FMain;
@@ -822,12 +825,12 @@ begin
   Result := TBotonShell.Create(Self);
   Result.Estilo := ebColumna;
   Result.Texto := Texto;
-  Result.Icono := IconoSobre(Icono, FTema.Acento);
+  Result.Icono := IconoSobre(Icono, FTema.Columna);
   Result.Hint := Texto;
   Result.ShowHint := True;
   Result.TabStop := False;
-  Result.Colores(FTema.Acento, FTema.Acento,
-    Mezcla(FTema.Acento, FTema.TextoSobreAcento, 0.18), FTema.TextoSobreAcento, clNone);
+  Result.Colores(FTema.Columna, FTema.Columna,
+    Mezcla(FTema.Columna, FTema.Acento, 0.18), FTema.TextoColumna, clNone);
   Result.Font.Name := FUENTE;
   Result.Font.Height := -Esc(11);
   Result.AlignWithMargins := True;
@@ -922,9 +925,24 @@ begin
   FRanuraAmbito.StyleElements := [];
   FRanuraAmbito.ShowCaption := False;
   FRanuraAmbito.Color := FTema.Superficie;
-  FRanuraAmbito.Visible := False;
-  FRanuraAmbito.Width := 0;
   FRanuraAmbito.Parent := FCabecera;
+  FRanuraAmbito.Width := Esc(190);
+  FRanuraAmbito.Visible := True;
+  FSelAmbito := TComboBox.Create(Self);
+  FSelAmbito.Parent := FRanuraAmbito;
+  FSelAmbito.Style := csDropDownList;
+  FSelAmbito.Font.Name := FUENTE;
+  FSelAmbito.Font.Height := -Esc(13);
+  FSelAmbito.Align := alClient;
+  FSelAmbito.AlignWithMargins := True;
+  FSelAmbito.Margins.SetBounds(0, Esc(4), 0, 0);
+  FSelAmbito.Items.Add('Todo el archivo');
+  FSelAmbito.Items.Add('Solo en el nodo actual');
+  FSelAmbito.ItemIndex := Ord(FAmbito);
+  FSelAmbito.Hint := 'Donde buscar: todo el archivo o solo el nodo elegido en el arbol';
+  FSelAmbito.ShowHint := True;
+  SendMessage(FSelAmbito.Handle, CB_SETDROPPEDWIDTH, Esc(320), 0);
+  FSelAmbito.OnChange := SelAmbitoChange;
 
   FBtnAgregar := TBotonShell.Create(Self);
   FBtnAgregar.Estilo := ebPrimario;
@@ -1080,7 +1098,8 @@ end;
 procedure TShellPrincipal.ActualizarUbicacion;
 var
   N, P: TTreeNode;
-  Ruta, Titulo: string;
+  Ruta, Titulo, Et: string;
+  Idx: Integer;
 begin
   if (FRuta = nil) or (FTitulo = nil) then
     Exit;
@@ -1107,6 +1126,19 @@ begin
     end;
     if Ruta = '' then
       Ruta := 'Mi area';
+  end;
+  if FSelAmbito <> nil then
+  begin
+    if N = nil then
+      Et := 'Solo en el nodo actual'
+    else
+      Et := 'Solo en ' + Titulo;
+    if FSelAmbito.Items[1] <> Et then
+    begin
+      Idx := FSelAmbito.ItemIndex;
+      FSelAmbito.Items[1] := Et;
+      FSelAmbito.ItemIndex := Idx;
+    end;
   end;
   if FRuta.Caption <> Ruta then
     FRuta.Caption := Ruta;
@@ -1193,6 +1225,12 @@ procedure TShellPrincipal.AgregarClick(Sender: TObject);
 begin
   if Assigned(FOnAgregarDocumento) then
     FOnAgregarDocumento(Self);
+end;
+
+procedure TShellPrincipal.SelAmbitoChange(Sender: TObject);
+begin
+  // El ambito elegido se recuerda mientras dure la sesion (vive en el shell)
+  FAmbito := TAmbitoBusqueda(FSelAmbito.ItemIndex);
 end;
 
 procedure TShellPrincipal.BusquedaBuscar(Sender: TObject);
@@ -1327,6 +1365,23 @@ end;
 procedure AplicarShell(Main: TForm);
 var
   S: TShellPrincipal;
+
+  procedure RegistrarError(E: Exception);
+  begin
+    // Sin mensajes: queda la pantalla clasica; el motivo se guarda en
+    // shell_error.log junto al ejecutable
+    try
+      with TStringList.Create do
+      try
+        Add(DateTimeToStr(Now) + ' ' + E.ClassName + ': ' + E.Message);
+        SaveToFile(ExtractFilePath(ParamStr(0)) + 'shell_error.log');
+      finally
+        Free;
+      end;
+    except
+    end;
+  end;
+
 begin
   if (Main = nil) or (GShell <> nil) then
     Exit;
@@ -1339,19 +1394,22 @@ begin
     S.Construir;
     GShell := S;
   except
-    // Sin mensajes: se deshace lo hecho y queda la pantalla clasica
-    if S <> nil then
+    on E: Exception do
     begin
-      try
-        S.Deshacer;
-      except
+      RegistrarError(E);
+      if S <> nil then
+      begin
+        try
+          S.Deshacer;
+        except
+        end;
+        try
+          S.Free;
+        except
+        end;
       end;
-      try
-        S.Free;
-      except
-      end;
+      GShell := nil;
     end;
-    GShell := nil;
   end;
 end;
 

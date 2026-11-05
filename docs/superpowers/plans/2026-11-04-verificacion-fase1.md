@@ -49,6 +49,17 @@ Plan: `2026-11-04-fase1-base-visual.md`, Tarea 3. Pendiente de ejecutar por una 
 | 28 | Windows en **tema oscuro** | Abrir la aplicación | Columna en azul claro `#6aa8ea` con iconos y textos oscuros; cabecera oscura (`#1a232c`) con texto claro y buscador legible. Los controles DevExpress conservan su aspecto | |
 | 29 | Cualquiera | Abrir y cerrar la aplicación varias veces; cerrar desde Gestión → Salir | Sin errores al cerrar ni procesos colgados | |
 | 30 | Modo Access (copia del `.mdb`) | Repetir 3, 8, 17 y 20 | Igual que en SQL Server (en Access no hay alcance: se ve todo) | |
+| 31 | Administrador y `egd_a43` | Ambito «Todo el archivo»; buscar `acta` | Resultados de todo su alcance; columna «Acceso» con Publica/Restringida/Secreta; columna «Nodo» con la ruta como texto | |
+| 32 | `usr_sub` (una subserie) y usuario sin asignaciones | Ambito «Todo el archivo» | Solo su subserie / solo lo publico; lo que cae fuera de su alcance sale con «Acceso» = Publica | |
+| 33 | `egd_a43` | Elegir un nodo propio; en la cabecera elegir «Solo en <nodo>» y buscar | Solo documentos de ese nodo y sus descendientes; la pantalla muestra «Solo en <ruta>» seleccionado | |
+| 34 | `egd_a43` | Elegir un nodo ajeno; «Solo en <nodo>» | Solo lo publico de ese nodo y sus descendientes | |
+| 35 | Cualquiera | Sin nodo elegido, elegir «Solo en el nodo actual» y buscar | Aviso «Elija un nodo en el arbol para buscar en el nodo actual.»; no se abre la busqueda general | |
+| 36 | Cualquiera | Dentro de la pantalla de busqueda abierta en general, elegir «Solo en ...» sin nodo | Aviso y vuelve a «Todo el archivo» | |
+| 37 | Cualquiera | Elegir «Solo en el nodo actual», cerrar, buscar de nuevo | El ambito elegido se recuerda durante la sesion | |
+| 38 | Cualquiera | Doble clic en un resultado cuyo nodo se ve en el arbol | Se cierra la busqueda, el arbol selecciona y expande el nodo y el area de trabajo carga igual que con un clic | |
+| 38b | Cualquiera | Doble clic en un resultado publico de un nodo que el arbol no muestra | Muestra codigo, titulo, subserie, ruta del nodo y acceso; el arbol no cambia | |
+| 39 | Modo Access | Ambitos general y nodo actual | Funciona igual (sin alcance: se ve todo) | |
+| 40 | 1366x768 al 125 % | Revisar la cabecera con el selector de ambito | Sin solapes; el buscador se achica antes que el titulo | |
 
 ## Resultado
 

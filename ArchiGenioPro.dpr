@@ -23,6 +23,7 @@ uses
   UTema in 'UTema.pas',
   UIconos in 'UIconos.pas',
   UShellPrincipal in 'UShellPrincipal.pas',
+  UAparienciaLegacy in 'UAparienciaLegacy.pas',
   UAutentica in 'UAutentica.pas' {frmAutentica},
   md5 in 'md5.pas',
   UUserGest in 'UUserGest.pas' {frmGestUser},
@@ -131,7 +132,9 @@ begin
   cad := 'Versión: ' + Sto_GetFmtFileVersion(Application.ExeName, '%.d.%.d.%.d.%.4d');
   build := Sto_GetFmtFileVersion(Application.ExeName, '%.d.%.d.%.d.%.4d');
  // TStyleManager.TrySetStyle('Windows10 Blue');
-  TStyleManager.TrySetStyle('Metropolis UI Blue');
+  // Estilo claro neutro: el color de la aplicacion lo da UTema (paleta E)
+  if not TStyleManager.TrySetStyle('Light') then
+    TStyleManager.TrySetStyle('Metropolis UI Blue');
 //  Application.Title := 'ArchiGenioPro';
   Application.Title := 'ArchiGenio';
   vers := VERSION;

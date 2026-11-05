@@ -11,9 +11,13 @@ interface
 
 uses
   System.SysUtils, System.Classes, System.Generics.Collections, Vcl.Controls,
-  Vcl.Forms, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls, UBusqueda;
+  Vcl.Forms, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls, UAlcance, UBusqueda;
 
 type
+  { Pide al shell seleccionar el nodo en el arbol del usuario. Devuelve False
+    si el arbol no lo muestra (p. ej. documento publico de un nodo ajeno). }
+  TSeleccionarNodoEvent = function(const Nodo: TClaveNodo): Boolean of object;
+
   TEditorFiltro = record
     Campo: TCampoBusqueda;
     E1: TWinControl;
@@ -24,18 +28,32 @@ type
   private
     FTexto: TEdit;
     FSubserie: TComboBox;
+    FAmbito: TComboBox;
+    FNodo: TClaveNodo;
+    FTieneNodo: Boolean;
+    FRutaNodo: string;
+    FRutas: TDictionary<string, string>;
+    FPadres: TDictionary<string, string>;
+    FClaves: TList<TClaveNodo>;
+    FOnSeleccionar: TSeleccionarNodoEvent;
     FFiltros: TScrollBox;
     FLista: TListView;
     FBarra: TStatusBar;
     FEditores: TList<TEditorFiltro>;
     FCodigos: TStringList;
     FBuscarAlMostrar: Boolean;
+    FTemporizador: TTimer;
     procedure CargarSubseries;
+    procedure CargarRutas;
+    function RutaDe(const IdEstructura: string; Id: Integer): string;
+    procedure AmbitoChange(Sender: TObject);
     procedure ConstruirFiltros(const CodSubs: string);
     procedure LimpiarFiltros;
     function PedidoActual: TPedidoBusqueda;
     function ValorDe(C: TWinControl; Tipo: TTipoCampo): string;
     procedure SubserieChange(Sender: TObject);
+    procedure TextoChange(Sender: TObject);
+    procedure TemporizadorTimer(Sender: TObject);
     procedure BuscarClick(Sender: TObject);
     procedure CerrarClick(Sender: TObject);
     procedure ListaDblClick(Sender: TObject);
@@ -47,12 +65,21 @@ type
   end;
 
 { TextoInicial (el del buscador del shell) se copia en la caja de texto y, si
-  no esta vacio, la busqueda se ejecuta al abrir la pantalla. }
-procedure AbrirBusquedaDocumentos(const TextoInicial: string = '');
+  no esta vacio, la busqueda se ejecuta al abrir la pantalla. Sin nodo, el
+  ambito es general. }
+procedure AbrirBusquedaDocumentos(const TextoInicial: string = ''); overload;
+
+{ Ambito elegido en el shell. Con abNodoActual y TieneNodo la busqueda se limita
+  al nodo y sus descendientes; con abNodoActual y sin nodo elegido se avisa y
+  no se busca (nunca cae en silencio a general). }
+procedure AbrirBusquedaDocumentos(const TextoInicial: string;
+  Ambito: TAmbitoBusqueda; const Nodo: TClaveNodo; TieneNodo: Boolean;
+  OnSeleccionar: TSeleccionarNodoEvent = nil); overload;
 
 implementation
 
 uses
+  Winapi.Windows, Winapi.Messages,
   Data.DB, FireDAC.Comp.Client, UCapaDatos, UAlcanceDatos, UBusquedaDatos;
 
 const
@@ -60,12 +87,37 @@ const
 
 procedure AbrirBusquedaDocumentos(const TextoInicial: string = '');
 var
+  Nodo: TClaveNodo;
+begin
+  Nodo.IdEstructura := '';
+  Nodo.Id := 0;
+  AbrirBusquedaDocumentos(TextoInicial, abGeneral, Nodo, False);
+end;
+
+procedure AbrirBusquedaDocumentos(const TextoInicial: string;
+  Ambito: TAmbitoBusqueda; const Nodo: TClaveNodo; TieneNodo: Boolean;
+  OnSeleccionar: TSeleccionarNodoEvent = nil);
+var
   F: TfrmBusquedaDocumentos;
 begin
+  if (Ambito = abNodoActual) and not TieneNodo then
+  begin
+    Application.MessageBox('Elija un nodo en el arbol para buscar en el nodo actual.',
+      'Buscar documentos', 48);
+    Exit;
+  end;
   F := TfrmBusquedaDocumentos.Create(Application);
   try
+    F.FOnSeleccionar := OnSeleccionar;
+    F.FNodo := Nodo;
+    F.FTieneNodo := TieneNodo;
+    if TieneNodo then
+      F.FRutaNodo := F.RutaDe(Nodo.IdEstructura, Nodo.Id);
+    F.FAmbito.Items[1] := 'Solo en ' + F.FRutaNodo;
+    F.FAmbito.ItemIndex := Ord(Ambito);
     F.FTexto.Text := TextoInicial;
-    F.FBuscarAlMostrar := Trim(TextoInicial) <> '';
+    // Siempre se busca al abrir: sin texto, todo lo que el usuario puede ver
+    F.FBuscarAlMostrar := True;
     F.ShowModal;
   finally
     F.Free;
@@ -83,8 +135,12 @@ begin
   FCodigos := TStringList.Create;
   Caption := 'Buscar documentos';
   Position := poScreenCenter;
-  ClientWidth := 900;
-  ClientHeight := 560;
+  ClientWidth := 1000;
+  ClientHeight := 580;
+  FRutas := TDictionary<string, string>.Create;
+  FPadres := TDictionary<string, string>.Create;
+  FClaves := TList<TClaveNodo>.Create;
+  FRutaNodo := '(sin nodo elegido)';
 
   FBarra := TStatusBar.Create(Self);
   FBarra.Parent := Self;
@@ -93,7 +149,7 @@ begin
   Barra := TPanel.Create(Self);
   Barra.Parent := Self;
   Barra.Align := alTop;
-  Barra.Height := 44;
+  Barra.Height := 78;
   Barra.BevelOuter := bvNone;
 
   Lbl := TLabel.Create(Self);
@@ -104,15 +160,35 @@ begin
   FTexto.Parent := Barra;
   FTexto.SetBounds(56, 10, 280, 24);
   FTexto.TextHint := 'Titulo, codigo o cualquier dato del documento';
+  FTexto.OnChange := TextoChange;
+  // Filtra mientras se escribe: busca 350 ms despues de la ultima tecla
+  FTemporizador := TTimer.Create(Self);
+  FTemporizador.Enabled := False;
+  FTemporizador.Interval := 350;
+  FTemporizador.OnTimer := TemporizadorTimer;
 
   Lbl := TLabel.Create(Self);
   Lbl.Parent := Barra;
-  Lbl.SetBounds(350, 14, 56, 16);
+  Lbl.SetBounds(350, 14, 46, 16);
+  Lbl.Caption := 'Ambito:';
+  FAmbito := TComboBox.Create(Self);
+  FAmbito.Parent := Barra;
+  FAmbito.Style := csDropDownList;
+  FAmbito.SetBounds(400, 10, 290, 24);
+  FAmbito.Items.Add('Todo el archivo');
+  FAmbito.Items.Add('Solo en ' + FRutaNodo);
+  FAmbito.ItemIndex := 0;
+  SendMessage(FAmbito.Handle, CB_SETDROPPEDWIDTH, 420, 0);
+  FAmbito.OnChange := AmbitoChange;
+
+  Lbl := TLabel.Create(Self);
+  Lbl.Parent := Barra;
+  Lbl.SetBounds(12, 48, 56, 16);
   Lbl.Caption := 'Subserie:';
   FSubserie := TComboBox.Create(Self);
   FSubserie.Parent := Barra;
   FSubserie.Style := csDropDownList;
-  FSubserie.SetBounds(410, 10, 280, 24);
+  FSubserie.SetBounds(72, 44, 618, 24);
   FSubserie.OnChange := SubserieChange;
 
   Btn := TButton.Create(Self);
@@ -141,20 +217,25 @@ begin
   FLista.ReadOnly := True;
   FLista.RowSelect := True;
   FLista.OnDblClick := ListaDblClick;
-  with FLista.Columns.Add do begin Caption := 'Codigo'; Width := 110; end;
-  with FLista.Columns.Add do begin Caption := 'Titulo'; Width := 330; end;
-  with FLista.Columns.Add do begin Caption := 'Subserie'; Width := 230; end;
-  with FLista.Columns.Add do begin Caption := 'Nodo'; Width := 100; end;
-  with FLista.Columns.Add do begin Caption := 'Fecha'; Width := 90; end;
+  with FLista.Columns.Add do begin Caption := 'Codigo'; Width := 100; end;
+  with FLista.Columns.Add do begin Caption := 'Titulo'; Width := 230; end;
+  with FLista.Columns.Add do begin Caption := 'Subserie'; Width := 140; end;
+  with FLista.Columns.Add do begin Caption := 'Nodo'; Width := 340; end;
+  with FLista.Columns.Add do begin Caption := 'Acceso'; Width := 80; end;
+  with FLista.Columns.Add do begin Caption := 'Fecha'; Width := 80; end;
 
   CargarSubseries;
   ConstruirFiltros('');
+  CargarRutas;
 end;
 
 destructor TfrmBusquedaDocumentos.Destroy;
 begin
   FEditores.Free;
   FCodigos.Free;
+  FRutas.Free;
+  FPadres.Free;
+  FClaves.Free;
   inherited;
 end;
 
@@ -186,6 +267,65 @@ begin
     Q.Free;
   end;
   FSubserie.ItemIndex := 0;
+end;
+
+{ Etiqueta y padre de cada nodo (clave id) para mostrar la ruta
+  como texto; sirve tambien para nodos que el arbol del usuario no muestra. }
+procedure TfrmBusquedaDocumentos.CargarRutas;
+var
+  Q: TFDQuery;
+  Clave: string;
+begin
+  Q := TFDQuery.Create(nil);
+  try
+    Q.Connection := UDM.Conn;
+    Q.SQL.Text := 'SELECT IdEstructura, id, etiqueta, padre FROM tb_tree';
+    Q.Open;
+    while not Q.Eof do
+    begin
+      // padre apunta solo al id del nodo (IdEstructura es el codigo del nodo)
+      Clave := Q.Fields[1].AsString;
+      FRutas.AddOrSetValue(Clave, Q.Fields[2].AsString);
+      FPadres.AddOrSetValue(Clave, Q.Fields[3].AsString);
+      Q.Next;
+    end;
+  finally
+    Q.Free;
+  end;
+end;
+
+function TfrmBusquedaDocumentos.RutaDe(const IdEstructura: string; Id: Integer): string;
+var
+  Clave, Et, Sig: string;
+  Guarda: Integer;
+begin
+  Result := '';
+  Clave := IntToStr(Id);
+  Guarda := 0;
+  while FRutas.TryGetValue(Clave, Et) and (Guarda < 64) do
+  begin
+    if Result = '' then
+      Result := Et
+    else
+      Result := Et + ' > ' + Result;
+    if not FPadres.TryGetValue(Clave, Sig) then
+      Break;
+    Clave := Sig;
+    Inc(Guarda);
+  end;
+  if Result = '' then
+    Result := IdEstructura;
+end;
+
+procedure TfrmBusquedaDocumentos.AmbitoChange(Sender: TObject);
+begin
+  if (FAmbito.ItemIndex = 1) and not FTieneNodo then
+  begin
+    FAmbito.ItemIndex := 0;
+    FBarra.SimpleText := 'Elija un nodo en el arbol para buscar en el nodo actual.';
+    Application.MessageBox('Elija un nodo en el arbol para buscar en el nodo actual.',
+      'Buscar documentos', 48);
+  end;
 end;
 
 procedure TfrmBusquedaDocumentos.LimpiarFiltros;
@@ -308,8 +448,16 @@ begin
   Result.Texto := Trim(FTexto.Text);
   Result.CodSubs := FCodigos[FSubserie.ItemIndex];
   Result.Limite := 0;
-  Result.Ambito := abGeneral;
-  Result.IdsNodo := nil;
+  if (FAmbito.ItemIndex = 1) and FTieneNodo then
+  begin
+    Result.Ambito := abNodoActual;
+    Result.IdsNodo := NodosDelAmbito(UDM.Conn, FNodo);
+  end
+  else
+  begin
+    Result.Ambito := abGeneral;
+    Result.IdsNodo := nil;
+  end;
   L :=TList<TCondicionCampo>.Create;
   try
     for Ed in FEditores do
@@ -326,6 +474,18 @@ begin
   end;
 end;
 
+procedure TfrmBusquedaDocumentos.TextoChange(Sender: TObject);
+begin
+  FTemporizador.Enabled := False;
+  FTemporizador.Enabled := True;
+end;
+
+procedure TfrmBusquedaDocumentos.TemporizadorTimer(Sender: TObject);
+begin
+  FTemporizador.Enabled := False;
+  BuscarClick(nil);
+end;
+
 procedure TfrmBusquedaDocumentos.SubserieChange(Sender: TObject);
 begin
   ConstruirFiltros(FCodigos[FSubserie.ItemIndex]);
@@ -336,10 +496,12 @@ var
   T: TFDMemTable;
   Truncado: Boolean;
   It: TListItem;
+  Clave: TClaveNodo;
 begin
   FLista.Items.BeginUpdate;
   try
     FLista.Items.Clear;
+    FClaves.Clear;
     try
       T := UBusquedaDatos.Buscar(UDM.Conn, UDM.Alcance, PedidoActual,
         TBD = 'S', Truncado);
@@ -358,8 +520,13 @@ begin
         It.Caption := T.FieldByName('Codigodoc').AsString;
         It.SubItems.Add(T.FieldByName('titulodoc').AsString);
         It.SubItems.Add(T.FieldByName('NombreSubserie').AsString);
-        It.SubItems.Add(T.FieldByName('IdEstructura').AsString);
+        It.SubItems.Add(RutaDe(T.FieldByName('IdEstructura').AsString,
+          T.FieldByName('id').AsInteger));
+        It.SubItems.Add(T.FieldByName('Acceso').AsString);
         It.SubItems.Add(FormatDateTime('dd/mm/yyyy', T.FieldByName('Fecha').AsDateTime));
+        Clave.IdEstructura := T.FieldByName('IdEstructura').AsString;
+        Clave.Id := T.FieldByName('id').AsInteger;
+        FClaves.Add(Clave);
         T.Next;
       end;
       FBarra.SimpleText := IntToStr(FLista.Items.Count) + ' documento(s)';
@@ -376,11 +543,24 @@ end;
 
 procedure TfrmBusquedaDocumentos.ListaDblClick(Sender: TObject);
 begin
-  // La navegacion al nodo se hara con el shell de la Fase 1; por ahora se
-  // muestra donde esta el documento.
-  if FLista.Selected <> nil then
-    Application.MessageBox(PChar('Documento ' + FLista.Selected.Caption +
-      ' en el nodo ' + FLista.Selected.SubItems[2]), 'Buscar documentos', 64);
+  // Si el arbol del usuario muestra el nodo se selecciona y se cierra la
+  // busqueda; si no (documento publico de un nodo ajeno) se muestran los
+  // datos y la ruta sin tocar el arbol.
+  if (FLista.Selected <> nil) and (FLista.Selected.Index < FClaves.Count) then
+  begin
+    if Assigned(FOnSeleccionar) and
+      FOnSeleccionar(FClaves[FLista.Selected.Index]) then
+    begin
+      Close;
+      Exit;
+    end;
+    Application.MessageBox(PChar('Documento ' + FLista.Selected.Caption + sLineBreak +
+      FLista.Selected.SubItems[0] + sLineBreak + 'Subserie: ' +
+      FLista.Selected.SubItems[1] + sLineBreak + 'Nodo: ' +
+      FLista.Selected.SubItems[2] + ' (' + FClaves[FLista.Selected.Index].IdEstructura +
+      ')' + sLineBreak + 'Acceso: ' + FLista.Selected.SubItems[3]),
+      'Buscar documentos', 64);
+  end;
 end;
 
 procedure TfrmBusquedaDocumentos.DoShow;
@@ -389,6 +569,7 @@ begin
   if FBuscarAlMostrar then
   begin
     FBuscarAlMostrar := False;
+    FTemporizador.Enabled := False;
     BuscarClick(nil);
   end;
 end;

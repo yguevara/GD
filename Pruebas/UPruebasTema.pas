@@ -74,6 +74,7 @@ begin
   Assert.IsTrue(RazonContraste(T.TextoSuave, T.Superficie) >= 4.5, 'TextoSuave/Superficie');
   Assert.IsTrue(RazonContraste(T.TextoSuave, T.Fondo) >= 4.5, 'TextoSuave/Fondo');
   Assert.IsTrue(RazonContraste(T.Aviso, T.Superficie) >= 4.5, 'Aviso/Superficie');
+  Assert.IsTrue(RazonContraste(T.TextoColumna, T.Columna) >= 4.5, 'TextoColumna/Columna');
 end;
 
 procedure TPruebasTema.TemaClaro_Contrastes;
@@ -91,16 +92,18 @@ var
   T: TTemaColores;
 begin
   T := TemaClaro;
-  Assert.AreEqual(Integer(ColorDeHex('#e9edf1')), Integer(T.Fondo), 'Fondo');
-  Assert.AreEqual(Integer(ColorDeHex('#ffffff')), Integer(T.Superficie), 'Superficie');
-  Assert.AreEqual(Integer(ColorDeHex('#f4f6f8')), Integer(T.Superficie2), 'Superficie2');
-  Assert.AreEqual(Integer(ColorDeHex('#1b2733')), Integer(T.Texto), 'Texto');
-  Assert.AreEqual(Integer(ColorDeHex('#5a6877')), Integer(T.TextoSuave), 'TextoSuave');
-  Assert.AreEqual(Integer(ColorDeHex('#d3dae1')), Integer(T.Linea), 'Linea');
-  Assert.AreEqual(Integer(ColorDeHex('#1d5fa6')), Integer(T.Acento), 'Acento');
+  Assert.AreEqual(Integer(ColorDeHex('#f7f3ec')), Integer(T.Fondo), 'Fondo');
+  Assert.AreEqual(Integer(ColorDeHex('#fffdf9')), Integer(T.Superficie), 'Superficie');
+  Assert.AreEqual(Integer(ColorDeHex('#f2ece1')), Integer(T.Superficie2), 'Superficie2');
+  Assert.AreEqual(Integer(ColorDeHex('#2b2118')), Integer(T.Texto), 'Texto');
+  Assert.AreEqual(Integer(ColorDeHex('#75675a')), Integer(T.TextoSuave), 'TextoSuave');
+  Assert.AreEqual(Integer(ColorDeHex('#e0d6c6')), Integer(T.Linea), 'Linea');
+  Assert.AreEqual(Integer(ColorDeHex('#c2410c')), Integer(T.Acento), 'Acento');
   Assert.AreEqual(Integer(ColorDeHex('#ffffff')), Integer(T.TextoSobreAcento), 'TextoSobreAcento');
-  Assert.AreEqual(Integer(ColorDeHex('#dfecf9')), Integer(T.AcentoSuave), 'AcentoSuave');
-  Assert.AreEqual(Integer(ColorDeHex('#9a5b00')), Integer(T.Aviso), 'Aviso');
+  Assert.AreEqual(Integer(ColorDeHex('#fde6d8')), Integer(T.AcentoSuave), 'AcentoSuave');
+  Assert.AreEqual(Integer(ColorDeHex('#8a5a00')), Integer(T.Aviso), 'Aviso');
+  Assert.AreEqual(Integer(ColorDeHex('#efe7d9')), Integer(T.Columna), 'Columna');
+  Assert.AreEqual(Integer(ColorDeHex('#4a3b2d')), Integer(T.TextoColumna), 'TextoColumna');
 end;
 
 procedure TPruebasTema.TemaOscuro_ValoresDeLaMaqueta;

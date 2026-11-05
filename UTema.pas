@@ -21,6 +21,9 @@ type
     TextoSobreAcento: TColor;
     AcentoSuave: TColor;
     Aviso: TColor;
+    { Columna lateral de secciones y el color de sus textos e iconos. }
+    Columna: TColor;
+    TextoColumna: TColor;
   end;
 
 function TemaClaro: TTemaColores;
@@ -99,17 +102,20 @@ end;
 
 function TemaClaro: TTemaColores;
 begin
-  // Valores de la maqueta aprobada.
-  Result.Fondo := ColorDeHex('#e9edf1');
-  Result.Superficie := ColorDeHex('#ffffff');
-  Result.Superficie2 := ColorDeHex('#f4f6f8');
-  Result.Texto := ColorDeHex('#1b2733');
-  Result.TextoSuave := ColorDeHex('#5a6877');
-  Result.Linea := ColorDeHex('#d3dae1');
-  Result.Acento := ColorDeHex('#1d5fa6');
+  // Paleta E "Arena y terracota" (aprobada 2026-11-04; ver
+  // docs/superpowers/specs/2026-11-04-paletas-propuestas.md).
+  Result.Fondo := ColorDeHex('#f7f3ec');
+  Result.Superficie := ColorDeHex('#fffdf9');
+  Result.Superficie2 := ColorDeHex('#f2ece1');
+  Result.Texto := ColorDeHex('#2b2118');
+  Result.TextoSuave := ColorDeHex('#75675a');
+  Result.Linea := ColorDeHex('#e0d6c6');
+  Result.Acento := ColorDeHex('#c2410c');
   Result.TextoSobreAcento := ColorDeHex('#ffffff');
-  Result.AcentoSuave := ColorDeHex('#dfecf9');
-  Result.Aviso := ColorDeHex('#9a5b00');
+  Result.AcentoSuave := ColorDeHex('#fde6d8');
+  Result.Aviso := ColorDeHex('#8a5a00');
+  Result.Columna := ColorDeHex('#efe7d9');
+  Result.TextoColumna := ColorDeHex('#4a3b2d');
 end;
 
 function TemaOscuro: TTemaColores;
@@ -124,6 +130,8 @@ begin
   Result.TextoSobreAcento := ColorDeHex('#0c1620');
   Result.AcentoSuave := ColorDeHex('#1f3550');
   Result.Aviso := ColorDeHex('#e8b25a');
+  Result.Columna := ColorDeHex('#6aa8ea');
+  Result.TextoColumna := ColorDeHex('#0c1620');
 end;
 
 end.
