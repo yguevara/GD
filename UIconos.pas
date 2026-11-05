@@ -9,7 +9,7 @@ unit UIconos;
 interface
 
 uses
-  Vcl.VirtualImageList;
+  Vcl.VirtualImageList, Vcl.ImgList;
 
 type
   TIconos = class
@@ -17,6 +17,13 @@ type
     { Lista de 24 px con ambos juegos (oscuro y blanco). }
     class function Lista: TVirtualImageList;
   end;
+
+{ Reemplaza las 16 imagenes de la lista del arbol del cuadro de clasificacion
+  (UDM.ImageList3, 32 px) por los iconos Tabler. Se conservan los indices:
+  0 estructura, 1 nodo, 2 documentos, 3 entidad, 4 informes, 5 ciclo,
+  6 carpeta de ajustes, 15 unidad; 7 a 14 son las variantes grises (nodo
+  invisible) de 0 a 6 y 15. Un error al cargar deja la lista como estaba. }
+procedure ReemplazarIconosArbol(Lista: TCustomImageList);
 
 { Indice en TIconos.Lista del icono oscuro. Nombre desconocido: EArgumentException. }
 function IndiceIcono(const Nombre: string): Integer;
@@ -29,13 +36,15 @@ implementation
 
 uses
   System.SysUtils, System.Classes, Winapi.Windows, Vcl.Imaging.pngimage,
-  Vcl.ImageCollection;
+  Vcl.ImageCollection, Vcl.Graphics;
 
 const
-  NombresIconos: array[0..14] of string = (
+  NombresIconos: array[0..29] of string = (
     'inicio', 'archivo', 'traslados', 'prestamos', 'gestion', 'buscar',
     'agregar', 'editar', 'archivos', 'topografia', 'eliminar', 'usuario',
-    'mas', 'abajo', 'derecha');
+    'mas', 'abajo', 'derecha', 'clasificadores', 'cuadro', 'usuarios',
+    'configuracion', 'depuracion', 'indices', 'basedatos', 'salir', 'ayuda',
+    'reportes', 'servidor', 'series', 'logs', 'acerca', 'versiones');
   SufijoBlanco = '_blanco';
   TamanoIcono = 24;
 
@@ -73,6 +82,44 @@ begin
     AgregarIcono(N + SufijoBlanco, 'ICO_' + UpperCase(N) + '_BLANCO');
   // Un elemento de la lista virtual por cada imagen de la coleccion
   GLista.Add('', 0, GColeccion.Count - 1);
+end;
+
+procedure ReemplazarIconosArbol(Lista: TCustomImageList);
+var
+  I: Integer;
+  Png: TPngImage;
+  Bmp: TBitmap;
+  Flujo: TResourceStream;
+  Nuevas: array of TBitmap;
+begin
+  if (Lista = nil) or (Lista.Count < 16) then
+    Exit;
+  SetLength(Nuevas, 16);
+  try
+    for I := 0 to 15 do
+    begin
+      Png := TPngImage.Create;
+      try
+        Flujo := TResourceStream.Create(HInstance, Format('ARB_%.2d', [I]), RT_RCDATA);
+        try
+          Png.LoadFromStream(Flujo);
+        finally
+          Flujo.Free;
+        end;
+        Bmp := TBitmap.Create;
+        Nuevas[I] := Bmp;
+        Bmp.Assign(Png);
+        Bmp.AlphaFormat := afDefined;
+      finally
+        Png.Free;
+      end;
+    end;
+    for I := 0 to 15 do
+      Lista.Replace(I, Nuevas[I], nil);
+  finally
+    for I := 0 to High(Nuevas) do
+      Nuevas[I].Free;
+  end;
 end;
 
 class function TIconos.Lista: TVirtualImageList;
