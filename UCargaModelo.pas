@@ -55,6 +55,9 @@ procedure AplicarATodos(var Lote: TArray<TCandidato>; const Plantilla: TCandidat
 function Faltantes(const C: TCandidato; const Obligatorios: TArray<string>): TArray<string>;
 function EstadoTrasEditar(const C: TCandidato; const Obligatorios: TArray<string>): TEstadoCandidato;
 
+{ Nombre valido en Windows para usar en rutas: \ / : * ? " < > | pasan a '_'. }
+function LimpiarNombreArchivo(const S: string): string;
+
 implementation
 
 function TituloDesdeNombre(const Archivo: string): string;
@@ -177,6 +180,18 @@ begin
     Result := ecListo
   else
     Result := ecFalta;
+end;
+
+function LimpiarNombreArchivo(const S: string): string;
+var
+  I: Integer;
+begin
+  Result := Trim(S);
+  for I := 1 to Length(Result) do
+    if CharInSet(Result[I], ['\', '/', ':', '*', '?', '"', '<', '>', '|']) then
+      Result[I] := '_';
+  if Result = '' then
+    Result := '_';
 end;
 
 end.

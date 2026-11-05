@@ -50,7 +50,9 @@ uses
   UEsquemaCarga in '..\UEsquemaCarga.pas',
   UMetadatosSubserie in '..\UMetadatosSubserie.pas',
   UPruebasEsquemaCarga in 'UPruebasEsquemaCarga.pas',
-  UPruebasMetadatosSubserie in 'UPruebasMetadatosSubserie.pas';
+  UPruebasMetadatosSubserie in 'UPruebasMetadatosSubserie.pas',
+  UCargaDocumento in '..\UCargaDocumento.pas',
+  UPruebasCargaDocumento in 'UPruebasCargaDocumento.pas';
 
 var
   Corredor: ITestRunner;

@@ -21,6 +21,8 @@ type
     procedure Faltantes_FijosYMetadatos;
     [Test]
     procedure EstadoTrasEditar_PasaDeFaltaAListo;
+    [Test]
+    procedure LimpiarNombreArchivo_Casos;
   end;
 
 implementation
@@ -128,6 +130,13 @@ begin
   C.Codigo := 'K';
   C.Fecha := EncodeDate(2026, 1, 1);
   Assert.IsTrue(EstadoTrasEditar(C, []) = ecListo);
+end;
+
+procedure TPruebasCargaModelo.LimpiarNombreArchivo_Casos;
+begin
+  Assert.AreEqual('F3T-001', LimpiarNombreArchivo('F3T-001'));
+  Assert.AreEqual('a_b_c_d_e_f_g_h_i', LimpiarNombreArchivo('a\b/c:d*e?f"g<h>i'));
+  Assert.AreEqual('_', LimpiarNombreArchivo('   '));
 end;
 
 initialization

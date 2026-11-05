@@ -18,6 +18,7 @@ type
     Subidas, Borrados, Descargas: Integer;
     FallarSubidaEn: string;
     TamanoMentiroso: Boolean;
+    FallarBorrado: Boolean;
     constructor Create;
     destructor Destroy; override;
     function Subir(const Local, Clave: string; Progreso: TProgresoEvento): TResultadoSubida;
@@ -129,6 +130,8 @@ end;
 procedure TAlmacenMemoria.Borrar(const Clave: string);
 begin
   Inc(Borrados);
+  if FallarBorrado then
+    raise EAlmacen.Create('fallo simulado de borrado');
   Objetos.Remove(Clave);
 end;
 
