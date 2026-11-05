@@ -39,14 +39,17 @@ uses
   Vcl.ImageCollection, Vcl.Graphics;
 
 const
-  NombresIconos: array[0..40] of string = (
+  NombresIconos: array[0..59] of string = (
     'inicio', 'archivo', 'traslados', 'prestamos', 'gestion', 'buscar',
     'agregar', 'editar', 'archivos', 'topografia', 'eliminar', 'usuario',
     'mas', 'abajo', 'derecha', 'clasificadores', 'cuadro', 'usuarios',
     'configuracion', 'depuracion', 'indices', 'basedatos', 'salir', 'ayuda',
     'reportes', 'servidor', 'series', 'logs', 'acerca', 'versiones', 'excel', 'columnas', 'eliminartodo', 'vincular',
     'vinculartodo', 'filtro', 'archivomas', 'carpetamas', 'archivoquitar',
-    'ejecutar', 'volver');
+    'ejecutar', 'volver', 'imprimir', 'fuente', 'guardar', 'cargar', 'exportar',
+    'importar', 'conexion', 'ver', 'ocultar', 'variables', 'usuarioagregar',
+    'clave', 'licencia', 'aceptar', 'cancelar', 'documento', 'expediente',
+    'mapa', 'georreferenciado');
   SufijoBlanco = '_blanco';
   TamanoIcono = 24;
 

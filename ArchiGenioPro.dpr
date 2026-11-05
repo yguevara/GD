@@ -23,6 +23,7 @@ uses
   UTema in 'UTema.pas',
   UDocumentoVista in 'UDocumentoVista.pas',
   UDocumentoVistaDatos in 'UDocumentoVistaDatos.pas',
+  UPanelDocumentos in 'UPanelDocumentos.pas',
   UIconos in 'UIconos.pas',
   UShellPrincipal in 'UShellPrincipal.pas',
   UAparienciaLegacy in 'UAparienciaLegacy.pas',
