@@ -31,7 +31,9 @@ uses
   UPruebasDocumentoVistaDatos in 'UPruebasDocumentoVistaDatos.pas',
   USigV4 in '..\USigV4.pas',
   UAlmacenFicheros in '..\UAlmacenFicheros.pas',
-  UPruebasSigV4 in 'UPruebasSigV4.pas';
+  UPruebasSigV4 in 'UPruebasSigV4.pas',
+  UAlmacenS3 in '..\UAlmacenS3.pas',
+  UPruebasAlmacenS3 in 'UPruebasAlmacenS3.pas';
 
 var
   Corredor: ITestRunner;
