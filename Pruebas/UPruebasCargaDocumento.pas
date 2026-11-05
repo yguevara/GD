@@ -10,7 +10,7 @@ interface
 uses
   System.SysUtils, FireDAC.Comp.Client, DUnitX.TestFramework, UAlcance,
   UAlmacenFicheros, UPruebasAlcanceDatos, UPruebasMigracion, UCargaModelo,
-  UMetadatosSubserie, UCargaDocumento;
+  UMetadatosSubserie, UCargaDocumento, UCargaLote;
 
 type
   [TestFixture]
@@ -29,6 +29,8 @@ type
     function Candidato(const Codigo: string): TCandidato;
     function Guardar(const Cand: TCandidato; const Usuario: string = 'administrador'): TResultadoDocumento;
     function Cuenta(const Sql: string): Integer;
+    function NuevoLote(Cantidad: Integer; const Base: string): TArray<TCandidato>;
+    function CrearLote: TCargaLote;
   public
     [Setup]
     procedure Preparar;
@@ -54,6 +56,18 @@ type
     procedure SqlServer_ObligatorioVacio_NoSubeNada;
     [Test]
     procedure Access_GuardaDocumentoBasico;
+    [Test]
+    procedure SqlServer_Lote_UnoFalla_LosDemasSeGuardan;
+    [Test]
+    procedure SqlServer_Lote_ReintentarSoloElFallido;
+    [Test]
+    procedure SqlServer_Lote_CancelarDejaPendientes;
+    [Test]
+    procedure SqlServer_Lote_CandidatoConFaltas_SeOmite;
+    [Test]
+    procedure SqlServer_UltimosValores_ReemplazanYSonPorUsuario;
+    [Test]
+    procedure Access_Lote_GuardaDos;
   end;
 
 implementation
@@ -113,6 +127,9 @@ begin
       FConn.ExecSQL('DELETE FROM tb_ssArchdigital WHERE Codigodoc LIKE ''F3T-%''');
       FConn.ExecSQL('DELETE FROM tb_SeriesDatos WHERE Codigodoc LIKE ''F3T-%''');
       FConn.ExecSQL('DELETE FROM tb_log WHERE msg LIKE ''%F3T-%''');
+      FConn.ExecSQL('DELETE FROM tb_lote_captura_item WHERE idlote IN (SELECT idlote FROM tb_lote_captura WHERE user_id = ''prueba'')');
+      FConn.ExecSQL('DELETE FROM tb_lote_captura WHERE user_id = ''prueba''');
+      FConn.ExecSQL('DELETE FROM tb_carga_valores WHERE user_id LIKE ''f3_usuario_%''');
     except
     end;
     FreeAndNil(FEsc);
@@ -429,6 +446,194 @@ begin
   Assert.AreEqual(1, Cuenta('SELECT COUNT(*) FROM tb_SeriesDatos WHERE Codigodoc = ''F3T-011'''));
   Assert.AreEqual(1, Cuenta('SELECT COUNT(*) FROM tb_ssArchdigital WHERE Codigodoc = ''F3T-011'''));
   Assert.AreEqual(1, Cuenta('SELECT COUNT(*) FROM ' + TABLA + ' WHERE Codigodoc = ''F3T-011'''));
+end;
+
+function TPruebasCargaDocumento.NuevoLote(Cantidad: Integer; const Base: string): TArray<TCandidato>;
+var
+  I: Integer;
+begin
+  SetLength(Result, Cantidad);
+  for I := 0 to Cantidad - 1 do
+  begin
+    Result[I] := Candidato(Format('%s%.2d', [Base, I + 1]));
+    Result[I].Archivo := Archivo(Chr(Ord('a') + I) + '.pdf', 10 + I, 'lote' + IntToStr(I));
+    Result[I].Estado := ecListo;
+  end;
+end;
+
+function TPruebasCargaDocumento.CrearLote: TCargaLote;
+var
+  Al: TAlcanceUsuario;
+begin
+  Al := nil;
+  if FEsSql then
+    Al := CargarAlcance(FConn, 'administrador', True);
+  // el alcance vive lo que dure la prueba (el lote no lo libera)
+  Result := TCargaLote.Create(FConn, Al, FOrigen, FAlmI, FCampos, TABLA);
+end;
+
+procedure TPruebasCargaDocumento.SqlServer_Lote_UnoFalla_LosDemasSeGuardan;
+var
+  L: TArray<TCandidato>;
+  Lote: TCargaLote;
+  R: TResumenLote;
+begin
+  if GetEnvironmentVariable('ARCHIGENIO_TEST_DB') = '' then
+    Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB');
+  Conectar(True);
+  L := NuevoLote(4, 'F3T-1');
+  FAlm.FallarSubidaEn := 'A.4.3/014/014001/F3T-103/Anexos Digitales/c.pdf';
+  Lote := CrearLote;
+  try
+    R := Lote.Guardar(L, nil, nil);
+    Assert.AreEqual(3, R.Guardados);
+    Assert.AreEqual(1, R.Fallidos);
+    Assert.AreEqual(0, R.Omitidos);
+    Assert.IsTrue(L[2].Estado = ecError);
+    Assert.AreNotEqual('', L[2].Error);
+    Assert.IsTrue(L[0].Estado = ecGuardado);
+    Assert.AreEqual(3, Cuenta('SELECT COUNT(*) FROM tb_lote_captura_item WHERE idlote = ' +
+      IntToStr(Lote.IdLote) + ' AND estado = ''guardado'''));
+    Assert.AreEqual(1, Cuenta('SELECT COUNT(*) FROM tb_lote_captura_item WHERE idlote = ' +
+      IntToStr(Lote.IdLote) + ' AND estado = ''error'''));
+    Assert.AreEqual('abierto', VarToStr(FConn.ExecSQLScalar('SELECT estado FROM tb_lote_captura WHERE idlote = ' +
+      IntToStr(Lote.IdLote))));
+  finally
+    Lote.Free;
+  end;
+end;
+
+procedure TPruebasCargaDocumento.SqlServer_Lote_ReintentarSoloElFallido;
+var
+  L: TArray<TCandidato>;
+  Lote: TCargaLote;
+  R: TResumenLote;
+  Antes: Integer;
+begin
+  if GetEnvironmentVariable('ARCHIGENIO_TEST_DB') = '' then
+    Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB');
+  Conectar(True);
+  L := NuevoLote(4, 'F3T-2');
+  FAlm.FallarSubidaEn := 'A.4.3/014/014001/F3T-203/Anexos Digitales/c.pdf';
+  Lote := CrearLote;
+  try
+    Lote.Guardar(L, nil, nil);
+    FAlm.FallarSubidaEn := '';
+    Antes := FAlm.Subidas;
+    R := Lote.Guardar(L, nil, nil);
+    Assert.AreEqual(1, R.Guardados);
+    Assert.AreEqual(0, R.Fallidos);
+    Assert.AreEqual(Antes + 1, FAlm.Subidas, 'solo se vuelve a subir el fallido');
+    Assert.IsTrue(L[2].Estado = ecGuardado);
+    Assert.AreEqual(4, FAlm.Objetos.Count);
+    Assert.AreEqual('cerrado', VarToStr(FConn.ExecSQLScalar('SELECT estado FROM tb_lote_captura WHERE idlote = ' +
+      IntToStr(Lote.IdLote))));
+    Assert.AreEqual(4, Cuenta('SELECT COUNT(*) FROM tb_SeriesDatos WHERE Codigodoc LIKE ''F3T-2%'''));
+  finally
+    Lote.Free;
+  end;
+end;
+
+procedure TPruebasCargaDocumento.SqlServer_Lote_CancelarDejaPendientes;
+var
+  L: TArray<TCandidato>;
+  Lote: TCargaLote;
+  R: TResumenLote;
+  Llamadas: Integer;
+  P: TArray<TLotePendiente>;
+  Items: TArray<TItemLote>;
+begin
+  if GetEnvironmentVariable('ARCHIGENIO_TEST_DB') = '' then
+    Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB');
+  Conectar(True);
+  L := NuevoLote(4, 'F3T-3');
+  Llamadas := 0;
+  Lote := CrearLote;
+  try
+    R := Lote.Guardar(L, nil,
+      function: Boolean
+      begin
+        Inc(Llamadas);
+        Result := Llamadas > 2;
+      end);
+    Assert.AreEqual(2, R.Guardados);
+    Assert.AreEqual(2, R.Omitidos);
+    P := LotesPendientes(FConn, FOrigen.Usuario);
+    Assert.IsTrue(Length(P) >= 1);
+    Assert.AreEqual(2, P[High(P)].Pendientes);
+    Assert.AreEqual(Lote.IdLote, P[High(P)].IdLote);
+    Items := CargarItems(FConn, Lote.IdLote);
+    Assert.AreEqual(4, Length(Items));
+    Assert.AreEqual('guardado', Items[0].Estado);
+    Assert.AreEqual('espera', Items[3].Estado);
+  finally
+    Lote.Free;
+  end;
+end;
+
+procedure TPruebasCargaDocumento.SqlServer_Lote_CandidatoConFaltas_SeOmite;
+var
+  L: TArray<TCandidato>;
+  Lote: TCargaLote;
+  R: TResumenLote;
+begin
+  if GetEnvironmentVariable('ARCHIGENIO_TEST_DB') = '' then
+    Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB');
+  Conectar(True);
+  L := NuevoLote(2, 'F3T-4');
+  L[1].Estado := ecFalta;
+  Lote := CrearLote;
+  try
+    R := Lote.Guardar(L, nil, nil);
+    Assert.AreEqual(1, R.Guardados);
+    Assert.AreEqual(1, R.Omitidos);
+    Assert.AreEqual(1, FAlm.Subidas);
+  finally
+    Lote.Free;
+  end;
+end;
+
+procedure TPruebasCargaDocumento.SqlServer_UltimosValores_ReemplazanYSonPorUsuario;
+var
+  V: TArray<TValorMeta>;
+  R: TArray<TValorMeta>;
+begin
+  if GetEnvironmentVariable('ARCHIGENIO_TEST_DB') = '' then
+    Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB');
+  Conectar(True);
+  SetLength(V, 2);
+  V[0].Nombre := 'Texto';    V[0].Valor := 'uno';
+  V[1].Nombre := 'Cantidad'; V[1].Valor := '5';
+  GuardarUltimosValores(FConn, 'f3_usuario_a', '014001', V);
+  SetLength(V, 1);
+  V[0].Nombre := 'Texto';    V[0].Valor := 'dos';
+  GuardarUltimosValores(FConn, 'f3_usuario_a', '014001', V);
+  R := LeerUltimosValores(FConn, 'f3_usuario_a', '014001');
+  Assert.AreEqual(1, Length(R), 'reemplaza, no acumula');
+  Assert.AreEqual('dos', R[0].Valor);
+  Assert.AreEqual(0, Length(LeerUltimosValores(FConn, 'f3_usuario_b', '014001')));
+  Assert.AreEqual(0, Length(LeerUltimosValores(FConn, 'f3_usuario_a', '074')));
+end;
+
+procedure TPruebasCargaDocumento.Access_Lote_GuardaDos;
+var
+  L: TArray<TCandidato>;
+  Lote: TCargaLote;
+  R: TResumenLote;
+begin
+  if GetEnvironmentVariable('ARCHIGENIO_TEST_MDB') = '' then
+    Assert.Pass('omitida: falta ARCHIGENIO_TEST_MDB');
+  Conectar(False);
+  L := NuevoLote(2, 'F3T-5');
+  Lote := CrearLote;
+  try
+    R := Lote.Guardar(L, nil, nil);
+    Assert.AreEqual(2, R.Guardados);
+    Assert.IsTrue(Lote.IdLote > 0);
+    Assert.AreEqual(2, Cuenta('SELECT COUNT(*) FROM tb_lote_captura_item WHERE idlote = ' + IntToStr(Lote.IdLote)));
+  finally
+    Lote.Free;
+  end;
 end;
 
 initialization

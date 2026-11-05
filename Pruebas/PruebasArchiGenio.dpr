@@ -52,6 +52,7 @@ uses
   UPruebasEsquemaCarga in 'UPruebasEsquemaCarga.pas',
   UPruebasMetadatosSubserie in 'UPruebasMetadatosSubserie.pas',
   UCargaDocumento in '..\UCargaDocumento.pas',
+  UCargaLote in '..\UCargaLote.pas',
   UPruebasCargaDocumento in 'UPruebasCargaDocumento.pas';
 
 var
