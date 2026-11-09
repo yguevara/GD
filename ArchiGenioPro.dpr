@@ -14,6 +14,7 @@ uses
   UEsquemaAlcance in 'UEsquemaAlcance.pas',
   UEsquemaAlmacen in 'UEsquemaAlmacen.pas',
   UEsquemaCarga in 'UEsquemaCarga.pas',
+  UEsquemaTrazabilidad in 'UEsquemaTrazabilidad.pas',
   UCargaModelo in 'UCargaModelo.pas',
   UMetadatosSubserie in 'UMetadatosSubserie.pas',
   UCargaDocumento in 'UCargaDocumento.pas',

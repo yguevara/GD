@@ -1123,7 +1123,7 @@ var
 implementation
 
 uses
-  UEsquemaAlcance, UEsquemaAlmacen, UEsquemaCarga, UAlcanceDatos, UTopografia,
+  UEsquemaAlcance, UEsquemaAlmacen, UEsquemaCarga, UEsquemaTrazabilidad, UAlcanceDatos, UTopografia,
   UAlmacenFicheros, UAlmacenServidor, UProgresoTransferencia;
 
 
@@ -5662,6 +5662,8 @@ begin              //
   CrearEsquemaAlmacen(Conn, TBD = 'S');
   // Carga de documentos: columna obligatorio y ultimos valores (ver UEsquemaCarga.pas)
   CrearEsquemaCarga(Conn, TBD = 'S');
+  // Trazabilidad: columnas de documento en tb_log (ver UEsquemaTrazabilidad.pas)
+  CrearEsquemaTrazabilidad(Conn, TBD = 'S');
   if not EsquemaAlmacenCompleto(Conn) then
   begin
     // Sin permiso para alterar cl_ftp_Server: la aplicacion arranca igual con la
