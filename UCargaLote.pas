@@ -51,8 +51,19 @@ type
       y Cancelar son opcionales; Cancelar se consulta antes de cada documento. }
     function Guardar(var Lote: TArray<TCandidato>; AlAvanzar: TProc<Integer, Integer, string>;
       Cancelar: TFunc<Boolean>): TResumenLote;
+    { Sigue un lote guardado antes: no crea otro; Items = cuantos items tiene ya
+      (todos los candidatos del lote retomado, en el mismo orden). }
+    procedure Retomar(IdLote, Items: Integer);
     property IdLote: Integer read FIdLote;
   end;
+
+{ Candidatos de un lote guardado, en su orden: guardado = ecGuardado; un archivo
+  que ya no existe = ecError con el motivo; el resto = ecListo. Solo se
+  recuperan archivo, codigo y error; titulo y datos propios hay que volver a
+  completarlos. }
+function CandidatosDeLote(const Items: TArray<TItemLote>): TArray<TCandidato>;
+{ Marca el lote como descartado: ya no se ofrece retomarlo. }
+procedure DescartarLote(Conn: TFDConnection; IdLote: Integer);
 
 function LotesPendientes(Conn: TFDConnection; const Usuario: string): TArray<TLotePendiente>;
 function CargarItems(Conn: TFDConnection; IdLote: Integer): TArray<TItemLote>;
@@ -76,6 +87,47 @@ begin
   FAlmacen := Almacen;
   FCampos := Campos;
   FTablaMeta := TablaMeta;
+end;
+
+procedure TCargaLote.Retomar(IdLote, Items: Integer);
+begin
+  FIdLote := IdLote;
+  FItems := Items;
+end;
+
+function CandidatosDeLote(const Items: TArray<TItemLote>): TArray<TCandidato>;
+var
+  I: Integer;
+  C: TCandidato;
+begin
+  SetLength(Result, Length(Items));
+  for I := 0 to High(Items) do
+  begin
+    C := Default(TCandidato);
+    C.Archivo := Items[I].Archivo;
+    C.Titulo := TituloDesdeNombre(Items[I].Archivo);
+    C.Codigo := Items[I].Codigodoc;
+    C.Fecha := Date;
+    if SameText(Items[I].Estado, 'guardado') then
+      C.Estado := ecGuardado
+    else if not FileExists(Items[I].Archivo) then
+    begin
+      C.Estado := ecError;
+      C.Error := 'No se encuentra el archivo.';
+    end
+    else
+    begin
+      C.Estado := ecListo;
+      if SameText(Items[I].Estado, 'error') then
+        C.Error := Items[I].Error;
+    end;
+    Result[I] := C;
+  end;
+end;
+
+procedure DescartarLote(Conn: TFDConnection; IdLote: Integer);
+begin
+  Conn.ExecSQL('UPDATE tb_lote_captura SET estado = ''descartado'' WHERE idlote = :l', [IdLote]);
 end;
 
 procedure TCargaLote.CrearLote;

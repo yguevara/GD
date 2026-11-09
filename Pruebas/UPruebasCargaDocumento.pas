@@ -68,6 +68,12 @@ type
     procedure SqlServer_UltimosValores_ReemplazanYSonPorUsuario;
     [Test]
     procedure Access_Lote_GuardaDos;
+    [Test]
+    procedure CandidatosDeLote_Estados;
+    [Test]
+    procedure SqlServer_Lote_Retomar_TerminaElMismoLote;
+    [Test]
+    procedure SqlServer_Lote_Descartar_YaNoEsPendiente;
   end;
 
 implementation
@@ -634,6 +640,114 @@ begin
   finally
     Lote.Free;
   end;
+end;
+
+procedure TPruebasCargaDocumento.CandidatosDeLote_Estados;
+var
+  Items: TArray<TItemLote>;
+  C: TArray<TCandidato>;
+  Existe: string;
+begin
+  Existe := Archivo('existe.pdf', 5, 'cdl');
+  SetLength(Items, 3);
+  Items[0].Orden := 1;
+  Items[0].Archivo := Existe;
+  Items[0].Estado := 'guardado';
+  Items[0].Codigodoc := 'X-001';
+  Items[1].Orden := 2;
+  Items[1].Archivo := Existe;
+  Items[1].Estado := 'error';
+  Items[1].Codigodoc := 'X-002';
+  Items[2].Orden := 3;
+  Items[2].Archivo := Existe + '.no-existe';
+  Items[2].Estado := 'espera';
+  C := CandidatosDeLote(Items);
+  Assert.AreEqual(3, Length(C));
+  Assert.IsTrue(C[0].Estado = ecGuardado);
+  Assert.IsTrue(C[1].Estado = ecListo);
+  Assert.AreEqual('X-002', C[1].Codigo);
+  Assert.IsTrue(C[2].Estado = ecError, 'falta el archivo');
+  Assert.IsTrue(C[2].Error <> '');
+  Assert.AreEqual(0, Length(CandidatosDeLote(nil)));
+end;
+
+procedure TPruebasCargaDocumento.SqlServer_Lote_Retomar_TerminaElMismoLote;
+var
+  L, L2: TArray<TCandidato>;
+  Lote, Otro: TCargaLote;
+  R: TResumenLote;
+  Llamadas, Lotes: Integer;
+  Id, J: Integer;
+begin
+  if GetEnvironmentVariable('ARCHIGENIO_TEST_DB') = '' then
+    Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB');
+  Conectar(True);
+  L := NuevoLote(4, 'F3T-6');
+  Llamadas := 0;
+  Lote := CrearLote;
+  try
+    Lote.Guardar(L, nil,
+      function: Boolean
+      begin
+        Inc(Llamadas);
+        Result := Llamadas > 2;
+      end);
+    Id := Lote.IdLote;
+  finally
+    Lote.Free;
+  end;
+  Lotes := Cuenta('SELECT COUNT(*) FROM tb_lote_captura');
+  L2 := CandidatosDeLote(CargarItems(FConn, Id));
+  Assert.AreEqual(4, Length(L2));
+  // los codigos de los que no se guardaron no se conocen en el lote: la pantalla los pide de nuevo
+  // los datos propios tampoco se conservan: hay que completarlos de nuevo
+  Assert.AreEqual(0, Length(L2[2].Meta));
+  for J := 0 to 3 do
+  begin
+    if L2[J].Codigo = '' then
+      L2[J].Codigo := L[J].Codigo;
+    L2[J].Meta := L[J].Meta;
+  end;
+  Otro := CrearLote;
+  try
+    Otro.Retomar(Id, Length(L2));
+    R := Otro.Guardar(L2, nil, nil);
+    Assert.AreEqual(2, R.Guardados);
+    Assert.AreEqual(Id, Otro.IdLote);
+    Assert.AreEqual(Lotes, Cuenta('SELECT COUNT(*) FROM tb_lote_captura'), 'no crea otro lote');
+    Assert.AreEqual('cerrado', VarToStr(FConn.ExecSQLScalar(
+      'SELECT estado FROM tb_lote_captura WHERE idlote = ' + IntToStr(Id))));
+    Assert.AreEqual(4, Cuenta('SELECT COUNT(*) FROM tb_SeriesDatos WHERE Codigodoc LIKE ''F3T-6%'''));
+  finally
+    Otro.Free;
+  end;
+end;
+
+procedure TPruebasCargaDocumento.SqlServer_Lote_Descartar_YaNoEsPendiente;
+var
+  L: TArray<TCandidato>;
+  Lote: TCargaLote;
+  Id, Antes, Despues: Integer;
+begin
+  if GetEnvironmentVariable('ARCHIGENIO_TEST_DB') = '' then
+    Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB');
+  Conectar(True);
+  L := NuevoLote(2, 'F3T-7');
+  Lote := CrearLote;
+  try
+    Lote.Guardar(L, nil,
+      function: Boolean
+      begin
+        Result := True;
+      end);
+    Id := Lote.IdLote;
+  finally
+    Lote.Free;
+  end;
+  Antes := Length(LotesPendientes(FConn, FOrigen.Usuario));
+  DescartarLote(FConn, Id);
+  Despues := Length(LotesPendientes(FConn, FOrigen.Usuario));
+  Assert.AreEqual(Antes - 1, Despues);
 end;
 
 initialization

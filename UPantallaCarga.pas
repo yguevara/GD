@@ -60,7 +60,12 @@ type
     FBtnRepetir, FBtnAnt, FBtnSig, FBtnFuente: TButton;
     FChkGuiado: TCheckBox;
     FPaso: Integer;
+    FIdLote: Integer;       // lote en curso (retomado o ya creado al guardar)
+    FItemsLote: Integer;    // items que ese lote ya tiene
+    FOfrecido: Boolean;
     procedure Construir;
+    procedure FormMostrar(Sender: TObject);
+    procedure OfrecerRetomar;
     procedure CrearTarjetaPropia;
     function ValoresDeControles: TArray<TValorMeta>;
     procedure PonerValores(const Valores: TArray<TValorMeta>);
@@ -186,6 +191,7 @@ begin
   Font.Name := 'Segoe UI';
   Font.Size := 9;
   OnCloseQuery := FormCloseQuery;
+  OnShow := FormMostrar;
   DragAcceptFiles(Handle, True);
 
   Pie := TPanel.Create(Self);
@@ -686,6 +692,76 @@ begin
   end;
 end;
 
+procedure TfrmPantallaCarga.FormMostrar(Sender: TObject);
+begin
+  if FOfrecido then
+    Exit;
+  FOfrecido := True;
+  OfrecerRetomar;
+end;
+
+{ Si el usuario dejo una carga sin terminar en esta subserie, ofrece retomarla
+  (solo se conservan archivo, codigo y estado: titulo y datos propios se
+  completan de nuevo), descartarla o dejarla para mas tarde. }
+procedure TfrmPantallaCarga.OfrecerRetomar;
+var
+  P: TArray<TLotePendiente>;
+  I, Hallado, J: Integer;
+  Items: TArray<TItemLote>;
+  Codigos: TArray<string>;
+  Faltan: TArray<Integer>;
+begin
+  Hallado := -1;
+  try
+    P := LotesPendientes(FConn, FOrigen.Usuario);
+  except
+    Exit;
+  end;
+  for I := 0 to High(P) do
+    if SameText(Trim(P[I].IdEstructura), Trim(FOrigen.IdEstructura)) and
+      SameText(Trim(P[I].CodSubs), Trim(FOrigen.CodSubs)) and (P[I].Pendientes > 0) then
+      Hallado := I;
+  if Hallado < 0 then
+    Exit;
+  case MessageDlg(Format('Hay una carga sin terminar del %s con %d documento(s) pendientes.' +
+    #13#10#13#10 + 'Si = retomarla (titulo y datos de la subserie se completan de nuevo)' +
+    #13#10 + 'No = descartarla' + #13#10 + 'Cancelar = decidir mas tarde',
+    [FormatDateTime('dd/mm/yyyy hh:nn', P[Hallado].Fecha), P[Hallado].Pendientes]),
+    mtConfirmation, [mbYes, mbNo, mbCancel], 0) of
+    mrNo:
+      begin
+        DescartarLote(FConn, P[Hallado].IdLote);
+        Exit;
+      end;
+    mrYes: ;
+  else
+    Exit;
+  end;
+  Items := CargarItems(FConn, P[Hallado].IdLote);
+  FLote := CandidatosDeLote(Items);
+  FIdLote := P[Hallado].IdLote;
+  FItemsLote := Length(FLote);
+  { codigos nuevos para los que no tenian }
+  Faltan := nil;
+  for I := 0 to High(FLote) do
+    if (FLote[I].Estado <> ecGuardado) and (Trim(FLote[I].Codigo) = '') then
+    begin
+      SetLength(Faltan, Length(Faltan) + 1);
+      Faltan[High(Faltan)] := I;
+    end;
+  if Length(Faltan) > 0 then
+  begin
+    Codigos := CodigosParaLote(UltimoCodigo, FOrigen.IdEstructura, FOrigen.CodSubs,
+      '1.0', Length(Faltan));
+    for J := 0 to High(Faltan) do
+      FLote[Faltan[J]].Codigo := Codigos[J];
+  end;
+  for I := 0 to High(FLote) do
+    if FLote[I].Estado = ecListo then
+      FLote[I].Estado := EstadoDe(FLote[I]);
+  Refrescar;
+end;
+
 procedure TfrmPantallaCarga.AgregarFuentes(Indice: Integer; const Rutas: TArray<string>);
 var
   Archivos: TArray<string>;
@@ -1024,6 +1100,12 @@ begin
       SetLength(Nuevo, J + 1);
       Nuevo[J] := FLote[I];
     end;
+  if (FIdLote > 0) and (Length(Nuevo) <> Length(FLote)) then
+  begin
+    DescartarLote(FConn, FIdLote);
+    FIdLote := 0;
+    FItemsLote := 0;
+  end;
   FLote := Nuevo;
   FLista.ClearSelection;
   Refrescar;
@@ -1076,6 +1158,8 @@ begin
   try
     Cargador := TCargaLote.Create(FConn, FAlcance, FOrigen, FAlmacen, FCampos, FTablaMeta);
     try
+      if FIdLote > 0 then
+        Cargador.Retomar(FIdLote, FItemsLote);
       R := Cargador.Guardar(FLote,
         procedure(Hecho, Total: Integer; Archivo: string)
         begin
@@ -1085,6 +1169,8 @@ begin
         begin
           Result := FCancelar;
         end);
+      FIdLote := Cargador.IdLote;
+      FItemsLote := Length(FLote);
     finally
       Cargador.Free;
     end;
