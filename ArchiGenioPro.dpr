@@ -17,6 +17,7 @@ uses
   UEsquemaTrazabilidad in 'UEsquemaTrazabilidad.pas',
   UTrazabilidad in 'UTrazabilidad.pas',
   UTrazabilidadDatos in 'UTrazabilidadDatos.pas',
+  UHistoriaDocumento in 'UHistoriaDocumento.pas',
   UCargaModelo in 'UCargaModelo.pas',
   UMetadatosSubserie in 'UMetadatosSubserie.pas',
   UCargaDocumento in 'UCargaDocumento.pas',

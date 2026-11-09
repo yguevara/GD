@@ -32,7 +32,7 @@ uses
   cxDBRichEdit, System.Generics.Collections, cxSplitter, AdvListV, DBAdvLst,
   IniFiles, cxSpinEdit, Vcl.Grids, Vcl.DBGrids, JvDBControls, cxMaskEdit,
   dxScreenTip, dxCustomHint, cxHint, cxEditRepositoryItems, cxGroupBox,
-  UBusqueda, UAlcance, UPanelDocumentos, UDocumentoVista, UMigracionPantalla, UExpedienteCompleto, UProgresoTransferencia, UTrazabilidad,
+  UBusqueda, UAlcance, UPanelDocumentos, UDocumentoVista, UMigracionPantalla, UExpedienteCompleto, UProgresoTransferencia, UTrazabilidad, UTrazabilidadDatos,
   UAlmacenFicheros, UAlmacenServidor;
 
 type
@@ -755,6 +755,8 @@ type
     procedure ListaDocsAbrir(const Clave: TClaveDocumento);
     procedure ListaDocsExpediente(const Clave: TClaveDocumento);
     function ListaDocsFicheros(const Clave: TClaveDocumento): TArray<TFicheroDoc>;
+    function ListaDocsHistoria(const Clave: TClaveDocumento;
+      out HayMas: Boolean): TArray<TEventoDoc>;
     procedure ListaDocsAlternar(Sender: TObject);
     procedure ShellAgregarDocumento(Sender: TObject);
     procedure ShellBuscar(const Texto: string; Ambito: TAmbitoBusqueda);
@@ -6741,6 +6743,7 @@ begin
     FListaDocs.OnAbrirContenido := ListaDocsAbrir;
     FListaDocs.OnExpedienteCompleto := ListaDocsExpediente;
     FListaDocs.OnPedirFicheros := ListaDocsFicheros;
+    FListaDocs.OnPedirHistoria := ListaDocsHistoria;
     FListaDocs.OnAlternarVista := ListaDocsAlternar;
 
     FTimerDocs := TTimer.Create(Self);
@@ -6989,6 +6992,19 @@ begin
   end
   else
     UDM.sms('No se pudo localizar el documento seleccionado.', 2);
+end;
+
+function TMAIN.ListaDocsHistoria(const Clave: TClaveDocumento;
+  out HayMas: Boolean): TArray<TEventoDoc>;
+begin
+  HayMas := False;
+  Result := nil;
+  try
+    Result := CargarLineaTiempo(UDM.Conn, UDM.Alcance, Clave, 200, HayMas);
+  except
+    on E: Exception do
+      RegistrarErrorLista('Historia: ' + E.ClassName + ': ' + E.Message);
+  end;
 end;
 
 function TMAIN.ListaDocsFicheros(const Clave: TClaveDocumento): TArray<TFicheroDoc>;

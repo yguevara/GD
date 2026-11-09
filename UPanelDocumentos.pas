@@ -15,11 +15,13 @@ interface
 uses
   System.Classes, System.SysUtils, System.Generics.Collections,
   Winapi.Windows, Winapi.Messages, Vcl.Controls, Vcl.ExtCtrls, Vcl.ComCtrls,
-  Vcl.StdCtrls, Vcl.Graphics, Vcl.Forms, UTema, UDocumentoVista;
+  Vcl.StdCtrls, Vcl.Graphics, Vcl.Forms, UTema, UDocumentoVista, UTrazabilidad;
 
 type
   TSolicitudFicheros = function(const Clave: TClaveDocumento): TArray<TFicheroDoc> of object;
   TClaveEvent = procedure(const Clave: TClaveDocumento) of object;
+  TSolicitudHistoria = function(const Clave: TClaveDocumento;
+    out HayMas: Boolean): TArray<TEventoDoc> of object;
 
   TPanelDocumentos = class(TPanel)
   private
@@ -55,6 +57,10 @@ type
     FOnAlternarVista: TNotifyEvent;
     FConstruido: Boolean;
     FErrorFicheros: Boolean;
+    FOnPedirHistoria: TSolicitudHistoria;
+    FHistoriaActual: TArray<TEventoDoc>;
+    FHayMasHistoria: Boolean;
+    FTituloHistoria: string;
     function IconoIdx(const Nombre: string): Integer;
     function NuevaEtiqueta(const Texto: string; Tam: Integer; Color: TColor;
       Negrita: Boolean): TLabel;
@@ -71,6 +77,7 @@ type
     procedure ExpedienteClick(Sender: TObject);
     procedure VistaClick(Sender: TObject);
     procedure EnlaceExpClick(Sender: TObject);
+    procedure HistoriaClick(Sender: TObject);
     procedure EnlaceTodosClick(Sender: TObject);
     procedure ScrollResize(Sender: TObject);
     function IndiceSeleccionado: Integer;
@@ -97,13 +104,15 @@ type
     property OnExpedienteCompleto: TClaveEvent read FOnExpedienteCompleto write FOnExpedienteCompleto;
     property OnPedirFicheros: TSolicitudFicheros read FOnPedirFicheros write FOnPedirFicheros;
     property OnAlternarVista: TNotifyEvent read FOnAlternarVista write FOnAlternarVista;
+    { Eventos del documento (F5); sin esto el panel no muestra la historia }
+    property OnPedirHistoria: TSolicitudHistoria read FOnPedirHistoria write FOnPedirHistoria;
   end;
 
 implementation
 
 uses
   System.Generics.Defaults, System.Math, System.StrUtils, System.DateUtils,
-  UIconos, UShellPrincipal;
+  UIconos, UShellPrincipal, UHistoriaDocumento;
 
 const
   FUENTE = 'Segoe UI';
@@ -566,11 +575,17 @@ begin
     LimpiarPropiedades;
 end;
 
+procedure TPanelDocumentos.HistoriaClick(Sender: TObject);
+begin
+  MostrarHistoria(FTituloHistoria, FHistoriaActual, FHayMasHistoria, FTema);
+end;
+
 procedure TPanelDocumentos.LimpiarPropiedades;
 var
   L: TLabel;
 begin
   FFicherosActuales := nil;
+  FHistoriaActual := nil;
   FEtiquetas.OwnsObjects := True;
   FEtiquetas.Clear;
   FBtnAbrir.Enabled := False;
@@ -646,6 +661,54 @@ begin
       Val.AutoSize := True; // con WordWrap el alto sale del ancho fijado
       FEtiquetas.Add(Val);
       Inc(Y, Val.Height + 4);
+    end;
+
+    // Historia del documento: los 5 eventos mas recientes y el enlace a todos
+    FHistoriaActual := nil;
+    FHayMasHistoria := False;
+    FTituloHistoria := D.Titulo;
+    if Assigned(FOnPedirHistoria) then
+    begin
+      try
+        FHistoriaActual := FOnPedirHistoria(D.Clave, FHayMasHistoria);
+      except
+        FHistoriaActual := nil;
+      end;
+      Lbl := NuevaEtiqueta('HISTORIA', 8, FTema.Acento, True);
+      Lbl.Parent := FScroll;
+      Lbl.Left := 14;
+      Lbl.Top := Y + 6;
+      FEtiquetas.Add(Lbl);
+      Inc(Y, Lbl.Height + 10);
+      if Length(FHistoriaActual) = 0 then
+      begin
+        Val := NuevaEtiqueta('Sin eventos registrados', 9, FTema.TextoSuave, False);
+        Val.Parent := FScroll;
+        Val.SetBounds(14, Y, Ancho, 16);
+        FEtiquetas.Add(Val);
+        Inc(Y, Val.Height + 4);
+      end
+      else
+      begin
+        for I := 0 to Min(4, High(FHistoriaActual)) do
+        begin
+          Val := NuevaEtiqueta(TextoFechaEvento(FHistoriaActual[I].Fecha) + '  ' +
+            EtiquetaEvento(FHistoriaActual[I].Tipo) + '  ' + FHistoriaActual[I].Usuario,
+            9, FTema.Texto, False);
+          Val.Parent := FScroll;
+          Val.SetBounds(14, Y, Ancho, 16);
+          FEtiquetas.Add(Val);
+          Inc(Y, Val.Height + 3);
+        end;
+        Val := NuevaEtiqueta('Ver historia completa', 9, FTema.Acento, False);
+        Val.Parent := FScroll;
+        Val.Font.Style := [fsUnderline];
+        Val.Cursor := crHandPoint;
+        Val.SetBounds(14, Y + 4, 200, 16);
+        Val.OnClick := HistoriaClick;
+        FEtiquetas.Add(Val);
+        Inc(Y, Val.Height + 8);
+      end;
     end;
   finally
     FScroll.EnableAlign;
