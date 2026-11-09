@@ -11,8 +11,8 @@ Plan: `2026-11-05-carga-documentos-f3.md`. Pendiente de ejecutar por una persona
 
 ## Cosas a comprobar primero (posibles huecos)
 
-- **Retomar un lote pendiente:** la lógica existe (`LotesPendientes`, `CargarItems` en `UCargaLote`) pero la pantalla todavía no la usa; el caso 24 puede fallar por eso y habría que cablearlo.
-- **«Reintentar los que fallaron»** vuelve a guardar el lote en la misma sesión; no recupera uno de una sesión anterior (ver el punto anterior).
+- **Retomar un lote pendiente** (caso 24): al abrir la pantalla en la misma subserie se ofrece retomar, descartar o decidir más tarde. De un lote retomado solo se conservan archivo, código y estado: el **título y los datos propios hay que completarlos de nuevo** (si la subserie tiene obligatorios, quedan en «Falta un dato»). Quitar filas de un lote ya guardado lo descarta y empieza otro.
+- **«Reintentar los que fallaron»** sigue el mismo lote (no crea otro).
 - **Verificación visual:** nadie ha visto aún la pantalla abierta (ni la tarjeta dinámica ni el modo Guiado).
 
 ## Preparación
@@ -48,7 +48,7 @@ Plan: `2026-11-05-carga-documentos-f3.md`. Pendiente de ejecutar por una persona
 | 21 | Administrador | Apagar MinIO a mitad de un lote | Los fallidos salen con motivo y «¿Reintentar los que fallaron?»; sin objetos huérfanos ni filas a medias | |
 | 22 | Administrador | Encender MinIO y reintentar | Se guardan los fallidos; ninguno duplicado | |
 | 23 | Dos usuarios | Cargar a la vez en la misma subserie | Ningún `Codigodoc` duplicado (el segundo recibe uno distinto) | |
-| 24 | Administrador | Cerrar la aplicación a mitad de un lote y reabrirla | **Posible hueco:** retomar el lote pendiente (ver «Cosas a comprobar primero») | |
+| 24 | Administrador | Cancelar un lote a mitad, cerrar la pantalla (confirmar) y volver a abrirla en la misma subserie | Ofrece retomar: Sí = vuelve la lista (los guardados como «Guardado»), se completan título y datos propios y «Guardar todos» termina el mismo lote; No = lo descarta y no vuelve a ofrecerlo; Cancelar = lo ofrece la próxima vez | |
 | 25 | Usuario sin permiso de agregar | Pulsar «Agregar documento» | «No tiene permiso para agregar documentos en esta subserie.»; no se abre nada | |
 | 26 | Usuario / EGD | Subserie con topografía incompleta | EGD y administrador: mensaje de que falta; el resto: que avise al EGD; no se abre nada | |
 | 27 | Administrador | Sin ningún servidor S3 registrado | «Registre primero un servidor S3...» y oferta de abrir el clasificador de servidores | |
@@ -65,4 +65,4 @@ Plan: `2026-11-05-carga-documentos-f3.md`. Pendiente de ejecutar por una persona
 
 Ejecutada por: ______  Fecha: ______  Versión: ______
 
-Los casos con «Posible hueco» que fallen se anotan como tareas de seguimiento de la F3 (retomar lote pendiente).
+Los casos que fallen se anotan como tareas de seguimiento de la F3.
