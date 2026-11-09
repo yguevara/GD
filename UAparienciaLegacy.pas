@@ -23,7 +23,7 @@ implementation
 uses
   System.SysUtils, System.Classes, System.TypInfo, System.Generics.Collections,
   Winapi.Windows, Vcl.Controls, Vcl.Graphics, Vcl.ExtCtrls, Vcl.StdCtrls,
-  cxGraphics, cxStyles, cxGridTableView, cxGridCustomTableView, cxVGrid, JvTransparentButton,
+  cxGraphics, cxStyles, cxGridTableView, cxGridCustomTableView, cxVGrid, cxPC, JvTransparentButton,
   UShellPrincipal, UIconos;
 
 type
@@ -203,6 +203,67 @@ begin
   G.Styles.IncSearch := GEstilos.Busqueda;
 end;
 
+{ Paginas con pestanas: sin degradado ni el azul de fondo, con la superficie
+  del tema. Una pagina con una sola pestana visible no necesita la tira de
+  pestanas (la cabecera la pone EncabezadoPagina). }
+procedure AdaptarPaginas(PC: TcxPageControl; const T: TTemaColores);
+var
+  I: Integer;
+begin
+  PC.Properties.Options := PC.Properties.Options -
+    [pcoGradient, pcoGradientClientArea] + [pcoUsePageColorForTab];
+  PC.ParentBackground := False;
+  PC.Color := T.Superficie;
+  for I := 0 to PC.PageCount - 1 do
+  begin
+    PC.Pages[I].ParentColor := False;
+    PC.Pages[I].Color := T.Superficie;
+  end;
+end;
+
+{ Sustituye la unica pestana visible de PC por una cabecera del tema (titulo en
+  texto, sin degradado). Solo si exactamente una pagina muestra su pestana. }
+procedure EncabezadoPagina(PC: TcxPageControl; const Titulo: string;
+  const T: TTemaColores);
+const
+  NOMBRE_CABECERA = 'pnlEncabezadoPagina';
+var
+  I, Visibles: Integer;
+  P: TPanel;
+  L: TLabel;
+begin
+  if (PC.Parent = nil) or (PC.Parent.FindComponent(NOMBRE_CABECERA) <> nil) then
+    Exit;
+  Visibles := 0;
+  for I := 0 to PC.PageCount - 1 do
+    if PC.Pages[I].TabVisible then
+      Inc(Visibles);
+  if Visibles <> 1 then
+    Exit;
+  P := TPanel.Create(PC.Parent);
+  P.Name := NOMBRE_CABECERA;
+  P.Parent := PC.Parent;
+  P.Align := alTop;
+  P.Top := PC.Top - 1;
+  P.Height := 30;
+  P.BevelOuter := bvNone;
+  P.ParentBackground := False;
+  P.Color := T.Superficie2;
+  P.Caption := '';
+  L := TLabel.Create(P);
+  L.Parent := P;
+  L.Align := alClient;
+  L.AlignWithMargins := True;
+  L.Margins.SetBounds(10, 0, 8, 0);
+  L.Layout := tlCenter;
+  L.Font.Name := 'Segoe UI';
+  L.Font.Size := 9;
+  L.Font.Style := [fsBold];
+  L.Font.Color := T.Texto;
+  L.Caption := Titulo;
+  PC.Properties.HideTabs := True;
+end;
+
 { Los iconos de estos botones son blancos (pensados para el fondo azul) y por
   defecto el boton es transparente: no pinta su Color. Se le da una cara opaca
   de marron calido (TextoSuave) donde el icono blanco se lee bien. Un boton de
@@ -271,6 +332,8 @@ begin
     AdaptarRejillaVertical(TcxCustomVerticalGrid(C))
   else if C is TJvTransparentButton then
     AdaptarBoton(TJvTransparentButton(C), T)
+  else if C is TcxPageControl then
+    AdaptarPaginas(TcxPageControl(C), T)
   else if (C.ClassName = 'TAdvPanel') or (C.ClassName = 'TAdvToolPanel') or
     (C.ClassName = 'TAdvToolPanelTab') or (C.ClassName = 'TJvCaptionPanel') then
     AdaptarPanelTercero(C, T)
@@ -463,6 +526,14 @@ begin
     AplicarIconosBotones(Form);
   except
     // Solo apariencia: quedan los iconos anteriores
+  end;
+  try
+    // "Series agregadas a la estructura actual" (cuadro de clasificacion)
+    if (Form.ClassName = 'TMAIN') and (Form.FindComponent('PageControl1') is TcxPageControl) then
+      EncabezadoPagina(TcxPageControl(Form.FindComponent('PageControl1')),
+        'Series agregadas a la estructura actual', Tema);
+  except
+    // Solo apariencia
   end;
 end;
 

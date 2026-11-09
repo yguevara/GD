@@ -83,6 +83,7 @@ type
     procedure VistaClick(Sender: TObject);
     procedure EnlaceExpClick(Sender: TObject);
     procedure HistoriaClick(Sender: TObject);
+    procedure RepintarPropiedades;
     procedure EnlaceTodosClick(Sender: TObject);
     procedure ScrollResize(Sender: TObject);
     function IndiceSeleccionado: Integer;
@@ -585,6 +586,16 @@ begin
   MostrarHistoria(FTituloHistoria, FHistoriaActual, FHayMasHistoria, FTema);
 end;
 
+{ Al liberar etiquetas transparentes el TScrollBox no borra su fondo y queda el
+  texto anterior debajo del nuevo (el aviso "Elija un documento" se ve sobre
+  GENERAL). Se fuerza el borrado de todo el area y sus hijos. }
+procedure TPanelDocumentos.RepintarPropiedades;
+begin
+  if FScroll.HandleAllocated then
+    RedrawWindow(FScroll.Handle, nil, 0,
+      RDW_INVALIDATE or RDW_ERASE or RDW_ALLCHILDREN or RDW_UPDATENOW);
+end;
+
 procedure TPanelDocumentos.LimpiarPropiedades;
 var
   L: TLabel;
@@ -604,6 +615,7 @@ begin
   L.WordWrap := True;
   L.SetBounds(14, 16, Max(120, FScroll.ClientWidth - 28), 40);
   FEtiquetas.Add(L);
+  RepintarPropiedades;
 end;
 
 procedure TPanelDocumentos.MostrarPropiedades(Indice: Integer);
@@ -731,6 +743,7 @@ begin
   finally
     FScroll.EnableAlign;
   end;
+  RepintarPropiedades;
 
   Digitales := 0;
   if Assigned(FOnPedirFicheros) then
