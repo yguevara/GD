@@ -19,8 +19,8 @@ Plan: `2026-11-09-trazabilidad-f5.md`. Pendiente de ejecutar por una persona con
 |---|---|---|---|---|
 | 1 | Administrador | Crear un documento y seleccionarlo en la lista | Sección «HISTORIA» con «Creado» | |
 | 2 | Administrador | Modificar el documento | Aparece «Modificado» arriba | |
-| 3 | Administrador | Abrir un fichero del documento | Aparece «Consultado» | |
-| 4 | Administrador | Descargar un fichero | Aparece «Descargado» (ver código 4 arriba) | |
+| 3 | Administrador | Abrir el documento (doble clic, «Abrir» del menú de ficheros y desde el árbol clásico), y abrir un fichero fuente y un anexo digital | Cada apertura agrega «Consultado» (una sola vez por apertura) | |
+| 4 | Administrador | «Obtener expediente completo» (copia los ficheros a un archivo) | Aparece «Descargado» (ver código 4 arriba). Abrir un fichero lo baja a una carpeta temporal y cuenta como «Consultado», no como «Descargado» | |
 | 5 | Administrador | Prestar y luego devolver | Aparecen «Prestado» y «Devuelto» con el prestamista | |
 | 6 | Administrador | Eliminar el documento | Ya no está en la lista; sus eventos siguen en `tb_log` | |
 | 7 | Administrador | Seleccionar un documento anterior a la F5 | «Sin eventos registrados» en el panel; el diálogo explica que la historia empieza al instalar la F5 | |
@@ -30,7 +30,10 @@ Plan: `2026-11-09-trazabilidad-f5.md`. Pendiente de ejecutar por una persona con
 | 11 | Access | Repetir los casos 1 a 5 | Mismo resultado | |
 | 12 | Administrador | Cambiar a tema oscuro, abrir «Ver historia completa» | El diálogo usa los colores del tema | |
 | 13 | Con `shell_clasico.flag` | Arrancar la aplicación | Sin panel; nada cambia | |
-| 14 | `tb_log` sin permiso para alterar | Arrancar | La aplicación arranca; la historia queda vacía; error en `lista_error.log` | |
+| 14 | `tb_log` sin permiso para alterar | Arrancar y seleccionar un documento | La aplicación arranca; el panel dice «Historia no disponible» (no «Sin eventos registrados») y el motivo queda en `lista_error.log` | |
+| 15 | SQL Server, `tb_log` ocupada | Desde otra sesión, `BEGIN TRAN; SELECT * FROM tb_log WITH (TABLOCKX)` sin cerrar; arrancar la aplicación por primera vez tras instalar la F5 | Arranca en unos 5 s por columna pendiente (no se cuelga); la historia no estará disponible hasta que se libere la tabla y se reinicie. El script `scripts/trazabilidad_esquema.sql` sirve para aplicarlo a mano | |
+| 16 | Administrador | Redimensionar el panel o mover el divisor con un documento seleccionado | La historia no vuelve a consultarse (sin parpadeo ni demora) | |
+| 17 | Administrador | Documento con miles de eventos de consulta | El panel abre sin demora apreciable y muestra los 200 más recientes | |
 
 ## Registro
 
