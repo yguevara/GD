@@ -32,7 +32,7 @@ uses
   cxDBRichEdit, System.Generics.Collections, cxSplitter, AdvListV, DBAdvLst,
   IniFiles, cxSpinEdit, Vcl.Grids, Vcl.DBGrids, JvDBControls, cxMaskEdit,
   dxScreenTip, dxCustomHint, cxHint, cxEditRepositoryItems, cxGroupBox,
-  UBusqueda, UAlcance, UPanelDocumentos, UDocumentoVista, UMigracionPantalla, UExpedienteCompleto, UProgresoTransferencia,
+  UBusqueda, UAlcance, UPanelDocumentos, UDocumentoVista, UMigracionPantalla, UExpedienteCompleto, UProgresoTransferencia, UTrazabilidad,
   UAlmacenFicheros, UAlmacenServidor;
 
 type
@@ -6957,6 +6957,9 @@ begin
     finally
       Prog.Free;
     end;
+    if R.Copiados > 0 then
+      UDM.LogDoc(Clave, 'Se obtuvo el expediente completo "' + Trim(Clave.Codigodoc) +
+        '" (' + IntToStr(R.Copiados) + ' ficheros).', ACCION_DESCARGAR);
     if R.Fallidos = 0 then
       UDM.sms(Format('Se copiaron %d ficheros del expediente al archivo "%s".',
         [R.Copiados, Dlg.FileName]), 3)
@@ -6979,7 +6982,11 @@ end;
 procedure TMAIN.ListaDocsAbrir(const Clave: TClaveDocumento);
 begin
   if ListaDocsLocalizar(Clave) then
-    MenuItem5Click(Self) // el mismo "Abrir" del menu de ficheros
+  begin
+    UDM.LogDoc(Clave, 'Se abrio el documento con codigo "' + Trim(Clave.Codigodoc) + '".',
+      ACCION_VISUALIZAR);
+    MenuItem5Click(Self); // el mismo "Abrir" del menu de ficheros
+  end
   else
     UDM.sms('No se pudo localizar el documento seleccionado.', 2);
 end;
