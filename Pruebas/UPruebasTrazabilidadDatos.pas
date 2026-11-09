@@ -32,6 +32,8 @@ type
     [Test]
     procedure Access_RegistrarEvento_GuardaClaveYFecha;
     [Test]
+    procedure Access_RegistrarEvento_GuardaUsuarioPcEIpDados;
+    [Test]
     procedure Access_SinColumnasF5_GuardaLaFilaDeSiempre;
     [Test]
     procedure Access_LineaTiempo_MaximoLimitaYAvisa;
@@ -389,6 +391,22 @@ begin
   L := Linea(TSembradoVista.Clave('F2T-EXP', '014001'), 'administrador', True, 3, Mas);
   Assert.AreEqual(3, Length(L));
   Assert.IsTrue(Mas);
+end;
+
+procedure TPruebasTrazabilidadDatos.Access_RegistrarEvento_GuardaUsuarioPcEIpDados;
+begin
+  if GetEnvironmentVariable('ARCHIGENIO_TEST_MDB') = '' then
+    Assert.Pass('omitida: falta ARCHIGENIO_TEST_MDB');
+  Conectar(False);
+  RegistrarEventoDoc(FConn, ClavePrueba('F5T-005'), 5, 'origen F5T-005', 'usr1',
+    'Rol', 'S1', 'winuser', 'PC-PRUEBA', '10.1.2.3');
+  Assert.AreEqual(1, Cuenta('SELECT COUNT(*) FROM tb_log WHERE codigodoc = ''F5T-005'' ' +
+    'AND usuariopc = ''winuser'' AND pc = ''PC-PRUEBA'' AND ip = ''10.1.2.3'''));
+  // sin origen explicito sigue valiendo el entorno (unidades sin acceso a DatosPC)
+  RegistrarEventoDoc(FConn, ClavePrueba('F5T-006'), 5, 'origen F5T-006', 'usr1',
+    'Rol', 'S1');
+  Assert.AreEqual(1, Cuenta('SELECT COUNT(*) FROM tb_log WHERE codigodoc = ''F5T-006'' ' +
+    'AND ip = '''''));
 end;
 
 procedure TPruebasTrazabilidadDatos.Access_SinColumnasF5_GuardaLaFilaDeSiempre;

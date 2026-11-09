@@ -12,9 +12,13 @@ uses
 
 { Inserta un evento del documento en tb_log. Si tb_log aun no tiene las
   columnas de la F5 inserta la fila de siempre (sin clave de documento) para no
-  perder la bitacora. Serie va a la columna serie. }
+  perder la bitacora. Serie va a la columna serie. UsuarioPC, NombrePC e IP son
+  el origen del evento (columnas usuariopc, pc, ip, como el log de siempre);
+  si UsuarioPC o NombrePC vienen vacios se toman del entorno (USERNAME,
+  COMPUTERNAME) y la IP queda vacia. }
 procedure RegistrarEventoDoc(Conn: TFDConnection; const Clave: TClaveDocumento;
-  Accion: Integer; const Msg, Usuario, Rol, Serie: string);
+  Accion: Integer; const Msg, Usuario, Rol, Serie: string;
+  const UsuarioPC: string = ''; const NombrePC: string = ''; const IP: string = '');
 
 { Linea de tiempo del documento (todas sus versiones: mismo IdEstructura, id,
   CodSubs y Codigodoc): eventos de tb_log con fecha_evento y prestamos
@@ -36,7 +40,8 @@ uses
   FireDAC.Stan.Param, FireDAC.Stan.Error, UAlcanceDatos, UEsquemaTrazabilidad;
 
 procedure RegistrarEventoDoc(Conn: TFDConnection; const Clave: TClaveDocumento;
-  Accion: Integer; const Msg, Usuario, Rol, Serie: string);
+  Accion: Integer; const Msg, Usuario, Rol, Serie: string;
+  const UsuarioPC: string; const NombrePC: string; const IP: string);
 const
   BASE_COLS = 'usuariopc, pc, fecha, ip, usuario_sistema, rol, msg, serie, ' +
     'subserie, IdEstructura, accion';
@@ -44,10 +49,16 @@ const
 
   procedure Poner(Q: TFDQuery);
   begin
-    Q.ParamByName('a').AsString := GetEnvironmentVariable('USERNAME');
-    Q.ParamByName('b').AsString := GetEnvironmentVariable('COMPUTERNAME');
+    if UsuarioPC <> '' then
+      Q.ParamByName('a').AsString := UsuarioPC
+    else
+      Q.ParamByName('a').AsString := GetEnvironmentVariable('USERNAME');
+    if NombrePC <> '' then
+      Q.ParamByName('b').AsString := NombrePC
+    else
+      Q.ParamByName('b').AsString := GetEnvironmentVariable('COMPUTERNAME');
     Q.ParamByName('c').AsString := FormatDateTime('[ddd dd mmm, hh:nn:ss:zzz]', Now);
-    Q.ParamByName('d').AsString := '';
+    Q.ParamByName('d').AsString := IP;
     Q.ParamByName('e').AsString := Usuario;
     Q.ParamByName('f').AsString := Rol;
     Q.ParamByName('g').AsString := Copy(Msg, 1, 255);

@@ -4207,7 +4207,8 @@ procedure TUDM.LogDoc(const Clave: TClaveDocumento; const Mensaje: string; Acc: 
 begin
   try
     RegistrarEventoDoc(Conn, Clave, Acc, Mensaje, UDM.UserName, UDM.Rol,
-      UDM.SudSDetail.FieldByName('serie').AsString);
+      UDM.SudSDetail.FieldByName('serie').AsString,
+      DatosPC.Usuario, DatosPC.Nombre, DatosPC.IP);
   except
     // la bitacora nunca bloquea la accion del usuario
   end;

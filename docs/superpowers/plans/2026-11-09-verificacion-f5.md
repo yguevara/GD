@@ -6,6 +6,7 @@ Plan: `2026-11-09-trazabilidad-f5.md`. Pendiente de ejecutar por una persona con
 
 - **Códigos de `tb_accionlog`:** el código usa 2 Eliminar, 3 Modificar, 5 Insertar y 14 Visualizar (confirmados por el código existente); 4 Descargar y 6 Visualizar se dedujeron del orden y **no están confirmados**. Ejecutar `SELECT * FROM tb_accionlog` y comparar con `UTrazabilidad.pas`. Si difieren, los eventos saldrían como otro tipo.
 - **Eventos anteriores a la F5** no tienen clave de documento: no aparecen en la historia (es lo esperado).
+- **Columna `IdEstructura` de `tb_log`:** desde la F5, los eventos de documento (alta, modificación, baja, consulta) guardan ahí el **código** de la estructura (p. ej. `A.4.3`), porque es parte de la clave de la historia. Antes guardaban el nombre (`Nombreestructura`). En «Administración del log» (`UAdminLog`) las filas viejas y las nuevas muestran valores distintos en esa columna; es esperado. El usuario del equipo, el nombre del PC y la IP se siguen guardando como antes (excepto en las altas por «Agregar documentos», que no tiene acceso a `DatosPC`: la IP queda vacía).
 - **Circulación entre departamentos** no entra (es la F9).
 
 ## Preparación
