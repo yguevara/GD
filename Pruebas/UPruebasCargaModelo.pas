@@ -25,12 +25,14 @@ type
     procedure LimpiarNombreArchivo_Casos;
     [Test]
     procedure ExpandirRutas_CarpetasSueltosYFiltros;
+    [Test]
+    procedure ControlParaCampo_Casos;
   end;
 
 implementation
 
 uses
-  System.SysUtils, System.IOUtils, UCargaModelo;
+  System.SysUtils, System.IOUtils, UCargaModelo, UMetadatosSubserie;
 
 function Candidato: TCandidato;
 begin
@@ -167,6 +169,19 @@ begin
   finally
     TDirectory.Delete(Raiz, True);
   end;
+end;
+
+procedure TPruebasCargaModelo.ControlParaCampo_Casos;
+begin
+  Assert.AreEqual(Ord(cmEdit), Ord(ControlParaCampo(tmTexto, 50)));
+  Assert.AreEqual(Ord(cmEdit), Ord(ControlParaCampo(tmTexto, 255)));
+  Assert.AreEqual(Ord(cmMemo), Ord(ControlParaCampo(tmTexto, 256)));
+  Assert.AreEqual(Ord(cmMemo), Ord(ControlParaCampo(tmTexto, 0)));
+  Assert.AreEqual(Ord(cmMemo), Ord(ControlParaCampo(tmMemo, 10)));
+  Assert.AreEqual(Ord(cmFecha), Ord(ControlParaCampo(tmFecha, 0)));
+  Assert.AreEqual(Ord(cmNumero), Ord(ControlParaCampo(tmEntero, 0)));
+  Assert.AreEqual(Ord(cmNumero), Ord(ControlParaCampo(tmReal, 0)));
+  Assert.AreEqual(Ord(cmSiNo), Ord(ControlParaCampo(tmBooleano, 0)));
 end;
 
 initialization

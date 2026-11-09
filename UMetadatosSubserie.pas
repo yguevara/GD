@@ -24,6 +24,8 @@ type
     Obligatorio: Boolean;
   end;
 
+  TControlMeta = (cmEdit, cmMemo, cmFecha, cmNumero, cmSiNo);
+
   TClaveMeta = record
     IdEstructura: string;
     Id: Integer;
@@ -32,6 +34,11 @@ type
     Version: string;
     Codigodoc: string;
   end;
+
+{ Control que corresponde a un campo: texto de hasta 255 = cmEdit; Memo, o
+  longitud 0 o mayor de 255 = cmMemo. (Esta aqui y no en UCargaModelo porque
+  TTipoMeta usa TValorMeta de UCargaModelo.) }
+function ControlParaCampo(Tipo: TTipoMeta; Longitud: Integer): TControlMeta;
 
 { Campos de la subserie ordenados por Orden; vacio si no tiene variables. }
 function CargarCamposSubserie(Conn: TFDConnection; const CodSubs: string): TArray<TCampoMeta>;
@@ -71,6 +78,22 @@ begin
     6: Result := tmBooleano;
   else
     Result := tmTexto;
+  end;
+end;
+
+function ControlParaCampo(Tipo: TTipoMeta; Longitud: Integer): TControlMeta;
+begin
+  case Tipo of
+    tmTexto:
+      if (Longitud > 0) and (Longitud <= 255) then
+        Result := cmEdit
+      else
+        Result := cmMemo;
+    tmMemo: Result := cmMemo;
+    tmFecha: Result := cmFecha;
+    tmEntero, tmReal: Result := cmNumero;
+  else
+    Result := cmSiNo;
   end;
 end;
 

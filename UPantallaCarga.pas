@@ -5,8 +5,9 @@ unit UPantallaCarga;
   Construida por codigo (sin .dfm). La lista es un TListView virtual (OwnerData):
   un solo control sin importar cuantos archivos se suelten. La logica vive en
   UCargaModelo y UCargaLote; aqui solo se pinta y se recoge lo que el usuario
-  escribe. Pendiente (Tarea 6): tarjeta de datos propios de la subserie y modo
-  Guiado. Codigo en ASCII. }
+  escribe. La tarjeta "Datos de la subserie" se genera en tiempo de ejecucion
+  desde cl_VarSubserie (ningun nombre de campo esta escrito aqui). Modo Guiado:
+  la misma pantalla por pasos (1 Archivos, 2 Datos, 3 Revisar). Codigo en ASCII. }
 
 interface
 
@@ -24,7 +25,7 @@ implementation
 uses
   Winapi.Windows, Winapi.Messages, Winapi.ShellAPI, System.Classes, System.UITypes,
   Vcl.Controls, Vcl.Forms, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.Dialogs,
-  Vcl.Graphics, FireDAC.Stan.Param, UCargaModelo, UCargaLote, UMetadatosSubserie, UTema;
+  Vcl.Graphics, FireDAC.Stan.Param, System.IniFiles, System.IOUtils, UCargaModelo, UCargaLote, UMetadatosSubserie, UTema;
 
 type
   TfrmPantallaCarga = class(TForm)
@@ -52,7 +53,30 @@ type
     FBtnAplicar, FBtnGuardar, FBtnCancelar: TButton;
     FProgreso: TProgressBar;
     FTexto: TLabel;
+    FBarra, FDerTotal, FDerArriba: TPanel;
+    FScroll: TScrollBox;
+    FCtlMeta: TArray<TControl>;
+    FMsgMeta: TArray<TLabel>;
+    FBtnRepetir, FBtnAnt, FBtnSig: TButton;
+    FChkGuiado: TCheckBox;
+    FPaso: Integer;
     procedure Construir;
+    procedure CrearTarjetaPropia;
+    function ValoresDeControles: TArray<TValorMeta>;
+    procedure PonerValores(const Valores: TArray<TValorMeta>);
+    function ValorDe(const Valores: TArray<TValorMeta>; const Nombre: string): string;
+    procedure EditoMeta(Sender: TObject);
+    procedure RepetirClick(Sender: TObject);
+    function EstadoDe(const C: TCandidato): TEstadoCandidato;
+    function Detalle(const C: TCandidato): string;
+    procedure ActualizarMensajes(const C: TCandidato);
+    function ArchivoModo: string;
+    function LeerModoGuiado: Boolean;
+    procedure GuardarModoGuiado(Valor: Boolean);
+    procedure GuiadoClick(Sender: TObject);
+    procedure AnteriorClick(Sender: TObject);
+    procedure SiguienteClick(Sender: TObject);
+    procedure AplicarPaso;
     function Etiqueta(Padre: TWinControl; const Texto: string; Arriba: Integer): TLabel;
     function Boton(Padre: TWinControl; const Texto: string; Izq, Ancho: Integer;
       AlClick: TNotifyEvent): TButton;
@@ -98,6 +122,8 @@ end;
 constructor TfrmPantallaCarga.Crear(const Origen: TOrigenDocumento;
   const Subserie: string; Conn: TFDConnection; Alcance: TAlcanceUsuario;
   Almacen: IAlmacenFicheros);
+var
+  I: Integer;
 begin
   inherited CreateNew(Application);
   FConn := Conn;
@@ -108,6 +134,14 @@ begin
   FTema := TemaClaro;
   FCampos := CargarCamposSubserie(Conn, Origen.CodSubs);
   FTablaMeta := NombreTablaMeta(Conn, Origen.CodSubs);
+  if FTablaMeta = '' then
+    FCampos := nil;
+  for I := 0 to High(FCampos) do
+    if FCampos[I].Obligatorio then
+    begin
+      SetLength(FObligatorios, Length(FObligatorios) + 1);
+      FObligatorios[High(FObligatorios)] := FCampos[I].Nombre;
+    end;
   Construir;
 end;
 
@@ -160,13 +194,22 @@ begin
   Pie.ParentBackground := False;
   Pie.Color := FTema.Superficie2;
 
+  FDerTotal := TPanel.Create(Self);
+  FDerTotal.Parent := Self;
+  FDerTotal.Align := alRight;
+  FDerTotal.Width := 330;
+  FDerTotal.BevelOuter := bvNone;
+  FDerTotal.ParentBackground := False;
+  FDerTotal.Color := FTema.Superficie;
+
   Der := TPanel.Create(Self);
-  Der.Parent := Self;
-  Der.Align := alRight;
-  Der.Width := 330;
+  Der.Parent := FDerTotal;
+  Der.Align := alTop;
+  Der.Height := 290;
   Der.BevelOuter := bvNone;
   Der.ParentBackground := False;
   Der.Color := FTema.Superficie;
+  FDerArriba := Der;
 
   Izq := TPanel.Create(Self);
   Izq.Parent := Self;
@@ -197,6 +240,7 @@ begin
   Barra.BevelOuter := bvNone;
   Barra.ParentBackground := False;
   Barra.Color := FTema.Fondo;
+  FBarra := Barra;
   Boton(Barra, 'Elegir archivos...', 0, 130, ElegirClick);
   Boton(Barra, 'Agregar carpeta...', 138, 130, CarpetaClick);
   Boton(Barra, 'Quitar', 276, 70, QuitarClick);
@@ -207,6 +251,12 @@ begin
   FChkSub.Width := 180;
   FChkSub.Caption := 'Incluir subcarpetas';
   FChkSub.Checked := True;
+  FChkGuiado := TCheckBox.Create(Self);
+  FChkGuiado.Parent := Barra;
+  FChkGuiado.SetBounds(550, 6, 130, 17);
+  FChkGuiado.Caption := 'Modo guiado';
+  FChkGuiado.Checked := LeerModoGuiado;
+  FChkGuiado.OnClick := GuiadoClick;
 
   FLista := TListView.Create(Self);
   FLista.Parent := Izq;
@@ -229,6 +279,9 @@ begin
   Col := FLista.Columns.Add;
   Col.Caption := 'Estado';
   Col.Width := 110;
+  Col := FLista.Columns.Add;
+  Col.Caption := 'Detalle';
+  Col.Width := 200;
 
   { Derecha: datos del documento seleccionado }
   Etiqueta(Der, 'Archivo', 14);
@@ -263,16 +316,17 @@ begin
   FEstado := Etiqueta(Der, '', 226);
   FEstado.Font.Style := [fsBold];
 
-  FBtnAplicar := Boton(Der, 'Aplicar fecha a todos', 12, 160, AplicarClick);
+  FBtnAplicar := Boton(Der, 'Aplicar a todos', 12, 160, AplicarClick);
   FBtnAplicar.Top := 256;
+  CrearTarjetaPropia;
 
   { Pie }
   FProgreso := TProgressBar.Create(Self);
   FProgreso.Parent := Pie;
-  FProgreso.SetBounds(12, 18, 260, 14);
+  FProgreso.SetBounds(12, 18, 160, 14);
   FTexto := TLabel.Create(Self);
   FTexto.Parent := Pie;
-  FTexto.SetBounds(284, 17, 300, 15);
+  FTexto.SetBounds(180, 17, 180, 15);
   FTexto.Caption := 'Sin archivos';
   FBtnCancelar := Boton(Pie, 'Cancelar', 0, 90, CancelarClick);
   FBtnGuardar := Boton(Pie, 'Guardar todos', 0, 120, GuardarClick);
@@ -282,7 +336,364 @@ begin
   FBtnGuardar.Top := 10;
   FBtnCancelar.Left := Pie.Width - 90 - 12;
   FBtnGuardar.Left := FBtnCancelar.Left - 120 - 8;
+  FBtnSig := Boton(Pie, 'Siguiente >', 0, 100, SiguienteClick);
+  FBtnAnt := Boton(Pie, '< Anterior', 0, 100, AnteriorClick);
+  FBtnSig.Anchors := [akRight, akTop];
+  FBtnAnt.Anchors := [akRight, akTop];
+  FBtnSig.Top := 10;
+  FBtnAnt.Top := 10;
+  FBtnSig.Left := FBtnGuardar.Left - 100 - 8;
+  FBtnAnt.Left := FBtnSig.Left - 100 - 8;
+  FPaso := 1;
+  AplicarPaso;
   Refrescar;
+end;
+
+{ ---- Tarjeta de datos propios (en tiempo de ejecucion) ---- }
+
+procedure TfrmPantallaCarga.CrearTarjetaPropia;
+var
+  I, Y: Integer;
+  Campo: TCampoMeta;
+  Lbl: TLabel;
+  Ctl: TControl;
+  Memo: TMemo;
+  Ed: TEdit;
+  Fch: TDateTimePicker;
+  Cmb: TComboBox;
+begin
+  if (FTablaMeta = '') or (Length(FCampos) = 0) then
+    Exit;
+  FScroll := TScrollBox.Create(Self);
+  FScroll.Parent := FDerTotal;
+  FScroll.Align := alClient;
+  FScroll.BorderStyle := bsNone;
+  FScroll.VertScrollBar.Tracking := True;
+  FScroll.Color := FTema.Superficie;
+  Lbl := TLabel.Create(Self);
+  Lbl.Parent := FScroll;
+  Lbl.Caption := 'Datos de la subserie';
+  Lbl.Font.Style := [fsBold];
+  Lbl.Left := 12;
+  Lbl.Top := 6;
+  FBtnRepetir := Boton(FScroll, 'Repetir los ultimos valores', 12, 190, RepetirClick);
+  FBtnRepetir.Top := 26;
+  SetLength(FCtlMeta, Length(FCampos));
+  SetLength(FMsgMeta, Length(FCampos));
+  Y := 62;
+  for I := 0 to High(FCampos) do
+  begin
+    Campo := FCampos[I];
+    Lbl := TLabel.Create(Self);
+    Lbl.Parent := FScroll;
+    Lbl.Left := 12;
+    Lbl.Top := Y;
+    Lbl.Font.Color := FTema.TextoSuave;
+    if Campo.Obligatorio then
+      Lbl.Caption := Campo.Etiqueta + ' *'
+    else
+      Lbl.Caption := Campo.Etiqueta;
+    Inc(Y, 18);
+    case ControlParaCampo(Campo.Tipo, Campo.Longitud) of
+      cmMemo:
+        begin
+          Memo := TMemo.Create(Self);
+          Memo.Parent := FScroll;
+          Memo.SetBounds(12, Y, 280, 60);
+          Memo.ScrollBars := ssVertical;
+          Memo.OnChange := EditoMeta;
+          Ctl := Memo;
+        end;
+      cmFecha:
+        begin
+          Fch := TDateTimePicker.Create(Self);
+          Fch.Parent := FScroll;
+          Fch.SetBounds(12, Y, 140, 23);
+          Fch.Kind := dtkDate;
+          Fch.ShowCheckbox := True;
+          Fch.Checked := False;
+          Fch.OnChange := EditoMeta;
+          Ctl := Fch;
+        end;
+      cmSiNo:
+        begin
+          Cmb := TComboBox.Create(Self);
+          Cmb.Parent := FScroll;
+          Cmb.SetBounds(12, Y, 140, 23);
+          Cmb.Style := csDropDownList;
+          Cmb.Items.Add('');
+          Cmb.Items.Add('Si');
+          Cmb.Items.Add('No');
+          Cmb.ItemIndex := 0;
+          Cmb.OnChange := EditoMeta;
+          Ctl := Cmb;
+        end;
+    else
+      begin
+        Ed := TEdit.Create(Self);
+        Ed.Parent := FScroll;
+        Ed.SetBounds(12, Y, 280, 23);
+        if (Campo.Tipo = tmTexto) and (Campo.Longitud > 0) then
+          Ed.MaxLength := Campo.Longitud;
+        Ed.OnChange := EditoMeta;
+        Ctl := Ed;
+      end;
+    end;
+    Ctl.Tag := I;
+    FCtlMeta[I] := Ctl;
+    Inc(Y, Ctl.Height + 2);
+    Lbl := TLabel.Create(Self);
+    Lbl.Parent := FScroll;
+    Lbl.Left := 12;
+    Lbl.Top := Y;
+    Lbl.Font.Color := FTema.Aviso;
+    Lbl.Caption := '';
+    FMsgMeta[I] := Lbl;
+    Inc(Y, 20);
+  end;
+end;
+
+function TfrmPantallaCarga.ValoresDeControles: TArray<TValorMeta>;
+var
+  I: Integer;
+  Txt: string;
+begin
+  SetLength(Result, Length(FCtlMeta));
+  for I := 0 to High(FCtlMeta) do
+  begin
+    Txt := '';
+    if FCtlMeta[I] is TDateTimePicker then
+    begin
+      if TDateTimePicker(FCtlMeta[I]).Checked then
+        Txt := FormatDateTime('dd/mm/yyyy', TDateTimePicker(FCtlMeta[I]).Date);
+    end
+    else if FCtlMeta[I] is TComboBox then
+      Txt := TComboBox(FCtlMeta[I]).Text
+    else if FCtlMeta[I] is TMemo then
+      Txt := TMemo(FCtlMeta[I]).Text
+    else if FCtlMeta[I] is TEdit then
+      Txt := TEdit(FCtlMeta[I]).Text;
+    Result[I].Nombre := FCampos[I].Nombre;
+    Result[I].Valor := Txt;
+  end;
+end;
+
+function TfrmPantallaCarga.ValorDe(const Valores: TArray<TValorMeta>;
+  const Nombre: string): string;
+var
+  I: Integer;
+begin
+  Result := '';
+  for I := 0 to High(Valores) do
+    if SameText(Valores[I].Nombre, Nombre) then
+      Exit(Valores[I].Valor);
+end;
+
+procedure TfrmPantallaCarga.PonerValores(const Valores: TArray<TValorMeta>);
+var
+  I: Integer;
+  Txt: string;
+  D: TDateTime;
+  FS: TFormatSettings;
+begin
+  FS := TFormatSettings.Create;
+  FS.DateSeparator := '/';
+  FS.ShortDateFormat := 'dd/mm/yyyy';
+  for I := 0 to High(FCtlMeta) do
+  begin
+    Txt := ValorDe(Valores, FCampos[I].Nombre);
+    if FCtlMeta[I] is TDateTimePicker then
+    begin
+      if (Txt <> '') and TryStrToDate(Txt, D, FS) then
+      begin
+        TDateTimePicker(FCtlMeta[I]).Date := D;
+        TDateTimePicker(FCtlMeta[I]).Checked := True;
+      end
+      else
+        TDateTimePicker(FCtlMeta[I]).Checked := False;
+    end
+    else if FCtlMeta[I] is TComboBox then
+      TComboBox(FCtlMeta[I]).ItemIndex := TComboBox(FCtlMeta[I]).Items.IndexOf(Txt)
+    else if FCtlMeta[I] is TMemo then
+      TMemo(FCtlMeta[I]).Text := Txt
+    else if FCtlMeta[I] is TEdit then
+      TEdit(FCtlMeta[I]).Text := Txt;
+  end;
+end;
+
+function TfrmPantallaCarga.EstadoDe(const C: TCandidato): TEstadoCandidato;
+var
+  I: Integer;
+begin
+  Result := EstadoTrasEditar(C, FObligatorios);
+  if Result <> ecListo then
+    Exit;
+  for I := 0 to High(FCampos) do
+    if ValidarValorMeta(FCampos[I], ValorDe(C.Meta, FCampos[I].Nombre)) <> '' then
+      Exit(ecFalta);
+end;
+
+function TfrmPantallaCarga.Detalle(const C: TCandidato): string;
+var
+  F: TArray<string>;
+  I: Integer;
+begin
+  if C.Error <> '' then
+    Exit(C.Error);
+  Result := '';
+  if C.Estado <> ecFalta then
+    Exit;
+  F := Faltantes(C, FObligatorios);
+  for I := 0 to High(F) do
+    if Result = '' then
+      Result := F[I]
+    else
+      Result := Result + ', ' + F[I];
+  if Result = '' then
+    Result := 'Hay datos invalidos'
+  else
+    Result := 'Falta: ' + Result;
+end;
+
+procedure TfrmPantallaCarga.ActualizarMensajes(const C: TCandidato);
+var
+  I: Integer;
+begin
+  for I := 0 to High(FMsgMeta) do
+    FMsgMeta[I].Caption := ValidarValorMeta(FCampos[I], ValorDe(C.Meta, FCampos[I].Nombre));
+end;
+
+procedure TfrmPantallaCarga.EditoMeta(Sender: TObject);
+var
+  I: Integer;
+begin
+  if FActualizando or (FLista.ItemIndex < 0) or (FLista.ItemIndex > High(FLote)) then
+    Exit;
+  I := FLista.ItemIndex;
+  if FLote[I].Estado in [ecGuardado, ecSubiendo] then
+    Exit;
+  FLote[I].Meta := ValoresDeControles;
+  FLote[I].Estado := EstadoDe(FLote[I]);
+  FLote[I].Error := '';
+  ActualizarMensajes(FLote[I]);
+  FEstado.Caption := TextoEstado(FLote[I].Estado);
+  FLista.Invalidate;
+  FBtnGuardar.Enabled := not FOcupado;
+end;
+
+procedure TfrmPantallaCarga.RepetirClick(Sender: TObject);
+var
+  U: TArray<TValorMeta>;
+begin
+  if (FLista.ItemIndex < 0) or FOcupado then
+    Exit;
+  U := LeerUltimosValores(FConn, FOrigen.Usuario, FOrigen.CodSubs);
+  if Length(U) = 0 then
+  begin
+    MessageDlg('Todavia no hay valores anteriores para esta subserie.',
+      mtInformation, [mbOK], 0);
+    Exit;
+  end;
+  FActualizando := True;
+  try
+    PonerValores(U);
+  finally
+    FActualizando := False;
+  end;
+  EditoMeta(nil);
+end;
+
+{ ---- Modo Guiado ---- }
+
+function TfrmPantallaCarga.ArchivoModo: string;
+begin
+  Result := TPath.Combine(TPath.Combine(TPath.GetHomePath, 'ArchiGenio'), 'carga.ini');
+end;
+
+function TfrmPantallaCarga.LeerModoGuiado: Boolean;
+var
+  Ini: TIniFile;
+begin
+  Result := False;
+  try
+    if not TFile.Exists(ArchivoModo) then
+      Exit;
+    Ini := TIniFile.Create(ArchivoModo);
+    try
+      Result := Ini.ReadBool('Usuario_' + FOrigen.Usuario, 'Guiado', False);
+    finally
+      Ini.Free;
+    end;
+  except
+    Result := False;
+  end;
+end;
+
+procedure TfrmPantallaCarga.GuardarModoGuiado(Valor: Boolean);
+var
+  Ini: TIniFile;
+begin
+  try
+    TDirectory.CreateDirectory(ExtractFilePath(ArchivoModo));
+    Ini := TIniFile.Create(ArchivoModo);
+    try
+      Ini.WriteBool('Usuario_' + FOrigen.Usuario, 'Guiado', Valor);
+    finally
+      Ini.Free;
+    end;
+  except
+    { preferencia opcional: si no se puede guardar, no pasa nada }
+  end;
+end;
+
+procedure TfrmPantallaCarga.GuiadoClick(Sender: TObject);
+begin
+  GuardarModoGuiado(FChkGuiado.Checked);
+  FPaso := 1;
+  AplicarPaso;
+end;
+
+procedure TfrmPantallaCarga.AplicarPaso;
+var
+  Guiado: Boolean;
+begin
+  Guiado := FChkGuiado.Checked;
+  FBtnAnt.Visible := Guiado;
+  FBtnSig.Visible := Guiado;
+  if not Guiado then
+  begin
+    Caption := 'Agregar documentos - ' + FSubserie;
+    FZona.Visible := True;
+    FBarra.Visible := True;
+    FDerTotal.Visible := True;
+    Exit;
+  end;
+  Caption := Format('Agregar documentos - %s (paso %d de 3)', [FSubserie, FPaso]);
+  FZona.Visible := FPaso = 1;
+  FBarra.Visible := FPaso = 1;
+  FDerTotal.Visible := FPaso = 2;
+  FBtnAnt.Enabled := FPaso > 1;
+  FBtnSig.Enabled := (FPaso < 3) and (Length(FLote) > 0);
+  case FPaso of
+    1: FBtnSig.Caption := 'Datos >';
+    2: FBtnSig.Caption := 'Revisar >';
+  else
+    FBtnSig.Caption := 'Siguiente >';
+  end;
+end;
+
+procedure TfrmPantallaCarga.AnteriorClick(Sender: TObject);
+begin
+  if FPaso > 1 then
+    Dec(FPaso);
+  AplicarPaso;
+end;
+
+procedure TfrmPantallaCarga.SiguienteClick(Sender: TObject);
+begin
+  if FPaso < 3 then
+    Inc(FPaso);
+  AplicarPaso;
 end;
 
 procedure TfrmPantallaCarga.WMDropFiles(var Msg: TWMDropFiles);
@@ -369,7 +780,7 @@ begin
     C.Titulo := TituloDesdeNombre(Archivos[I]);
     C.Codigo := Codigos[I];
     C.Fecha := Date;
-    C.Estado := EstadoTrasEditar(C, FObligatorios);
+    C.Estado := EstadoDe(C);
     FLote[Base + I] := C;
   end;
   Refrescar;
@@ -403,6 +814,8 @@ begin
   else
     FTexto.Caption := Format('%d archivos, %d para guardar', [Length(FLote), Listos]);
   FBtnGuardar.Enabled := (Listos > 0) and not FOcupado;
+  if FBtnSig <> nil then
+    FBtnSig.Enabled := (FPaso < 3) and (Length(FLote) > 0);
   MostrarSeleccionado;
 end;
 
@@ -416,6 +829,7 @@ begin
   Item.Caption := ExtractFileName(C.Archivo);
   Item.SubItems.Add(C.Titulo);
   Item.SubItems.Add(TextoEstado(C.Estado));
+  Item.SubItems.Add(Detalle(C));
 end;
 
 procedure TfrmPantallaCarga.ListaCambio(Sender: TObject; Item: TListItem;
@@ -438,8 +852,15 @@ begin
     FEdCodigo.Enabled := Hay and not FOcupado;
     FFecha.Enabled := Hay and not FOcupado;
     FBtnAplicar.Enabled := Hay and (Length(FLote) > 1) and not FOcupado;
+    if FScroll <> nil then
+      FScroll.Enabled := Hay and not FOcupado;
     if Hay then
     begin
+      if FScroll <> nil then
+      begin
+        PonerValores(FLote[I].Meta);
+        ActualizarMensajes(FLote[I]);
+      end;
       FEdArchivo.Text := FLote[I].Archivo;
       FEdTitulo.Text := FLote[I].Titulo;
       FEdCodigo.Text := FLote[I].Codigo;
@@ -454,6 +875,11 @@ begin
       FEdTitulo.Text := '';
       FEdCodigo.Text := '';
       FEstado.Caption := '';
+      if FScroll <> nil then
+      begin
+        PonerValores(nil);
+        ActualizarMensajes(Default(TCandidato));
+      end;
     end;
   finally
     FActualizando := False;
@@ -472,7 +898,7 @@ begin
   FLote[I].Titulo := FEdTitulo.Text;
   FLote[I].Codigo := FEdCodigo.Text;
   FLote[I].Fecha := Trunc(FFecha.Date);
-  FLote[I].Estado := EstadoTrasEditar(FLote[I], FObligatorios);
+  FLote[I].Estado := EstadoDe(FLote[I]);
   FLote[I].Error := '';
   FEstado.Caption := TextoEstado(FLote[I].Estado);
   FLista.Invalidate;
@@ -550,9 +976,15 @@ begin
     Exit;
   Plantilla := FLote[I];
   AplicarATodos(FLote, Plantilla, [ccFecha]);
+  if (FScroll <> nil) and
+    (MessageDlg('Aplicar tambien los datos de la subserie de este documento a todos los demas?',
+      mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
+    for I := 0 to High(FLote) do
+      if not (FLote[I].Estado in [ecGuardado, ecSubiendo]) then
+        FLote[I].Meta := Copy(Plantilla.Meta);
   for I := 0 to High(FLote) do
     if not (FLote[I].Estado in [ecGuardado, ecSubiendo]) then
-      FLote[I].Estado := EstadoTrasEditar(FLote[I], FObligatorios);
+      FLote[I].Estado := EstadoDe(FLote[I]);
   Refrescar;
 end;
 
