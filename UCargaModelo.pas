@@ -58,7 +58,16 @@ function EstadoTrasEditar(const C: TCandidato; const Obligatorios: TArray<string
 { Nombre valido en Windows para usar en rutas: \ / : * ? " < > | pasan a '_'. }
 function LimpiarNombreArchivo(const S: string): string;
 
+{ Archivos de las carpetas y de las rutas sueltas (lo que se suelta en la
+  pantalla): sin duplicados, sin ocultos ni temporales (~$*, Thumbs.db,
+  desktop.ini), ordenados. Recursivo = entra en subcarpetas. Las rutas que no
+  existen se ignoran. }
+function ExpandirRutas(const Rutas: TArray<string>; Recursivo: Boolean): TArray<string>;
+
 implementation
+
+uses
+  System.IOUtils, System.Generics.Collections, System.Generics.Defaults;
 
 function TituloDesdeNombre(const Archivo: string): string;
 var
@@ -192,6 +201,69 @@ begin
       Result[I] := '_';
   if Result = '' then
     Result := '_';
+end;
+
+function EsIgnorable(const Ruta: string): Boolean;
+var
+  Nombre: string;
+begin
+  Nombre := ExtractFileName(Ruta);
+  Result := Nombre.StartsWith('~$') or SameText(Nombre, 'Thumbs.db') or
+    SameText(Nombre, 'desktop.ini');
+  if not Result then
+    try
+      Result := TFileAttribute.faHidden in TFile.GetAttributes(Ruta);
+    except
+      Result := False;
+    end;
+end;
+
+function ExpandirRutas(const Rutas: TArray<string>; Recursivo: Boolean): TArray<string>;
+var
+  Vistos: TDictionary<string, Boolean>;
+  Lista: TList<string>;
+  I: Integer;
+  Opcion: TSearchOption;
+  A: string;
+
+  procedure Agregar(const Ruta: string);
+  begin
+    if EsIgnorable(Ruta) then
+      Exit;
+    if Vistos.ContainsKey(LowerCase(Ruta)) then
+      Exit;
+    Vistos.Add(LowerCase(Ruta), True);
+    Lista.Add(Ruta);
+  end;
+
+begin
+  Vistos := TDictionary<string, Boolean>.Create;
+  Lista := TList<string>.Create;
+  try
+    if Recursivo then
+      Opcion := TSearchOption.soAllDirectories
+    else
+      Opcion := TSearchOption.soTopDirectoryOnly;
+    for I := 0 to High(Rutas) do
+    begin
+      if TDirectory.Exists(Rutas[I]) then
+      begin
+        for A in TDirectory.GetFiles(Rutas[I], '*', Opcion) do
+          Agregar(A);
+      end
+      else if TFile.Exists(Rutas[I]) then
+        Agregar(Rutas[I]);
+    end;
+    Lista.Sort(TComparer<string>.Construct(
+      function(const X, Y: string): Integer
+      begin
+        Result := CompareText(X, Y);
+      end));
+    Result := Lista.ToArray;
+  finally
+    Lista.Free;
+    Vistos.Free;
+  end;
 end;
 
 end.

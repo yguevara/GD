@@ -23,12 +23,14 @@ type
     procedure EstadoTrasEditar_PasaDeFaltaAListo;
     [Test]
     procedure LimpiarNombreArchivo_Casos;
+    [Test]
+    procedure ExpandirRutas_CarpetasSueltosYFiltros;
   end;
 
 implementation
 
 uses
-  System.SysUtils, UCargaModelo;
+  System.SysUtils, System.IOUtils, UCargaModelo;
 
 function Candidato: TCandidato;
 begin
@@ -137,6 +139,34 @@ begin
   Assert.AreEqual('F3T-001', LimpiarNombreArchivo('F3T-001'));
   Assert.AreEqual('a_b_c_d_e_f_g_h_i', LimpiarNombreArchivo('a\b/c:d*e?f"g<h>i'));
   Assert.AreEqual('_', LimpiarNombreArchivo('   '));
+end;
+
+procedure TPruebasCargaModelo.ExpandirRutas_CarpetasSueltosYFiltros;
+var
+  Raiz, Sub: string;
+  R: TArray<string>;
+begin
+  Raiz := TPath.Combine(TPath.GetTempPath, 'exp-rutas-' + TGUID.NewGuid.ToString);
+  Sub := TPath.Combine(Raiz, 'sub');
+  TDirectory.CreateDirectory(Sub);
+  try
+    TFile.WriteAllText(TPath.Combine(Raiz, 'a.pdf'), 'a');
+    TFile.WriteAllText(TPath.Combine(Sub, 'b.pdf'), 'b');
+    TFile.WriteAllText(TPath.Combine(Sub, '~$c.docx'), 'temporal');
+    TFile.WriteAllText(TPath.Combine(Raiz, 'oculto.txt'), 'o');
+    TFile.SetAttributes(TPath.Combine(Raiz, 'oculto.txt'), [TFileAttribute.faHidden]);
+    TFile.WriteAllText(TPath.Combine(Raiz, 'Thumbs.db'), 't');
+    R := ExpandirRutas([Raiz, TPath.Combine(Raiz, 'a.pdf'), TPath.Combine(Raiz, 'no existe.pdf')], True);
+    Assert.AreEqual(2, Length(R), 'a.pdf (sin duplicar) y sub.pdf');
+    Assert.AreEqual('a.pdf', ExtractFileName(R[0]));
+    Assert.AreEqual('b.pdf', ExtractFileName(R[1]));
+    R := ExpandirRutas([Raiz], False);
+    Assert.AreEqual(1, Length(R));
+    Assert.AreEqual('a.pdf', ExtractFileName(R[0]));
+    Assert.AreEqual(0, Length(ExpandirRutas([], True)));
+  finally
+    TDirectory.Delete(Raiz, True);
+  end;
 end;
 
 initialization
