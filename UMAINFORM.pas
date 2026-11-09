@@ -756,7 +756,7 @@ type
     procedure ListaDocsExpediente(const Clave: TClaveDocumento);
     function ListaDocsFicheros(const Clave: TClaveDocumento): TArray<TFicheroDoc>;
     function ListaDocsHistoria(const Clave: TClaveDocumento;
-      out HayMas: Boolean): TArray<TEventoDoc>;
+      out HayMas: Boolean; out Motivo: string): TArray<TEventoDoc>;
     procedure ListaDocsAlternar(Sender: TObject);
     procedure ShellAgregarDocumento(Sender: TObject);
     procedure ShellBuscar(const Texto: string; Ambito: TAmbitoBusqueda);
@@ -2656,7 +2656,10 @@ begin
     UDM.DownloadFileFromFTP(UDM.cmdServer.FieldByName('ipserver').AsString, UDM.cmdServer.FieldByName('usuarioftp').AsString, UDM.cmdServer.FieldByName('pass').AsString, pathfile, Destino, UDM.cmdServer.FieldByName('puerto').AsInteger);
     if FileExists(Destino) then
    // ejecutaPDF(Destino)
-      UDM.EjecutaFichero(Destino)
+    begin
+      UDM.LogDocActual('Se abrio un fichero fuente del documento.', ACCION_VISUALIZAR);
+      UDM.EjecutaFichero(Destino);
+    end
     else
       udm.sms('No se encontró el fichero "' + UDM.qryFuentesDig.FieldByName('nombre').AsString + '" en la ruta especificada.', 1);
   end
@@ -2675,7 +2678,10 @@ begin
     begin
       if FileExists(Destino) then
    // ejecutaPDF(Destino)
-        UDM.EjecutaFichero(Destino)
+      begin
+        UDM.LogDocActual('Se abrio un anexo digital del documento.', ACCION_VISUALIZAR);
+        UDM.EjecutaFichero(Destino);
+      end
       else
         udm.sms('No se encontró el fichero "' + UDM.qryAnexosDig.FieldByName('nombre').AsString + '" en la ruta especificada.', 1);
     end
@@ -4298,7 +4304,10 @@ begin
     UDM.DownloadFileFromFTP(UDM.cmdServer.FieldByName('ipserver').AsString, UDM.cmdServer.FieldByName('usuarioftp').AsString, UDM.cmdServer.FieldByName('pass').AsString, pathfile, Destino, UDM.cmdServer.FieldByName('puerto').AsInteger);
     if FileExists(Destino) then
    // ejecutaPDF(Destino)
-      UDM.EjecutaFichero(Destino)
+    begin
+      UDM.LogDocActual('Se abrio un fichero fuente del documento.', ACCION_VISUALIZAR);
+      UDM.EjecutaFichero(Destino);
+    end
     else
       udm.sms('No se encontró el fichero "' + UDM.qryFuentesDig.FieldByName('nombre').AsString + '" en la ruta especificada.', 1);
   end
@@ -4317,7 +4326,10 @@ begin
     begin
       if FileExists(Destino) then
    // ejecutaPDF(Destino)
-        UDM.EjecutaFichero(Destino)
+      begin
+        UDM.LogDocActual('Se abrio un anexo digital del documento.', ACCION_VISUALIZAR);
+        UDM.EjecutaFichero(Destino);
+      end
       else
         udm.sms('No se encontró el fichero "' + UDM.qryAnexosDig.FieldByName('nombre').AsString + '" en la ruta especificada.', 1);
     end
@@ -6986,8 +6998,7 @@ procedure TMAIN.ListaDocsAbrir(const Clave: TClaveDocumento);
 begin
   if ListaDocsLocalizar(Clave) then
   begin
-    UDM.LogDoc(Clave, 'Se abrio el documento con codigo "' + Trim(Clave.Codigodoc) + '".',
-      ACCION_VISUALIZAR);
+    // la consulta se registra en MenuItem5Click, comun a todos los caminos de "Abrir"
     MenuItem5Click(Self); // el mismo "Abrir" del menu de ficheros
   end
   else
@@ -6995,16 +7006,19 @@ begin
 end;
 
 function TMAIN.ListaDocsHistoria(const Clave: TClaveDocumento;
-  out HayMas: Boolean): TArray<TEventoDoc>;
+  out HayMas: Boolean; out Motivo: string): TArray<TEventoDoc>;
 begin
   HayMas := False;
+  Motivo := '';
   Result := nil;
   try
-    Result := CargarLineaTiempo(UDM.Conn, UDM.Alcance, Clave, 200, HayMas);
+    Result := CargarLineaTiempo(UDM.Conn, UDM.Alcance, Clave, 200, HayMas, Motivo);
   except
     on E: Exception do
-      RegistrarErrorLista('Historia: ' + E.ClassName + ': ' + E.Message);
+      Motivo := E.ClassName + ': ' + E.Message;
   end;
+  if Motivo <> '' then
+    RegistrarErrorLista('Historia: ' + Motivo);
 end;
 
 function TMAIN.ListaDocsFicheros(const Clave: TClaveDocumento): TArray<TFicheroDoc>;
@@ -8732,6 +8746,9 @@ begin
   param := UDM.tb_SeriesDatos.FieldByName('codsubs').AsString;
   param1 := UDM.tb_SeriesDatos.FieldByName('codigodoc').AsString;
   listParam := AnsiQuotedStr(param, '"') + ' ' + AnsiQuotedStr(param1, '"');
+  // consulta del documento (lista nueva, arbol clasico y menu de ficheros)
+  UDM.LogDocActual('Se abrio el documento con codigo "' + Trim(param1) + '".',
+    ACCION_VISUALIZAR);
   UDM.RunAndWaitShell(ExtractFilePath(Application.ExeName) + '\PDFExpressViewer.exe', listParam, SW_SHOWMAXIMIZED);
   screen.Cursor := crDefault;
 end;

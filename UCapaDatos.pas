@@ -981,6 +981,9 @@ type
     procedure ObtenerDatosPC(var Datos: TDatosPC);
     procedure log(Mensaje: string; acc: Integer; aSerie, aSSerie, aStructura: string);
     procedure LogDoc(const Clave: TClaveDocumento; const Mensaje: string; Acc: Integer);
+    { Igual que LogDoc con la clave del registro actual de tb_SeriesDatos (el
+      documento cuyos ficheros se abren). }
+    procedure LogDocActual(const Mensaje: string; Acc: Integer);
     procedure Boundarys(Sender: TObject);
     procedure ViewHLP(ID: integer);
     procedure DeleteDir(aPath: string);
@@ -4205,6 +4208,16 @@ begin
   try
     RegistrarEventoDoc(Conn, Clave, Acc, Mensaje, UDM.UserName, UDM.Rol,
       UDM.SudSDetail.FieldByName('serie').AsString);
+  except
+    // la bitacora nunca bloquea la accion del usuario
+  end;
+end;
+
+procedure TUDM.LogDocActual(const Mensaje: string; Acc: Integer);
+begin
+  try
+    if tb_SeriesDatos.Active and not tb_SeriesDatos.IsEmpty then
+      LogDoc(ClaveDeFilaDoc(tb_SeriesDatos), Mensaje, Acc);
   except
     // la bitacora nunca bloquea la accion del usuario
   end;

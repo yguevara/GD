@@ -21,7 +21,7 @@ type
   TSolicitudFicheros = function(const Clave: TClaveDocumento): TArray<TFicheroDoc> of object;
   TClaveEvent = procedure(const Clave: TClaveDocumento) of object;
   TSolicitudHistoria = function(const Clave: TClaveDocumento;
-    out HayMas: Boolean): TArray<TEventoDoc> of object;
+    out HayMas: Boolean; out Motivo: string): TArray<TEventoDoc> of object;
 
   TPanelDocumentos = class(TPanel)
   private
@@ -61,6 +61,11 @@ type
     FHistoriaActual: TArray<TEventoDoc>;
     FHayMasHistoria: Boolean;
     FTituloHistoria: string;
+    FMotivoHistoria: string;
+    { La historia se pide una vez por documento seleccionado: redimensionar el
+      panel redibuja las propiedades pero no vuelve a consultar. }
+    FHistoriaValida: Boolean;
+    FHistoriaClave: TClaveDocumento;
     function IconoIdx(const Nombre: string): Integer;
     function NuevaEtiqueta(const Texto: string; Tam: Integer; Color: TColor;
       Negrita: Boolean): TLabel;
@@ -586,6 +591,7 @@ var
 begin
   FFicherosActuales := nil;
   FHistoriaActual := nil;
+  FHistoriaValida := False;
   FEtiquetas.OwnsObjects := True;
   FEtiquetas.Clear;
   FBtnAbrir.Enabled := False;
@@ -664,15 +670,23 @@ begin
     end;
 
     // Historia del documento: los 5 eventos mas recientes y el enlace a todos
-    FHistoriaActual := nil;
-    FHayMasHistoria := False;
     FTituloHistoria := D.Titulo;
     if Assigned(FOnPedirHistoria) then
     begin
-      try
-        FHistoriaActual := FOnPedirHistoria(D.Clave, FHayMasHistoria);
-      except
+      if not (FHistoriaValida and MismaClave(FHistoriaClave, D.Clave)) then
+      begin
         FHistoriaActual := nil;
+        FHayMasHistoria := False;
+        FMotivoHistoria := '';
+        try
+          FHistoriaActual := FOnPedirHistoria(D.Clave, FHayMasHistoria,
+            FMotivoHistoria);
+        except
+          FHistoriaActual := nil;
+          FMotivoHistoria := 'error al pedir la historia';
+        end;
+        FHistoriaClave := D.Clave;
+        FHistoriaValida := True;
       end;
       Lbl := NuevaEtiqueta('HISTORIA', 8, FTema.Acento, True);
       Lbl.Parent := FScroll;
@@ -682,7 +696,11 @@ begin
       Inc(Y, Lbl.Height + 10);
       if Length(FHistoriaActual) = 0 then
       begin
-        Val := NuevaEtiqueta('Sin eventos registrados', 9, FTema.TextoSuave, False);
+        // no decir "sin eventos" cuando en realidad no se pudo leer la historia
+        if FMotivoHistoria <> '' then
+          Val := NuevaEtiqueta('Historia no disponible', 9, FTema.TextoSuave, False)
+        else
+          Val := NuevaEtiqueta('Sin eventos registrados', 9, FTema.TextoSuave, False);
         Val.Parent := FScroll;
         Val.SetBounds(14, Y, Ancho, 16);
         FEtiquetas.Add(Val);

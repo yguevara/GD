@@ -20,6 +20,9 @@ type
     FConn: TFDConnection;
     procedure Conectar(EsSql: Boolean);
     function Cuenta(const Sql: string): Integer;
+    function ClavePrueba(const Cod: string): TClaveDocumento;
+    procedure SembrarDocumento(const C: TClaveDocumento);
+    procedure QuitarColumnasF5;
     procedure ProbarRegistro;
   public
     [TearDown]
@@ -28,6 +31,12 @@ type
     procedure SqlServer_RegistrarEvento_GuardaClaveYFecha;
     [Test]
     procedure Access_RegistrarEvento_GuardaClaveYFecha;
+    [Test]
+    procedure Access_SinColumnasF5_GuardaLaFilaDeSiempre;
+    [Test]
+    procedure Access_LineaTiempo_MaximoLimitaYAvisa;
+    [Test]
+    procedure Access_LineaTiempo_SinColumnasF5_DiceElMotivo;
   end;
 
   [TestFixture]
@@ -99,7 +108,10 @@ procedure TPruebasTrazabilidadDatos.Limpiar;
 begin
   if FConn <> nil then
   try
-    FConn.ExecSQL('DELETE FROM tb_log WHERE codigodoc LIKE ''F5T-%''');
+    // devolver las columnas que una prueba haya quitado y borrar lo sembrado
+    CrearEsquemaTrazabilidad(FConn, FConn.DriverName = 'MSSQL');
+    FConn.ExecSQL('DELETE FROM tb_log WHERE codigodoc LIKE ''F5T-%'' OR msg LIKE ''%F5T-%''');
+    FConn.ExecSQL('DELETE FROM tb_SeriesDatos WHERE Codigodoc LIKE ''F5T-%''');
   except
   end;
   FreeAndNil(FConn);
@@ -108,6 +120,38 @@ end;
 function TPruebasTrazabilidadDatos.Cuenta(const Sql: string): Integer;
 begin
   Result := FConn.ExecSQLScalar(Sql);
+end;
+
+function TPruebasTrazabilidadDatos.ClavePrueba(const Cod: string): TClaveDocumento;
+begin
+  Result.IdEstructura := 'A.4.3';
+  Result.Id := 104;
+  Result.CodSubs := '074';
+  Result.Fecha := EncodeDate(2026, 1, 31);
+  Result.Version := '1';
+  Result.Codigodoc := Cod;
+end;
+
+procedure TPruebasTrazabilidadDatos.SembrarDocumento(const C: TClaveDocumento);
+begin
+  FConn.ExecSQL('INSERT INTO tb_SeriesDatos (IdEstructura, id, codsubs, ' +
+    'Codigodoc, fecha, version, titulodoc) VALUES (:e, :i, :c, :d, :f, :v, ''t'')',
+    [C.IdEstructura, C.Id, C.CodSubs, C.Codigodoc, C.Fecha, C.Version]);
+end;
+
+procedure TPruebasTrazabilidadDatos.QuitarColumnasF5;
+const
+  COLS: array[0..4] of string = ('codigodoc', 'iddoc', 'codsubsdoc',
+    'versiondoc', 'fecha_evento');
+var
+  I: Integer;
+begin
+  try
+    FConn.ExecSQL('DROP INDEX IX_tb_log_codigodoc ON tb_log');
+  except
+  end;
+  for I := 0 to High(COLS) do
+    FConn.ExecSQL('ALTER TABLE tb_log DROP COLUMN ' + COLS[I]);
 end;
 
 procedure TPruebasTrazabilidadDatos.ProbarRegistro;
@@ -220,10 +264,12 @@ function TPruebasLineaTiempoSql.Linea(const Clave: TClaveDocumento;
   out Mas: Boolean): TArray<TEventoDoc>;
 var
   Al: TAlcanceUsuario;
+  Motivo: string;
 begin
   Al := CargarAlcance(FConn, Usuario, EsAdmin);
   try
-    Result := CargarLineaTiempo(FConn, Al, Clave, Maximo, Mas);
+    Result := CargarLineaTiempo(FConn, Al, Clave, Maximo, Mas, Motivo);
+    Assert.AreEqual('', Motivo);
   finally
     Al.Free;
   end;
@@ -343,6 +389,68 @@ begin
   L := Linea(TSembradoVista.Clave('F2T-EXP', '014001'), 'administrador', True, 3, Mas);
   Assert.AreEqual(3, Length(L));
   Assert.IsTrue(Mas);
+end;
+
+procedure TPruebasTrazabilidadDatos.Access_SinColumnasF5_GuardaLaFilaDeSiempre;
+var
+  C: TClaveDocumento;
+begin
+  if GetEnvironmentVariable('ARCHIGENIO_TEST_MDB') = '' then
+    Assert.Pass('omitida: falta ARCHIGENIO_TEST_MDB');
+  Conectar(False);
+  QuitarColumnasF5;
+  C := ClavePrueba('F5T-002');
+  RegistrarEventoDoc(FConn, C, 5, 'sin columnas F5T-002', 'usr1', 'Rol', 'S1');
+  Assert.AreEqual(1, Cuenta('SELECT COUNT(*) FROM tb_log WHERE msg = ''sin columnas F5T-002'''));
+end;
+
+procedure TPruebasTrazabilidadDatos.Access_LineaTiempo_MaximoLimitaYAvisa;
+var
+  C: TClaveDocumento;
+  L: TArray<TEventoDoc>;
+  Mas: Boolean;
+  Motivo: string;
+  I: Integer;
+begin
+  if GetEnvironmentVariable('ARCHIGENIO_TEST_MDB') = '' then
+    Assert.Pass('omitida: falta ARCHIGENIO_TEST_MDB');
+  Conectar(False);
+  C := ClavePrueba('F5T-003');
+  SembrarDocumento(C);
+  for I := 1 to 5 do
+    FConn.ExecSQL('INSERT INTO tb_log (usuariopc, pc, fecha, ip, usuario_sistema, ' +
+      'rol, serie, subserie, msg, accion, IdEstructura, ' +
+      'codigodoc, iddoc, codsubsdoc, versiondoc, fecha_evento) VALUES ' +
+      '(''u'', ''p'', ''f' + IntToStr(I) + ''', ''i'', ''u'', ''r'', ''s'', ''074'', ''ev' + IntToStr(I) +
+      ''', 14, ''A.4.3'', ''F5T-003'', 104, ''074'', ' +
+      '''1'', :f)', [EncodeDate(2026, 3, I)]);
+  L := CargarLineaTiempo(FConn, nil, C, 3, Mas, Motivo);
+  Assert.AreEqual('', Motivo);
+  Assert.AreEqual(3, Length(L));
+  Assert.IsTrue(Mas);
+  Assert.AreEqual('ev5', L[0].Detalle);
+  Assert.AreEqual('ev3', L[2].Detalle);
+  L := CargarLineaTiempo(FConn, nil, C, 5, Mas, Motivo);
+  Assert.AreEqual(5, Length(L));
+  Assert.IsFalse(Mas);
+end;
+
+procedure TPruebasTrazabilidadDatos.Access_LineaTiempo_SinColumnasF5_DiceElMotivo;
+var
+  C: TClaveDocumento;
+  L: TArray<TEventoDoc>;
+  Mas: Boolean;
+  Motivo: string;
+begin
+  if GetEnvironmentVariable('ARCHIGENIO_TEST_MDB') = '' then
+    Assert.Pass('omitida: falta ARCHIGENIO_TEST_MDB');
+  Conectar(False);
+  C := ClavePrueba('F5T-004');
+  SembrarDocumento(C);
+  QuitarColumnasF5;
+  L := CargarLineaTiempo(FConn, nil, C, 50, Mas, Motivo);
+  Assert.AreEqual(0, Length(L));
+  Assert.IsTrue(Motivo <> '', 'sin columnas debe explicar que la historia no esta disponible');
 end;
 
 initialization
