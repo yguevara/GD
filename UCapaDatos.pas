@@ -31,7 +31,7 @@ uses
   frxExportXLSX, frxExportPPTX, frxExportDOCX, frxExportBIFF, frxChart,
   frxExportSVG, frxTableObject, frxMap, frxExportHelpers, frxExportBaseDialog,
   frxCellularTextObject, frxExportPPML, frxExportPS, frxExportZPL,
-  frxSaveFilterFRX, frxHTML, frxPDFViewer, UAlcance;
+  frxSaveFilterFRX, frxHTML, frxPDFViewer, UAlcance, UDocumentoVista;
 
 const
   // Lista completa de palabras reservadas para SQL Server
@@ -980,6 +980,7 @@ type
     function PtCreateADOObject(const ClassID: TGUID): IUnknown;
     procedure ObtenerDatosPC(var Datos: TDatosPC);
     procedure log(Mensaje: string; acc: Integer; aSerie, aSSerie, aStructura: string);
+    procedure LogDoc(const Clave: TClaveDocumento; const Mensaje: string; Acc: Integer);
     procedure Boundarys(Sender: TObject);
     procedure ViewHLP(ID: integer);
     procedure DeleteDir(aPath: string);
@@ -1123,7 +1124,7 @@ var
 implementation
 
 uses
-  UEsquemaAlcance, UEsquemaAlmacen, UEsquemaCarga, UEsquemaTrazabilidad, UAlcanceDatos, UTopografia,
+  UEsquemaAlcance, UEsquemaAlmacen, UEsquemaCarga, UEsquemaTrazabilidad, UTrazabilidadDatos, UAlcanceDatos, UTopografia,
   UAlmacenFicheros, UAlmacenServidor, UProgresoTransferencia;
 
 
@@ -4181,6 +4182,34 @@ begin
   end;
 end;
 
+var
+  ClaveBorradaLog: TClaveDocumento;
+
+function ClaveDeFilaDoc(DataSet: TDataSet): TClaveDocumento;
+begin
+  Result := Default(TClaveDocumento);
+  try
+    Result.IdEstructura := DataSet.FieldByName('IdEstructura').AsString;
+    Result.Id := DataSet.FieldByName('id').AsInteger;
+    Result.CodSubs := DataSet.FieldByName('codsubs').AsString;
+    Result.Fecha := DataSet.FieldByName('Fecha').AsDateTime;
+    Result.Version := DataSet.FieldByName('Version').AsString;
+    Result.Codigodoc := DataSet.FieldByName('Codigodoc').AsString;
+  except
+    // sin clave: el evento se registra como siempre
+  end;
+end;
+
+procedure TUDM.LogDoc(const Clave: TClaveDocumento; const Mensaje: string; Acc: Integer);
+begin
+  try
+    RegistrarEventoDoc(Conn, Clave, Acc, Mensaje, UDM.UserName, UDM.Rol,
+      UDM.SudSDetail.FieldByName('serie').AsString);
+  except
+    // la bitacora nunca bloquea la accion del usuario
+  end;
+end;
+
 procedure TUDM.log(Mensaje: string; acc: Integer; aSerie, aSSerie, aStructura: string);
 var
   F: TextFile;
@@ -4982,13 +5011,13 @@ end;
 procedure TUDM.tb_SeriesDatosAfterDelete(DataSet: TDataSet);
 begin
   if not EstoyActualizando then
-    UDM.log('El documento "' + DataSet.FieldByName('titulodoc').AsString + '" con código "' + DataSet.FieldByName('Codigodoc').AsString + '" fue eliminado.', 2, UDM.SudSDetail.FieldByName('serie').AsString, UDM.SudSDetail.FieldByName('serie').AsString, UDM.SudSDetail.FieldByName('Nombreestructura').AsString);
+    UDM.LogDoc(ClaveBorradaLog, 'El documento con código "' + ClaveBorradaLog.Codigodoc + '" fue eliminado.', 2);
 end;
 
 procedure TUDM.tb_SeriesDatosAfterEdit(DataSet: TDataSet);
 begin
   if not EstoyActualizando then
-    UDM.log('Modificando el documento. "' + DataSet.FieldByName('titulodoc').AsString + '" con código "' + DataSet.FieldByName('Codigodoc').AsString + '".', 3, UDM.SudSDetail.FieldByName('serie').AsString, UDM.SudSDetail.FieldByName('serie').AsString, UDM.SudSDetail.FieldByName('Nombreestructura').AsString);
+    UDM.LogDoc(ClaveDeFilaDoc(DataSet), 'Modificando el documento. "' + DataSet.FieldByName('titulodoc').AsString + '" con código "' + DataSet.FieldByName('Codigodoc').AsString + '".', 3);
 end;
 
 procedure TUDM.tb_SeriesDatosAfterPost(DataSet: TDataSet);
@@ -5137,6 +5166,7 @@ var
   end;
 
 begin
+  ClaveBorradaLog := ClaveDeFilaDoc(DataSet);
   if (ansilowercase(UDM.Rol) <> 'administrador') and (ansilowercase(UDM.Rol) <> 'gestor') then
   begin
     UDM.sms('No tiene permisos suficientes para realizar la operación solicitada.', 2);
@@ -5284,6 +5314,7 @@ var
   IsValid: Boolean;
   IdEstructura, CodSubs, Deposito, Posicion, Gaveta, Archivo, Gestor, IdServidor: string;
   LogMessage: string;
+  ClaveLog: TClaveDocumento;
   Topografia: TDatosTopografia;
   PuedeEditarTopografia: Boolean;
   IdNodo: TClaveNodo;
@@ -5369,6 +5400,7 @@ begin
 
     // Preparar mensaje de log
     LogMessage := Format('El documento "%s" con código "%s" fue agregado al sistema.', [DataSet.FieldByName('titulodoc').AsString, DataSet.FieldByName('Codigodoc').AsString]);
+    ClaveLog := ClaveDeFilaDoc(DataSet);
   finally
     // Restaurar cursor
     Screen.Cursor := crDefault;
@@ -5378,7 +5410,7 @@ begin
   TThread.Queue(nil,
     procedure
     begin
-      UDM.log(LogMessage, 5, UDM.SudSDetail.FieldByName('serie').AsString, UDM.SudSDetail.FieldByName('serie').AsString, UDM.SudSDetail.FieldByName('Nombreestructura').AsString);
+      UDM.LogDoc(ClaveLog, LogMessage, 5);
     end);
 end;
 

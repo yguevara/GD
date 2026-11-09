@@ -83,7 +83,7 @@ uses
   FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf, FireDAC.Stan.Def,
   FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys, FireDAC.Phys.MSSQL,
   FireDAC.Phys.MSAcc, FireDAC.DApt, FireDAC.ConsoleUI.Wait, FireDAC.Stan.Param,
-  Data.DB, UAlcanceDatos, UEsquemaAlcance, UEsquemaCarga;
+  Data.DB, UAlcanceDatos, UEsquemaAlcance, UEsquemaCarga, UEsquemaTrazabilidad;
 
 const
   TABLA = 'md_f3_doc';
@@ -170,6 +170,7 @@ begin
   FConn.Connected := True;
   CrearEsquemaAlcance(FConn, EsSql);
   CrearEsquemaCarga(FConn, EsSql);
+  CrearEsquemaTrazabilidad(FConn, EsSql);
   try
     FConn.ExecSQL('DROP TABLE ' + TABLA);
   except
@@ -280,7 +281,7 @@ begin
   Assert.AreEqual(100, Length(FAlm.Objetos['A.4.3/014/014001/F3T-001/Anexos Digitales/informe.pdf']));
   Assert.AreEqual(1, Cuenta('SELECT COUNT(*) FROM ' + TABLA + ' WHERE Codigodoc = ''F3T-001'' AND Cantidad = 42'));
   Assert.AreEqual('O''Brien', VarToStr(FConn.ExecSQLScalar('SELECT Texto FROM ' + TABLA + ' WHERE Codigodoc = ''F3T-001''')));
-  Assert.AreEqual(1, Cuenta('SELECT COUNT(*) FROM tb_log WHERE accion = 5 AND msg LIKE ''%F3T-001%'''));
+  Assert.AreEqual(1, Cuenta('SELECT COUNT(*) FROM tb_log WHERE accion = 5 AND msg LIKE ''%F3T-001%'' AND codigodoc = ''F3T-001'''));
   Assert.AreEqual('F3T-001', VarToStr(FConn.ExecSQLScalar('SELECT namefile FROM tb_SeriesDatos WHERE Codigodoc = ''F3T-001''')));
 end;
 

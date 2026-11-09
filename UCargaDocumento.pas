@@ -44,7 +44,8 @@ implementation
 
 uses
   System.Classes, System.IOUtils, System.Variants, Data.DB, FireDAC.Stan.Intf,
-  FireDAC.Stan.Error, FireDAC.Stan.Param, UTopografia;
+  FireDAC.Stan.Error, FireDAC.Stan.Param, UTopografia, UDocumentoVista,
+  UTrazabilidadDatos;
 
 const
   VERSION_INICIAL = '1.0';
@@ -287,30 +288,18 @@ begin
   end;
 end;
 
-procedure EscribirBitacora(Conn: TFDConnection; const O: TOrigenDocumento; const Msg: string);
+procedure EscribirBitacora(Conn: TFDConnection; const O: TOrigenDocumento;
+  Fecha: TDateTime; const Codigo, Msg: string);
 var
-  Q: TFDQuery;
+  C: TClaveDocumento;
 begin
-  Q := TFDQuery.Create(nil);
-  try
-    Q.Connection := Conn;
-    Q.SQL.Text := 'INSERT INTO tb_log (usuariopc, pc, fecha, ip, usuario_sistema, rol, msg, ' +
-      'serie, subserie, IdEstructura, accion) VALUES (:a, :b, :c, :d, :e, :f, :g, :h, :i, :j, :k)';
-    Q.ParamByName('a').AsString := GetEnvironmentVariable('USERNAME');
-    Q.ParamByName('b').AsString := GetEnvironmentVariable('COMPUTERNAME');
-    Q.ParamByName('c').AsString := FormatDateTime('[ddd dd mmm, hh:nn:ss:zzz]', Now);
-    Q.ParamByName('d').AsString := '';
-    Q.ParamByName('e').AsString := O.Usuario;
-    Q.ParamByName('f').AsString := O.Rol;
-    Q.ParamByName('g').AsString := Copy(Msg, 1, 255);
-    Q.ParamByName('h').AsString := O.CodSerie;
-    Q.ParamByName('i').AsString := O.CodSubs;
-    Q.ParamByName('j').AsString := O.IdEstructura;
-    Q.ParamByName('k').AsInteger := 5;
-    Q.ExecSQL;
-  finally
-    Q.Free;
-  end;
+  C.IdEstructura := O.IdEstructura;
+  C.Id := O.Id;
+  C.CodSubs := O.CodSubs;
+  C.Fecha := Fecha;
+  C.Version := VERSION_INICIAL;
+  C.Codigodoc := Codigo;
+  RegistrarEventoDoc(Conn, C, 5, Msg, O.Usuario, O.Rol, O.CodSerie);
 end;
 
 function GuardarDocumento(Conn: TFDConnection; Alcance: TAlcanceUsuario;
@@ -503,7 +492,7 @@ begin
         finally
           Q.Free;
         end;
-        EscribirBitacora(Conn, Origen, Format('El documento "%s" con codigo "%s" fue agregado al sistema.',
+        EscribirBitacora(Conn, Origen, Fecha, Codigo, Format('El documento "%s" con codigo "%s" fue agregado al sistema.',
           [Cand.Titulo, Codigo]));
         if Propia then
           Conn.Commit;
