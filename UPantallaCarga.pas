@@ -57,7 +57,7 @@ type
     FScroll: TScrollBox;
     FCtlMeta: TArray<TControl>;
     FMsgMeta: TArray<TLabel>;
-    FBtnRepetir, FBtnAnt, FBtnSig: TButton;
+    FBtnRepetir, FBtnAnt, FBtnSig, FBtnFuente: TButton;
     FChkGuiado: TCheckBox;
     FPaso: Integer;
     procedure Construir;
@@ -77,6 +77,8 @@ type
     procedure AnteriorClick(Sender: TObject);
     procedure SiguienteClick(Sender: TObject);
     procedure AplicarPaso;
+    procedure AgregarFuentes(Indice: Integer; const Rutas: TArray<string>);
+    procedure FuenteClick(Sender: TObject);
     function Etiqueta(Padre: TWinControl; const Texto: string; Arriba: Integer): TLabel;
     function Boton(Padre: TWinControl; const Texto: string; Izq, Ancho: Integer;
       AlClick: TNotifyEvent): TButton;
@@ -318,6 +320,8 @@ begin
 
   FBtnAplicar := Boton(Der, 'Aplicar a todos', 12, 160, AplicarClick);
   FBtnAplicar.Top := 256;
+  FBtnFuente := Boton(Der, 'Agregar fuente...', 180, 130, FuenteClick);
+  FBtnFuente.Top := 256;
   CrearTarjetaPropia;
 
   { Pie }
@@ -682,6 +686,49 @@ begin
   end;
 end;
 
+procedure TfrmPantallaCarga.AgregarFuentes(Indice: Integer; const Rutas: TArray<string>);
+var
+  Archivos: TArray<string>;
+  I, N: Integer;
+begin
+  if (Indice < 0) or (Indice > High(FLote)) or
+    (FLote[Indice].Estado in [ecGuardado, ecSubiendo]) then
+    Exit;
+  Archivos := ExpandirRutas(Rutas, False);
+  for I := 0 to High(Archivos) do
+  begin
+    N := Length(FLote[Indice].Fuentes);
+    SetLength(FLote[Indice].Fuentes, N + 1);
+    FLote[Indice].Fuentes[N] := Archivos[I];
+  end;
+  FLista.ItemIndex := Indice;
+  MostrarSeleccionado;
+end;
+
+procedure TfrmPantallaCarga.FuenteClick(Sender: TObject);
+var
+  D: TOpenDialog;
+  R: TArray<string>;
+  I: Integer;
+begin
+  if FLista.ItemIndex < 0 then
+    Exit;
+  D := TOpenDialog.Create(Self);
+  try
+    D.Options := [ofAllowMultiSelect, ofFileMustExist, ofPathMustExist];
+    D.Filter := 'Todos los archivos|*.*';
+    if D.Execute then
+    begin
+      SetLength(R, D.Files.Count);
+      for I := 0 to D.Files.Count - 1 do
+        R[I] := D.Files[I];
+      AgregarFuentes(FLista.ItemIndex, R);
+    end;
+  finally
+    D.Free;
+  end;
+end;
+
 procedure TfrmPantallaCarga.AnteriorClick(Sender: TObject);
 begin
   if FPaso > 1 then
@@ -701,6 +748,8 @@ var
   N, I: Integer;
   Rutas: TArray<string>;
   Buf: array[0..MAX_PATH] of Char;
+  Pt: TPoint;
+  Item: TListItem;
 begin
   try
     if FOcupado then
@@ -712,7 +761,18 @@ begin
       DragQueryFile(Msg.Drop, I, Buf, Length(Buf));
       Rutas[I] := Buf;
     end;
-    AgregarRutas(Rutas);
+    { Soltado sobre la fila de un candidato = ficheros fuente de ese documento }
+    Item := nil;
+    if DragQueryPoint(Msg.Drop, Pt) then
+    begin
+      Pt := FLista.ScreenToClient(ClientToScreen(Pt));
+      if PtInRect(FLista.ClientRect, Pt) then
+        Item := FLista.GetItemAt(Pt.X, Pt.Y);
+    end;
+    if Item <> nil then
+      AgregarFuentes(Item.Index, Rutas)
+    else
+      AgregarRutas(Rutas);
   finally
     DragFinish(Msg.Drop);
   end;
@@ -852,6 +912,7 @@ begin
     FEdCodigo.Enabled := Hay and not FOcupado;
     FFecha.Enabled := Hay and not FOcupado;
     FBtnAplicar.Enabled := Hay and (Length(FLote) > 1) and not FOcupado;
+    FBtnFuente.Enabled := Hay and not FOcupado;
     if FScroll <> nil then
       FScroll.Enabled := Hay and not FOcupado;
     if Hay then
@@ -866,6 +927,8 @@ begin
       FEdCodigo.Text := FLote[I].Codigo;
       FFecha.Date := FLote[I].Fecha;
       FEstado.Caption := TextoEstado(FLote[I].Estado);
+      if Length(FLote[I].Fuentes) > 0 then
+        FEstado.Caption := FEstado.Caption + Format(' (%d fuente(s))', [Length(FLote[I].Fuentes)]);
       if FLote[I].Error <> '' then
         FEstado.Caption := FEstado.Caption + ': ' + FLote[I].Error;
     end
@@ -1000,7 +1063,11 @@ procedure TfrmPantallaCarga.GuardarClick(Sender: TObject);
 var
   Cargador: TCargaLote;
   R: TResumenLote;
+  Texto: string;
+  I: Integer;
+  Reintentar: Boolean;
 begin
+  Reintentar := False;
   if FOcupado or (Length(FLote) = 0) then
     Exit;
   FOcupado := True;
@@ -1028,8 +1095,19 @@ begin
     FGuardo := True;
   FProgreso.Position := 0;
   Refrescar;
-  MessageDlg(Format('Guardados: %d. Con error: %d. Omitidos: %d.',
-    [R.Guardados, R.Fallidos, R.Omitidos]), mtInformation, [mbOK], 0);
+  Texto := ResumenLote(R.Guardados, R.Fallidos, R.Omitidos);
+  if R.Fallidos > 0 then
+  begin
+    for I := 0 to High(FLote) do
+      if (FLote[I].Estado = ecError) and (FLote[I].Error <> '') then
+        Texto := Texto + #13#10 + '- ' + ExtractFileName(FLote[I].Archivo) + ': ' + FLote[I].Error;
+    Texto := Texto + #13#10#13#10 + 'Reintentar los que fallaron?';
+    Reintentar := MessageDlg(Texto, mtWarning, [mbYes, mbNo], 0) = mrYes;
+  end
+  else
+    MessageDlg(Texto, mtInformation, [mbOK], 0);
+  if Reintentar then
+    GuardarClick(nil);
 end;
 
 procedure TfrmPantallaCarga.CancelarClick(Sender: TObject);

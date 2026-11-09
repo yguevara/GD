@@ -781,7 +781,7 @@ implementation
 
 uses
   UAparienciaLegacy, UIconos, UDocumentoVistaDatos, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UCapaDatos, UUserGest, UDocManagement,
-  UCLSeriesDocumentales, UCLFtpServer, UGestEstruct, UMangementArch,
+  UPantallaCarga, UCargaDocumento, UCLSeriesDocumentales, UCLFtpServer, UGestEstruct, UMangementArch,
   UManagementFileSeries, UViewFunciones, UVeditor, UExcelExport, UManagementNode,
   USystemMsg, UNodeProperties, UCL_TiposExp, USysConfig, UTransferencias,
   UExportImportDocumentSubSeries, UManagementIndex, UAdminLog, UManagementTrans,
@@ -7068,13 +7068,22 @@ end;
 // elegidos (tb_Serietree). Ese boton solo es visible si el rol o el alcance
 // permiten agregar (SetModSecurity y AplicarReglasDocumento); se respeta igual.
 procedure TMAIN.ShellAgregarDocumento(Sender: TObject);
+const
+  MSG_SIN_S3 = 'Registre primero un servidor S3 en Clasificadores > Servidores.';
+var
+  Origen: TOrigenDocumento;
+  Almacen: IAlmacenFicheros;
+  IdServ, SoporteId: Integer;
+  Topo: TDatosTopografia;
+  Nodo: TClaveNodo;
+  PuedeEditarTopo: Boolean;
 begin
-  // El alta se llena en la rejilla: con la lista a la vista se pasa a ella
+  // Con la lista a la vista se pasa a la rejilla: el alta se refresca alli
   if (FListaDocs <> nil) and FModoLista then
     ListaDocsAlternar(nil);
   if (tvTree.Selected = nil) or not PContainer.Visible or not PSeriesDatos.Visible or
     not UDM.tb_Serietree.Active or UDM.tb_Serietree.IsEmpty or
-    not UDM.tb_SeriesDatos.Active then
+    not UDM.tb_SeriesDatos.Active or not UDM.SudSDetail.Active then
   begin
     UDM.sms('Elija en el arbol el nodo y la subserie donde agregar el documento.', 3);
     Exit;
@@ -7084,9 +7093,61 @@ begin
     UDM.sms('No tiene permiso para agregar documentos en esta subserie.', 3);
     Exit;
   end;
-  if cxPageControl2.ActivePage <> cxTabSheet1 then
-    cxPageControl2.ActivePage := cxTabSheet1;
-  dbnSeriesDatos.BtnClick(nbInsert);
+  // Topografia completa, como en tb_SeriesDatosNewRecord
+  Nodo.IdEstructura := UDM.tb_Serietree.FieldByName('IdEstructura').AsString;
+  Nodo.Id := UDM.tb_Serietree.FieldByName('id').AsInteger;
+  SoporteId := UDM.SudSDetail.FieldByName('idsoporte').AsInteger;
+  Topo.Deposito := UDM.tb_Serietree.FieldByName('deposito').AsString;
+  Topo.Gaveta := UDM.tb_Serietree.FieldByName('gaveta').AsString;
+  Topo.Archivo := UDM.tb_Serietree.FieldByName('Archivo').AsString;
+  Topo.IdServidor := UDM.tb_Serietree.FieldByName('idservidor').AsString;
+  if not TopografiaCompleta(SoporteId, Topo) then
+  begin
+    PuedeEditarTopo := (UDM.Alcance = nil) or
+      UDM.Alcance.PuedeRealizar(acEditarTopografia, Nodo,
+        UDM.tb_Serietree.FieldByName('codsubs').AsString);
+    UDM.sms(MensajeTopografiaFaltante(SoporteId, PuedeEditarTopo), 3);
+    Exit;
+  end;
+  // Los ficheros nuevos van al servidor S3; sin uno no se ofrece la carga
+  IdServ := 0;
+  try
+    IdServ := ServidorDestinoNuevos(UDM.Conn);
+  except
+    IdServ := 0;
+  end;
+  if IdServ <= 0 then
+  begin
+    if MessageDlg(MSG_SIN_S3 + #13#10#13#10 + 'Abrir ahora el clasificador de servidores?',
+      mtInformation, [mbYes, mbNo], 0) = mrYes then
+      L1.Click;
+    Exit;
+  end;
+  try
+    Almacen := CrearAlmacen(UDM.Conn, IdServ);
+  except
+    on E: Exception do
+    begin
+      UDM.sms('No se pudo preparar el servidor de ficheros: ' + E.Message, 3);
+      Exit;
+    end;
+  end;
+  Origen := Default(TOrigenDocumento);
+  Origen.IdEstructura := Nodo.IdEstructura;
+  Origen.Id := Nodo.Id;
+  Origen.CodSubs := UDM.tb_Serietree.FieldByName('codsubs').AsString;
+  Origen.CodSerie := UDM.SudSDetail.FieldByName('codserie').AsString;
+  Origen.Usuario := UDM.UserName;
+  Origen.Rol := UDM.Rol;
+  Origen.UrlRaiz := UDM.UrlRaizNuevos;
+  if MostrarCargaDocumentos(Origen,
+    UDM.SudSDetail.FieldByName('serie').AsString + ' / ' + Origen.CodSubs,
+    UDM.Conn, UDM.Alcance, Almacen) then
+  begin
+    UDM.tb_SeriesDatos.Refresh;
+    if (FListaDocs <> nil) and FModoLista then
+      ListaDocsCargar;
+  end;
 end;
 
 // Buscador del shell. Abre la pantalla de busqueda (que siempre aplica el

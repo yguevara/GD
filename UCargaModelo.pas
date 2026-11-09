@@ -64,10 +64,33 @@ function LimpiarNombreArchivo(const S: string): string;
   existen se ignoran. }
 function ExpandirRutas(const Rutas: TArray<string>; Recursivo: Boolean): TArray<string>;
 
+{ Texto final de un lote: guardados, fallidos y los que quedaron sin procesar
+  por cancelar. }
+function ResumenLote(Guardados, Fallidos, Omitidos: Integer): string;
+
 implementation
 
 uses
   System.IOUtils, System.Generics.Collections, System.Generics.Defaults;
+
+function ResumenLote(Guardados, Fallidos, Omitidos: Integer): string;
+begin
+  if Guardados = 0 then
+    Result := 'No se guardo ningun documento'
+  else if Guardados = 1 then
+    Result := 'Se guardo 1 documento'
+  else
+    Result := Format('Se guardaron %d documentos', [Guardados]);
+  if Fallidos = 1 then
+    Result := Result + ' y 1 no se pudo guardar'
+  else if Fallidos > 1 then
+    Result := Result + Format(' y %d no se pudieron guardar', [Fallidos]);
+  Result := Result + '.';
+  if Omitidos = 1 then
+    Result := Result + ' Se cancelo la carga: 1 quedo sin procesar.'
+  else if Omitidos > 1 then
+    Result := Result + Format(' Se cancelo la carga: %d quedaron sin procesar.', [Omitidos]);
+end;
 
 function TituloDesdeNombre(const Archivo: string): string;
 var
