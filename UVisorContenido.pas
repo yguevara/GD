@@ -10,7 +10,7 @@ interface
 
 uses
   System.Classes, System.SysUtils, Winapi.Windows, Winapi.Messages,
-  Vcl.Controls, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.Forms, Vcl.Graphics,
+  Vcl.Controls, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.Forms, Vcl.Graphics, Vcl.Menus,
   dxPDFViewer, UTema;
 
 type
@@ -134,6 +134,8 @@ begin
   FVisor.Parent := Self;
   FVisor.Align := alClient;
   FVisor.Visible := False;
+  // Solo visualiza: un menu contextual vacio evita el propio del visor
+  FVisor.PopupMenu := TPopupMenu.Create(Self);
 
   ActualizarBoton;
 end;
@@ -205,7 +207,9 @@ procedure TVisorContenido.Separar;
 begin
   if FEnVentana or (FArchivo = '') then
     Exit;
-  FVentana := TForm.CreateNew(Application);
+  // Sin duenio: solo este visor la libera (Reincorporar o Destroy). Con
+  // Application como duenio se liberaba antes que el visor al cerrar la aplicacion.
+  FVentana := TForm.CreateNew(nil);
   FVentana.Caption := 'Contenido - ' + FTitulo;
   FVentana.SetBounds(120, 80, 900, 700);
   FVentana.Position := poScreenCenter;

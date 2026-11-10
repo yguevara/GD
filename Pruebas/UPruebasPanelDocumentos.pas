@@ -34,6 +34,8 @@ type
     [Test]
     procedure Contenido_SinEvento_DiceNoDisponible;
     [Test]
+    procedure Metadatos_ConErrorAlLeer_NoDiceQueNoDefine;
+    [Test]
     procedure Metadatos_SinEvento_DiceQueNoDefine;
     [Test]
     procedure Metadatos_ConEvento_MuestraEtiquetasYValores;
@@ -177,6 +179,18 @@ var
 begin
   for I := 1 to 5 do
     Application.ProcessMessages;
+end;
+
+{ Espera a que venza el temporizador de carga del contenido (250 ms). }
+procedure EsperarContenido;
+var
+  I: Integer;
+begin
+  for I := 1 to 20 do
+  begin
+    Sleep(25);
+    Application.ProcessMessages;
+  end;
 end;
 
 procedure TPruebasPanelDocumentos.SeleccionarDocumento_NoDejaElAvisoNiDuplicados;
@@ -477,12 +491,15 @@ end;
 type
   TProveedorMeta = class
     Vacio: Boolean;
+    Fallar: Boolean;
     function Pedir(const Clave: TClaveDocumento): TArray<TPropiedad>;
   end;
 
 function TProveedorMeta.Pedir(const Clave: TClaveDocumento): TArray<TPropiedad>;
 begin
   Result := nil;
+  if Fallar then
+    raise Exception.Create('fallo de prueba');
   if Vacio then
     Exit;
   SetLength(Result, 2);
@@ -540,7 +557,15 @@ begin
     Assert.AreEqual(1, Prov.Llamadas, 'al abrir la pestana se pide una vez');
     LV.Items[1].Selected := True;
     PonerAlDia;
+    Assert.AreEqual(1, Prov.Llamadas, 'al cambiar de documento se espera un momento antes de descargar');
+    EsperarContenido;
     Assert.AreEqual(2, Prov.Llamadas, 'con la pestana abierta, cambiar de documento lo vuelve a pedir');
+    // recorrer varios documentos seguidos no descarga uno por uno
+    LV.Items[2].Selected := True;
+    LV.Items[0].Selected := True;
+    PonerAlDia;
+    EsperarContenido;
+    Assert.AreEqual(3, Prov.Llamadas, 'solo se pide el ultimo documento elegido');
   finally
     F.Free;
     Prov.Free;
@@ -589,6 +614,30 @@ begin
   end;
 end;
 
+procedure TPruebasPanelDocumentos.Metadatos_ConErrorAlLeer_NoDiceQueNoDefine;
+var
+  F: TForm;
+  P: TPanelDocumentos;
+  LV: TListView;
+  Prov: TProveedorMeta;
+begin
+  F := TForm.CreateNew(nil);
+  Prov := TProveedorMeta.Create;
+  try
+    Prov.Fallar := True;
+    P := PanelCargado(F);
+    P.OnPedirMetadatos := Prov.Pedir;
+    LV := BuscarLista(P);
+    LV.Items[0].Selected := True;
+    PonerAlDia;
+    Assert.IsTrue(Pos('No se pudieron leer', BuscarListaMeta(P).Contenido) > 0);
+    Assert.AreEqual(0, Pos('no define', BuscarListaMeta(P).Contenido));
+  finally
+    F.Free;
+    Prov.Free;
+  end;
+end;
+
 procedure TPruebasPanelDocumentos.Metadatos_SinEvento_DiceQueNoDefine;
 var
   F: TForm;
@@ -624,7 +673,8 @@ begin
     PonerAlDia;
     Assert.IsTrue(Pos('Municipio', BuscarListaMeta(P).Contenido) > 0);
     Assert.IsTrue(Pos('Palma Soriano', BuscarListaMeta(P).Contenido) > 0);
-    Assert.IsTrue(Pos('-', BuscarListaMeta(P).Contenido) > 0, 'el valor vacio va con guion');
+    Assert.IsTrue(Pos('Ejecutor' + #10 + '-', BuscarListaMeta(P).Contenido) > 0,
+      'la etiqueta Ejecutor va seguida de un guion');
   finally
     F.Free;
     Prov.Free;
@@ -646,6 +696,7 @@ begin
     PonerAlDia;
     Assert.AreEqual('A 03.01.02.0002', P.Documento.TextoCodigo);
     Assert.AreEqual('Prestado', P.Documento.TextoEstado);
+    Assert.AreEqual('Archivos', P.Documento.TituloPestana(pdArchivos), 'sin ficheros no hay contador');
     Assert.IsTrue(Pos('GENERAL', BuscarProp(P).Contenido) > 0,
       'la pestana Datos muestra el grupo General');
     Assert.IsFalse(Pos('POSICION FISICA', BuscarProp(P).Contenido) > 0,

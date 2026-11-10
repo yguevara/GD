@@ -60,6 +60,8 @@ type
     FPropDatos, FPropArchivos, FPropMetadatos, FPropHistoria: TListaPropiedades;
     FVisor: TVisorContenido;
     FOnPedirContenido: TSolicitudContenido;
+    FTimerContenido: TTimer;
+    FContenidoPendiente: TDatosDocumento;
     FVistaUbicacion: TVistaUbicacion;
     FOnPedirUbicacionSubserie: TSolicitudUbicacion;
     FOnPedirMetadatos: TSolicitudMetadatos;
@@ -88,6 +90,8 @@ type
     procedure Construir;
     procedure PestanaCambio(Sender: TObject);
     procedure CargarContenido(const D: TDatosDocumento);
+    procedure ProgramarContenido(const D: TDatosDocumento);
+    procedure TimerContenidoTimer(Sender: TObject);
     function NuevaLista(P: TPestanaDoc): TListaPropiedades;
     procedure AplicarFiltro;
     procedure ActualizarBarra;
@@ -252,6 +256,25 @@ begin
     FVisor.Mostrar(Ruta, Trim(D.Clave.Codigodoc));
 end;
 
+// Cambiar de documento con el contenido abierto no descarga al instante: se
+// espera un momento por si el usuario sigue recorriendo la lista (cada descarga
+// es una conexion al almacen y una visualizacion registrada).
+procedure TPanelDocumentos.ProgramarContenido(const D: TDatosDocumento);
+begin
+  FContenidoPendiente := D;
+  // con la ventana aparte abierta se conserva lo que muestra hasta tener el nuevo
+  if not FVisor.Separado then
+    FVisor.MostrarMensaje('Cargando el contenido...');
+  FTimerContenido.Enabled := False;
+  FTimerContenido.Enabled := True;
+end;
+
+procedure TPanelDocumentos.TimerContenidoTimer(Sender: TObject);
+begin
+  FTimerContenido.Enabled := False;
+  CargarContenido(FContenidoPendiente);
+end;
+
 procedure TPanelDocumentos.PestanaCambio(Sender: TObject);
 begin
   if (FDoc.Activa = pdContenido) and (FIndiceActual >= 0) and
@@ -385,6 +408,10 @@ begin
   FVisor.Parent := FDoc.Pagina(pdContenido);
   FVisor.Align := alClient;
   FDoc.OnCambioPestana := PestanaCambio;
+  FTimerContenido := TTimer.Create(Self);
+  FTimerContenido.Enabled := False;
+  FTimerContenido.Interval := 250;
+  FTimerContenido.OnTimer := TimerContenidoTimer;
 
   // Lista virtual
   FLista := TListView.Create(Self);
@@ -711,6 +738,7 @@ var
   D: TDatosDocumento;
   Props, Meta: TArray<TPropiedad>;
   I, Digitales: Integer;
+  ErrorMeta: Boolean;
 begin
   if (Indice < 0) or (Indice > High(FVisibles)) then
     Exit;
@@ -765,19 +793,27 @@ begin
   FPropHistoria.Mostrar(nil, FHistoriaActual, FHayMasHistoria, FMotivoHistoria,
     Assigned(FOnPedirHistoria));
   Meta := nil;
+  ErrorMeta := False;
   if Assigned(FOnPedirMetadatos) then
   try
     Meta := MetadatosParaMostrar(FOnPedirMetadatos(D.Clave));
   except
     Meta := nil;
+    ErrorMeta := True;
   end;
-  if Length(Meta) = 0 then
+  if ErrorMeta then
+    // no decir "no define metadatos" cuando en realidad no se pudieron leer
+    FPropMetadatos.MostrarMensaje('No se pudieron leer los metadatos del documento.')
+  else if Length(Meta) = 0 then
     FPropMetadatos.MostrarMensaje('Esta subserie no define metadatos')
   else
     FPropMetadatos.Mostrar(Meta, nil, False, '', False);
   // El contenido se descarga solo si la pestana esta abierta: no al seleccionar
-  if FDoc.Activa = pdContenido then
-    CargarContenido(D)
+  // Con el contenido separado en otra ventana tambien se sigue al documento, aunque
+  // la pestana activa sea otra: si no, la ventana se cerraria sola
+  FTimerContenido.Enabled := False;
+  if (FDoc.Activa = pdContenido) or FVisor.Separado then
+    ProgramarContenido(D)
   else
     FVisor.MostrarMensaje('Abra esta pestana para ver el contenido del documento.');
   FDoc.FijarConteoArchivos(Length(FFicherosActuales));

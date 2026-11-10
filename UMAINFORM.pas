@@ -665,6 +665,8 @@ type
     // no del documento: se consultan una vez por subserie, no al moverse entre
     // documentos (antes cada movimiento repetia las consultas y parpadeaba la rejilla).
     FSubserieVariables: string;
+    FCacheDesde: TDateTime;
+    FClaveSerieAnterior: string;
     // Cache de consultas escalares (SQL -> resultado) y claves de lo ya preparado.
     // Se descartan en InvalidarCachesSubserie cuando cambian las series del nodo.
     FEscalares: TDictionary<string, string>;
@@ -796,6 +798,7 @@ type
     function EscalarCache(const Sql: string): string;
     function PerfilActivo: Boolean;
     procedure InvalidarCachesSubserie;
+    procedure VerificarVigenciaCaches;
     procedure RegistrarPerfil(const Etiqueta: string; Milisegundos: Int64);
     procedure ConectarPanelLateral;
     procedure AjustarPanelLateral;
@@ -4560,12 +4563,15 @@ begin
   FreeAndNil(FEnlaceSeries); // el enlace avisa a TMAIN: no puede sobrevivirle
   FreeAndNil(FNombresSerie);
   FreeAndNil(FContenidoCache);
-  // los PDF descargados para verlos no deben quedar en el disco
+  // los PDF descargados para verlos no deben quedar en el disco: primero el
+  // visor suelta el que tiene abierto
+  if (FListaDocs <> nil) and (FListaDocs.Visor <> nil) then
+    FListaDocs.Visor.Limpiar;
   if FCarpetaContenido <> '' then
   try
     TDirectory.Delete(FCarpetaContenido, True);
   except
-    // si un visor aun lo tiene abierto se borrara en la limpieza del sistema
+    // si no se pudo, la proxima sesion borra las carpetas ArchiGenio_contenido_*
   end;
   FreeAndNil(FTablaMetadatos);
   FreeAndNil(FEscalares);
@@ -4946,6 +4952,7 @@ begin
   // no cambia de documento ni de subserie: no hay nada que recalcular
   if Field <> nil then
     Exit;
+  VerificarVigenciaCaches;
   Cronometro := TStopwatch.StartNew;
   UDM.Conn.ResourceOptions.SilentMode := True; // Desactiva cambios automáticos de cursor
 //  UDM.Conn.ResourceOptions.WaitCursor := crDefault; // Fuerza crDefault si se muestra un cursor
@@ -5112,6 +5119,18 @@ begin
   // Un cambio de un solo campo no cambia de serie: nada que recalcular
   if Field <> nil then
     Exit;
+  VerificarVigenciaCaches;
+  // Cambio de nodo, de serie actual o de cantidad de series: lo calculado por
+  // subserie se rehace (tambien con el shell clasico, sin barra de trabajo)
+  Clave := UDM.tb_Serietree.FieldByName('IdEstructura').AsString + '|' +
+    UDM.tb_Serietree.FieldByName('id').AsString + '|' +
+    UDM.tb_Serietree.FieldByName('codsubs').AsString + '|' +
+    IntToStr(UDM.tb_Serietree.RecordCount);
+  if Clave <> FClaveSerieAnterior then
+  begin
+    FClaveSerieAnterior := Clave;
+    InvalidarCachesSubserie;
+  end;
   Cronometro := TStopwatch.StartNew;
   // Primer try-finally para garantizar que el cursor se restaure siempre
     // Muestra el cursor de espera mientras se procesan los cambios de datos
@@ -6933,7 +6952,6 @@ begin
     FBarraTrabajo.OnFiltroCambio := BarraFiltroCambio;
     FBarraTrabajo.OnEditar := ListaDocsAlternar;
     FBarraTrabajo.OnElegirSerie := BarraElegirSerie;
-    ConectarPanelLateral;
 
     FListaDocs := TPanelDocumentos.Create(Self);
     FListaDocs.Parent := PSeriesDatos;
@@ -6977,6 +6995,9 @@ begin
     AjustarCuadroClasif;
     BarraSeriesCargar;
     BloqueAccionCargar;
+    // lo ultimo: es lo unico que mueve controles del formulario
+    ConectarPanelLateral;
+    BarraSeriesCargar; // pone la cabecera del panel lateral
   except
     on E: Exception do
     begin
@@ -7387,9 +7408,20 @@ begin
   PagComp := FPanelLateral.AgregarPagina('Complementaria');
   Diag := Format('origen: Series=%d Detalle=%d Complementaria=%d; ',
     [advtpSSDispo.ControlCount, advtpDetail.ControlCount, pArchivoDig.ControlCount]);
-  MoverContenido(advtpSSDispo, PagSeries, Self);
-  MoverContenido(advtpDetail, PagDetalle, Self);
-  MoverContenido(pArchivoDig, PagComp, Self);
+  try
+    MoverContenido(advtpSSDispo, PagSeries, Self);
+    MoverContenido(advtpDetail, PagDetalle, Self);
+    MoverContenido(pArchivoDig, PagComp, Self);
+  except
+    // Liberar el panel nuevo destruiria los controles del formulario que ya se
+    // movieron (son suyos): se devuelven primero a sus paneles de origen
+    MoverContenido(PagSeries, advtpSSDispo, Self);
+    MoverContenido(PagDetalle, advtpDetail, Self);
+    MoverContenido(PagComp, pArchivoDig, Self);
+    FreeAndNil(FSepLateral);
+    FreeAndNil(FPanelLateral);
+    raise;
+  end;
   // Un TAdvToolPanel oculto puede dejar a sus hijos con Visible = False: en el
   // panel nuevo se muestran los que no administra el codigo (gVariablesDetail
   // y su separador se muestran segun haya variables).
@@ -7400,7 +7432,8 @@ begin
   cxPageControl1.Visible := True;
   Diag := Diag + Format('destino: Series=%d Detalle=%d Complementaria=%d',
     [PagSeries.ControlCount, PagDetalle.ControlCount, PagComp.ControlCount]);
-  RegistrarErrorLista('Panel lateral ' + Diag);
+  if PerfilActivo then
+    RegistrarErrorLista('Panel lateral ' + Diag);
   // en 380 px las columnas se reparten el ancho en vez de salirse
   cxGrid1DBTableView1.OptionsView.ColumnAutoWidth := True;
   gVariablesDetailDBTableView1.OptionsView.ColumnAutoWidth := True;
@@ -7461,6 +7494,7 @@ end;
 // Descarta lo calculado por subserie: se vuelve a consultar al siguiente cambio.
 procedure TMAIN.InvalidarCachesSubserie;
 begin
+  FCacheDesde := Now;
   FSubserieVariables := '';
   FClaveSSDisp := '';
   FClaveVariables := '';
@@ -7468,6 +7502,16 @@ begin
     FEscalares.Clear;
   if FTablaMetadatos <> nil then
     FTablaMetadatos.Clear;
+end;
+
+// Las caches por subserie se rehacen al cambiar de serie; ademas caducan a los
+// 2 minutos por si la definicion de variables, el nombre o la tabla de
+// metadatos de la subserie cambian desde Clasificadores (otro formulario) sin
+// que se cambie de serie.
+procedure TMAIN.VerificarVigenciaCaches;
+begin
+  if (FCacheDesde = 0) or (Now - FCacheDesde > 2 / 1440) then
+    InvalidarCachesSubserie;
 end;
 
 // Escribe en lista_error.log cuanto tardo una operacion, solo si junto al
@@ -7652,7 +7696,9 @@ begin
     while not md_def.Eof do
     begin
       Result[N].Grupo := Subserie;
-      Result[N].Etiqueta := Trim(md_def.FieldByName('Etiqueta').AsString);
+      Result[N].Etiqueta := '';
+      if md_def.FindField('Etiqueta') <> nil then
+        Result[N].Etiqueta := Trim(md_def.FieldByName('Etiqueta').AsString);
       if Result[N].Etiqueta = '' then
         Result[N].Etiqueta := md_def.FieldByName('NomVariable').AsString;
       Campo := md_var.FindField(md_def.FieldByName('NomVariable').AsString);
@@ -7677,7 +7723,8 @@ end;
 // muestra se registra como visualizacion del documento.
 function TMAIN.ListaDocsContenido(const Clave: TClaveDocumento; out Motivo: string): string;
 var
-  Nombre, Ext, UrlRaiz, Path, ClaveFich, Llave: string;
+  Nombre, Ext, UrlRaiz, Path, ClaveFich, Llave, Parcial, Resto: string;
+  Tam: Double;
   HayOtros: Boolean;
   Alm: IAlmacenFicheros;
 begin
@@ -7708,6 +7755,7 @@ begin
         Nombre := UDM.qryAnexosDig.FieldByName('nombre').AsString;
         UrlRaiz := UDM.qryAnexosDig.FieldByName('urlraiz').AsString;
         Path := UDM.qryAnexosDig.FieldByName('path').AsString;
+        Tam := UDM.qryAnexosDig.FieldByName('tamano').AsFloat;
         Break;
       end;
       HayOtros := True;
@@ -7727,13 +7775,22 @@ begin
   end;
   if FContenidoCache = nil then
     FContenidoCache := TDictionary<string, string>.Create;
-  Llave := ClaveTexto(Clave) + '|' + LowerCase(Nombre);
+  // el tamano en la llave: si el anexo se reemplaza por otro de igual nombre no
+  // se sirve la copia vieja
+  Llave := ClaveTexto(Clave) + '|' + LowerCase(Nombre) + '|' + FloatToStr(Tam);
   if not (FContenidoCache.TryGetValue(Llave, Result) and FileExists(Result)) then
   begin
     Result := '';
     try
       if FCarpetaContenido = '' then
       begin
+        // restos de sesiones que no pudieron borrar su carpeta
+        for Resto in TDirectory.GetDirectories(TPath.GetTempPath, 'ArchiGenio_contenido_*') do
+        try
+          TDirectory.Delete(Resto, True);
+        except
+          // en uso por otra sesion: se deja
+        end;
         FCarpetaContenido := TPath.Combine(TPath.GetTempPath,
           'ArchiGenio_contenido_' + IntToHex(GetCurrentProcessId, 8));
         ForceDirectories(FCarpetaContenido);
@@ -7742,7 +7799,17 @@ begin
         UDM.cmdServer.FieldByName('Idservidor').AsInteger, ClaveFich, Path, Nombre);
       Result := TPath.Combine(FCarpetaContenido,
         THashMD5.GetHashString(Llave) + '.pdf');
-      Alm.Descargar(ClaveFich, Result, nil);
+      // se descarga a un nombre provisional: un fallo a medias no deja un PDF
+      // parcial que luego parezca valido
+      Parcial := Result + '.parte';
+      try
+        Alm.Descargar(ClaveFich, Parcial, nil);
+        TFile.Move(Parcial, Result);
+      except
+        if FileExists(Parcial) then
+          DeleteFile(Parcial);
+        raise;
+      end;
       FContenidoCache.AddOrSetValue(Llave, Result);
     except
       on E: Exception do

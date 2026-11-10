@@ -18,6 +18,10 @@ type
     [Test]
     procedure Visor_SepararYReincorporar_ConservaElVisorYElEstado;
     [Test]
+    procedure Visor_DestruidoEstandoSeparado_NoFalla;
+    [Test]
+    procedure Visor_CerrarLaVentanaAparte_ReincorporaElVisor;
+    [Test]
     procedure Visor_SinDocumento_NoSeSepara;
     [Test]
     procedure Visor_MostrarMensajeConVentanaAparte_VuelveALaAplicacion;
@@ -137,6 +141,53 @@ begin
     Application.ProcessMessages;
     Assert.IsFalse(V.Separado);
     Assert.IsTrue(V.ContenedorDelVisor = Original, 'el visor volvio al panel');
+  finally
+    F.Free;
+    DeleteFile(Pdf);
+  end;
+end;
+
+procedure TPruebasVisorContenido.Visor_DestruidoEstandoSeparado_NoFalla;
+var
+  F: TForm;
+  V: TVisorContenido;
+  Pdf: string;
+begin
+  F := TForm.CreateNew(nil);
+  Pdf := CrearPdfPrueba;
+  try
+    V := NuevoVisor(F);
+    V.Mostrar(Pdf, 'X');
+    V.Separar;
+    Assert.IsTrue(V.Separado);
+    // al cerrar la aplicacion el visor se destruye aun separado: sin errores
+    F.Free;
+    F := nil;
+    Application.ProcessMessages;
+    Assert.Pass;
+  finally
+    F.Free;
+    DeleteFile(Pdf);
+  end;
+end;
+
+procedure TPruebasVisorContenido.Visor_CerrarLaVentanaAparte_ReincorporaElVisor;
+var
+  F: TForm;
+  V: TVisorContenido;
+  Pdf: string;
+  Ventana: TForm;
+begin
+  F := TForm.CreateNew(nil);
+  Pdf := CrearPdfPrueba;
+  try
+    V := NuevoVisor(F);
+    V.Mostrar(Pdf, 'X');
+    V.Separar;
+    Ventana := V.ContenedorDelVisor as TForm;
+    Ventana.Close; // la X de la ventana
+    Application.ProcessMessages;
+    Assert.IsFalse(V.Separado, 'cerrar la ventana vuelve el visor a la aplicacion');
   finally
     F.Free;
     DeleteFile(Pdf);
