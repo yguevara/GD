@@ -56,6 +56,7 @@ uses
   URecepcionArchivos in 'URecepcionArchivos.pas',
   UAgregarFicheros in 'UAgregarFicheros.pas',
   UEdicionDocumento in 'UEdicionDocumento.pas',
+  UFormularioDocumento in 'UFormularioDocumento.pas',
   UIconos in 'UIconos.pas',
   UShellPrincipal in 'UShellPrincipal.pas',
   UAparienciaLegacy in 'UAparienciaLegacy.pas',
