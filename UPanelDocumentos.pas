@@ -553,6 +553,7 @@ begin
   FSplitter.Align := alRight;
   FSplitter.Width := 5;
   FSplitter.MinSize := 240;
+  FSplitter.AutoSnap := False; // arrastrar demasiado no debe cerrar el panel del documento
   FSplitter.StyleElements := [];
   FSplitter.Color := FTema.Linea;
   FSplitter.ParentColor := False;

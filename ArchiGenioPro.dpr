@@ -55,6 +55,7 @@ uses
   UVisorContenido in 'UVisorContenido.pas',
   URecepcionArchivos in 'URecepcionArchivos.pas',
   UAgregarFicheros in 'UAgregarFicheros.pas',
+  UDiagnosticoErrores in 'UDiagnosticoErrores.pas',
   UEdicionDocumento in 'UEdicionDocumento.pas',
   UFormularioDocumento in 'UFormularioDocumento.pas',
   UIconos in 'UIconos.pas',
@@ -162,6 +163,7 @@ begin
   FormatSettings.LongDateFormat := 'dddd, dd mmmm yyyy';
 //  Application.BringToFront;
   Application.Initialize;
+  InstalarDiagnosticoErrores;
   VERSION := 'PROFESIONAL';
 //  VERSION := 'BÁSICA';
   Application.MainFormOnTaskbar := True;

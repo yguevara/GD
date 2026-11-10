@@ -7447,6 +7447,7 @@ begin
   FSepLateral.Align := alRight;
   FSepLateral.Width := 5;
   FSepLateral.MinSize := 300;
+  FSepLateral.AutoSnap := False; // arrastrar demasiado no debe cerrar el panel lateral
   FSepLateral.StyleElements := [];
   FSepLateral.ParentColor := False;
   FSepLateral.Color := TemaLegacyActual.Linea;
