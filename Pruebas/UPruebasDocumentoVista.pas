@@ -18,6 +18,14 @@ type
       out Hallado: Boolean): string;
   public
     [Test]
+    procedure TextoEstadoDoc_TresValores;
+    [Test]
+    procedure CoincideFiltro_TextoPorCodigoTituloYExpediente;
+    [Test]
+    procedure CoincideFiltro_VacioCoincideConTodo;
+    [Test]
+    procedure CoincideFiltro_EstadoSoloSiSeFiltra;
+    [Test]
     procedure ExtensionNormal_QuitaPuntoYMayusculas;
     [Test]
     procedure EsFormatoMapa_ListaConfirmada;
@@ -356,6 +364,45 @@ procedure TPruebasDocumentoVista.FiltrarPorExpediente_SinFiltroYCodigoInexistent
 begin
   Assert.AreEqual(4, Integer(Length(FiltrarPorExpediente(Lista4, ''))));
   Assert.AreEqual(0, Integer(Length(FiltrarPorExpediente(Lista4, 'NO-EXISTE'))));
+end;
+
+procedure TPruebasDocumentoVista.TextoEstadoDoc_TresValores;
+begin
+  Assert.AreEqual('', TextoEstadoDoc(edDesconocido));
+  Assert.AreEqual('En archivo', TextoEstadoDoc(edEnArchivo));
+  Assert.AreEqual('Prestado', TextoEstadoDoc(edPrestado));
+end;
+
+procedure TPruebasDocumentoVista.CoincideFiltro_TextoPorCodigoTituloYExpediente;
+var
+  D: TDatosDocumento;
+begin
+  D := Nuevo('A 03.01.02.0003');
+  D.Titulo := 'Alcantarillado Palma Soriano';
+  D.IdExpediente := 'P-006';
+  Assert.IsTrue(CoincideFiltro(D, 'palma', False, edDesconocido));
+  Assert.IsTrue(CoincideFiltro(D, '  a 03.01 ', False, edDesconocido));
+  Assert.IsTrue(CoincideFiltro(D, 'p-006', False, edDesconocido));
+  Assert.IsFalse(CoincideFiltro(D, 'contramaestre', False, edDesconocido));
+end;
+
+procedure TPruebasDocumentoVista.CoincideFiltro_VacioCoincideConTodo;
+begin
+  Assert.IsTrue(CoincideFiltro(Nuevo('X'), '', False, edDesconocido));
+  Assert.IsTrue(CoincideFiltro(Nuevo('X'), '   ', False, edDesconocido));
+end;
+
+procedure TPruebasDocumentoVista.CoincideFiltro_EstadoSoloSiSeFiltra;
+var
+  D: TDatosDocumento;
+begin
+  D := Nuevo('X');
+  D.Estado := edPrestado;
+  Assert.IsTrue(CoincideFiltro(D, '', False, edEnArchivo), 'sin filtrar estado, no cuenta');
+  Assert.IsTrue(CoincideFiltro(D, '', True, edPrestado));
+  Assert.IsFalse(CoincideFiltro(D, '', True, edEnArchivo));
+  D.Estado := edDesconocido;
+  Assert.IsFalse(CoincideFiltro(D, '', True, edPrestado));
 end;
 
 initialization

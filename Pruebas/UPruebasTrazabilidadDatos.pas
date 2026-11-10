@@ -39,6 +39,14 @@ type
     procedure Access_LineaTiempo_MaximoLimitaYAvisa;
     [Test]
     procedure Access_LineaTiempo_SinColumnasF5_DiceElMotivo;
+    [Test]
+    procedure Access_CargarEstados_MarcaPrestadoYEnArchivo;
+    [Test]
+    procedure Access_CargarEstados_PrestamoCancelado_NoCuentaComoPrestado;
+    [Test]
+    procedure Access_CargarEstados_SubserieSinDocumentos_DevuelveVacio;
+    [Test]
+    procedure Access_RequiereAccion_CuentaPrestadosYSinUbicacion;
   end;
 
   [TestFixture]
@@ -78,7 +86,7 @@ uses
   FireDAC.Stan.Async, FireDAC.Phys, FireDAC.Phys.MSSQL, FireDAC.Phys.MSAcc,
   FireDAC.DApt, FireDAC.ConsoleUI.Wait, FireDAC.Stan.Param, Data.DB,
   UAlcance, UAlcanceDatos, UEsquemaAlcance, UEsquemaTrazabilidad,
-  UPruebasDocumentoVistaDatos, UTrazabilidadDatos;
+  UPruebasDocumentoVistaDatos, UTrazabilidadDatos, UDocumentoVistaDatos;
 
 const
   EST_T = 'A.4.3';
@@ -114,6 +122,8 @@ begin
     CrearEsquemaTrazabilidad(FConn, FConn.DriverName = 'MSSQL');
     FConn.ExecSQL('DELETE FROM tb_log WHERE codigodoc LIKE ''F5T-%'' OR msg LIKE ''%F5T-%''');
     FConn.ExecSQL('DELETE FROM tb_SeriesDatos WHERE Codigodoc LIKE ''F5T-%''');
+    FConn.ExecSQL('DELETE FROM TB_PrestamosDocumentos WHERE IdPrestamo LIKE ''F5T-%''');
+    FConn.ExecSQL('DELETE FROM TB_Prestamos WHERE IdPrestamo LIKE ''F5T-%''');
   except
   end;
   FreeAndNil(FConn);
@@ -469,6 +479,120 @@ begin
   L := CargarLineaTiempo(FConn, nil, C, 50, Mas, Motivo);
   Assert.AreEqual(0, Length(L));
   Assert.IsTrue(Motivo <> '', 'sin columnas debe explicar que la historia no esta disponible');
+end;
+
+procedure TPruebasTrazabilidadDatos.Access_CargarEstados_MarcaPrestadoYEnArchivo;
+var
+  A, B: TClaveDocumento;
+  R: TIndicadoresEstados;
+  E: TEstadoDoc;
+begin
+  if GetEnvironmentVariable('ARCHIGENIO_TEST_MDB') = '' then
+    Assert.Pass('omitida: falta ARCHIGENIO_TEST_MDB');
+  Conectar(False);
+  A := ClavePrueba('F5T-ES1');
+  B := ClavePrueba('F5T-ES2');
+  SembrarDocumento(A);
+  SembrarDocumento(B);
+  // A: prestamo abierto (sin devolucion). B: solo un prestamo ya devuelto.
+  FConn.ExecSQL('INSERT INTO TB_Prestamos (IdEstructura, id, IdPrestamo, ' +
+    'Prestamista, Responsable, FPrestamo) VALUES (''A.4.3'', 104, ''F5T-P1'', ''Juan'', ''u'', :f)',
+    [EncodeDate(2026, 4, 1)]);
+  FConn.ExecSQL('INSERT INTO TB_PrestamosDocumentos (IdEstructura, id, IdPrestamo, ' +
+    'Codigodoc, fecha, version, codsubs, titulodoc) VALUES (''A.4.3'', 104, ''F5T-P1'', ' +
+    '''F5T-ES1'', :f, ''1'', ''074'', ''t'')', [A.Fecha]);
+  FConn.ExecSQL('INSERT INTO TB_Prestamos (IdEstructura, id, IdPrestamo, ' +
+    'Prestamista, Responsable, FPrestamo, FDevolucion) VALUES (''A.4.3'', 104, ''F5T-P2'', ''Ana'', ''u'', :f, :d)',
+    [EncodeDate(2026, 3, 1), EncodeDate(2026, 3, 5)]);
+  FConn.ExecSQL('INSERT INTO TB_PrestamosDocumentos (IdEstructura, id, IdPrestamo, ' +
+    'Codigodoc, fecha, version, codsubs, titulodoc) VALUES (''A.4.3'', 104, ''F5T-P2'', ' +
+    '''F5T-ES2'', :f, ''1'', ''074'', ''t'')', [B.Fecha]);
+  R := CargarEstados(FConn, nil, 'A.4.3', 104, '074');
+  try
+    Assert.IsTrue(R.TryGetValue(ClaveTexto(A), E));
+    Assert.AreEqual(Ord(edPrestado), Ord(E));
+    Assert.IsTrue(R.TryGetValue(ClaveTexto(B), E));
+    Assert.AreEqual(Ord(edEnArchivo), Ord(E));
+  finally
+    R.Free;
+  end;
+end;
+
+procedure TPruebasTrazabilidadDatos.Access_CargarEstados_PrestamoCancelado_NoCuentaComoPrestado;
+var
+  A: TClaveDocumento;
+  R: TIndicadoresEstados;
+  E: TEstadoDoc;
+begin
+  if GetEnvironmentVariable('ARCHIGENIO_TEST_MDB') = '' then
+    Assert.Pass('omitida: falta ARCHIGENIO_TEST_MDB');
+  Conectar(False);
+  A := ClavePrueba('F5T-ES3');
+  SembrarDocumento(A);
+  // prestamo sin devolucion pero cancelado: el documento sigue en archivo
+  FConn.ExecSQL('INSERT INTO TB_Prestamos (IdEstructura, id, IdPrestamo, ' +
+    'Prestamista, Responsable, FPrestamo, FCancelacion) VALUES (''A.4.3'', 104, ''F5T-P3'', ''Luis'', ''u'', :f, :c)',
+    [EncodeDate(2026, 4, 1), EncodeDate(2026, 4, 2)]);
+  FConn.ExecSQL('INSERT INTO TB_PrestamosDocumentos (IdEstructura, id, IdPrestamo, ' +
+    'Codigodoc, fecha, version, codsubs, titulodoc) VALUES (''A.4.3'', 104, ''F5T-P3'', ' +
+    '''F5T-ES3'', :f, ''1'', ''074'', ''t'')', [A.Fecha]);
+  R := CargarEstados(FConn, nil, 'A.4.3', 104, '074');
+  try
+    Assert.IsTrue(R.TryGetValue(ClaveTexto(A), E));
+    Assert.AreEqual(Ord(edEnArchivo), Ord(E));
+  finally
+    R.Free;
+  end;
+end;
+
+function Cantidad(const L: TArray<TContadorAccion>; const Clave: string): Integer;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := 0 to High(L) do
+    if L[I].Clave = Clave then
+      Exit(L[I].Cantidad);
+end;
+
+procedure TPruebasTrazabilidadDatos.Access_RequiereAccion_CuentaPrestadosYSinUbicacion;
+var
+  Antes, Despues: TArray<TContadorAccion>;
+  A, B: TClaveDocumento;
+begin
+  if GetEnvironmentVariable('ARCHIGENIO_TEST_MDB') = '' then
+    Assert.Pass('omitida: falta ARCHIGENIO_TEST_MDB');
+  Conectar(False);
+  Antes := CargarRequiereAccion(FConn, nil);
+  A := ClavePrueba('F5T-RA1');
+  B := ClavePrueba('F5T-RA2');
+  SembrarDocumento(A); // sin archivo, deposito ni gaveta
+  SembrarDocumento(B);
+  FConn.ExecSQL('INSERT INTO TB_Prestamos (IdEstructura, id, IdPrestamo, ' +
+    'Prestamista, Responsable, FPrestamo) VALUES (''A.4.3'', 104, ''F5T-P4'', ''Ana'', ''u'', :f)',
+    [EncodeDate(2026, 4, 1)]);
+  FConn.ExecSQL('INSERT INTO TB_PrestamosDocumentos (IdEstructura, id, IdPrestamo, ' +
+    'Codigodoc, fecha, version, codsubs, titulodoc) VALUES (''A.4.3'', 104, ''F5T-P4'', ' +
+    '''F5T-RA1'', :f, ''1'', ''074'', ''t'')', [A.Fecha]);
+  Despues := CargarRequiereAccion(FConn, nil);
+  Assert.AreEqual(Cantidad(Antes, 'prestados') + 1, Cantidad(Despues, 'prestados'));
+  Assert.AreEqual(Cantidad(Antes, 'sinubicacion') + 2, Cantidad(Despues, 'sinubicacion'));
+end;
+
+procedure TPruebasTrazabilidadDatos.Access_CargarEstados_SubserieSinDocumentos_DevuelveVacio;
+var
+  R: TIndicadoresEstados;
+begin
+  if GetEnvironmentVariable('ARCHIGENIO_TEST_MDB') = '' then
+    Assert.Pass('omitida: falta ARCHIGENIO_TEST_MDB');
+  Conectar(False);
+  // una subserie que no existe: sin documentos, sin error
+  R := CargarEstados(FConn, nil, 'NO.EXISTE', 1, 'x');
+  try
+    Assert.AreEqual(0, R.Count);
+  finally
+    R.Free;
+  end;
 end;
 
 initialization

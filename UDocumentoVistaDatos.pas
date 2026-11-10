@@ -22,6 +22,15 @@ type
   end;
 
   TIndicadoresDocs = TDictionary<string, TIndicadoresDoc>;
+  TIndicadoresEstados = TDictionary<string, TEstadoDoc>;
+
+  { Una cosa que requiere atencion del usuario, con su cantidad. Clave:
+    'prestados' (documentos con prestamo abierto) o 'sinubicacion'. }
+  TContadorAccion = record
+    Clave: string;
+    Texto: string;
+    Cantidad: Integer;
+  end;
 
 { IdEstructura|Id|CodSubs|yyyymmddhhnnss|Version|Codigodoc, recortada y en
   minusculas. Es la clave de TIndicadoresDocs. }
@@ -34,10 +43,25 @@ function CargarIndicadores(Conn: TFDConnection; Alcance: TAlcanceUsuario;
   const IdEstructura: string; Id: Integer;
   const CodSubs: string): TIndicadoresDocs;
 
+{ Estado de los documentos de la subserie: prestado si algun prestamo suyo no
+  tiene devolucion, en archivo si no. Clave de ClaveTexto. Si la consulta falla
+  (tablas de prestamos ausentes o sin permiso) devuelve un diccionario vacio:
+  la lista queda sin estado, nunca con uno inventado. El resultado es del
+  llamador. }
+function CargarEstados(Conn: TFDConnection; Alcance: TAlcanceUsuario;
+  const IdEstructura: string; Id: Integer;
+  const CodSubs: string): TIndicadoresEstados;
+
+{ Contadores de lo que pide atencion, dentro del alcance del usuario (Alcance =
+  nil o administrador: todo). Un contador cuya consulta falla se omite; solo se
+  devuelven los de cantidad mayor que cero. Valido en SQL Server y en Access. }
+function CargarRequiereAccion(Conn: TFDConnection;
+  Alcance: TAlcanceUsuario): TArray<TContadorAccion>;
+
 implementation
 
 uses
-  Data.DB, FireDAC.Stan.Param, UAlcanceDatos;
+  Data.DB, FireDAC.Stan.Param, FireDAC.Stan.Error, UAlcanceDatos;
 
 function ClaveTexto(const C: TClaveDocumento): string;
 begin
@@ -211,6 +235,118 @@ begin
     raise;
   end;
   Result := R;
+end;
+
+function CargarEstados(Conn: TFDConnection; Alcance: TAlcanceUsuario;
+  const IdEstructura: string; Id: Integer;
+  const CodSubs: string): TIndicadoresEstados;
+var
+  Q: TFDQuery;
+  Abiertos: TDictionary<string, Boolean>;
+  K: string;
+begin
+  Result := TIndicadoresEstados.Create;
+  Abiertos := TDictionary<string, Boolean>.Create;
+  try
+    try
+      // Prestamos abiertos de la subserie (sin fecha de devolucion)
+      // un prestamo cancelado (FCancelacion) tampoco deja el documento fuera
+      Q := NuevaConsulta(Conn, 'SELECT D.fecha AS Fecha, D.version AS Version, ' +
+        'D.Codigodoc AS Codigodoc FROM TB_PrestamosDocumentos D INNER JOIN ' +
+        'TB_Prestamos P ON P.IdEstructura = D.IdEstructura AND P.id = D.id AND ' +
+        'P.IdPrestamo = D.IdPrestamo WHERE D.IdEstructura = :est AND D.id = :id ' +
+        'AND D.codsubs = :cs AND P.FDevolucion IS NULL AND P.FCancelacion IS NULL');
+      try
+        PonClavesSubserie(Q, IdEstructura, Id, CodSubs);
+        Q.Open;
+        while not Q.Eof do
+        begin
+          Abiertos.AddOrSetValue(ClaveDeFila(Q, IdEstructura, Id, CodSubs), True);
+          Q.Next;
+        end;
+      finally
+        Q.Free;
+      end;
+      // Documentos de la subserie que el alcance deja ver
+      Q := NuevaConsulta(Conn, 'SELECT Fecha, Version, Codigodoc FROM ' +
+        'tb_SeriesDatos WHERE IdEstructura = :est AND id = :id AND codsubs = :cs');
+      try
+        PonClavesSubserie(Q, IdEstructura, Id, CodSubs);
+        Q.Open;
+        while not Q.Eof do
+        begin
+          K := ClaveDeFila(Q, IdEstructura, Id, CodSubs);
+          if Abiertos.ContainsKey(K) then
+            Result.AddOrSetValue(K, edPrestado)
+          else
+            Result.AddOrSetValue(K, edEnArchivo);
+          Q.Next;
+        end;
+      finally
+        Q.Free;
+      end;
+    except
+      on EFDDBEngineException do
+        Result.Clear; // sin datos de prestamos: la lista no muestra estado
+    end;
+  finally
+    Abiertos.Free;
+  end;
+end;
+
+function CargarRequiereAccion(Conn: TFDConnection;
+  Alcance: TAlcanceUsuario): TArray<TContadorAccion>;
+var
+  Lista: TArray<TContadorAccion>;
+  N: Integer;
+
+  procedure Cuenta(const Clave, Texto, Sql: string);
+  var
+    Q: TFDQuery;
+    Filtro: TFiltroSql;
+    K: Integer;
+  begin
+    try
+      Filtro := FiltroDocumentos(Alcance, 'H');
+      Q := NuevaConsulta(Conn, StringReplace(Sql, '{filtro}', Filtro.Condicion,
+        [rfReplaceAll]));
+      try
+        AplicarParametros(Q, Filtro);
+        Q.Open;
+        K := Q.Fields[0].AsInteger;
+      finally
+        Q.Free;
+      end;
+      if K > 0 then
+      begin
+        if N > High(Lista) then
+          SetLength(Lista, N + 4);
+        Lista[N].Clave := Clave;
+        Lista[N].Texto := Texto;
+        Lista[N].Cantidad := K;
+        Inc(N);
+      end;
+    except
+      on EFDDBEngineException do; // este contador no se puede calcular: se omite
+    end;
+  end;
+
+begin
+  N := 0;
+  Cuenta('prestados', 'Prestados ahora',
+    'SELECT COUNT(*) FROM (TB_PrestamosDocumentos D INNER JOIN TB_Prestamos P ON ' +
+    'P.IdEstructura = D.IdEstructura AND P.id = D.id AND P.IdPrestamo = D.IdPrestamo) ' +
+    'INNER JOIN tb_SeriesDatos H ON H.IdEstructura = D.IdEstructura AND H.id = D.id ' +
+    'AND H.codsubs = D.codsubs AND H.Codigodoc = D.Codigodoc AND H.fecha = D.fecha ' +
+    'AND H.version = D.version WHERE P.FDevolucion IS NULL AND P.FCancelacion IS NULL ' +
+    'AND ({filtro})');
+  Cuenta('sinubicacion', 'Sin ubicacion',
+    'SELECT COUNT(*) FROM tb_SeriesDatos H WHERE ({filtro}) AND ' +
+    '(H.Archivo IS NULL OR H.Archivo = 0 OR ' + // Archivo es numerico
+    'H.deposito IS NULL OR H.deposito = '''' OR H.deposito = ''0'' OR ' +
+    'H.gaveta IS NULL OR H.gaveta = '''' OR H.gaveta = ''0'')');
+  SetLength(Lista, N);
+  Result := Lista;
 end;
 
 end.

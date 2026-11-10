@@ -11,6 +11,10 @@ interface
 type
   TTipoDocumento = (tdDocumento, tdExpediente);
 
+  { Estado fisico del documento: sin dato (no se pudo consultar), en archivo o
+    con un prestamo abierto (sin devolucion). }
+  TEstadoDoc = (edDesconocido, edEnArchivo, edPrestado);
+
   TClaveDocumento = record
     IdEstructura: string;
     Id: Integer;
@@ -33,6 +37,7 @@ type
       Posicion, Observaciones, ExtPrincipal: string;
     NumHijos, NumVerticesGeo, NumFicheros, NumFuentes: Integer;
     MarcadoExpediente: Boolean;
+    Estado: TEstadoDoc;
   end;
 
   TClaseDocumento = record
@@ -75,10 +80,41 @@ function ConstruirPropiedades(const D: TDatosDocumento;
 function FiltrarPorExpediente(const Docs: TArray<TDatosDocumento>;
   const Codigo: string): TArray<TDatosDocumento>;
 
+{ '', 'En archivo' o 'Prestado'. }
+function TextoEstadoDoc(E: TEstadoDoc): string;
+{ Texto: sin distinguir mayusculas ni espacios extremos, busca en codigo,
+  titulo y expediente; vacio coincide con todo. Estado solo cuenta si
+  FiltrarEstado. }
+function CoincideFiltro(const D: TDatosDocumento; const Texto: string;
+  FiltrarEstado: Boolean; Estado: TEstadoDoc): Boolean;
+
 implementation
 
 uses
   System.SysUtils, System.Math;
+
+function TextoEstadoDoc(E: TEstadoDoc): string;
+begin
+  case E of
+    edEnArchivo: Result := 'En archivo';
+    edPrestado: Result := 'Prestado';
+  else
+    Result := '';
+  end;
+end;
+
+function CoincideFiltro(const D: TDatosDocumento; const Texto: string;
+  FiltrarEstado: Boolean; Estado: TEstadoDoc): Boolean;
+var
+  T: string;
+begin
+  Result := False;
+  if FiltrarEstado and (D.Estado <> Estado) then
+    Exit;
+  T := LowerCase(Trim(Texto));
+  Result := (T = '') or (Pos(T, LowerCase(D.Clave.Codigodoc)) > 0) or
+    (Pos(T, LowerCase(D.Titulo)) > 0) or (Pos(T, LowerCase(D.IdExpediente)) > 0);
+end;
 
 function ExtensionNormal(const Ext: string): string;
 begin
