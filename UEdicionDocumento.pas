@@ -153,7 +153,11 @@ begin
   end
   else
   begin
-    P.DataType := ftString;
+    // las observaciones pueden ser un memo: un parametro de cadena largo falla
+    if SameText(Campo.Columna, 'observaciones') then
+      P.DataType := ftMemo
+    else
+      P.DataType := ftString;
     if Campo.Texto = '' then
       P.Clear
     else

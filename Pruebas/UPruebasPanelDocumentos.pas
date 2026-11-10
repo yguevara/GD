@@ -38,6 +38,10 @@ type
     [Test]
     procedure Editar_Cancelar_Cierra;
     [Test]
+    procedure Editar_SiCambiaLaLista_SeCierra;
+    [Test]
+    procedure Editar_TrasRecargarLosMismos_SigueAbierto;
+    [Test]
     procedure Seleccion_Varios_DevuelveSusClaves;
     [Test]
     procedure Seleccion_Uno_SigueMostrandoSusDatos;
@@ -679,6 +683,51 @@ begin
     P.Formulario.Guardar;
     Assert.IsTrue(P.Formulario.Visible, 'con error se queda abierto para corregir');
     Assert.IsTrue(Pos('No se pudo guardar nada', P.Formulario.MensajeActual) > 0);
+  finally
+    F.Free;
+    C.Free;
+  end;
+end;
+
+procedure TPruebasPanelDocumentos.Editar_SiCambiaLaLista_SeCierra;
+var
+  F: TForm;
+  P: TPanelDocumentos;
+  C: TContador;
+  D: TArray<TDatosDocumento>;
+begin
+  F := TForm.CreateNew(nil);
+  C := TContador.Create;
+  try
+    P := PanelCargado(F);
+    C.Permiso := True;
+    P.OnPuedeEditar := C.PuedeEditar;
+    P.Editar(ClavesDocs([0]));
+    D := Documentos;
+    D[0].Clave.Codigodoc := 'OTRA SUBSERIE';
+    P.Cargar(D, 'Otra');
+    Assert.IsFalse(P.Formulario.Visible, 'el documento editado ya no esta en la lista');
+  finally
+    F.Free;
+    C.Free;
+  end;
+end;
+
+procedure TPruebasPanelDocumentos.Editar_TrasRecargarLosMismos_SigueAbierto;
+var
+  F: TForm;
+  P: TPanelDocumentos;
+  C: TContador;
+begin
+  F := TForm.CreateNew(nil);
+  C := TContador.Create;
+  try
+    P := PanelCargado(F);
+    C.Permiso := True;
+    P.OnPuedeEditar := C.PuedeEditar;
+    P.Editar(ClavesDocs([0]));
+    P.Cargar(Documentos, 'Prueba');
+    Assert.IsTrue(P.Formulario.Visible);
   finally
     F.Free;
     C.Free;

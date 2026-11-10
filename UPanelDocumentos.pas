@@ -162,6 +162,7 @@ type
     procedure FormularioGuardar(Sender: TObject);
     procedure FormularioCancelar(Sender: TObject);
     procedure FormularioAvanzada(Sender: TObject);
+    procedure CerrarEdicionSiYaNoEsta;
     procedure FormularioEliminar(Sender: TObject);
     procedure FormularioSoltar(const Rutas: TArray<string>);
   protected
@@ -692,6 +693,7 @@ begin
   FTitulo := Titulo;
   FExpFiltrado := '';
   AplicarFiltro;
+  CerrarEdicionSiYaNoEsta;
   if Length(Marcados) > 1 then
     SeleccionarClaves(Marcados)
   else if TeniaSeleccion then
@@ -720,6 +722,34 @@ begin
   FFormulario.Abrir(Claves, Actuales, PuedeTopo);
   FFormulario.Visible := True;
   FFormulario.BringToFront;
+end;
+
+// Si algun documento que se esta editando ya no esta en la lista (otra subserie,
+// otro filtro de origen), el formulario se cierra: sus claves ya no valen.
+procedure TPanelDocumentos.CerrarEdicionSiYaNoEsta;
+var
+  K: TArray<TClaveDocumento>;
+  I, J: Integer;
+  Esta: Boolean;
+begin
+  if (FFormulario = nil) or not FFormulario.Visible then
+    Exit;
+  K := FFormulario.Claves;
+  for I := 0 to High(K) do
+  begin
+    Esta := False;
+    for J := 0 to High(FTodos) do
+      if MismaClave(FTodos[J].Clave, K[I]) then
+      begin
+        Esta := True;
+        Break;
+      end;
+    if not Esta then
+    begin
+      CerrarEdicion;
+      Exit;
+    end;
+  end;
 end;
 
 procedure TPanelDocumentos.CerrarEdicion;
@@ -793,6 +823,7 @@ end;
 procedure TPanelDocumentos.MostrarSinSubserie;
 begin
   FSinSubserie := True;
+  CerrarEdicion;
   FRecepLista.Activo := False; // sin subserie no hay donde agregar: el cursor lo dice
   FTodos := nil;
   FTitulo := '';

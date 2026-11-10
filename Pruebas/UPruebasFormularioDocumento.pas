@@ -32,6 +32,8 @@ type
     [Test]
     procedure Numero_NoNumerico_MuestraElErrorBajoElCampo;
     [Test]
+    procedure VisibleDesconocido_NoSeVaciaSiNoSeToca;
+    [Test]
     procedure Eliminar_SoloConUnDocumento;
     [Test]
     procedure Soltar_DisparaElEventoConLasRutas;
@@ -318,6 +320,29 @@ begin
   finally
     F.Free;
     R.Free;
+  end;
+end;
+
+procedure TPruebasFormularioDocumento.VisibleDesconocido_NoSeVaciaSiNoSeToca;
+var
+  F: TForm;
+  Fm: TFormularioDocumento;
+  A: TCambiosDoc;
+  C: TCambiosDoc;
+begin
+  F := TForm.CreateNew(nil);
+  try
+    Fm := Nuevo(F);
+    A := Actuales;
+    A.TieneVisible := True;
+    A.Visible := 's'; // valor que el combo no reconoce
+    Fm.Abrir([Clave('A')], A, True);
+    Fm.EscribirCampo('titulo', 'Solo el titulo');
+    C := Fm.Cambios;
+    Assert.IsTrue(C.TieneTitulo);
+    Assert.IsFalse(C.TieneVisible, 'visible no se toca si el usuario no lo cambio');
+  finally
+    F.Free;
   end;
 end;
 

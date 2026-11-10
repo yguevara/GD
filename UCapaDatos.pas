@@ -5184,8 +5184,7 @@ begin
   if (ansilowercase(UDM.Rol) <> 'administrador') and (ansilowercase(UDM.Rol) <> 'gestor') then
   begin
     UDM.sms('No tiene permisos suficientes para realizar la operación solicitada.', 2);
-    DataSet.Cancel;
-    Exit;
+    Abort; // sin permiso: detiene el borrado (Cancel no basta en un dataset en navegacion)
   end;
   if (DataSet.FieldByName('fichero').Value <> NULL) or (trim(DataSet.FieldByName('fichero').AsString) <> '') then
   begin

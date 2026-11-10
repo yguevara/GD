@@ -36,6 +36,10 @@ type
     Vaciar: TButton;
     Vaciado: Boolean;
     Rotulo: TLabel;
+    { Texto del control justo despues de abrir: lo que se compara para saber si
+      el usuario cambio el campo (un valor guardado que el control no reconoce
+      no cuenta como cambio). }
+    Inicial: string;
   end;
 
   TFormularioDocumento = class(TPanel)
@@ -609,6 +613,7 @@ begin
         TEdit(FCampos[I].Control).TextHint := IfThen(EsLote, SIN_CAMBIOS, '');
     end;
     PonTexto(I, OriginalDe(I));
+    FCampos[I].Inicial := TextoDe(I);
   end;
   if not PuedeTopografia then
     FAviso.Caption := FAviso.Caption + ' Sin permiso para cambiar la ubicacion.';
@@ -654,7 +659,7 @@ begin
     if (Cur = '') and not FCampos[I].Vaciado then
       Exit;
   end
-  else if Cur = Orig then
+  else if Cur = FCampos[I].Inicial then
     Exit;
   case I of
     0: begin Result.TieneTitulo := True; Result.Titulo := Cur; end;

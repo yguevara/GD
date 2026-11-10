@@ -7926,7 +7926,8 @@ begin
       UDM.tb_Serietree.FieldByName('codsubs').AsString);
   end
   else
-    Result := UDM.Alcance = nil;
+    // sin alcance (Access) rige la regla por rol de siempre: la topografia se muestra o no
+    Result := (UDM.Alcance = nil) and btnViewtopoSS.Visible;
 end;
 
 // Boton Editar de la barra: en la lista abre el formulario con los documentos
@@ -7955,8 +7956,30 @@ end;
 // de siempre (tb_SeriesDatos.Delete), que comprueba el rol y quita los ficheros
 // del documento; la bitacora la deja el propio evento del dataset.
 procedure TMAIN.ListaDocsEliminar(const Clave: TClaveDocumento);
+var
+  Nodo: TClaveNodo;
+  Dias: Integer;
+  Puede: Boolean;
 begin
-  if not ListaDocsPuedeEditar then
+  if not ListaDocsLocalizar(Clave) then
+  begin
+    UDM.sms('No se encontro el documento: ya no existe o cambio la lista.', 2);
+    Exit;
+  end;
+  // la misma regla que habilita el boton Eliminar del navegador (rol, alcance y dias)
+  if (UDM.Alcance <> nil) and UDM.tb_Serietree.Active and not UDM.tb_Serietree.IsEmpty then
+  begin
+    Nodo.IdEstructura := Clave.IdEstructura;
+    Nodo.Id := Clave.Id;
+    if UDM.tb_SeriesDatos.FieldByName('Fecha').IsNull then
+      Dias := 0
+    else
+      Dias := GetCantOfDay(UDM.tb_SeriesDatos.FieldByName('Fecha').AsDateTime);
+    Puede := UDM.Alcance.PuedeEliminarDocumento(Nodo, Clave.CodSubs, Dias);
+  end
+  else
+    Puede := (UDM.Alcance = nil) and (nbDelete in dbnSeriesDatos.VisibleButtons);
+  if not Puede then
   begin
     UDM.sms('No tiene permiso para eliminar este documento.', 3);
     Exit;
@@ -7964,14 +7987,11 @@ begin
   if MessageDlg(Format('Eliminar el documento "%s"? Esta accion no se puede deshacer.',
     [Trim(Clave.Codigodoc)]), mtWarning, [mbYes, mbNo], 0) <> mrYes then
     Exit;
-  if not ListaDocsLocalizar(Clave) then
-  begin
-    UDM.sms('No se encontro el documento: ya no existe o cambio la lista.', 2);
-    Exit;
-  end;
   try
     UDM.tb_SeriesDatos.Delete;
   except
+    on EAbort do
+      Exit;
     on E: Exception do
     begin
       UDM.sms('No se pudo eliminar el documento. ' + E.Message, 1);
@@ -8056,6 +8076,8 @@ begin
   begin
     if FContenidoCache <> nil then
       FContenidoCache.Clear;
+    if UDM.tb_SeriesDatos.Active then
+      UDM.tb_SeriesDatos.Refresh;
     ListaDocsCargar;
   end;
 end;
@@ -8086,7 +8108,13 @@ begin
     Result.TieneObservaciones := True; Result.Observaciones := Trim(Q.Fields[1].AsString);
     Result.TieneIdExpediente := True; Result.IdExpediente := Trim(Q.Fields[2].AsString);
     Result.TieneSubExp := True;      Result.SubExp := Trim(Q.Fields[3].AsString);
-    Result.TieneVisible := True;     Result.Visible := Trim(Q.Fields[4].AsString);
+    Result.TieneVisible := True;
+    Result.Visible := UpperCase(Trim(Q.Fields[4].AsString));
+    if (Result.Visible = 'SI') or (Result.Visible = '1') or (Result.Visible = 'TRUE') or
+      (Result.Visible = '-1') then
+      Result.Visible := 'S'
+    else if (Result.Visible = '0') or (Result.Visible = 'FALSE') then
+      Result.Visible := 'N';
     Result.TieneArchivo := True;
     if Q.Fields[5].IsNull then Result.Archivo := -1 else Result.Archivo := Q.Fields[5].AsInteger;
     Result.TieneDeposito := True;    Result.Deposito := Trim(Q.Fields[6].AsString);
@@ -8137,6 +8165,8 @@ begin
     Resumen := Resumen + ' ' + R.Mensaje;
   UDM.sms(Resumen, 2);
   InvalidarCachesSubserie;
+  if UDM.tb_SeriesDatos.Active then
+    UDM.tb_SeriesDatos.Refresh; // la lista lee de este dataset: que vea lo guardado
   ListaDocsCargar;
 end;
 
