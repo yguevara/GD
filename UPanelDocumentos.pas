@@ -71,6 +71,9 @@ type
     FVisor: TVisorContenido;
     FOnPedirContenido: TSolicitudContenido;
     FRecepLista: TRecepcionArchivos;
+    FOnSeleccionMultiple: TNotifyEvent;
+    FUltimaCantidad: Integer;
+    FSeleccionandoVarios: Boolean;
     FZonaAnexos, FZonaFuentes: TPanel;
     FRecepAnexos, FRecepFuentes: TRecepcionArchivos;
     FOnSoltarFicheros: TSoltarFicherosEvent;
@@ -109,6 +112,8 @@ type
     procedure Construir;
     procedure PestanaCambio(Sender: TObject);
     procedure ListaSoltar(const Rutas: TArray<string>);
+    procedure MostrarMultiple(Cantidad: Integer);
+    procedure SeleccionarClaves(const Claves: TArray<TClaveDocumento>);
     procedure VisorSoltarPdf(const Ruta: string);
     procedure AvisoDelVisor(const Texto: string);
     procedure AnexosSoltar(const Rutas: TArray<string>);
@@ -165,6 +170,11 @@ type
     property OnSoltarArchivos: TSoltarEvent read FOnSoltarArchivos write FOnSoltarArchivos;
     { Receptor de arrastre de la lista (pruebas). }
     property ReceptorLista: TRecepcionArchivos read FRecepLista;
+    { Claves de los documentos marcados en la lista (uno o varios). }
+    function ClavesSeleccionadas: TArray<TClaveDocumento>;
+    { Se dispara al cambiar la cantidad de documentos marcados. }
+    property OnSeleccionMultiple: TNotifyEvent read FOnSeleccionMultiple
+      write FOnSeleccionMultiple;
     { Zonas de soltar de la pestana Archivos y su permiso. }
     property OnSoltarFicheros: TSoltarFicherosEvent read FOnSoltarFicheros
       write FOnSoltarFicheros;
@@ -582,7 +592,7 @@ begin
   FLista.ReadOnly := True;
   FLista.RowSelect := True;
   FLista.HideSelection := False;
-  FLista.MultiSelect := False;
+  FLista.MultiSelect := True;
   FLista.StyleElements := [];
   FLista.Color := FTema.Superficie;
   FLista.Font.Name := FUENTE;
@@ -621,18 +631,45 @@ procedure TPanelDocumentos.Cargar(const Docs: TArray<TDatosDocumento>;
 var
   Previa: TClaveDocumento;
   TeniaSeleccion: Boolean;
+  Marcados: TArray<TClaveDocumento>;
 begin
   TeniaSeleccion := (FIndiceActual >= 0) and (FIndiceActual < Length(FVisibles));
   if TeniaSeleccion then
     Previa := FVisibles[FIndiceActual].Clave;
+  Marcados := nil;
+  if FLista.SelCount > 1 then
+    Marcados := ClavesSeleccionadas;
   FSinSubserie := False;
   FRecepLista.Activo := True;
   FTodos := Copy(Docs);
   FTitulo := Titulo;
   FExpFiltrado := '';
   AplicarFiltro;
-  if TeniaSeleccion then
+  if Length(Marcados) > 1 then
+    SeleccionarClaves(Marcados)
+  else if TeniaSeleccion then
     SeleccionarClave(Previa);
+end;
+
+// Marca los documentos de esas claves que estan en la lista y muestra el estado
+// que corresponde (uno o varios)
+procedure TPanelDocumentos.SeleccionarClaves(const Claves: TArray<TClaveDocumento>);
+var
+  I, J: Integer;
+begin
+  FSeleccionandoVarios := True;
+  try
+    for I := 0 to High(FVisibles) do
+      for J := 0 to High(Claves) do
+        if MismaClave(FVisibles[I].Clave, Claves[J]) then
+        begin
+          FLista.Items[I].Selected := True;
+          Break;
+        end;
+  finally
+    FSeleccionandoVarios := False;
+  end;
+  ListaSelectItem(FLista, nil, True);
 end;
 
 procedure TPanelDocumentos.MostrarSinSubserie;
@@ -675,6 +712,7 @@ begin
   for I := 0 to High(FVisibles) do
     FClases[I] := ClasificarDocumento(FVisibles[I]);
   FIndiceActual := -1;
+  FUltimaCantidad := 0;
   FLista.Items.Count := 0;
   FLista.Items.Count := Length(FVisibles);
   FLista.Invalidate;
@@ -769,17 +807,87 @@ begin
     Result := -1;
 end;
 
+function TPanelDocumentos.ClavesSeleccionadas: TArray<TClaveDocumento>;
+var
+  Item: TListItem;
+  N: Integer;
+begin
+  SetLength(Result, FLista.SelCount);
+  N := 0;
+  Item := FLista.Selected;
+  while (Item <> nil) and (N < Length(Result)) do
+  begin
+    if (Item.Index >= 0) and (Item.Index <= High(FVisibles)) then
+    begin
+      Result[N] := FVisibles[Item.Index].Clave;
+      Inc(N);
+    end;
+    Item := FLista.GetNextItem(Item, sdAll, [isSelected]);
+  end;
+  SetLength(Result, N);
+end;
+
+// Con varios documentos marcados las pestanas no muestran los datos de uno solo
+procedure TPanelDocumentos.MostrarMultiple(Cantidad: Integer);
+var
+  Texto: string;
+begin
+  FIndiceActual := -1;
+  FHistoriaValida := False;
+  Texto := IntToStr(Cantidad) + ' documentos seleccionados';
+  FPropDatos.MostrarMensaje(Texto);
+  FVistaUbicacion.MostrarMensaje(Texto);
+  FPropArchivos.MostrarMensaje(Texto);
+  FPropMetadatos.MostrarMensaje(Texto);
+  FPropHistoria.MostrarMensaje(Texto);
+  FVisor.MostrarMensaje(Texto);
+  FDoc.FijarCabecera(Texto, '', edDesconocido);
+  FDoc.FijarConteoArchivos(0);
+  FBtnAbrir.Enabled := False;
+  FBtnExpediente.Visible := False;
+  FEnlaceExp.Visible := False;
+  ActualizarZonas(False);
+end;
+
 procedure TPanelDocumentos.ListaSelectItem(Sender: TObject; Item: TListItem;
   Selected: Boolean);
+var
+  N, I: Integer;
 begin
-  if not Selected or (Item = nil) then
+  if FSeleccionandoVarios then
     Exit;
-  if (Item.Index < 0) or (Item.Index > High(FVisibles)) then
+  if FSilencio then
+    // seleccion hecha por el propio panel (SeleccionarClave): sigue el camino de uno
+    N := 1
+  else
+    N := FLista.SelCount;
+  if (not FSilencio) and (N <> FUltimaCantidad) then
+  begin
+    FUltimaCantidad := N;
+    if Assigned(FOnSeleccionMultiple) then
+      FOnSeleccionMultiple(Self);
+  end;
+  if N > 1 then
+  begin
+    MostrarMultiple(N);
     Exit;
-  FIndiceActual := Item.Index;
-  MostrarPropiedades(Item.Index);
-  if (not FSilencio) and Assigned(FOnSeleccion) then
-    FOnSeleccion(FVisibles[Item.Index].Clave);
+  end;
+  if N = 1 then
+  begin
+    // uno solo: el que queda marcado (puede no ser el del evento)
+    I := IndiceSeleccionado;
+    if (I < 0) or (I > High(FVisibles)) then
+      Exit;
+    if (I = FIndiceActual) and not Selected then
+      Exit;
+    if (I = FIndiceActual) and (Item <> nil) and (Item.Index = I) and Selected and
+      (FDoc.TextoCodigo = Trim(FVisibles[I].Clave.Codigodoc)) then
+      Exit;
+    FIndiceActual := I;
+    MostrarPropiedades(I);
+    if (not FSilencio) and Assigned(FOnSeleccion) then
+      FOnSeleccion(FVisibles[I].Clave);
+  end;
 end;
 
 procedure TPanelDocumentos.AbrirSeleccionado;

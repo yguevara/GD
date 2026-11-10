@@ -28,6 +28,18 @@ type
     [Test]
     procedure Propiedades_ClicEnVerHistoria_DisparaEvento;
     [Test]
+    procedure Seleccion_Varios_DevuelveSusClaves;
+    [Test]
+    procedure Seleccion_Uno_SigueMostrandoSusDatos;
+    [Test]
+    procedure Seleccion_Varios_LaCabeceraDiceCuantos;
+    [Test]
+    procedure Seleccion_VariosAUno_VuelveALosDatosDelUnico;
+    [Test]
+    procedure Filtrar_LimpiaLaSeleccionQueYaNoSeVe;
+    [Test]
+    procedure Recargar_ConservaLosMarcadosQueSiguenVisibles;
+    [Test]
     procedure Zonas_ConPermiso_DisparanElEventoSegunLaZona;
     [Test]
     procedure Zonas_SinPermiso_NoDisparan;
@@ -258,6 +270,7 @@ begin
     end;
     Assert.AreEqual(0, Cuenta(P, AVISO));
     Assert.AreEqual(1, Cuenta(P, 'GENERAL'));
+    LV.ClearSelection; // elegir otro documento reemplaza la seleccion
     LV.Items[2].Selected := True;
     PonerAlDia;
     Assert.AreEqual(0, Cuenta(P, AVISO));
@@ -534,6 +547,153 @@ begin
 end;
 
 type
+  TContador = class
+    Avisos: Integer;
+    procedure Aviso(Sender: TObject);
+  end;
+
+procedure TContador.Aviso(Sender: TObject);
+begin
+  Inc(Avisos);
+end;
+
+procedure TPruebasPanelDocumentos.Seleccion_Varios_DevuelveSusClaves;
+var
+  F: TForm;
+  P: TPanelDocumentos;
+  LV: TListView;
+  K: TArray<TClaveDocumento>;
+begin
+  F := TForm.CreateNew(nil);
+  try
+    P := PanelCargado(F);
+    LV := BuscarLista(P);
+    LV.Items[0].Selected := True;
+    LV.Items[2].Selected := True;
+    PonerAlDia;
+    K := P.ClavesSeleccionadas;
+    Assert.AreEqual(2, Integer(Length(K)));
+    Assert.AreEqual('A 03.01.02.0001', K[0].Codigodoc);
+    Assert.AreEqual('A 03.01.02.0003', K[1].Codigodoc);
+  finally
+    F.Free;
+  end;
+end;
+
+procedure TPruebasPanelDocumentos.Seleccion_Uno_SigueMostrandoSusDatos;
+var
+  F: TForm;
+  P: TPanelDocumentos;
+  LV: TListView;
+begin
+  F := TForm.CreateNew(nil);
+  try
+    P := PanelCargado(F);
+    LV := BuscarLista(P);
+    LV.Items[1].Selected := True;
+    PonerAlDia;
+    Assert.AreEqual(1, Integer(Length(P.ClavesSeleccionadas)));
+    Assert.AreEqual('A 03.01.02.0002', P.Documento.TextoCodigo);
+    Assert.IsTrue(Pos('GENERAL', BuscarProp(P).Contenido) > 0);
+  finally
+    F.Free;
+  end;
+end;
+
+procedure TPruebasPanelDocumentos.Seleccion_Varios_LaCabeceraDiceCuantos;
+var
+  F: TForm;
+  P: TPanelDocumentos;
+  LV: TListView;
+  C: TContador;
+begin
+  F := TForm.CreateNew(nil);
+  C := TContador.Create;
+  try
+    P := PanelCargado(F);
+    P.OnSeleccionMultiple := C.Aviso;
+    LV := BuscarLista(P);
+    LV.Items[0].Selected := True;
+    LV.Items[1].Selected := True;
+    PonerAlDia;
+    Assert.AreEqual('2 documentos seleccionados', P.Documento.TextoCodigo);
+    Assert.IsTrue(Pos('2 documentos', BuscarProp(P).Contenido) > 0,
+      'las pestanas no muestran los datos de uno solo');
+    Assert.IsTrue(C.Avisos > 0, 'avisa del cambio de cantidad');
+  finally
+    F.Free;
+    C.Free;
+  end;
+end;
+
+procedure TPruebasPanelDocumentos.Seleccion_VariosAUno_VuelveALosDatosDelUnico;
+var
+  F: TForm;
+  P: TPanelDocumentos;
+  LV: TListView;
+begin
+  F := TForm.CreateNew(nil);
+  try
+    P := PanelCargado(F);
+    LV := BuscarLista(P);
+    LV.Items[0].Selected := True;
+    LV.Items[1].Selected := True;
+    PonerAlDia;
+    LV.Items[0].Selected := False;
+    PonerAlDia;
+    Assert.AreEqual(1, Integer(Length(P.ClavesSeleccionadas)));
+    Assert.AreEqual('A 03.01.02.0002', P.Documento.TextoCodigo);
+  finally
+    F.Free;
+  end;
+end;
+
+procedure TPruebasPanelDocumentos.Filtrar_LimpiaLaSeleccionQueYaNoSeVe;
+var
+  F: TForm;
+  P: TPanelDocumentos;
+  LV: TListView;
+begin
+  F := TForm.CreateNew(nil);
+  try
+    P := PanelCargado(F);
+    LV := BuscarLista(P);
+    LV.Items[0].Selected := True;
+    LV.Items[1].Selected := True;
+    PonerAlDia;
+    P.FijarFiltro('documento 3', False, edDesconocido);
+    PonerAlDia;
+    Assert.AreEqual(0, Integer(Length(P.ClavesSeleccionadas)),
+      'los marcados que ya no se ven no siguen seleccionados');
+  finally
+    F.Free;
+  end;
+end;
+
+procedure TPruebasPanelDocumentos.Recargar_ConservaLosMarcadosQueSiguenVisibles;
+var
+  F: TForm;
+  P: TPanelDocumentos;
+  LV: TListView;
+  D: TArray<TDatosDocumento>;
+begin
+  F := TForm.CreateNew(nil);
+  try
+    P := PanelCargado(F);
+    LV := BuscarLista(P);
+    LV.Items[0].Selected := True;
+    LV.Items[2].Selected := True;
+    PonerAlDia;
+    D := Documentos;
+    P.Cargar(D, 'Prueba'); // recarga con los mismos documentos
+    PonerAlDia;
+    Assert.AreEqual(2, Integer(Length(P.ClavesSeleccionadas)));
+  finally
+    F.Free;
+  end;
+end;
+
+type
   TProveedorFicheros = class
     Avisos: Integer;
     Clave: TClaveDocumento;
@@ -721,13 +881,16 @@ begin
     P.Documento.Activar(pdContenido);
     PonerAlDia;
     Assert.AreEqual(1, Prov.Llamadas, 'al abrir la pestana se pide una vez');
+    LV.ClearSelection;
     LV.Items[1].Selected := True;
     PonerAlDia;
     Assert.AreEqual(1, Prov.Llamadas, 'al cambiar de documento se espera un momento antes de descargar');
     EsperarContenido;
     Assert.AreEqual(2, Prov.Llamadas, 'con la pestana abierta, cambiar de documento lo vuelve a pedir');
     // recorrer varios documentos seguidos no descarga uno por uno
+    LV.ClearSelection;
     LV.Items[2].Selected := True;
+    LV.ClearSelection;
     LV.Items[0].Selected := True;
     PonerAlDia;
     EsperarContenido;
