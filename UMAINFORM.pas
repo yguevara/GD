@@ -813,6 +813,8 @@ type
     function ListaDocsPuedeEditar: Boolean;
     function AlmacenParaDocumento(const Clave: TClaveDocumento;
       out Origen: TOrigenDocumento; out Almacen: IAlmacenFicheros): Boolean;
+    procedure ListaDocsSoltarContenido(const Clave: TClaveDocumento; const Pdf: string);
+    procedure ShellAvisoSoltar(const Texto: string);
     procedure ListaDocsSoltarFicheros(const Clave: TClaveDocumento;
       const Rutas: TArray<string>; EsFuente: Boolean);
     procedure ShellBuscar(const Texto: string; Ambito: TAmbitoBusqueda);
@@ -6976,6 +6978,8 @@ begin
     FListaDocs.OnSoltarArchivos := ListaDocsSoltar;
     FListaDocs.OnPuedeEditar := ListaDocsPuedeEditar;
     FListaDocs.OnSoltarFicheros := ListaDocsSoltarFicheros;
+    FListaDocs.OnSoltarContenido := ListaDocsSoltarContenido;
+    FListaDocs.OnAvisoSoltar := ShellAvisoSoltar;
 
     FTimerDocs := TTimer.Create(Self);
     FTimerDocs.Enabled := False;
@@ -7940,6 +7944,82 @@ begin
     on E: Exception do
       UDM.sms('No se pudo preparar el servidor de ficheros: ' + E.Message, 3);
   end;
+end;
+
+procedure TMAIN.ShellAvisoSoltar(const Texto: string);
+begin
+  UDM.sms(Texto, 2);
+end;
+
+// Un PDF soltado sobre la pestana Contenido: pone el contenido del documento o
+// reemplaza el que tiene (con confirmacion). El PDF anterior solo se borra
+// cuando el nuevo ya esta guardado; si algo falla, el anterior queda intacto.
+procedure TMAIN.ListaDocsSoltarContenido(const Clave: TClaveDocumento; const Pdf: string);
+var
+  Origen: TOrigenDocumento;
+  Almacen: IAlmacenFicheros;
+  R: TResultadoFicheros;
+  Prog: TProgresoTransferencia;
+  Anterior: string;
+begin
+  if not ListaDocsPuedeEditar then
+  begin
+    UDM.sms('No tiene permiso para modificar el contenido de este documento.', 3);
+    Exit;
+  end;
+  if not ListaDocsLocalizar(Clave) then
+    Exit;
+  Anterior := '';
+  if UDM.qryAnexosDig.Active and not UDM.qryAnexosDig.IsEmpty then
+  begin
+    UDM.qryAnexosDig.DisableControls;
+    try
+      UDM.qryAnexosDig.First;
+      while not UDM.qryAnexosDig.Eof do
+      begin
+        if SameText(ExtractFileExt(UDM.qryAnexosDig.FieldByName('nombre').AsString), '.pdf') then
+        begin
+          Anterior := UDM.qryAnexosDig.FieldByName('nombre').AsString;
+          Break;
+        end;
+        UDM.qryAnexosDig.Next;
+      end;
+      UDM.qryAnexosDig.First;
+    finally
+      UDM.qryAnexosDig.EnableControls;
+    end;
+  end;
+  if (Anterior <> '') and (MessageDlg('Este documento ya tiene contenido ("' + Anterior +
+    '").' + sLineBreak + 'Reemplazarlo por "' + ExtractFileName(Pdf) + '"?',
+    mtConfirmation, [mbYes, mbNo], 0) <> mrYes) then
+    Exit;
+  if not AlmacenParaDocumento(Clave, Origen, Almacen) then
+    Exit;
+  Prog := TProgresoTransferencia.Create(nil, 'Guardando el contenido', Trim(Clave.Codigodoc));
+  try
+    R := ReemplazarContenido(UDM.Conn, UDM.Alcance, Origen, Clave, Almacen, Pdf,
+      procedure(Hecho, Total: Int64; var Cancelar: Boolean)
+      begin
+        Prog.Actualizar(Hecho, Total, Cancelar);
+      end);
+  finally
+    Prog.Free;
+  end;
+  if R.Agregados > 0 then
+  begin
+    if R.Mensaje <> '' then
+      UDM.sms(R.Mensaje, 2)
+    else
+      UDM.sms('El contenido del documento se guardo.', 3);
+    if FContenidoCache <> nil then
+      FContenidoCache.Clear;
+    if UDM.qryAnexosDig.Active then
+      UDM.qryAnexosDig.Refresh;
+    if FListaDocs <> nil then
+      FListaDocs.SeleccionarClave(Clave);
+  end
+  else
+    UDM.sms('No se pudo guardar el contenido. ' + R.Mensaje, 1);
 end;
 
 // Archivos o carpetas soltados sobre las zonas de la pestana Archivos: se

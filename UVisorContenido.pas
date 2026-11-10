@@ -11,9 +11,11 @@ interface
 uses
   System.Classes, System.SysUtils, Winapi.Windows, Winapi.Messages,
   Vcl.Controls, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.Forms, Vcl.Graphics, Vcl.Menus,
-  dxPDFViewer, UTema;
+  dxPDFViewer, UTema, URecepcionArchivos;
 
 type
+  TSoltarPdfEvent = procedure(const Ruta: string) of object;
+
   TVisorContenido = class(TPanel)
   private
     FTema: TTemaColores;
@@ -26,7 +28,11 @@ type
     FTitulo: string;
     FVentana: TForm;
     FEnVentana: Boolean;
+    FRecepcion: TRecepcionArchivos;
+    FOnSoltarPdf: TSoltarPdfEvent;
+    FOnAviso: TGetStrProc;
     procedure Construir;
+    procedure Soltado(const Rutas: TArray<string>);
     procedure SepararClick(Sender: TObject);
     procedure VentanaCerrada(Sender: TObject; var Action: TCloseAction);
     procedure ActualizarBoton;
@@ -45,6 +51,12 @@ type
     procedure Separar;
     { Trae el visor de vuelta a la aplicacion y cierra la ventana aparte. }
     procedure Reincorporar;
+    { Un PDF soltado sobre el visor (el contenido nuevo del documento). Con mas de
+      un archivo o con un formato distinto de PDF se avisa por OnAviso. }
+    property OnSoltarPdf: TSoltarPdfEvent read FOnSoltarPdf write FOnSoltarPdf;
+    property OnAviso: TGetStrProc read FOnAviso write FOnAviso;
+    { Receptor de arrastre del visor; Activo = False si no se puede modificar. }
+    property ReceptorSoltar: TRecepcionArchivos read FRecepcion;
     property Separado: Boolean read FEnVentana;
     property Archivo: string read FArchivo;
     { Donde esta ahora el visor: este panel o la ventana aparte (pruebas). }
@@ -137,7 +149,32 @@ begin
   // Solo visualiza: un menu contextual vacio evita el propio del visor
   FVisor.PopupMenu := TPopupMenu.Create(Self);
 
+  // soltar un PDF sobre el visor pone o reemplaza el contenido del documento
+  FRecepcion := TRecepcionArchivos.Crear(Self, Self);
+  FRecepcion.OnSoltar := Soltado;
+
   ActualizarBoton;
+end;
+
+procedure TVisorContenido.Soltado(const Rutas: TArray<string>);
+var
+  Ok, Rech: TArray<string>;
+begin
+  Ok := FiltrarRutas(Rutas, ['pdf'], Rech);
+  if Length(Ok) = 1 then
+  begin
+    if (Length(Rech) = 0) and Assigned(FOnSoltarPdf) then
+      FOnSoltarPdf(Ok[0])
+    else if Assigned(FOnAviso) then
+      FOnAviso('Suelte un solo archivo PDF.');
+  end
+  else if Assigned(FOnAviso) then
+  begin
+    if Length(Ok) = 0 then
+      FOnAviso('El contenido del documento solo admite un archivo PDF.')
+    else
+      FOnAviso('Suelte un solo archivo PDF.');
+  end;
 end;
 
 procedure TVisorContenido.ActualizarBoton;

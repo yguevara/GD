@@ -59,3 +59,17 @@ Estado de la suite automatica al escribir esta lista: 316 pruebas, 0 fallos
 32. El visor no ofrece guardar, imprimir ni copiar (solo visualiza, como PDFExpressViewer.exe).
 33. Cada vez que se muestra un contenido queda un registro de visualizacion del documento (administracion de log).
 34. Al cerrar la aplicacion se borra la carpeta temporal `ArchiGenio_contenido_*` del directorio temporal.
+
+## Arrastrar y soltar
+
+35. Soltar 3 archivos y una carpeta sobre la lista de documentos de una subserie: se abre "Agregar documentos" con los candidatos (titulo desde el nombre del archivo, codigos consecutivos); no se crea nada hasta guardar.
+36. Soltar sobre la lista sin subserie elegida, o sin permiso de agregar: aviso claro y no se abre la carga.
+37. Pestana Archivos con un documento elegido y permiso: las dos zonas "Suelte aqui ... anexos digitales" y "... fuentes" resaltan al arrastrar encima; soltar agrega los ficheros, el contador de la pestana sube y la lista se actualiza.
+38. Archivos repetidos o con el mismo nombre que los del documento: quedan como "nombre (2).ext", sin pisarse en el almacen.
+39. Un archivo que no existe o falla la subida: se cuenta como fallido, los demas se agregan y el resumen lo dice; no queda fila ni objeto del fallido.
+40. Sin permiso de editar: las zonas dicen que no hay permiso y no aceptan nada.
+41. Pestana Contenido: soltar un PDF en un documento sin contenido lo pone y el visor lo muestra.
+42. Soltar otro PDF sobre un documento que ya tiene contenido: pide confirmacion; al aceptar lo reemplaza; si se cancela no cambia nada.
+43. Soltar un archivo que no es PDF, o varios archivos, sobre Contenido: aviso "solo admite un archivo PDF" / "Suelte un solo archivo PDF".
+44. Cortar la red durante un reemplazo: el contenido anterior sigue intacto (fila y objeto).
+45. Cada alta, anexo, fuente o reemplazo queda en la bitacora del documento.

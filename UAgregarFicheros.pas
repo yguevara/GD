@@ -36,6 +36,18 @@ function AgregarFicheros(Conn: TFDConnection; Alcance: TAlcanceUsuario;
   Almacen: IAlmacenFicheros; const Ficheros: TArray<TFicheroNuevo>;
   Progreso: TProgresoEvento): TResultadoFicheros;
 
+{ Pone o reemplaza el contenido del documento: su PDF principal (el primer
+  anexo digital en PDF). PdfNuevo debe ser un archivo .pdf. Con PDF anterior:
+  sube el nuevo, en una transaccion cambia la fila anterior por la nueva (y
+  escribe bitacora) y solo despues borra el objeto anterior del almacen; si algo
+  falla antes de ese ultimo paso se borra el nuevo y el anterior queda intacto.
+  Si el borrado del objeto anterior falla, el nuevo ya esta guardado y Mensaje
+  lo dice. Sin PDF anterior equivale a agregar un anexo. }
+function ReemplazarContenido(Conn: TFDConnection; Alcance: TAlcanceUsuario;
+  const Origen: TOrigenDocumento; const Clave: TClaveDocumento;
+  Almacen: IAlmacenFicheros; const PdfNuevo: string;
+  Progreso: TProgresoEvento): TResultadoFicheros;
+
 implementation
 
 uses
@@ -163,6 +175,43 @@ begin
   end;
 end;
 
+{ PDF principal actual del documento: primer anexo digital cuya extension es pdf. }
+function PdfActual(Conn: TFDConnection; const Clave: TClaveDocumento;
+  out IdHijo: Integer; out UrlRaiz, Path, Nombre: string): Boolean;
+var
+  Q: TFDQuery;
+begin
+  Result := False;
+  Q := TFDQuery.Create(nil);
+  try
+    Q.Connection := Conn;
+    Q.SQL.Text := 'SELECT idhijo, nombre, urlraiz, path, extnombre FROM tb_ssArchdigital ' +
+      'WHERE IdEstructura = :a AND id = :b AND codsubs = :c AND Fecha = :d AND ' +
+      'Version = :e AND Codigodoc = :f AND fuente = ''N'' ORDER BY idhijo';
+    Q.ParamByName('a').AsString := Clave.IdEstructura;
+    Q.ParamByName('b').AsInteger := Clave.Id;
+    Q.ParamByName('c').AsString := Clave.CodSubs;
+    Q.ParamByName('d').AsDateTime := Clave.Fecha;
+    Q.ParamByName('e').AsString := Clave.Version;
+    Q.ParamByName('f').AsString := Clave.Codigodoc;
+    Q.Open;
+    while not Q.Eof do
+    begin
+      if SameText(ExtractFileExt(Q.FieldByName('nombre').AsString), '.pdf') then
+      begin
+        IdHijo := Q.FieldByName('idhijo').AsInteger;
+        UrlRaiz := Q.FieldByName('urlraiz').AsString;
+        Path := Q.FieldByName('path').AsString;
+        Nombre := Q.FieldByName('nombre').AsString;
+        Exit(True);
+      end;
+      Q.Next;
+    end;
+  finally
+    Q.Free;
+  end;
+end;
+
 function AgregarFicheros(Conn: TFDConnection; Alcance: TAlcanceUsuario;
   const Origen: TOrigenDocumento; const Clave: TClaveDocumento;
   Almacen: IAlmacenFicheros; const Ficheros: TArray<TFicheroNuevo>;
@@ -245,6 +294,104 @@ begin
   if Result.Fallidos > 0 then
     Result.Mensaje := Format('%d fichero(s) no se pudieron agregar. Ultimo error: %s',
       [Result.Fallidos, Ultimo]);
+end;
+
+function ReemplazarContenido(Conn: TFDConnection; Alcance: TAlcanceUsuario;
+  const Origen: TOrigenDocumento; const Clave: TClaveDocumento;
+  Almacen: IAlmacenFicheros; const PdfNuevo: string;
+  Progreso: TProgresoEvento): TResultadoFicheros;
+var
+  Nodo: TClaveNodo;
+  Usados: TStringList;
+  Destino: TDestino;
+  IdViejo: Integer;
+  UrlViejo, PathViejo, NombreViejo, Nombre, ClaveNueva, ClaveVieja: string;
+  Res: TResultadoSubida;
+  Subido, Propia: Boolean;
+  Un: TArray<TFicheroNuevo>;
+begin
+  Result := Default(TResultadoFicheros);
+  Nodo.IdEstructura := Origen.IdEstructura;
+  Nodo.Id := Origen.Id;
+  if (Alcance <> nil) and not Alcance.PuedeRealizar(acEditar, Nodo, Origen.CodSubs) then
+  begin
+    Result.Mensaje := 'No tiene permiso para modificar los ficheros de este documento.';
+    Exit;
+  end;
+  if not SameText(ExtractFileExt(PdfNuevo), '.pdf') then
+  begin
+    Result.Mensaje := 'El contenido debe ser un archivo PDF.';
+    Exit;
+  end;
+  if not PdfActual(Conn, Clave, IdViejo, UrlViejo, PathViejo, NombreViejo) then
+  begin
+    // sin contenido anterior: es agregar un anexo digital
+    SetLength(Un, 1);
+    Un[0].Local := PdfNuevo;
+    Un[0].EsFuente := False;
+    Exit(AgregarFicheros(Conn, Alcance, Origen, Clave, Almacen, Un, Progreso));
+  end;
+  Usados := TStringList.Create;
+  Subido := False;
+  try
+    Destino := DestinoDe(Conn, Origen, Clave, False, Usados);
+    // el nuevo va a la carpeta de los anexos del documento, con nombre que no
+    // pise al anterior (el anterior se borra solo cuando el nuevo ya esta guardado)
+    Destino.UrlRaiz := UrlViejo;
+    Destino.Path := PathViejo;
+    ClaveVieja := ClaveDeObjeto(UrlViejo, PathViejo, NombreViejo);
+    try
+      if not TFile.Exists(PdfNuevo) then
+        raise EAlmacen.Create('No se encuentra el archivo ' + ExtractFileName(PdfNuevo) + '.');
+      Nombre := NombreUnico(Usados, Destino.Path, ExtractFileName(PdfNuevo));
+      ClaveNueva := ClaveDeObjeto(Destino.UrlRaiz, Destino.Path, Nombre);
+      Res := Almacen.Subir(PdfNuevo, ClaveNueva, Progreso);
+      Subido := True;
+      Propia := not Conn.InTransaction;
+      if Propia then
+        Conn.StartTransaction;
+      try
+        Conn.ExecSQL('DELETE FROM tb_ssArchdigital WHERE idhijo = :h AND ' +
+          'IdEstructura = :a AND id = :b AND codsubs = :c AND Codigodoc = :f',
+          [IdViejo, Clave.IdEstructura, Clave.Id, Clave.CodSubs, Clave.Codigodoc]);
+        InsertarFila(Conn, Clave, Destino, Nombre, Res.Tamano, False);
+        RegistrarEventoDoc(Conn, Clave, ACCION_MODIFICAR,
+          Format('Se reemplazo el contenido del documento con codigo "%s": "%s" por "%s".',
+          [Trim(Clave.Codigodoc), NombreViejo, Nombre]), Origen.Usuario, Origen.Rol,
+          Origen.CodSerie);
+        if Propia then
+          Conn.Commit;
+      except
+        if Propia and Conn.InTransaction then
+          Conn.Rollback;
+        raise;
+      end;
+    except
+      on E: Exception do
+      begin
+        Inc(Result.Fallidos);
+        Result.Mensaje := ExtractFileName(PdfNuevo) + ': ' + E.Message;
+        if Subido then
+          try
+            Almacen.Borrar(ClaveNueva);
+          except
+            // el nuevo no se pudo quitar: el mensaje ya dice que fallo
+          end;
+        Exit;
+      end;
+    end;
+    Inc(Result.Agregados);
+    // el nuevo ya esta guardado: ahora se quita el objeto anterior del almacen
+    try
+      Almacen.Borrar(ClaveVieja);
+    except
+      on E: Exception do
+        Result.Mensaje := 'El contenido se reemplazo, pero el PDF anterior quedo en el ' +
+          'almacen (' + NombreViejo + '): ' + E.Message;
+    end;
+  finally
+    Usados.Free;
+  end;
 end;
 
 end.

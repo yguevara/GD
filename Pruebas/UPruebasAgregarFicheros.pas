@@ -51,6 +51,16 @@ type
     procedure ArchivoInexistente_CuentaComoFallido;
     [Test]
     procedure DocumentoConFicheros_UsaSuCarpetaYRaiz;
+    [Test]
+    procedure Reemplaza_SubeElNuevoYBorraElAnterior;
+    [Test]
+    procedure Reemplaza_FallaLaSubida_ElAnteriorSigueIntacto;
+    [Test]
+    procedure Reemplaza_NoEsPdf_NoHaceNada;
+    [Test]
+    procedure Reemplaza_SinPdfAnterior_AgregaComoAnexo;
+    [Test]
+    procedure Reemplaza_FallaElBorradoDelAnterior_ConservaElNuevoYLoDice;
   end;
 
 implementation
@@ -341,6 +351,98 @@ begin
       Assert.AreEqual(1, R.Agregados);
       Assert.AreEqual(1, Cuenta('SELECT COUNT(*) FROM tb_ssArchdigital WHERE Codigodoc = ''' +
         COD + ''' AND nombre = ''nuevo.pdf'' AND urlraiz = ''s3://5/'' AND path = ''\viejo\carpeta\'''));
+    end);
+end;
+
+procedure TPruebasAgregarFicheros.Reemplaza_SubeElNuevoYBorraElAnterior;
+begin
+  EnCadaMotor(procedure(EsSql: Boolean)
+    var
+      R: TResultadoFicheros;
+    begin
+      AgregarFicheros(FConn, nil, FOrigen, FClave, FAlmI,
+        [Nuevo(Archivo('viejo.pdf', 40), False)], nil);
+      Assert.AreEqual(1, FAlm.Objetos.Count);
+      R := ReemplazarContenido(FConn, nil, FOrigen, FClave, FAlmI,
+        Archivo('nuevo.pdf', 60), nil);
+      Assert.AreEqual(1, R.Agregados);
+      Assert.AreEqual('', R.Mensaje);
+      Assert.AreEqual(0, Cuenta('SELECT COUNT(*) FROM tb_ssArchdigital WHERE Codigodoc = ''' +
+        COD + ''' AND nombre = ''viejo.pdf'''), 'la fila anterior desaparece');
+      Assert.AreEqual(1, Cuenta('SELECT COUNT(*) FROM tb_ssArchdigital WHERE Codigodoc = ''' +
+        COD + ''' AND nombre = ''nuevo.pdf'''));
+      Assert.AreEqual(1, FAlm.Objetos.Count, 'solo queda el nuevo en el almacen');
+      Assert.AreEqual(1, FAlm.Borrados);
+      Assert.AreEqual(1, Cuenta('SELECT COUNT(*) FROM tb_log WHERE msg LIKE ''%contenido%' +
+        COD + '%'''));
+    end);
+end;
+
+procedure TPruebasAgregarFicheros.Reemplaza_FallaLaSubida_ElAnteriorSigueIntacto;
+begin
+  EnCadaMotor(procedure(EsSql: Boolean)
+    var
+      R: TResultadoFicheros;
+    begin
+      AgregarFicheros(FConn, nil, FOrigen, FClave, FAlmI,
+        [Nuevo(Archivo('viejo.pdf', 40), False)], nil);
+      FAlm.FallarSubidaEn := 'A.4.3/07/074/F6T-001/Anexos Digitales/nuevo.pdf';
+      R := ReemplazarContenido(FConn, nil, FOrigen, FClave, FAlmI,
+        Archivo('nuevo.pdf', 60), nil);
+      Assert.AreEqual(0, R.Agregados);
+      Assert.AreEqual(1, R.Fallidos);
+      Assert.AreEqual(1, Cuenta('SELECT COUNT(*) FROM tb_ssArchdigital WHERE Codigodoc = ''' +
+        COD + ''' AND nombre = ''viejo.pdf'''), 'el anterior sigue en la tabla');
+      Assert.AreEqual(1, FAlm.Objetos.Count, 'el anterior sigue en el almacen');
+      Assert.AreEqual(0, FAlm.Borrados, 'no se borro nada');
+    end);
+end;
+
+procedure TPruebasAgregarFicheros.Reemplaza_NoEsPdf_NoHaceNada;
+begin
+  EnCadaMotor(procedure(EsSql: Boolean)
+    var
+      R: TResultadoFicheros;
+    begin
+      R := ReemplazarContenido(FConn, nil, FOrigen, FClave, FAlmI,
+        Archivo('memoria.docx', 20), nil);
+      Assert.AreEqual(0, R.Agregados);
+      Assert.IsTrue(Pos('PDF', R.Mensaje) > 0);
+      Assert.AreEqual(0, FAlm.Subidas, 'un archivo que no es PDF no se sube');
+    end);
+end;
+
+procedure TPruebasAgregarFicheros.Reemplaza_SinPdfAnterior_AgregaComoAnexo;
+begin
+  EnCadaMotor(procedure(EsSql: Boolean)
+    var
+      R: TResultadoFicheros;
+    begin
+      R := ReemplazarContenido(FConn, nil, FOrigen, FClave, FAlmI,
+        Archivo('primero.pdf', 20), nil);
+      Assert.AreEqual(1, R.Agregados);
+      Assert.AreEqual(1, Cuenta('SELECT COUNT(*) FROM tb_ssArchdigital WHERE Codigodoc = ''' +
+        COD + ''' AND fuente = ''N'' AND nombre = ''primero.pdf'''));
+      Assert.AreEqual(0, FAlm.Borrados);
+    end);
+end;
+
+procedure TPruebasAgregarFicheros.Reemplaza_FallaElBorradoDelAnterior_ConservaElNuevoYLoDice;
+begin
+  EnCadaMotor(procedure(EsSql: Boolean)
+    var
+      R: TResultadoFicheros;
+    begin
+      AgregarFicheros(FConn, nil, FOrigen, FClave, FAlmI,
+        [Nuevo(Archivo('viejo.pdf', 40), False)], nil);
+      FAlm.FallarBorrado := True;
+      R := ReemplazarContenido(FConn, nil, FOrigen, FClave, FAlmI,
+        Archivo('nuevo.pdf', 60), nil);
+      Assert.AreEqual(1, R.Agregados, 'el nuevo ya esta guardado');
+      Assert.IsTrue(Pos('anterior', R.Mensaje) > 0, 'avisa que el anterior quedo en el almacen');
+      Assert.AreEqual(1, Cuenta('SELECT COUNT(*) FROM tb_ssArchdigital WHERE Codigodoc = ''' +
+        COD + ''' AND nombre = ''nuevo.pdf'''));
+      FAlm.FallarBorrado := False;
     end);
 end;
 

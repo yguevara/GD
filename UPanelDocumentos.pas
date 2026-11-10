@@ -24,6 +24,9 @@ type
     (True) de un documento. }
   TSoltarFicherosEvent = procedure(const Clave: TClaveDocumento;
     const Rutas: TArray<string>; EsFuente: Boolean) of object;
+  { Un PDF soltado sobre la pestana Contenido del documento Clave. }
+  TSoltarContenidoEvent = procedure(const Clave: TClaveDocumento;
+    const Pdf: string) of object;
   { Si el usuario puede modificar los ficheros del documento actual. }
   TConsultaPermiso = function: Boolean of object;
   { Ruta local de un archivo PDF con el contenido del documento, o '' y el
@@ -72,6 +75,8 @@ type
     FRecepAnexos, FRecepFuentes: TRecepcionArchivos;
     FOnSoltarFicheros: TSoltarFicherosEvent;
     FOnPuedeEditar: TConsultaPermiso;
+    FOnSoltarContenido: TSoltarContenidoEvent;
+    FOnAvisoSoltar: TGetStrProc;
     FOnSoltarArchivos: TSoltarEvent;
     FSinSubserie: Boolean;
     FTimerContenido: TTimer;
@@ -104,6 +109,8 @@ type
     procedure Construir;
     procedure PestanaCambio(Sender: TObject);
     procedure ListaSoltar(const Rutas: TArray<string>);
+    procedure VisorSoltarPdf(const Ruta: string);
+    procedure AvisoDelVisor(const Texto: string);
     procedure AnexosSoltar(const Rutas: TArray<string>);
     procedure FuentesSoltar(const Rutas: TArray<string>);
     procedure SoltarFicheros(const Rutas: TArray<string>; EsFuente: Boolean);
@@ -162,6 +169,11 @@ type
     property OnSoltarFicheros: TSoltarFicherosEvent read FOnSoltarFicheros
       write FOnSoltarFicheros;
     property OnPuedeEditar: TConsultaPermiso read FOnPuedeEditar write FOnPuedeEditar;
+    { Un PDF soltado sobre el visor del contenido (pone o reemplaza el contenido). }
+    property OnSoltarContenido: TSoltarContenidoEvent read FOnSoltarContenido
+      write FOnSoltarContenido;
+    { Avisos de lo que se solto y no se acepto (no PDF, varios archivos). }
+    property OnAvisoSoltar: TGetStrProc read FOnAvisoSoltar write FOnAvisoSoltar;
     property ReceptorAnexos: TRecepcionArchivos read FRecepAnexos;
     property ReceptorFuentes: TRecepcionArchivos read FRecepFuentes;
     { Visor del contenido (PDF) de la pestana Contenido. }
@@ -358,6 +370,7 @@ var
 begin
   Puede := Documento and Assigned(FOnPuedeEditar) and FOnPuedeEditar();
   FRecepAnexos.Activo := Puede;
+  FVisor.ReceptorSoltar.Activo := Puede;
   FRecepFuentes.Activo := Puede;
   FZonaAnexos.Enabled := Puede;
   FZonaFuentes.Enabled := Puede;
@@ -394,6 +407,19 @@ end;
 procedure TPanelDocumentos.FuentesSoltar(const Rutas: TArray<string>);
 begin
   SoltarFicheros(Rutas, True);
+end;
+
+procedure TPanelDocumentos.VisorSoltarPdf(const Ruta: string);
+begin
+  if (FIndiceActual >= 0) and (FIndiceActual < Length(FVisibles)) and
+    Assigned(FOnSoltarContenido) then
+    FOnSoltarContenido(FVisibles[FIndiceActual].Clave, Ruta);
+end;
+
+procedure TPanelDocumentos.AvisoDelVisor(const Texto: string);
+begin
+  if Assigned(FOnAvisoSoltar) then
+    FOnAvisoSoltar(Texto);
 end;
 
 procedure TPanelDocumentos.ListaSoltar(const Rutas: TArray<string>);
@@ -539,6 +565,8 @@ begin
   FVisor := TVisorContenido.Create(Self);
   FVisor.Parent := FDoc.Pagina(pdContenido);
   FVisor.Align := alClient;
+  FVisor.OnSoltarPdf := VisorSoltarPdf;
+  FVisor.OnAviso := AvisoDelVisor;
   FDoc.OnCambioPestana := PestanaCambio;
   FTimerContenido := TTimer.Create(Self);
   FTimerContenido.Enabled := False;

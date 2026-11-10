@@ -22,6 +22,14 @@ type
     [Test]
     procedure Visor_CerrarLaVentanaAparte_ReincorporaElVisor;
     [Test]
+    procedure Soltar_UnPdf_DisparaElEvento;
+    [Test]
+    procedure Soltar_UnNoPdf_DaElAviso;
+    [Test]
+    procedure Soltar_VariosArchivos_PideUnSoloPdf;
+    [Test]
+    procedure Soltar_ConActivoFalso_NoHaceNada;
+    [Test]
     procedure Visor_SinDocumento_NoSeSepara;
     [Test]
     procedure Visor_MostrarMensajeConVentanaAparte_VuelveALaAplicacion;
@@ -30,8 +38,8 @@ type
 implementation
 
 uses
-  System.SysUtils, System.Classes, Vcl.Controls, Vcl.Forms, Vcl.ExtCtrls,
-  UVisorContenido;
+  System.SysUtils, System.Classes, System.IOUtils, Vcl.Controls, Vcl.Forms,
+  Vcl.ExtCtrls, UVisorContenido;
 
 { PDF minimo valido de una pagina en blanco, con su tabla de referencias. }
 function CrearPdfPrueba: string;
@@ -70,6 +78,24 @@ begin
   finally
     S.Free;
   end;
+end;
+
+type
+  TReceptorPdf = class
+    Pdfs: TArray<string>;
+    Avisos: TArray<string>;
+    procedure Soltado(const Ruta: string);
+    procedure Aviso(const Texto: string);
+  end;
+
+procedure TReceptorPdf.Soltado(const Ruta: string);
+begin
+  Pdfs := Pdfs + [Ruta];
+end;
+
+procedure TReceptorPdf.Aviso(const Texto: string);
+begin
+  Avisos := Avisos + [Texto];
 end;
 
 function NuevoVisor(F: TForm): TVisorContenido;
@@ -191,6 +217,112 @@ begin
   finally
     F.Free;
     DeleteFile(Pdf);
+  end;
+end;
+
+function Suelto(const Nombre: string): string;
+begin
+  Result := IncludeTrailingPathDelimiter(GetEnvironmentVariable('TEMP')) +
+    'archigenio_soltar_' + Nombre;
+  TFile.WriteAllText(Result, 'x');
+end;
+
+procedure TPruebasVisorContenido.Soltar_UnPdf_DisparaElEvento;
+var
+  F: TForm;
+  V: TVisorContenido;
+  R: TReceptorPdf;
+  P: string;
+begin
+  F := TForm.CreateNew(nil);
+  R := TReceptorPdf.Create;
+  P := Suelto('a.pdf');
+  try
+    V := NuevoVisor(F);
+    V.OnSoltarPdf := R.Soltado;
+    V.OnAviso := R.Aviso;
+    V.ReceptorSoltar.SimularSoltar([P]);
+    Assert.AreEqual(1, Integer(Length(R.Pdfs)));
+    Assert.AreEqual(P, R.Pdfs[0]);
+    Assert.AreEqual(0, Integer(Length(R.Avisos)));
+  finally
+    F.Free;
+    R.Free;
+    DeleteFile(P);
+  end;
+end;
+
+procedure TPruebasVisorContenido.Soltar_UnNoPdf_DaElAviso;
+var
+  F: TForm;
+  V: TVisorContenido;
+  R: TReceptorPdf;
+  P: string;
+begin
+  F := TForm.CreateNew(nil);
+  R := TReceptorPdf.Create;
+  P := Suelto('b.docx');
+  try
+    V := NuevoVisor(F);
+    V.OnSoltarPdf := R.Soltado;
+    V.OnAviso := R.Aviso;
+    V.ReceptorSoltar.SimularSoltar([P]);
+    Assert.AreEqual(0, Integer(Length(R.Pdfs)));
+    Assert.AreEqual(1, Integer(Length(R.Avisos)));
+    Assert.IsTrue(Pos('PDF', R.Avisos[0]) > 0);
+  finally
+    F.Free;
+    R.Free;
+    DeleteFile(P);
+  end;
+end;
+
+procedure TPruebasVisorContenido.Soltar_VariosArchivos_PideUnSoloPdf;
+var
+  F: TForm;
+  V: TVisorContenido;
+  R: TReceptorPdf;
+  P1, P2: string;
+begin
+  F := TForm.CreateNew(nil);
+  R := TReceptorPdf.Create;
+  P1 := Suelto('c1.pdf');
+  P2 := Suelto('c2.pdf');
+  try
+    V := NuevoVisor(F);
+    V.OnSoltarPdf := R.Soltado;
+    V.OnAviso := R.Aviso;
+    V.ReceptorSoltar.SimularSoltar([P1, P2]);
+    Assert.AreEqual(0, Integer(Length(R.Pdfs)), 'el contenido es un solo PDF');
+    Assert.IsTrue(Pos('un solo', R.Avisos[0]) > 0);
+  finally
+    F.Free;
+    R.Free;
+    DeleteFile(P1);
+    DeleteFile(P2);
+  end;
+end;
+
+procedure TPruebasVisorContenido.Soltar_ConActivoFalso_NoHaceNada;
+var
+  F: TForm;
+  V: TVisorContenido;
+  R: TReceptorPdf;
+  P: string;
+begin
+  F := TForm.CreateNew(nil);
+  R := TReceptorPdf.Create;
+  P := Suelto('d.pdf');
+  try
+    V := NuevoVisor(F);
+    V.OnSoltarPdf := R.Soltado;
+    V.ReceptorSoltar.Activo := False;
+    V.ReceptorSoltar.SimularSoltar([P]);
+    Assert.AreEqual(0, Integer(Length(R.Pdfs)));
+  finally
+    F.Free;
+    R.Free;
+    DeleteFile(P);
   end;
 end;
 
