@@ -38,6 +38,14 @@ type
     [Test]
     procedure Editar_Cancelar_Cierra;
     [Test]
+    procedure Colocar_MueveElBloqueAlDestinoYLaListaOcupaTodo;
+    [Test]
+    procedure Colocar_ElVisorYLosReceptoresSiguenRegistrados;
+    [Test]
+    procedure Colocar_ElFormularioDeEdicionSigueAbriendo;
+    [Test]
+    procedure Restaurar_DevuelveElBloqueALaDerecha;
+    [Test]
     procedure Editar_SiCambiaLaLista_SeCierra;
     [Test]
     procedure Editar_TrasRecargarLosMismos_SigueAbierto;
@@ -731,6 +739,102 @@ begin
   finally
     F.Free;
     C.Free;
+  end;
+end;
+
+function NuevoDestino(F: TForm): TPanel;
+begin
+  Result := TPanel.Create(F);
+  Result.Parent := F;
+  Result.Align := alRight;
+  Result.Width := 400;
+  Result.ShowCaption := False;
+end;
+
+procedure TPruebasPanelDocumentos.Colocar_MueveElBloqueAlDestinoYLaListaOcupaTodo;
+var
+  F: TForm;
+  P: TPanelDocumentos;
+  D: TPanel;
+begin
+  F := TForm.CreateNew(nil);
+  try
+    F.SetBounds(50, 50, 1100, 500);
+    D := NuevoDestino(F);
+    P := PanelCargado(F);
+    P.ColocarDocumentoEn(D);
+    PonerAlDia;
+    Assert.IsTrue(P.DocumentoSeparado);
+    Assert.IsTrue(P.Documento.Parent.Parent = D, 'el panel del documento esta dentro del destino');
+    Assert.IsTrue(BuscarLista(P).Width > P.Width - 40, 'la lista ocupa casi todo el ancho');
+  finally
+    F.Free;
+  end;
+end;
+
+procedure TPruebasPanelDocumentos.Colocar_ElVisorYLosReceptoresSiguenRegistrados;
+var
+  F: TForm;
+  P: TPanelDocumentos;
+begin
+  F := TForm.CreateNew(nil);
+  try
+    F.SetBounds(50, 50, 1100, 500);
+    P := PanelCargado(F);
+    P.ColocarDocumentoEn(NuevoDestino(F));
+    P.Documento.Activar(pdArchivos); // cada pagina crea su ventana al mostrarse
+    PonerAlDia;
+    Assert.IsTrue(P.ReceptorAnexos.Registrado, 'anexos');
+    Assert.IsTrue(P.ReceptorFuentes.Registrado, 'fuentes');
+    P.Documento.Activar(pdContenido);
+    PonerAlDia;
+    Assert.IsTrue(P.Visor.ReceptorSoltar.Registrado, 'visor');
+  finally
+    F.Free;
+  end;
+end;
+
+procedure TPruebasPanelDocumentos.Colocar_ElFormularioDeEdicionSigueAbriendo;
+var
+  F: TForm;
+  P: TPanelDocumentos;
+  C: TContador;
+begin
+  F := TForm.CreateNew(nil);
+  C := TContador.Create;
+  try
+    F.SetBounds(50, 50, 1100, 500);
+    P := PanelCargado(F);
+    C.Permiso := True;
+    P.OnPuedeEditar := C.PuedeEditar;
+    P.ColocarDocumentoEn(NuevoDestino(F));
+    P.Editar(ClavesDocs([0]));
+    Assert.IsTrue(P.Formulario.Visible);
+    Assert.IsTrue(P.Formulario.Showing, 'se ve dentro del destino');
+    Assert.IsTrue(P.Formulario.Receptor.Registrado, 'receptor del formulario');
+  finally
+    F.Free;
+    C.Free;
+  end;
+end;
+
+procedure TPruebasPanelDocumentos.Restaurar_DevuelveElBloqueALaDerecha;
+var
+  F: TForm;
+  P: TPanelDocumentos;
+begin
+  F := TForm.CreateNew(nil);
+  try
+    F.SetBounds(50, 50, 1100, 500);
+    P := PanelCargado(F);
+    P.ColocarDocumentoEn(NuevoDestino(F));
+    P.RestaurarDocumento;
+    PonerAlDia;
+    Assert.IsFalse(P.DocumentoSeparado);
+    Assert.IsTrue(P.Documento.Parent.Parent = P, 'vuelve al panel de documentos');
+    Assert.AreEqual(340, P.Documento.Parent.Width);
+  finally
+    F.Free;
   end;
 end;
 

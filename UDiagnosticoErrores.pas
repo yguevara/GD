@@ -16,7 +16,7 @@ uses
   System.SysUtils, System.Classes, Winapi.Windows, Vcl.Forms;
 
 const
-  MAX_MARCOS = 24;
+  MAX_MARCOS = 80;
 
 type
   TPila = record

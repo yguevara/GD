@@ -90,6 +90,7 @@ type
     FOnSoltarEnFormulario: TSoltarEnLoteEvent;
     FUltimaCantidad: Integer;
     FSeleccionandoVarios: Boolean;
+    FDocumentoSeparado: Boolean;
     FZonaAnexos, FZonaFuentes: TPanel;
     FRecepAnexos, FRecepFuentes: TRecepcionArchivos;
     FOnSoltarFicheros: TSoltarFicherosEvent;
@@ -163,6 +164,7 @@ type
     procedure FormularioCancelar(Sender: TObject);
     procedure FormularioAvanzada(Sender: TObject);
     procedure CerrarEdicionSiYaNoEsta;
+    procedure RegistrarReceptores;
     procedure FormularioEliminar(Sender: TObject);
     procedure FormularioSoltar(const Rutas: TArray<string>);
   protected
@@ -195,6 +197,12 @@ type
     { Abre el formulario de edicion sobre el panel del documento (uno o varios). }
     procedure Editar(const Claves: TArray<TClaveDocumento>);
     procedure CerrarEdicion;
+    { Saca el bloque derecho (panel del documento y formulario de edicion) y lo
+      coloca a todo el espacio de Destino; la lista queda a todo el ancho.
+      RestaurarDocumento lo devuelve a la derecha de la lista. }
+    procedure ColocarDocumentoEn(Destino: TWinControl);
+    procedure RestaurarDocumento;
+    function DocumentoSeparado: Boolean;
     property Formulario: TFormularioDocumento read FFormulario;
     property OnGuardarEdicion: TGuardarEdicionEvent read FOnGuardarEdicion
       write FOnGuardarEdicion;
@@ -751,6 +759,48 @@ begin
       Exit;
     end;
   end;
+end;
+
+// Cambiar de padre recrea las ventanas de los controles y puede dejar sin registrar
+// alguna zona de soltar: se vuelve a registrar cada una (no hace nada si ya lo esta).
+procedure TPanelDocumentos.RegistrarReceptores;
+begin
+  FRecepLista.Registrar;
+  FRecepAnexos.Registrar;
+  FRecepFuentes.Registrar;
+  FVisor.ReceptorSoltar.Registrar;
+  FFormulario.Receptor.Registrar;
+end;
+
+procedure TPanelDocumentos.ColocarDocumentoEn(Destino: TWinControl);
+begin
+  if (Destino = nil) or (FDer = nil) then
+    Exit;
+  FSplitter.Visible := False;
+  FDer.Parent := Destino;
+  FDer.Align := alClient;
+  FDer.Visible := True;
+  FDocumentoSeparado := True;
+  RegistrarReceptores;
+end;
+
+procedure TPanelDocumentos.RestaurarDocumento;
+begin
+  if (FDer = nil) or not FDocumentoSeparado then
+    Exit;
+  FDocumentoSeparado := False;
+  FDer.Parent := Self;
+  FDer.Align := alRight;
+  FDer.Width := ANCHO_DERECHA;
+  FDer.Left := Width;
+  FSplitter.Visible := True;
+  FSplitter.Left := FDer.Left - 1;
+  RegistrarReceptores;
+end;
+
+function TPanelDocumentos.DocumentoSeparado: Boolean;
+begin
+  Result := FDocumentoSeparado;
 end;
 
 procedure TPanelDocumentos.CerrarEdicion;

@@ -277,7 +277,7 @@ begin
       C.IdExpediente := 'P-006';
       R := ActualizarDocumentos(FConn, nil, FOrigen, [Clave(1), Clave(2), Clave(3)], C,
         Default(TCambiosDoc));
-      Assert.AreEqual(3, R.Guardados);
+      Assert.AreEqual(3, R.Guardados, R.Mensaje);
       Assert.AreEqual('G9', Texto(2, 'gaveta'));
       Assert.AreEqual('P-006', Texto(3, 'IDExpediente'));
       Assert.AreEqual('Titulo original 2', Texto(2, 'titulodoc'));

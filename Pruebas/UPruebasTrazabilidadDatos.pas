@@ -15,6 +15,15 @@ uses
 
 type
   [TestFixture]
+  TPruebasMarcaUnica = class
+  public
+    [Test]
+    procedure MarcasSeguidas_SonEstrictamenteCrecientes;
+    [Test]
+    procedure Marca_NuncaVaPorDebajoDelReloj;
+  end;
+
+  [TestFixture]
   TPruebasTrazabilidadDatos = class
   private
     FConn: TFDConnection;
@@ -662,7 +671,32 @@ begin
   end;
 end;
 
+procedure TPruebasMarcaUnica.MarcasSeguidas_SonEstrictamenteCrecientes;
+var
+  I: Integer;
+  Anterior, Actual: TDateTime;
+begin
+  // la clave de tb_log incluye la marca de tiempo al milisegundo: dos eventos
+  // seguidos (un lote de documentos) no pueden recibir la misma
+  Anterior := MarcaTiempoUnica;
+  for I := 1 to 2000 do
+  begin
+    Actual := MarcaTiempoUnica;
+    Assert.IsTrue(Actual > Anterior, 'la marca ' + IntToStr(I) + ' repite o retrocede');
+    Anterior := Actual;
+  end;
+end;
+
+procedure TPruebasMarcaUnica.Marca_NuncaVaPorDebajoDelReloj;
+var
+  M: TDateTime;
+begin
+  M := MarcaTiempoUnica;
+  Assert.IsTrue(M >= Now - 1 / 86400, 'la marca sigue al reloj');
+end;
+
 initialization
+  TDUnitX.RegisterTestFixture(TPruebasMarcaUnica);
   TDUnitX.RegisterTestFixture(TPruebasTrazabilidadDatos);
   TDUnitX.RegisterTestFixture(TPruebasLineaTiempoSql);
 

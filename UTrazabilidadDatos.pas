@@ -20,6 +20,11 @@ procedure RegistrarEventoDoc(Conn: TFDConnection; const Clave: TClaveDocumento;
   Accion: Integer; const Msg, Usuario, Rol, Serie: string;
   const UsuarioPC: string = ''; const NombrePC: string = ''; const IP: string = '');
 
+{ Marca de tiempo para la clave de tb_log (usuario, equipo, fecha al milisegundo):
+  nunca repite ni retrocede dentro del proceso, aunque se registren varios
+  eventos en el mismo milisegundo (por ejemplo al editar un lote de documentos). }
+function MarcaTiempoUnica: TDateTime;
+
 { Linea de tiempo del documento (todas sus versiones: mismo IdEstructura, id,
   CodSubs y Codigodoc): eventos de tb_log con fecha_evento y prestamos
   (Prestado / Devuelto). Mas reciente primero, como mucho Maximo eventos
@@ -36,8 +41,27 @@ function CargarLineaTiempo(Conn: TFDConnection; Alcance: TAlcanceUsuario;
 implementation
 
 uses
-  System.SysUtils, System.DateUtils, System.Generics.Collections, Data.DB,
+  System.SysUtils, System.DateUtils, System.SyncObjs, System.Generics.Collections, Data.DB,
   FireDAC.Stan.Param, FireDAC.Stan.Error, UAlcanceDatos, UEsquemaTrazabilidad;
+
+var
+  GMarcaUltima: TDateTime;
+  GMarcaCandado: TCriticalSection;
+
+function MarcaTiempoUnica: TDateTime;
+const
+  UN_MS = 1 / 86400000;
+begin
+  GMarcaCandado.Enter;
+  try
+    Result := Now;
+    if Result < GMarcaUltima + UN_MS * 0.9 then
+      Result := GMarcaUltima + UN_MS;
+    GMarcaUltima := Result;
+  finally
+    GMarcaCandado.Leave;
+  end;
+end;
 
 procedure RegistrarEventoDoc(Conn: TFDConnection; const Clave: TClaveDocumento;
   Accion: Integer; const Msg, Usuario, Rol, Serie: string;
@@ -57,7 +81,7 @@ const
       Q.ParamByName('b').AsString := NombrePC
     else
       Q.ParamByName('b').AsString := GetEnvironmentVariable('COMPUTERNAME');
-    Q.ParamByName('c').AsString := FormatDateTime('[ddd dd mmm, hh:nn:ss:zzz]', Now);
+    Q.ParamByName('c').AsString := FormatDateTime('[ddd dd mmm, hh:nn:ss:zzz]', MarcaTiempoUnica);
     Q.ParamByName('d').AsString := IP;
     Q.ParamByName('e').AsString := Usuario;
     Q.ParamByName('f').AsString := Rol;
@@ -253,5 +277,11 @@ begin
     Lista.Free;
   end;
 end;
+
+initialization
+  GMarcaCandado := TCriticalSection.Create;
+
+finalization
+  GMarcaCandado.Free;
 
 end.
