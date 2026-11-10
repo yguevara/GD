@@ -65,6 +65,9 @@ type
     { Titulo vacio: "Sin subserie". }
     procedure FijarCabecera(const Titulo, Codigo: string);
     function TextoCabecera: string;
+    { Recoloca y repinta todo el panel y sus controles. Al mostrarse por primera
+      vez las paginas podian quedar en blanco hasta el primer evento. }
+    procedure Repintar;
     property OnCambioPagina: TNotifyEvent read FOnCambioPagina write FOnCambioPagina;
   end;
 
@@ -192,18 +195,20 @@ begin
     R := Rect(I * Ancho, 0, (I + 1) * Ancho, Height - 1);
     Canvas.Font.Name := FUENTE;
     Canvas.Font.Size := 9;
+    Canvas.Font.Style := [fsBold];
     if I = FActiva then
     begin
-      Canvas.Font.Style := [fsBold];
       Canvas.Font.Color := FTema.Acento;
+      // subrayado de la pestana activa
+      Canvas.Brush.Style := bsSolid;
       Canvas.Brush.Color := FTema.Acento;
       Canvas.FillRect(Rect(R.Left, Height - 3, R.Right, Height));
     end
     else
-    begin
-      Canvas.Font.Style := [fsBold];
       Canvas.Font.Color := FTema.TextoSuave;
-    end;
+    // el texto va sin fondo: el pincel anterior (naranja) taparia las letras
+    Canvas.Brush.Style := bsClear;
+    SetBkMode(Canvas.Handle, TRANSPARENT);
     DrawText(Canvas.Handle, PChar(FTitulos[I]), Length(FTitulos[I]), R,
       DT_CENTER or DT_VCENTER or DT_SINGLELINE or DT_NOPREFIX);
   end;
@@ -360,6 +365,14 @@ end;
 function TPanelLateral.TextoCabecera: string;
 begin
   Result := FLblTitulo.Caption;
+end;
+
+procedure TPanelLateral.Repintar;
+begin
+  Realign;
+  if HandleAllocated then
+    RedrawWindow(Handle, nil, 0,
+      RDW_INVALIDATE or RDW_ERASE or RDW_ALLCHILDREN or RDW_UPDATENOW);
 end;
 
 end.

@@ -661,6 +661,11 @@ type
     FSepLateral: TSplitter;
     FCargandoSeries: Boolean;
     FCuadroPedido: Boolean;
+    // La definicion de variables y la tabla de metadatos dependen de la subserie,
+    // no del documento: se consultan una vez por subserie, no al moverse entre
+    // documentos (antes cada movimiento repetia las consultas y parpadeaba la rejilla).
+    FSubserieVariables: string;
+    FTablaMetadatos: TDictionary<string, string>;
     FNombresSerie: TDictionary<string, string>;
     FEnlaceDocs: TObject;
     FTimerDocs: TTimer;
@@ -4535,6 +4540,7 @@ begin
   FreeAndNil(FEnlaceDocs);
   FreeAndNil(FEnlaceSeries); // el enlace avisa a TMAIN: no puede sobrevivirle
   FreeAndNil(FNombresSerie);
+  FreeAndNil(FTablaMetadatos);
   FComboBoxAssociations.Free; // Liberar la lista
   inherited Destroy;
 end;
@@ -4756,26 +4762,52 @@ procedure TMAIN.dstb_SeriesDatosDataChange(Sender: TObject; Field: TField);
 var
   CantDoc: integer;
 
+  // Muestra u oculta la definicion de variables segun la subserie actual.
+  // Solo consulta cuando cambia la subserie; moverse entre documentos de la
+  // misma no vuelve a abrir la consulta ni toca la visibilidad (sin parpadeo).
   procedure UpdateVariablesView;
+  var
+    Cod: string;
+    Hay: Boolean;
   begin
-    // Actualiza la vista de variables según la subserie
-    gVariablesDetail.Visible := False;
     if UDM.tb_Serietree.FieldByName('codsubs').IsNull then
+    begin
+      FSubserieVariables := '';
+      if gVariablesDetail.Visible then
+        gVariablesDetail.Visible := False;
       Exit;  // Sale silenciosamente si 'codsubs' es nulo
+    end;
+    Cod := UDM.tb_Serietree.FieldByName('codsubs').AsString;
+    if SameText(Cod, FSubserieVariables) and VarCL.Active then
+      Exit;
 
-    VarCL.Active := False;
-    VarCL.SQL.Clear;
-    VarCL.SQL.Add(CargarVariablesSubserie(UDM.tb_Serietree.FieldByName('codsubs').AsString));
+    gVariablesDetailDBTableView1.BeginUpdate;
     try
-      VarCL.Open();
-      gVariablesDetail.Visible := VarCL.RecordCount > 0;
-    except
-      on E: EFDException do
-      begin
-        // Muestra un mensaje de error solo si falla la consulta por un motivo inesperado
-        UDM.sms('No se pudo consultar la definición de variables de la subserie actual. Motivo: ' + E.Message, 1);
-        Exit;
+      VarCL.DisableControls;
+      try
+        VarCL.Active := False;
+        VarCL.SQL.Clear;
+        VarCL.SQL.Add(CargarVariablesSubserie(Cod));
+        try
+          VarCL.Open();
+          Hay := VarCL.RecordCount > 0;
+          FSubserieVariables := Cod;
+        except
+          on E: EFDException do
+          begin
+            FSubserieVariables := '';
+            Hay := False;
+            // Muestra un mensaje de error solo si falla la consulta por un motivo inesperado
+            UDM.sms('No se pudo consultar la definición de variables de la subserie actual. Motivo: ' + E.Message, 1);
+          end;
+        end;
+      finally
+        VarCL.EnableControls;
       end;
+      if gVariablesDetail.Visible <> Hay then
+        gVariablesDetail.Visible := Hay;
+    finally
+      gVariablesDetailDBTableView1.EndUpdate;
     end;
   end;
 
@@ -4787,7 +4819,14 @@ var
     if (trim(UDM.tb_SeriesDatos.FieldByName('codsubs').AsString) <> '') then
     begin
 
-      tiene := VarToStr(UDM.Conn.ExecSQLScalar('SELECT cl_subseries.NombreTablaMetadatos FROM cl_subseries WHERE codsubs=' + QuotedStr(UDM.tb_SeriesDatos.FieldByName('codsubs').AsString)));
+      // Una consulta por subserie, no una por documento
+      if FTablaMetadatos = nil then
+        FTablaMetadatos := TDictionary<string, string>.Create;
+      if not FTablaMetadatos.TryGetValue(UDM.tb_SeriesDatos.FieldByName('codsubs').AsString, tiene) then
+      begin
+        tiene := VarToStr(UDM.Conn.ExecSQLScalar('SELECT cl_subseries.NombreTablaMetadatos FROM cl_subseries WHERE codsubs=' + QuotedStr(UDM.tb_SeriesDatos.FieldByName('codsubs').AsString)));
+        FTablaMetadatos.AddOrSetValue(UDM.tb_SeriesDatos.FieldByName('codsubs').AsString, tiene);
+      end;
       tsVar.TabVisible := False;
       if tiene.Trim <> '' then
       begin
@@ -7294,6 +7333,7 @@ begin
     advtpDetalle.Visible := False;
     FPanelLateral.Visible := True;
     FSepLateral.Visible := True;
+    FPanelLateral.Repintar;
   end
   else
     advtpDetalle.Visible := True;
@@ -7357,6 +7397,10 @@ begin
     Exit;
   FCargandoSeries := True;
   try
+    // la definicion de las series pudo cambiar (alta, baja, edicion)
+    FSubserieVariables := '';
+    if FTablaMetadatos <> nil then
+      FTablaMetadatos.Clear;
     DS := UDM.tb_Serietree;
     if (not DS.Active) or (DS.State in [dsInsert, dsEdit]) then
     begin
