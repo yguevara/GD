@@ -658,6 +658,8 @@ type
     FEnlaceSeries: TObject;
     FBloqueAccion: TBloqueAccion;
     FCargandoSeries: Boolean;
+    FCuadroPedido: Boolean;
+    FNombresSerie: TDictionary<string, string>;
     FEnlaceDocs: TObject;
     FTimerDocs: TTimer;
     FModoLista: Boolean;
@@ -771,6 +773,7 @@ type
     procedure BloqueAccionCargar;
     procedure BloqueAccionElegir(const Clave: string);
     procedure AjustarCuadroClasif;
+    function CuadroClasifVisible: Boolean;
     procedure ShellAgregarDocumento(Sender: TObject);
     procedure ShellBuscar(const Texto: string; Ambito: TAmbitoBusqueda);
     function SeleccionarNodoEnArbol(const Nodo: TClaveNodo): Boolean;
@@ -4520,6 +4523,8 @@ end;
 destructor TMAIN.Destroy;
 begin
   FreeAndNil(FEnlaceDocs);
+  FreeAndNil(FEnlaceSeries); // el enlace avisa a TMAIN: no puede sobrevivirle
+  FreeAndNil(FNombresSerie);
   FComboBoxAssociations.Free; // Liberar la lista
   inherited Destroy;
 end;
@@ -5363,7 +5368,7 @@ end;
 
 procedure TMAIN.PLCCClick(Sender: TObject);
 begin
-  if advtpCC.Visible and (FBarraTrabajo = nil) then
+  if advtpCC.Visible then
   begin
     advtpCuadroClasif.Visible := True;
     advtpCuadroClasif.Locked := True;
@@ -6571,9 +6576,16 @@ begin
   if Key = 123 then
     if UDM.tb_Serietree.RecordCount > 0 then
       jvcpSSDetail.Visible := not jvcpSSDetail.Visible;
-  if (Key = 120) and (FBarraTrabajo = nil) then
+  if Key = 120 then
   begin
-    if advtpCuadroClasif.Showing then
+    // Con la barra de trabajo el cuadro de clasificacion clasico (quitar serie,
+    // exportar, observaciones) queda a un F9 de distancia
+    if FBarraTrabajo <> nil then
+    begin
+      FCuadroPedido := not FCuadroPedido;
+      AjustarCuadroClasif;
+    end
+    else if advtpCuadroClasif.Showing then
       advtpCuadroClasif.Hide
     else
       advtpCuadroClasif.Show;
@@ -6826,6 +6838,7 @@ begin
     ListaDocsCargar;
     AjustarCuadroClasif;
     BarraSeriesCargar;
+    BloqueAccionCargar;
   except
     on E: Exception do
     begin
@@ -6836,6 +6849,8 @@ begin
       cxPageControl2.Visible := True;
       FreeAndNil(FListaDocs);
       FreeAndNil(FBarraTrabajo);
+      FreeAndNil(FBloqueAccion);
+      FreeAndNil(FEnlaceSeries);
       AjustarCuadroClasif;
     end;
   end;
@@ -6991,7 +7006,6 @@ begin
     Estados.Free;
     FCargandoDocs := False;
   end;
-  BloqueAccionCargar;
 end;
 
 // Lo que pide atencion, dentro del alcance del usuario; sin datos queda oculto
@@ -7013,7 +7027,12 @@ end;
 procedure TMAIN.BloqueAccionElegir(const Clave: string);
 begin
   if (Clave = 'prestados') and (FBarraTrabajo <> nil) then
+  begin
+    // el filtro es de la lista: si se estaba en la rejilla, se vuelve a la lista
+    if (FListaDocs <> nil) and not FModoLista then
+      ListaDocsAlternar(nil);
     FBarraTrabajo.FijarEstado(edPrestado);
+  end;
 end;
 
 function TMAIN.ListaDocsLocalizar(const Clave: TClaveDocumento): Boolean;
@@ -7166,15 +7185,27 @@ end;
 // Con la barra de trabajo el panel "CDC ACTIVO" y su rejilla de series no se
 // muestran: las series son fichas de la barra. Sin barra (o con el shell clasico)
 // queda como siempre.
+function TMAIN.CuadroClasifVisible: Boolean;
+begin
+  Result := (FBarraTrabajo = nil) or FCuadroPedido;
+end;
+
 procedure TMAIN.AjustarCuadroClasif;
 begin
-  if FBarraTrabajo <> nil then
+  if CuadroClasifVisible then
+  begin
+    advtpCC.Visible := True;
+    if FCuadroPedido then
+    begin
+      advtpCuadroClasif.Visible := True;
+      advtpCuadroClasif.Show;
+    end;
+  end
+  else
   begin
     advtpCC.Visible := False;
     advtpCuadroClasif.Hide;
-  end
-  else
-    advtpCC.Visible := True;
+  end;
 end;
 
 procedure TMAIN.BarraNotificar(Sender: TObject);
@@ -7189,6 +7220,7 @@ procedure TMAIN.BarraRefrescar(Sender: TObject);
 begin
   FTimerBarra.Enabled := False;
   BarraSeriesCargar;
+  BloqueAccionCargar;
 end;
 
 procedure TMAIN.BarraFiltroCambio(Sender: TObject);
@@ -7209,6 +7241,11 @@ var
   N: Integer;
 begin
   if (FBarraTrabajo = nil) or FCargandoSeries then
+    Exit;
+  // Recorrer el dataset maestro resincroniza el detalle: con un documento a
+  // medio editar no se toca nada
+  if UDM.tb_SeriesDatos.Active and
+    (UDM.tb_SeriesDatos.State in [dsEdit, dsInsert]) then
     Exit;
   FCargandoSeries := True;
   try
@@ -7231,14 +7268,20 @@ begin
       while not DS.Eof do
       begin
         Cod := DS.FieldByName('codsubs').AsString;
-        Nombre := Cod;
-        try
-          Nombre := VarToStr(UDM.Conn.ExecSQLScalar(
-            'SELECT subserie FROM cl_subseries WHERE codsubs = :c', [Cod]));
-          if Trim(Nombre) = '' then
-            Nombre := Cod;
-        except
+        if FNombresSerie = nil then
+          FNombresSerie := TDictionary<string, string>.Create;
+        if not FNombresSerie.TryGetValue(Cod, Nombre) then
+        begin
           Nombre := Cod;
+          try
+            Nombre := VarToStr(UDM.Conn.ExecSQLScalar(
+              'SELECT subserie FROM cl_subseries WHERE codsubs = :c', [Cod]));
+            if Trim(Nombre) = '' then
+              Nombre := Cod;
+          except
+            Nombre := Cod;
+          end;
+          FNombresSerie.AddOrSetValue(Cod, Nombre);
         end;
         if N > High(Series) then
           SetLength(Series, N + 1);
@@ -7272,11 +7315,11 @@ begin
     PuedeCambiarSerie(UDM.tb_Serietree.State)) then
   begin
     UDM.sms('Guarde o cancele el documento antes de cambiar de serie.', 3);
-    BarraSeriesCargar;
     Exit;
   end;
   UDM.tb_Serietree.Locate('codsubs', CodSubs, []);
-  BarraSeriesCargar;
+  // la ficha activa se actualiza con el aviso de cambio de registro (temporizador)
+  BarraNotificar(nil);
 end;
 
 procedure TMAIN.ListaDocsAlternar(Sender: TObject);
@@ -10654,7 +10697,7 @@ var
         AjustarCuadroClasif;
         advtpDetalle.Visible := True;
 
-        if (FBarraTrabajo = nil) and not advtpCuadroClasif.Showing then
+        if CuadroClasifVisible and not advtpCuadroClasif.Showing then
         begin
           advtpCuadroClasif.Show;
           advtpCuadroClasif.Locked := True;
@@ -10818,7 +10861,7 @@ begin
             begin
               AjustarCuadroClasif;
               advtpDetalle.Visible := True;
-              if (FBarraTrabajo = nil) and not advtpCuadroClasif.Showing then
+              if CuadroClasifVisible and not advtpCuadroClasif.Showing then
               begin
                 advtpCuadroClasif.Show;
                 advtpCuadroClasif.Locked := True;
@@ -10863,7 +10906,7 @@ begin
 //          BuscaAdministrador(AnItem, );
           AjustarCuadroClasif;
           advtpDetalle.Visible := True;
-          if (FBarraTrabajo = nil) and not advtpCuadroClasif.Showing then
+          if CuadroClasifVisible and not advtpCuadroClasif.Showing then
           begin
             advtpCuadroClasif.Show;
             advtpCuadroClasif.Locked := True;

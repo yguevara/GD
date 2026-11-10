@@ -76,6 +76,10 @@ type
     procedure Alcance_DentroDeAlcance_VeEventos;
     [Test]
     procedure Maximo_LimitaYAvisa;
+    [Test]
+    procedure Estados_PrestadoYEnArchivo;
+    [Test]
+    procedure RequiereAccion_RespetaElAlcance;
   end;
 
 implementation
@@ -387,6 +391,69 @@ begin
   Log('F2T-H3', EST_T, NODO_T, 5, EncodeDate(2026, 3, 1));
   L := Linea(TSembradoVista.Clave('F2T-H3', '014001'), 'prueba_alc_usr1', False, 50, Mas);
   Assert.AreEqual(1, Length(L));
+end;
+
+procedure PrestamoAbierto(Conn: TFDConnection; const IdP, Cod, CodSubs: string);
+begin
+  Conn.ExecSQL('INSERT INTO TB_Prestamos (IdEstructura, id, IdPrestamo, ' +
+    'Prestamista, Responsable, FPrestamo) VALUES (:e, :i, :p, ''Juan'', ''usr1'', :f)',
+    [EST_T, NODO_T, IdP, EncodeDate(2026, 4, 1)]);
+  Conn.ExecSQL('INSERT INTO TB_PrestamosDocumentos (IdEstructura, id, IdPrestamo, ' +
+    'Codigodoc, fecha, version, codsubs, titulodoc) VALUES (:e, :i, :p, :c, :f, ' +
+    '''1'', :s, ''t'')', [EST_T, NODO_T, IdP, Cod, EncodeDate(2026, 1, 31), CodSubs]);
+end;
+
+procedure TPruebasLineaTiempoSql.Estados_PrestadoYEnArchivo;
+var
+  R: TIndicadoresEstados;
+  E: TEstadoDoc;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB'); Exit; end;
+  PrestamoAbierto(FConn, 'F5T-S1', 'F2T-H3', '014001');
+  R := CargarEstados(FConn, nil, EST_T, NODO_T, '014001');
+  try
+    Assert.IsTrue(R.TryGetValue(ClaveTexto(TSembradoVista.Clave('F2T-H3', '014001')), E));
+    Assert.AreEqual(Ord(edPrestado), Ord(E));
+    Assert.IsTrue(R.TryGetValue(ClaveTexto(TSembradoVista.Clave('F2T-EXP', '014001')), E));
+    Assert.AreEqual(Ord(edEnArchivo), Ord(E));
+  finally
+    R.Free;
+  end;
+end;
+
+function CuentaClave(const L: TArray<TContadorAccion>; const Clave: string): Integer;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := 0 to High(L) do
+    if L[I].Clave = Clave then
+      Exit(L[I].Cantidad);
+end;
+
+procedure TPruebasLineaTiempoSql.RequiereAccion_RespetaElAlcance;
+var
+  Adm, Usr: TAlcanceUsuario;
+  AdmAntes, UsrAntes: TArray<TContadorAccion>;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB'); Exit; end;
+  Adm := CargarAlcance(FConn, 'administrador', True);
+  Usr := CargarAlcance(FConn, 'prueba_alc_usr1', False);
+  try
+    AdmAntes := CargarRequiereAccion(FConn, Adm);
+    UsrAntes := CargarRequiereAccion(FConn, Usr);
+    // H3 (014001) esta en el alcance de usr1; H2 (003) no
+    PrestamoAbierto(FConn, 'F5T-S2', 'F2T-H3', '014001');
+    PrestamoAbierto(FConn, 'F5T-S3', 'F2T-H2', '003');
+    Assert.AreEqual(CuentaClave(AdmAntes, 'prestados') + 2,
+      CuentaClave(CargarRequiereAccion(FConn, Adm), 'prestados'));
+    Assert.AreEqual(CuentaClave(UsrAntes, 'prestados') + 1,
+      CuentaClave(CargarRequiereAccion(FConn, Usr), 'prestados'),
+      'el prestamo fuera del alcance no debe contarse');
+  finally
+    Adm.Free;
+    Usr.Free;
+  end;
 end;
 
 procedure TPruebasLineaTiempoSql.Maximo_LimitaYAvisa;

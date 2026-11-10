@@ -428,7 +428,7 @@ end;
 function TListaPropiedades.DoMouseWheel(Shift: TShiftState; WheelDelta: Integer;
   MousePos: TPoint): Boolean;
 begin
-  Desplazar(FDesplazamiento - (WheelDelta div 120) * 48);
+  Desplazar(FDesplazamiento - Round(WheelDelta / 120 * 48));
   Result := True;
 end;
 

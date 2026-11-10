@@ -288,6 +288,11 @@ begin
     except
       on EFDDBEngineException do
         Result.Clear; // sin datos de prestamos: la lista no muestra estado
+      else
+      begin
+        Result.Free; // otro error: no se pierde el diccionario
+        raise;
+      end;
     end;
   finally
     Abiertos.Free;
@@ -334,12 +339,13 @@ var
 begin
   N := 0;
   Cuenta('prestados', 'Prestados ahora',
-    'SELECT COUNT(*) FROM (TB_PrestamosDocumentos D INNER JOIN TB_Prestamos P ON ' +
-    'P.IdEstructura = D.IdEstructura AND P.id = D.id AND P.IdPrestamo = D.IdPrestamo) ' +
-    'INNER JOIN tb_SeriesDatos H ON H.IdEstructura = D.IdEstructura AND H.id = D.id ' +
-    'AND H.codsubs = D.codsubs AND H.Codigodoc = D.Codigodoc AND H.fecha = D.fecha ' +
-    'AND H.version = D.version WHERE P.FDevolucion IS NULL AND P.FCancelacion IS NULL ' +
-    'AND ({filtro})');
+    'SELECT COUNT(*) FROM (SELECT DISTINCT H.IdEstructura, H.id, H.codsubs, ' +
+    'H.Codigodoc, H.fecha, H.version FROM (TB_PrestamosDocumentos D INNER JOIN ' +
+    'TB_Prestamos P ON P.IdEstructura = D.IdEstructura AND P.id = D.id AND ' +
+    'P.IdPrestamo = D.IdPrestamo) INNER JOIN tb_SeriesDatos H ON ' +
+    'H.IdEstructura = D.IdEstructura AND H.id = D.id AND H.codsubs = D.codsubs ' +
+    'AND H.Codigodoc = D.Codigodoc AND H.fecha = D.fecha AND H.version = D.version ' +
+    'WHERE P.FDevolucion IS NULL AND P.FCancelacion IS NULL AND ({filtro})) AS T');
   Cuenta('sinubicacion', 'Sin ubicacion',
     'SELECT COUNT(*) FROM tb_SeriesDatos H WHERE ({filtro}) AND ' +
     '(H.Archivo IS NULL OR H.Archivo = 0 OR ' + // Archivo es numerico

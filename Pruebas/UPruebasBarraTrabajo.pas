@@ -17,6 +17,8 @@ type
     [Test]
     procedure ClicEnFicha_DisparaOnElegirSerieConSuCodigo;
     [Test]
+    procedure ClicRealEnFicha_ReconstruirLasMismasSeriesDentroDelClic_NoFalla;
+    [Test]
     procedure SinSeries_MuestraTextoGuia;
     [Test]
     procedure Busqueda_DisparaOnFiltroCambioYDaElTexto;
@@ -29,26 +31,8 @@ type
 implementation
 
 uses
-  System.SysUtils, System.Classes, Winapi.Windows, Vcl.Controls, Vcl.Forms,
+  System.SysUtils, System.Classes, Winapi.Windows, Winapi.Messages, Vcl.Controls, Vcl.Forms,
   Data.DB, UBarraTrabajo, UDocumentoVista;
-
-type
-  TReceptor = class
-    Serie: string;
-    Filtros: Integer;
-    procedure Elegir(const CodSubs: string);
-    procedure Filtro(Sender: TObject);
-  end;
-
-procedure TReceptor.Elegir(const CodSubs: string);
-begin
-  Serie := CodSubs;
-end;
-
-procedure TReceptor.Filtro(Sender: TObject);
-begin
-  Inc(Filtros);
-end;
 
 function DosSeries: TArray<TSerieFiltro>;
 begin
@@ -59,6 +43,45 @@ begin
   Result[1].CodSubs := '075';
   Result[1].Nombre := 'Proyectos';
   Result[1].Cantidad := -1;
+end;
+
+type
+  TReceptor = class(TComponent)
+  protected
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+  public
+    Liberada: Boolean;
+    Serie: string;
+    Filtros: Integer;
+    Barra: TBarraTrabajo;
+    procedure Elegir(const CodSubs: string);
+    procedure ElegirYRecargar(const CodSubs: string);
+    procedure Filtro(Sender: TObject);
+  end;
+
+procedure TReceptor.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited Notification(AComponent, Operation);
+  if Operation = opRemove then
+    Liberada := True;
+end;
+
+procedure TReceptor.Elegir(const CodSubs: string);
+begin
+  Serie := CodSubs;
+end;
+
+{ Como BarraElegirSerie de TMAIN: dentro del clic se vuelven a entregar las
+  series (iguales). La ficha pulsada no debe liberarse. }
+procedure TReceptor.ElegirYRecargar(const CodSubs: string);
+begin
+  Serie := CodSubs;
+  Barra.FijarSeries(DosSeries, CodSubs);
+end;
+
+procedure TReceptor.Filtro(Sender: TObject);
+begin
+  Inc(Filtros);
 end;
 
 function NuevaBarra(F: TForm): TBarraTrabajo;
@@ -96,13 +119,47 @@ var
   R: TReceptor;
 begin
   F := TForm.CreateNew(nil);
-  R := TReceptor.Create;
+  R := TReceptor.Create(nil);
   try
     B := NuevaBarra(F);
     B.OnElegirSerie := R.Elegir;
     B.FijarSeries(DosSeries, '074');
     B.ClicFicha(1);
     Assert.AreEqual('075', R.Serie);
+  finally
+    F.Free;
+    R.Free;
+  end;
+end;
+
+procedure TPruebasBarraTrabajo.ClicRealEnFicha_ReconstruirLasMismasSeriesDentroDelClic_NoFalla;
+var
+  F: TForm;
+  B: TBarraTrabajo;
+  R: TReceptor;
+  Ficha: TControl;
+  I: Integer;
+begin
+  F := TForm.CreateNew(nil);
+  R := TReceptor.Create(nil);
+  try
+    B := NuevaBarra(F);
+    R.Barra := B;
+    B.OnElegirSerie := R.ElegirYRecargar;
+    B.FijarSeries(DosSeries, '074');
+    Ficha := nil;
+    for I := 0 to B.ControlCount - 1 do
+      if B.Controls[I] is TFichaSerie then
+        Ficha := B.Controls[I]; // la ultima: Proyectos
+    Assert.IsNotNull(Ficha);
+    Ficha.FreeNotification(R);
+    // clic de verdad, por el bucle de mensajes
+    SendMessage(TWinControl(Ficha).Handle, WM_LBUTTONDOWN, MK_LBUTTON, MakeLong(5, 5));
+    SendMessage(TWinControl(Ficha).Handle, WM_LBUTTONUP, 0, MakeLong(5, 5));
+    Application.ProcessMessages;
+    Assert.AreEqual('075', R.Serie);
+    Assert.AreEqual(2, B.CantidadFichas, 'las fichas se conservan');
+    Assert.IsFalse(R.Liberada, 'la ficha pulsada no se debe liberar dentro de su clic');
   finally
     F.Free;
     R.Free;
@@ -133,7 +190,7 @@ var
   I: Integer;
 begin
   F := TForm.CreateNew(nil);
-  R := TReceptor.Create;
+  R := TReceptor.Create(nil);
   try
     B := NuevaBarra(F);
     B.OnFiltroCambio := R.Filtro;

@@ -1,7 +1,7 @@
 unit UBarraTrabajo;
 
 { Barra de la pantalla de documentos: ruta y nombre del nodo, fichas de las
-  series asignadas, busqueda, filtro de estado y los botones Nuevo y Editar.
+  series asignadas, busqueda, filtro de estado y el boton Editar (el alta es "Agregar documento" del shell).
   Se crea por codigo (sin .dfm) y no accede a datos: quien la usa le entrega
   las series con FijarSeries y atiende sus eventos. Colores de UTema.
   Codigo en ASCII. }
@@ -317,7 +317,26 @@ var
   I: Integer;
   F: TFichaSerie;
   Txt: string;
+  Misma: Boolean;
 begin
+  // Mismas series: solo cambia la ficha activa. Asi no se libera la ficha que
+  // se acaba de pulsar mientras se atiende su propio clic.
+  if (Length(Series) = Length(FSeries)) and (Length(Series) = Length(FFichas)) then
+  begin
+    Misma := True;
+    for I := 0 to High(Series) do
+      if not SameText(Series[I].CodSubs, FSeries[I].CodSubs) or
+        (Series[I].Nombre <> FSeries[I].Nombre) or
+        (Series[I].Cantidad <> FSeries[I].Cantidad) then
+        Misma := False;
+    if Misma then
+    begin
+      FActual := Actual;
+      for I := 0 to High(FFichas) do
+        FFichas[I].Activa := SameText(Trim(FSeries[I].CodSubs), Trim(Actual));
+      Exit;
+    end;
+  end;
   FSeries := Copy(Series);
   FActual := Actual;
   for I := 0 to High(FFichas) do
