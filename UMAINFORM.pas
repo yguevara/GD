@@ -686,6 +686,7 @@ type
     FTimerDocs: TTimer;
     FModoLista: Boolean;
     FCargandoDocs: Boolean;
+    FLocalizandoDoc: Boolean;
     FComboBoxAssociations: TComboBoxFieldAssociations;
     FIsAuthenticated: Boolean; // RASTREA SI EL USUARIO ESTÁ AUTENTICADO
     FLoginImage: TBitmap; // Imagen para el estado "no autenticado"
@@ -7053,7 +7054,7 @@ end;
 procedure TMAIN.ListaDocsCambio(Sender: TObject);
 begin
   // La propia carga (DisableControls/EnableControls) emite cambios de datos: se ignoran
-  if FCargandoDocs or (FTimerDocs = nil) or not FModoLista then
+  if FCargandoDocs or FLocalizandoDoc or (FTimerDocs = nil) or not FModoLista then
     Exit;
   FTimerDocs.Enabled := False;
   FTimerDocs.Enabled := True;
@@ -7237,10 +7238,26 @@ begin
   Antes := -1;
   if PerfilActivo and UDM.tb_SeriesDatos.Active then
     Antes := UDM.tb_SeriesDatos.RecNo;
-  Result := UDM.tb_SeriesDatos.Active and UDM.tb_SeriesDatos.Locate(
-    'IdEstructura;id;codsubs;Fecha;Version;Codigodoc',
-    VarArrayOf([Clave.IdEstructura, Clave.Id, Clave.CodSubs,
-    VarFromDateTime(Clave.Fecha), Clave.Version, Clave.Codigodoc]), []);
+  // Si ya esta sobre ese documento no se mueve: Locate emite cambios de datos que
+  // recargan la lista, y al estar abierta la pestana Contenido (que vuelve a
+  // localizar el documento) eso se repetia sin fin y la ventana parpadeaba.
+  if UDM.tb_SeriesDatos.Active and not UDM.tb_SeriesDatos.IsEmpty and
+    SameText(Trim(UDM.tb_SeriesDatos.FieldByName('Codigodoc').AsString), Trim(Clave.Codigodoc)) and
+    (UDM.tb_SeriesDatos.FieldByName('id').AsInteger = Clave.Id) and
+    SameText(UDM.tb_SeriesDatos.FieldByName('IdEstructura').AsString, Clave.IdEstructura) and
+    SameText(Trim(UDM.tb_SeriesDatos.FieldByName('codsubs').AsString), Trim(Clave.CodSubs)) and
+    SameText(Trim(UDM.tb_SeriesDatos.FieldByName('Version').AsString), Trim(Clave.Version)) and
+    (DateOf(UDM.tb_SeriesDatos.FieldByName('Fecha').AsDateTime) = DateOf(Clave.Fecha)) then
+    Exit(True);
+  FLocalizandoDoc := True;
+  try
+    Result := UDM.tb_SeriesDatos.Active and UDM.tb_SeriesDatos.Locate(
+      'IdEstructura;id;codsubs;Fecha;Version;Codigodoc',
+      VarArrayOf([Clave.IdEstructura, Clave.Id, Clave.CodSubs,
+      VarFromDateTime(Clave.Fecha), Clave.Version, Clave.Codigodoc]), []);
+  finally
+    FLocalizandoDoc := False;
+  end;
   if PerfilActivo then
     RegistrarErrorLista(Format('PERFIL Locate %s: encontrado=%s recno %d -> %d de %d',
       [Clave.Codigodoc, BoolToStr(Result, True), Antes, UDM.tb_SeriesDatos.RecNo,

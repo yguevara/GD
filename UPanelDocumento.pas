@@ -14,14 +14,31 @@ uses
   Vcl.StdCtrls, Vcl.Graphics, UTema, UDocumentoVista, UPanelLateral;
 
 type
+  { Cabecera del documento dibujada en un solo control: codigo (negrita), titulo
+    debajo y el estado a la derecha. Todo se mide con la fuente real, asi que no se
+    superponen con ninguna escala de pantalla; lo que no cabe termina en "...". }
+  TCabeceraDoc = class(TCustomControl)
+  private
+    FTema: TTemaColores;
+    FCodigo, FTitulo, FEstado: string;
+    procedure PrepararLienzo;
+  protected
+    procedure Paint; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    procedure Configurar(const T: TTemaColores);
+    procedure Fijar(const Codigo, Titulo, Estado: string);
+    function AltoNecesario: Integer;
+    property Codigo: string read FCodigo;
+    property Estado: string read FEstado;
+  end;
+
   TPanelDocumento = class(TPanel)
   private
     FTema: TTemaColores;
     FConstruido: Boolean;
     FCabecera: TPanel;
-    FLblCodigo: TLabel;
-    FLblEstado: TLabel;
-    FLblTitulo: TLabel;
+    FCab: TCabeceraDoc;
     FTira: TTiraPestanas;
     FPaginas: array[TPestanaDoc] of TPanel;
     FActiva: TPestanaDoc;
@@ -50,10 +67,95 @@ type
 implementation
 
 uses
-  UShellPrincipal;
+  System.Math, UShellPrincipal;
 
 const
   FUENTE = 'Segoe UI';
+
+{ TCabeceraDoc }
+
+constructor TCabeceraDoc.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  ControlStyle := ControlStyle + [csOpaque];
+  DoubleBuffered := True;
+  FCodigo := 'Sin documento';
+end;
+
+procedure TCabeceraDoc.Configurar(const T: TTemaColores);
+begin
+  FTema := T;
+  Invalidate;
+end;
+
+procedure TCabeceraDoc.Fijar(const Codigo, Titulo, Estado: string);
+begin
+  if (Codigo = FCodigo) and (Titulo = FTitulo) and (Estado = FEstado) then
+    Exit;
+  FCodigo := Codigo;
+  FTitulo := Titulo;
+  FEstado := Estado;
+  Invalidate;
+end;
+
+procedure TCabeceraDoc.PrepararLienzo;
+begin
+  Canvas.Font.Name := FUENTE;
+end;
+
+function TCabeceraDoc.AltoNecesario: Integer;
+begin
+  PrepararLienzo;
+  Canvas.Font.Size := 11;
+  Canvas.Font.Style := [fsBold];
+  Result := Canvas.TextHeight('Ag') + 10;
+  Canvas.Font.Size := 9;
+  Canvas.Font.Style := [];
+  Result := Result + Canvas.TextHeight('Ag') + 12;
+end;
+
+procedure TCabeceraDoc.Paint;
+var
+  R, RC, RT, RE: TRect;
+  AnchoEstado, Y, H1: Integer;
+begin
+  Canvas.Brush.Style := bsSolid;
+  Canvas.Brush.Color := FTema.Superficie;
+  Canvas.FillRect(ClientRect);
+  PrepararLienzo;
+  R := ClientRect;
+  AnchoEstado := 0;
+  if FEstado <> '' then
+  begin
+    Canvas.Font.Size := 9;
+    Canvas.Font.Style := [];
+    AnchoEstado := Canvas.TextWidth(FEstado) + 16;
+    RE := Rect(R.Right - 14 - AnchoEstado, 8,  R.Right - 14, 8 + Canvas.TextHeight('Ag') + 6);
+    Canvas.Brush.Color := FTema.AcentoSuave;
+    Canvas.FillRect(RE);
+    Canvas.Font.Color := FTema.Acento;
+    Canvas.Brush.Style := bsClear;
+    DrawText(Canvas.Handle, PChar(FEstado), -1, RE,
+      DT_CENTER or DT_VCENTER or DT_SINGLELINE or DT_NOPREFIX);
+  end;
+  Canvas.Brush.Style := bsClear;
+  Canvas.Font.Size := 11;
+  Canvas.Font.Style := [fsBold];
+  Canvas.Font.Color := FTema.Texto;
+  H1 := Canvas.TextHeight('Ag');
+  Y := 6;
+  RC := Rect(14, Y, R.Right - 14 - IfThen(AnchoEstado > 0, AnchoEstado + 8, 0), Y + H1);
+  DrawText(Canvas.Handle, PChar(FCodigo), -1, RC,
+    DT_LEFT or DT_SINGLELINE or DT_NOPREFIX or DT_END_ELLIPSIS);
+  Canvas.Font.Size := 9;
+  Canvas.Font.Style := [];
+  Canvas.Font.Color := FTema.TextoSuave;
+  RT := Rect(14, Y + H1 + 4, R.Right - 14, Y + H1 + 4 + Canvas.TextHeight('Ag'));
+  DrawText(Canvas.Handle, PChar(FTitulo), -1, RT,
+    DT_LEFT or DT_SINGLELINE or DT_NOPREFIX or DT_END_ELLIPSIS);
+end;
+
+{ TPanelDocumento }
 
 constructor TPanelDocumento.Create(AOwner: TComponent);
 begin
@@ -94,44 +196,11 @@ begin
   FCabecera.ShowCaption := False;
   FCabecera.Color := FTema.Superficie;
 
-  FLblEstado := TLabel.Create(Self);
-  FLblEstado.Parent := FCabecera;
-  FLblEstado.Align := alRight;
-  FLblEstado.AlignWithMargins := True;
-  FLblEstado.Margins.SetBounds(6, 8, 14, 32);
-  FLblEstado.Transparent := False;
-  FLblEstado.StyleElements := [];
-  FLblEstado.Font.Name := FUENTE;
-  FLblEstado.Font.Size := 9;
-  FLblEstado.Font.Color := FTema.Acento;
-  FLblEstado.Color := FTema.AcentoSuave;
-  FLblEstado.Layout := tlCenter;
-
-  FLblCodigo := TLabel.Create(Self);
-  FLblCodigo.Parent := FCabecera;
-  FLblCodigo.Align := alClient;
-  FLblCodigo.AlignWithMargins := True;
-  FLblCodigo.Margins.SetBounds(14, 8, 6, 32);
-  FLblCodigo.Transparent := True;
-  FLblCodigo.StyleElements := [];
-  FLblCodigo.EllipsisPosition := epEndEllipsis;
-  FLblCodigo.Layout := tlCenter;
-  FLblCodigo.Font.Name := FUENTE;
-  FLblCodigo.Font.Size := 11;
-  FLblCodigo.Font.Style := [fsBold];
-  FLblCodigo.Font.Color := FTema.Texto;
-
-  FLblTitulo := TLabel.Create(Self);
-  FLblTitulo.Parent := FCabecera;
-  FLblTitulo.AutoSize := False;
-  FLblTitulo.SetBounds(14, 30, 300, 20);
-  FLblTitulo.Anchors := [akLeft, akTop, akRight];
-  FLblTitulo.Transparent := True;
-  FLblTitulo.StyleElements := [];
-  FLblTitulo.EllipsisPosition := epEndEllipsis;
-  FLblTitulo.Font.Name := FUENTE;
-  FLblTitulo.Font.Size := 9;
-  FLblTitulo.Font.Color := FTema.TextoSuave;
+  FCab := TCabeceraDoc.Create(Self);
+  FCab.Parent := FCabecera;
+  FCab.Align := alClient;
+  FCab.Configurar(FTema);
+  FCabecera.Height := FCab.AltoNecesario;
 
   FTira := TTiraPestanas.Create(Self);
   FTira.Parent := Self;
@@ -200,17 +269,11 @@ procedure TPanelDocumento.FijarCabecera(const Codigo, Titulo: string;
   Estado: TEstadoDoc);
 begin
   if Trim(Codigo) = '' then
-  begin
-    FLblCodigo.Caption := 'Sin documento';
-    FLblTitulo.Caption := '';
-  end
+    FCab.Fijar('Sin documento', '', '')
+  else if Estado = edDesconocido then
+    FCab.Fijar(Trim(Codigo), Trim(Titulo), '')
   else
-  begin
-    FLblCodigo.Caption := Trim(Codigo);
-    FLblTitulo.Caption := Trim(Titulo);
-  end;
-  FLblEstado.Caption := ' ' + TextoEstadoDoc(Estado) + ' ';
-  FLblEstado.Visible := (Trim(Codigo) <> '') and (Estado <> edDesconocido);
+    FCab.Fijar(Trim(Codigo), Trim(Titulo), TextoEstadoDoc(Estado));
 end;
 
 procedure TPanelDocumento.FijarConteoArchivos(N: Integer);
@@ -223,15 +286,12 @@ end;
 
 function TPanelDocumento.TextoCodigo: string;
 begin
-  Result := FLblCodigo.Caption;
+  Result := FCab.Codigo;
 end;
 
 function TPanelDocumento.TextoEstado: string;
 begin
-  if FLblEstado.Visible then
-    Result := Trim(FLblEstado.Caption)
-  else
-    Result := '';
+  Result := FCab.Estado;
 end;
 
 function TPanelDocumento.TituloPestana(P: TPestanaDoc): string;
