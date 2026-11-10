@@ -73,3 +73,15 @@ Estado de la suite automatica al escribir esta lista: 316 pruebas, 0 fallos
 43. Soltar un archivo que no es PDF, o varios archivos, sobre Contenido: aviso "solo admite un archivo PDF" / "Suelte un solo archivo PDF".
 44. Cortar la red durante un reemplazo: el contenido anterior sigue intacto (fila y objeto).
 45. Cada alta, anexo, fuente o reemplazo queda en la bitacora del documento.
+46. Marcar un documento y pulsar Editar: se abre el formulario sobre el panel con sus valores (titulo, observaciones, expediente, subexpediente, visible, archivo, deposito, gaveta, servidor, posicion); el codigo, la fecha y la version no se pueden cambiar.
+47. Cambiar el titulo y guardar: se cierra, la lista se recarga con el titulo nuevo y la bitacora registra la modificacion.
+48. Marcar dos o mas documentos (Ctrl o Mayus) y pulsar Editar: los campos dicen "(sin cambios)", el boton dice "Aplicar a N"; solo cambia lo que se rellena (por ejemplo la gaveta) y el resto queda como estaba.
+49. Con varios documentos, "Vaciar" en un campo lo deja vacio en todos; "Deshacer" lo revierte antes de guardar.
+50. Titulo en blanco o demasiado largo, gaveta de mas de 20 caracteres, archivo no numerico: el error sale bajo el campo y no se guarda.
+51. Un documento del lote falla (por ejemplo lo borro otro usuario): los demas se guardan y el resumen dice "Se guardaron N; M no se pudieron guardar".
+52. Dos usuarios: A abre un documento, B cambia su titulo y guarda, A guarda otro titulo: A recibe "Otro usuario cambio titulo..." y no se pisa el cambio de B.
+53. Sin permiso de editar: el boton avisa y no abre el formulario. Con permiso de editar pero sin el de topografia: la ubicacion queda deshabilitada y, en un lote, se avisa de lo omitido.
+54. Eliminar... (solo con un documento): pide confirmacion, aplica las mismas reglas por rol y quita los ficheros; con varios marcados el boton no aparece.
+55. Arrastrar archivos sobre la zona del formulario con varios documentos: una confirmacion, los archivos se agregan como anexos a cada documento y el resumen cuenta agregados y fallidos.
+56. "Vista avanzada" abre la rejilla antigua; el boton de la barra pasa a "Ver lista" y vuelve a la lista.
+57. Marcar varios y cambiar de subserie o filtrar: la seleccion que ya no se ve se limpia; las pestanas muestran "N documentos seleccionados" mientras haya mas de uno marcado.
