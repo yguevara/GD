@@ -18,7 +18,7 @@ uses
 { Modal. True si se guardo al menos un documento. Subserie = texto para mostrar. }
 function MostrarCargaDocumentos(const Origen: TOrigenDocumento;
   const Subserie: string; Conn: TFDConnection; Alcance: TAlcanceUsuario;
-  Almacen: IAlmacenFicheros): Boolean;
+  Almacen: IAlmacenFicheros; const RutasIniciales: TArray<string> = nil): Boolean;
 
 implementation
 
@@ -63,6 +63,7 @@ type
     FIdLote: Integer;       // lote en curso (retomado o ya creado al guardar)
     FItemsLote: Integer;    // items que ese lote ya tiene
     FOfrecido: Boolean;
+    FRutasIniciales: TArray<string>;
     procedure Construir;
     procedure FormMostrar(Sender: TObject);
     procedure OfrecerRetomar;
@@ -111,12 +112,14 @@ type
 
 function MostrarCargaDocumentos(const Origen: TOrigenDocumento;
   const Subserie: string; Conn: TFDConnection; Alcance: TAlcanceUsuario;
-  Almacen: IAlmacenFicheros): Boolean;
+  Almacen: IAlmacenFicheros; const RutasIniciales: TArray<string>): Boolean;
 var
   F: TfrmPantallaCarga;
 begin
   F := TfrmPantallaCarga.Crear(Origen, Subserie, Conn, Alcance, Almacen);
   try
+    // archivos o carpetas que el usuario solto sobre la lista de documentos
+    F.FRutasIniciales := RutasIniciales;
     F.ShowModal;
     Result := F.FGuardo;
   finally
@@ -698,6 +701,9 @@ begin
     Exit;
   FOfrecido := True;
   OfrecerRetomar;
+  // lo que se solto sobre la lista entra como cualquier archivo soltado aqui
+  if Length(FRutasIniciales) > 0 then
+    AgregarRutas(FRutasIniciales);
 end;
 
 { Si el usuario dejo una carga sin terminar en esta subserie, ofrece retomarla

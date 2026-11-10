@@ -16,9 +16,16 @@ uses
   System.Classes, System.SysUtils, System.Generics.Collections,
   Winapi.Windows, Winapi.Messages, Vcl.Controls, Vcl.ExtCtrls, Vcl.ComCtrls,
   Vcl.StdCtrls, Vcl.Graphics, Vcl.Forms, UTema, UDocumentoVista, UTrazabilidad,
-  UListaPropiedades, UPanelDocumento, UVistaUbicacion, UVisorContenido;
+  UListaPropiedades, UPanelDocumento, UVistaUbicacion, UVisorContenido,
+  URecepcionArchivos;
 
 type
+  { Archivos soltados sobre la zona de anexos (EsFuente = False) o de fuentes
+    (True) de un documento. }
+  TSoltarFicherosEvent = procedure(const Clave: TClaveDocumento;
+    const Rutas: TArray<string>; EsFuente: Boolean) of object;
+  { Si el usuario puede modificar los ficheros del documento actual. }
+  TConsultaPermiso = function: Boolean of object;
   { Ruta local de un archivo PDF con el contenido del documento, o '' y el
     motivo (sin PDF, formato no admitido, fichero ausente del almacen). }
   TSolicitudContenido = function(const Clave: TClaveDocumento;
@@ -60,6 +67,13 @@ type
     FPropDatos, FPropArchivos, FPropMetadatos, FPropHistoria: TListaPropiedades;
     FVisor: TVisorContenido;
     FOnPedirContenido: TSolicitudContenido;
+    FRecepLista: TRecepcionArchivos;
+    FZonaAnexos, FZonaFuentes: TPanel;
+    FRecepAnexos, FRecepFuentes: TRecepcionArchivos;
+    FOnSoltarFicheros: TSoltarFicherosEvent;
+    FOnPuedeEditar: TConsultaPermiso;
+    FOnSoltarArchivos: TSoltarEvent;
+    FSinSubserie: Boolean;
     FTimerContenido: TTimer;
     FContenidoPendiente: TDatosDocumento;
     FVistaUbicacion: TVistaUbicacion;
@@ -89,6 +103,15 @@ type
       Negrita: Boolean): TLabel;
     procedure Construir;
     procedure PestanaCambio(Sender: TObject);
+    procedure ListaSoltar(const Rutas: TArray<string>);
+    procedure AnexosSoltar(const Rutas: TArray<string>);
+    procedure FuentesSoltar(const Rutas: TArray<string>);
+    procedure SoltarFicheros(const Rutas: TArray<string>; EsFuente: Boolean);
+    function NuevaZona(const Texto: string; Receptor: TSoltarEvent;
+      out Recep: TRecepcionArchivos): TPanel;
+    procedure ActualizarZonas(Documento: Boolean);
+    procedure ZonaEntrar(Sender: TObject);
+    procedure ZonaSalir(Sender: TObject);
     procedure CargarContenido(const D: TDatosDocumento);
     procedure ProgramarContenido(const D: TDatosDocumento);
     procedure TimerContenidoTimer(Sender: TObject);
@@ -130,6 +153,17 @@ type
     function CantidadVisibles: Integer;
     { Panel con las pestanas del documento seleccionado (Datos, Ubicacion...). }
     property Documento: TPanelDocumento read FDoc;
+    { Archivos o carpetas soltados sobre la lista de documentos (solo si hay una
+      subserie elegida): quien usa el panel abre la carga por lote. }
+    property OnSoltarArchivos: TSoltarEvent read FOnSoltarArchivos write FOnSoltarArchivos;
+    { Receptor de arrastre de la lista (pruebas). }
+    property ReceptorLista: TRecepcionArchivos read FRecepLista;
+    { Zonas de soltar de la pestana Archivos y su permiso. }
+    property OnSoltarFicheros: TSoltarFicherosEvent read FOnSoltarFicheros
+      write FOnSoltarFicheros;
+    property OnPuedeEditar: TConsultaPermiso read FOnPuedeEditar write FOnPuedeEditar;
+    property ReceptorAnexos: TRecepcionArchivos read FRecepAnexos;
+    property ReceptorFuentes: TRecepcionArchivos read FRecepFuentes;
     { Visor del contenido (PDF) de la pestana Contenido. }
     property Visor: TVisorContenido read FVisor;
     { Contenido del documento; se pide solo al abrir la pestana Contenido. }
@@ -275,6 +309,99 @@ begin
   CargarContenido(FContenidoPendiente);
 end;
 
+// Zona de soltar de la pestana Archivos: recuadro con texto; resalta mientras se
+// arrastra sobre ella.
+function TPanelDocumentos.NuevaZona(const Texto: string; Receptor: TSoltarEvent;
+  out Recep: TRecepcionArchivos): TPanel;
+begin
+  Result := TPanel.Create(Self);
+  Result.Parent := FDoc.Pagina(pdArchivos);
+  Result.Align := alBottom;
+  Result.Height := 54;
+  Result.AlignWithMargins := True;
+  Result.Margins.SetBounds(12, 6, 12, 0);
+  Result.BevelOuter := bvNone;
+  Result.ParentBackground := False;
+  Result.StyleElements := [];
+  Result.Color := FTema.Superficie2;
+  Result.Font.Name := FUENTE;
+  Result.Font.Size := 9;
+  Result.Font.Color := FTema.TextoSuave;
+  Result.Caption := Texto;
+  Recep := TRecepcionArchivos.Crear(Self, Result);
+  Recep.OnSoltar := Receptor;
+  Recep.OnEntrar := ZonaEntrar;
+  Recep.OnSalir := ZonaSalir;
+end;
+
+// Resalta la zona sobre la que se arrastra
+procedure TPanelDocumentos.ZonaEntrar(Sender: TObject);
+begin
+  if Sender = FRecepAnexos then
+    FZonaAnexos.Color := FTema.AcentoSuave
+  else if Sender = FRecepFuentes then
+    FZonaFuentes.Color := FTema.AcentoSuave;
+end;
+
+procedure TPanelDocumentos.ZonaSalir(Sender: TObject);
+begin
+  if Sender = FRecepAnexos then
+    FZonaAnexos.Color := FTema.Superficie2
+  else if Sender = FRecepFuentes then
+    FZonaFuentes.Color := FTema.Superficie2;
+end;
+
+// Activa las zonas solo con un documento elegido y permiso para modificarlo
+procedure TPanelDocumentos.ActualizarZonas(Documento: Boolean);
+var
+  Puede: Boolean;
+begin
+  Puede := Documento and Assigned(FOnPuedeEditar) and FOnPuedeEditar();
+  FRecepAnexos.Activo := Puede;
+  FRecepFuentes.Activo := Puede;
+  FZonaAnexos.Enabled := Puede;
+  FZonaFuentes.Enabled := Puede;
+  if Puede then
+  begin
+    FZonaAnexos.Caption := 'Suelte aqui los archivos para agregarlos como anexos digitales';
+    FZonaFuentes.Caption := 'Suelte aqui los archivos para agregarlos como fuentes';
+  end
+  else if Documento then
+  begin
+    FZonaAnexos.Caption := 'No tiene permiso para agregar anexos a este documento';
+    FZonaFuentes.Caption := '';
+  end
+  else
+  begin
+    FZonaAnexos.Caption := 'Elija un documento para agregarle anexos';
+    FZonaFuentes.Caption := '';
+  end;
+  FZonaFuentes.Visible := Puede;
+end;
+
+procedure TPanelDocumentos.SoltarFicheros(const Rutas: TArray<string>; EsFuente: Boolean);
+begin
+  if (FIndiceActual >= 0) and (FIndiceActual < Length(FVisibles)) and
+    Assigned(FOnSoltarFicheros) then
+    FOnSoltarFicheros(FVisibles[FIndiceActual].Clave, Rutas, EsFuente);
+end;
+
+procedure TPanelDocumentos.AnexosSoltar(const Rutas: TArray<string>);
+begin
+  SoltarFicheros(Rutas, False);
+end;
+
+procedure TPanelDocumentos.FuentesSoltar(const Rutas: TArray<string>);
+begin
+  SoltarFicheros(Rutas, True);
+end;
+
+procedure TPanelDocumentos.ListaSoltar(const Rutas: TArray<string>);
+begin
+  if (not FSinSubserie) and Assigned(FOnSoltarArchivos) then
+    FOnSoltarArchivos(Rutas);
+end;
+
 procedure TPanelDocumentos.PestanaCambio(Sender: TObject);
 begin
   if (FDoc.Activa = pdContenido) and (FIndiceActual >= 0) and
@@ -372,6 +499,11 @@ begin
   FPie.ShowCaption := False;
   FPie.Color := FTema.Superficie;
 
+  FZonaAnexos := NuevaZona('Suelte aqui los archivos para agregarlos como anexos digitales',
+    AnexosSoltar, FRecepAnexos);
+  FZonaFuentes := NuevaZona('Suelte aqui los archivos para agregarlos como fuentes',
+    FuentesSoltar, FRecepFuentes);
+
   FBtnAbrir := TButton.Create(Self);
   FBtnAbrir.Parent := FPie;
   FBtnAbrir.Caption := 'Abrir contenido';
@@ -437,6 +569,9 @@ begin
   Col('Estado', 100);
   Col('Ficheros', 110);
   Col('Geo', 40);
+  // soltar archivos sobre la lista da de alta documentos por lote
+  FRecepLista := TRecepcionArchivos.Crear(Self, FLista);
+  FRecepLista.OnSoltar := ListaSoltar;
   FLista.OnData := ListaData;
   FLista.OnSelectItem := ListaSelectItem;
   FLista.OnDblClick := ListaDblClick;
@@ -462,6 +597,7 @@ begin
   TeniaSeleccion := (FIndiceActual >= 0) and (FIndiceActual < Length(FVisibles));
   if TeniaSeleccion then
     Previa := FVisibles[FIndiceActual].Clave;
+  FSinSubserie := False;
   FTodos := Copy(Docs);
   FTitulo := Titulo;
   FExpFiltrado := '';
@@ -472,6 +608,7 @@ end;
 
 procedure TPanelDocumentos.MostrarSinSubserie;
 begin
+  FSinSubserie := True;
   FTodos := nil;
   FTitulo := '';
   FExpFiltrado := '';
@@ -731,6 +868,7 @@ begin
   FVisor.MostrarMensaje('Elija un documento para ver su contenido');
   FDoc.FijarCabecera('', '', edDesconocido);
   FDoc.FijarConteoArchivos(0);
+  ActualizarZonas(False);
 end;
 
 procedure TPanelDocumentos.MostrarPropiedades(Indice: Integer);
@@ -817,6 +955,7 @@ begin
   else
     FVisor.MostrarMensaje('Abra esta pestana para ver el contenido del documento.');
   FDoc.FijarConteoArchivos(Length(FFicherosActuales));
+  ActualizarZonas(True);
 
   Digitales := 0;
   if Assigned(FOnPedirFicheros) then

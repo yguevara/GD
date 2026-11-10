@@ -28,6 +28,8 @@ type
     [Test]
     procedure FiltrarRutas_ConExtensiones_RechazaLasCarpetas;
     [Test]
+    procedure RecrearLaVentana_VuelveAEstarRegistrado;
+    [Test]
     procedure SimularSoltar_Activo_AvisaConLasRutas;
     [Test]
     procedure SimularSoltar_ConActivoFalso_NoAvisa;
@@ -39,7 +41,7 @@ implementation
 
 uses
   System.SysUtils, System.Classes, System.IOUtils, Vcl.Forms, Vcl.Controls,
-  Vcl.ExtCtrls, URecepcionArchivos;
+  Vcl.ExtCtrls, Winapi.Messages, URecepcionArchivos;
 
 type
   TReceptor = class
@@ -130,6 +132,27 @@ begin
   R := TReceptor.Create;
   Result := TRecepcionArchivos.Crear(F, P);
   Result.OnSoltar := R.Soltar;
+end;
+
+procedure TPruebasRecepcionArchivos.RecrearLaVentana_VuelveAEstarRegistrado;
+var
+  F: TForm;
+  Rc: TRecepcionArchivos;
+  R: TReceptor;
+begin
+  F := TForm.CreateNew(nil);
+  try
+    Rc := NuevoReceptor(F, R);
+    Assert.IsTrue(Rc.Registrado);
+    F.Perform(CM_RECREATEWND, 0, 0);
+    Application.ProcessMessages;
+    TWinControl(F.Controls[0]).Perform(CM_RECREATEWND, 0, 0);
+    Application.ProcessMessages;
+    Assert.IsTrue(Rc.Registrado, 'tras recrear la ventana se registra de nuevo');
+  finally
+    F.Free;
+    R.Free;
+  end;
 end;
 
 procedure TPruebasRecepcionArchivos.SimularSoltar_Activo_AvisaConLasRutas;

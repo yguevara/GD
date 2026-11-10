@@ -28,6 +28,16 @@ type
     [Test]
     procedure Propiedades_ClicEnVerHistoria_DisparaEvento;
     [Test]
+    procedure Zonas_ConPermiso_DisparanElEventoSegunLaZona;
+    [Test]
+    procedure Zonas_SinPermiso_NoDisparan;
+    [Test]
+    procedure Zonas_SinDocumentoElegido_NoDisparan;
+    [Test]
+    procedure Soltar_SobreLaLista_DisparaOnSoltarArchivos;
+    [Test]
+    procedure Soltar_SinSubserie_NoDisparaElEvento;
+    [Test]
     procedure Contenido_SeCargaAlAbrirLaPestanaYNoAlSeleccionar;
     [Test]
     procedure Contenido_NoPdf_MuestraElMotivo;
@@ -521,6 +531,162 @@ begin
   for I := 0 to Pag.ControlCount - 1 do
     if Pag.Controls[I] is TListaPropiedades then
       Result := TListaPropiedades(Pag.Controls[I]);
+end;
+
+type
+  TProveedorFicheros = class
+    Avisos: Integer;
+    Clave: TClaveDocumento;
+    Rutas: TArray<string>;
+    EsFuente: Boolean;
+    Permite: Boolean;
+    function PuedeEditar: Boolean;
+    procedure Soltar(const C: TClaveDocumento; const R: TArray<string>; Fuente: Boolean);
+  end;
+
+function TProveedorFicheros.PuedeEditar: Boolean;
+begin
+  Result := Permite;
+end;
+
+procedure TProveedorFicheros.Soltar(const C: TClaveDocumento; const R: TArray<string>;
+  Fuente: Boolean);
+begin
+  Inc(Avisos);
+  Clave := C;
+  Rutas := R;
+  EsFuente := Fuente;
+end;
+
+procedure TPruebasPanelDocumentos.Zonas_ConPermiso_DisparanElEventoSegunLaZona;
+var
+  F: TForm;
+  P: TPanelDocumentos;
+  LV: TListView;
+  Prov: TProveedorFicheros;
+begin
+  F := TForm.CreateNew(nil);
+  Prov := TProveedorFicheros.Create;
+  try
+    Prov.Permite := True;
+    P := PanelCargado(F);
+    P.OnPuedeEditar := Prov.PuedeEditar;
+    P.OnSoltarFicheros := Prov.Soltar;
+    LV := BuscarLista(P);
+    LV.Items[1].Selected := True;
+    PonerAlDia;
+    P.ReceptorAnexos.SimularSoltar(['x-a.pdf']);
+    Assert.AreEqual(1, Prov.Avisos);
+    Assert.IsFalse(Prov.EsFuente, 'la zona de anexos no marca fuente');
+    Assert.AreEqual('A 03.01.02.0002', Prov.Clave.Codigodoc);
+    P.ReceptorFuentes.SimularSoltar(['x-b.docx', 'x-c.docx']);
+    Assert.AreEqual(2, Prov.Avisos);
+    Assert.IsTrue(Prov.EsFuente);
+    Assert.AreEqual(2, Integer(Length(Prov.Rutas)));
+  finally
+    F.Free;
+    Prov.Free;
+  end;
+end;
+
+procedure TPruebasPanelDocumentos.Zonas_SinPermiso_NoDisparan;
+var
+  F: TForm;
+  P: TPanelDocumentos;
+  LV: TListView;
+  Prov: TProveedorFicheros;
+begin
+  F := TForm.CreateNew(nil);
+  Prov := TProveedorFicheros.Create;
+  try
+    Prov.Permite := False;
+    P := PanelCargado(F);
+    P.OnPuedeEditar := Prov.PuedeEditar;
+    P.OnSoltarFicheros := Prov.Soltar;
+    LV := BuscarLista(P);
+    LV.Items[0].Selected := True;
+    PonerAlDia;
+    P.ReceptorAnexos.SimularSoltar(['x-a.pdf']);
+    P.ReceptorFuentes.SimularSoltar(['x-b.docx']);
+    Assert.AreEqual(0, Prov.Avisos, 'sin permiso de editar no se acepta nada');
+  finally
+    F.Free;
+    Prov.Free;
+  end;
+end;
+
+procedure TPruebasPanelDocumentos.Zonas_SinDocumentoElegido_NoDisparan;
+var
+  F: TForm;
+  P: TPanelDocumentos;
+  Prov: TProveedorFicheros;
+begin
+  F := TForm.CreateNew(nil);
+  Prov := TProveedorFicheros.Create;
+  try
+    Prov.Permite := True;
+    P := PanelCargado(F);
+    P.OnPuedeEditar := Prov.PuedeEditar;
+    P.OnSoltarFicheros := Prov.Soltar;
+    P.ReceptorAnexos.SimularSoltar(['x-a.pdf']);
+    Assert.AreEqual(0, Prov.Avisos, 'sin documento elegido no hay a donde agregar');
+  finally
+    F.Free;
+    Prov.Free;
+  end;
+end;
+
+type
+  TReceptorSoltar = class
+    Avisos: Integer;
+    Ultimas: TArray<string>;
+    procedure Soltar(const Rutas: TArray<string>);
+  end;
+
+procedure TReceptorSoltar.Soltar(const Rutas: TArray<string>);
+begin
+  Inc(Avisos);
+  Ultimas := Rutas;
+end;
+
+procedure TPruebasPanelDocumentos.Soltar_SobreLaLista_DisparaOnSoltarArchivos;
+var
+  F: TForm;
+  P: TPanelDocumentos;
+  R: TReceptorSoltar;
+begin
+  F := TForm.CreateNew(nil);
+  R := TReceptorSoltar.Create;
+  try
+    P := PanelCargado(F);
+    P.OnSoltarArchivos := R.Soltar;
+    P.ReceptorLista.SimularSoltar(['x-uno.pdf', 'x-carpeta']);
+    Assert.AreEqual(1, R.Avisos);
+    Assert.AreEqual(2, Integer(Length(R.Ultimas)));
+  finally
+    F.Free;
+    R.Free;
+  end;
+end;
+
+procedure TPruebasPanelDocumentos.Soltar_SinSubserie_NoDisparaElEvento;
+var
+  F: TForm;
+  P: TPanelDocumentos;
+  R: TReceptorSoltar;
+begin
+  F := TForm.CreateNew(nil);
+  R := TReceptorSoltar.Create;
+  try
+    P := PanelCargado(F);
+    P.OnSoltarArchivos := R.Soltar;
+    P.MostrarSinSubserie;
+    P.ReceptorLista.SimularSoltar(['x-uno.pdf']);
+    Assert.AreEqual(0, R.Avisos, 'sin subserie no hay donde agregar');
+  finally
+    F.Free;
+    R.Free;
+  end;
 end;
 
 type

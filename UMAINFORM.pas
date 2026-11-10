@@ -32,7 +32,8 @@ uses
   cxDBRichEdit, System.Generics.Collections, cxSplitter, AdvListV, DBAdvLst,
   IniFiles, cxSpinEdit, Vcl.Grids, Vcl.DBGrids, JvDBControls, cxMaskEdit,
   dxScreenTip, dxCustomHint, cxHint, cxEditRepositoryItems, cxGroupBox,
-  UBusqueda, UAlcance, UPanelDocumentos, UBarraTrabajo, UBloqueAccion, UPanelLateral, UDocumentoVista, UMigracionPantalla, UExpedienteCompleto, UProgresoTransferencia, UTrazabilidad, UTrazabilidadDatos,
+  UBusqueda, UAlcance, UPanelDocumentos, UBarraTrabajo, UBloqueAccion, UPanelLateral,
+  UCargaDocumento, UDocumentoVista, UMigracionPantalla, UExpedienteCompleto, UProgresoTransferencia, UTrazabilidad, UTrazabilidadDatos,
   UAlmacenFicheros, UAlmacenServidor;
 
 type
@@ -807,6 +808,13 @@ type
     procedure AjustarCuadroClasif;
     function CuadroClasifVisible: Boolean;
     procedure ShellAgregarDocumento(Sender: TObject);
+    procedure AgregarDocumentosConRutas(const Rutas: TArray<string>);
+    procedure ListaDocsSoltar(const Rutas: TArray<string>);
+    function ListaDocsPuedeEditar: Boolean;
+    function AlmacenParaDocumento(const Clave: TClaveDocumento;
+      out Origen: TOrigenDocumento; out Almacen: IAlmacenFicheros): Boolean;
+    procedure ListaDocsSoltarFicheros(const Clave: TClaveDocumento;
+      const Rutas: TArray<string>; EsFuente: Boolean);
     procedure ShellBuscar(const Texto: string; Ambito: TAmbitoBusqueda);
     function SeleccionarNodoEnArbol(const Nodo: TClaveNodo): Boolean;
     procedure ShellMenuConfiguracion;
@@ -831,12 +839,13 @@ implementation
 
 uses
   UAparienciaLegacy, UTema, UIconos, UDocumentoVistaDatos, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UCapaDatos, UUserGest, UDocManagement,
-  UPantallaCarga, UCargaDocumento, UCLSeriesDocumentales, UCLFtpServer, UGestEstruct, UMangementArch,
+  UPantallaCarga, UCLSeriesDocumentales, UCLFtpServer, UGestEstruct, UMangementArch,
   UManagementFileSeries, UViewFunciones, UVeditor, UExcelExport, UManagementNode,
   USystemMsg, UNodeProperties, UCL_TiposExp, USysConfig, UTransferencias,
   UExportImportDocumentSubSeries, UManagementIndex, UAdminLog, UManagementTrans,
   UDepuracion, UTopoDocActual, UREditor, UNodeInfo, frmTransferencia, UPrestamos,
-  UShellPrincipal, System.Diagnostics, System.IOUtils, System.Hash;
+  UShellPrincipal, System.Diagnostics, System.IOUtils, System.Hash, UAgregarFicheros,
+  UCargaModelo;
 
 {$R *.dfm}
 
@@ -6964,6 +6973,9 @@ begin
     FListaDocs.OnPedirUbicacionSubserie := ListaDocsUbicacionSubserie;
     FListaDocs.OnPedirMetadatos := ListaDocsMetadatos;
     FListaDocs.OnPedirContenido := ListaDocsContenido;
+    FListaDocs.OnSoltarArchivos := ListaDocsSoltar;
+    FListaDocs.OnPuedeEditar := ListaDocsPuedeEditar;
+    FListaDocs.OnSoltarFicheros := ListaDocsSoltarFicheros;
 
     FTimerDocs := TTimer.Create(Self);
     FTimerDocs.Enabled := False;
@@ -7862,6 +7874,148 @@ end;
 // elegidos (tb_Serietree). Ese boton solo es visible si el rol o el alcance
 // permiten agregar (SetModSecurity y AplicarReglasDocumento); se respeta igual.
 procedure TMAIN.ShellAgregarDocumento(Sender: TObject);
+begin
+  AgregarDocumentosConRutas(nil);
+end;
+
+// Si el usuario puede modificar los ficheros del documento actual: con alcance
+// (SQL Server) lo decide UAlcance para el nodo y la subserie; sin el (Access) vale
+// la misma regla por rol que habilita el boton de guardar del navegador.
+function TMAIN.ListaDocsPuedeEditar: Boolean;
+var
+  Nodo: TClaveNodo;
+begin
+  if (UDM.Alcance <> nil) and UDM.tb_Serietree.Active and not UDM.tb_Serietree.IsEmpty then
+  begin
+    Nodo.IdEstructura := UDM.tb_Serietree.FieldByName('IdEstructura').AsString;
+    Nodo.Id := UDM.tb_Serietree.FieldByName('id').AsInteger;
+    Result := UDM.Alcance.PuedeRealizar(acEditar, Nodo,
+      UDM.tb_Serietree.FieldByName('codsubs').AsString);
+  end
+  else
+    Result := (UDM.Alcance = nil) and (nbPost in dbnSeriesDatos.VisibleButtons);
+end;
+
+// Origen y almacen para agregar ficheros a un documento: se usa el servidor de
+// los ficheros que el documento ya tiene (S3 o el FTP por defecto); si no tiene
+// ninguno, el servidor S3 de los documentos nuevos.
+function TMAIN.AlmacenParaDocumento(const Clave: TClaveDocumento;
+  out Origen: TOrigenDocumento; out Almacen: IAlmacenFicheros): Boolean;
+var
+  UrlRaiz: string;
+  IdS3, IdServ: Integer;
+begin
+  Result := False;
+  Almacen := nil;
+  Origen := Default(TOrigenDocumento);
+  Origen.IdEstructura := Clave.IdEstructura;
+  Origen.Id := Clave.Id;
+  Origen.CodSubs := Clave.CodSubs;
+  Origen.CodSerie := UDM.SudSDetail.FieldByName('codserie').AsString;
+  Origen.Usuario := UDM.UserName;
+  Origen.Rol := UDM.Rol;
+  Origen.UrlRaiz := UDM.UrlRaizNuevos;
+  UrlRaiz := '';
+  if UDM.qryAnexosDig.Active and not UDM.qryAnexosDig.IsEmpty then
+    UrlRaiz := UDM.qryAnexosDig.FieldByName('urlraiz').AsString
+  else if UDM.qryFuentesDig.Active and not UDM.qryFuentesDig.IsEmpty then
+    UrlRaiz := UDM.qryFuentesDig.FieldByName('urlraiz').AsString;
+  try
+    if (UrlRaiz <> '') and EsUrlRaizS3(UrlRaiz, IdS3) then
+      Almacen := CrearAlmacen(UDM.Conn, IdS3)
+    else if UrlRaiz <> '' then
+      Almacen := CrearAlmacen(UDM.Conn, UDM.cmdServer.FieldByName('Idservidor').AsInteger)
+    else
+    begin
+      IdServ := ServidorDestinoNuevos(UDM.Conn);
+      if IdServ <= 0 then
+      begin
+        UDM.sms('Registre primero un servidor S3 en Clasificadores > Servidores.', 3);
+        Exit;
+      end;
+      Almacen := CrearAlmacen(UDM.Conn, IdServ);
+    end;
+    Result := True;
+  except
+    on E: Exception do
+      UDM.sms('No se pudo preparar el servidor de ficheros: ' + E.Message, 3);
+  end;
+end;
+
+// Archivos o carpetas soltados sobre las zonas de la pestana Archivos: se
+// agregan al documento como anexos digitales o como fuentes, un archivo a la
+// vez (si uno falla no impide los demas) y con bitacora. Despues se refresca
+// la pestana Archivos y se descarta el contenido guardado del documento.
+procedure TMAIN.ListaDocsSoltarFicheros(const Clave: TClaveDocumento;
+  const Rutas: TArray<string>; EsFuente: Boolean);
+var
+  Archivos: TArray<string>;
+  Lista: TArray<TFicheroNuevo>;
+  Origen: TOrigenDocumento;
+  Almacen: IAlmacenFicheros;
+  R: TResultadoFicheros;
+  Prog: TProgresoTransferencia;
+  I: Integer;
+begin
+  if not ListaDocsPuedeEditar then
+  begin
+    UDM.sms('No tiene permiso para agregar ficheros a este documento.', 3);
+    Exit;
+  end;
+  if not ListaDocsLocalizar(Clave) then
+    Exit;
+  Archivos := ExpandirRutas(Rutas, True);
+  if Length(Archivos) = 0 then
+  begin
+    UDM.sms('No se encontraron archivos que agregar.', 2);
+    Exit;
+  end;
+  if not AlmacenParaDocumento(Clave, Origen, Almacen) then
+    Exit;
+  SetLength(Lista, Length(Archivos));
+  for I := 0 to High(Archivos) do
+  begin
+    Lista[I].Local := Archivos[I];
+    Lista[I].EsFuente := EsFuente;
+  end;
+  Prog := TProgresoTransferencia.Create(nil, 'Agregando ficheros', Trim(Clave.Codigodoc));
+  try
+    R := AgregarFicheros(UDM.Conn, UDM.Alcance, Origen, Clave, Almacen, Lista,
+      procedure(Hecho, Total: Int64; var Cancelar: Boolean)
+      begin
+        Prog.Actualizar(Hecho, Total, Cancelar);
+      end);
+  finally
+    Prog.Free;
+  end;
+  if R.Fallidos = 0 then
+    UDM.sms(Format('Se agregaron %d fichero(s) al documento.', [R.Agregados]), 3)
+  else
+    UDM.sms(Format('Se agregaron %d fichero(s); %d no se pudieron agregar. %s',
+      [R.Agregados, R.Fallidos, R.Mensaje]), 2);
+  if R.Agregados > 0 then
+  begin
+    if FContenidoCache <> nil then
+      FContenidoCache.Clear;
+    if UDM.qryAnexosDig.Active then
+      UDM.qryAnexosDig.Refresh;
+    if UDM.qryFuentesDig.Active then
+      UDM.qryFuentesDig.Refresh;
+    if FListaDocs <> nil then
+      FListaDocs.SeleccionarClave(Clave);
+  end;
+end;
+
+// Archivos o carpetas soltados sobre la lista: abren la carga por lote de la
+// subserie actual con esas rutas ya agregadas. Se hacen las mismas
+// comprobaciones que con "Agregar documento" (permiso, topografia, servidor);
+// nada se guarda hasta que el usuario revisa los candidatos y guarda.
+procedure TMAIN.ListaDocsSoltar(const Rutas: TArray<string>);
+begin
+  AgregarDocumentosConRutas(Rutas);
+end;
+
+procedure TMAIN.AgregarDocumentosConRutas(const Rutas: TArray<string>);
 const
   MSG_SIN_S3 = 'Registre primero un servidor S3 en Clasificadores > Servidores.';
 var
@@ -7872,8 +8026,9 @@ var
   Nodo: TClaveNodo;
   PuedeEditarTopo: Boolean;
 begin
-  // Con la lista a la vista se pasa a la rejilla: el alta se refresca alli
-  if (FListaDocs <> nil) and FModoLista then
+  // Con "Agregar documento" y la lista a la vista se pasa a la rejilla: el alta se
+  // refresca alli. Al soltar archivos sobre la lista se sigue en la lista.
+  if (Length(Rutas) = 0) and (FListaDocs <> nil) and FModoLista then
     ListaDocsAlternar(nil);
   if (tvTree.Selected = nil) or not PContainer.Visible or not PSeriesDatos.Visible or
     not UDM.tb_Serietree.Active or UDM.tb_Serietree.IsEmpty or
@@ -7936,7 +8091,7 @@ begin
   Origen.UrlRaiz := UDM.UrlRaizNuevos;
   if MostrarCargaDocumentos(Origen,
     UDM.SudSDetail.FieldByName('serie').AsString + ' / ' + Origen.CodSubs,
-    UDM.Conn, UDM.Alcance, Almacen) then
+    UDM.Conn, UDM.Alcance, Almacen, Rutas) then
   begin
     UDM.tb_SeriesDatos.Refresh;
     if (FListaDocs <> nil) and FModoLista then

@@ -9,7 +9,7 @@ unit URecepcionArchivos;
 interface
 
 uses
-  System.Classes, System.SysUtils, Winapi.Windows, Winapi.ActiveX,
+  System.Classes, System.SysUtils, Winapi.Windows, Winapi.Messages, Winapi.ActiveX,
   Winapi.ShellAPI, Vcl.Controls;
 
 type
@@ -43,6 +43,8 @@ type
     FOnEntrar: TNotifyEvent;
     FOnSalir: TNotifyEvent;
     FOnSoltar: TSoltarEvent;
+    FAnteriorWndProc: TWndMethod;
+    procedure ControlWndProc(var Mensaje: TMessage);
     procedure Entrar;
     procedure Salir;
     procedure Soltado(const Rutas: TArray<string>);
@@ -56,6 +58,8 @@ type
     procedure SimularSoltar(const Rutas: TArray<string>);
     { Con Activo = False no se acepta nada (el cursor muestra que no se puede soltar). }
     property Activo: Boolean read FActivo write FActivo;
+    { True si el control esta registrado ahora como destino de arrastre. }
+    property Registrado: Boolean read FRegistrado;
     property OnEntrar: TNotifyEvent read FOnEntrar write FOnEntrar;
     property OnSalir: TNotifyEvent read FOnSalir write FOnSalir;
     property OnSoltar: TSoltarEvent read FOnSoltar write FOnSoltar;
@@ -225,7 +229,23 @@ begin
   FControl := Control;
   FActivo := True;
   FDestino := TDestinoSoltar.Create(Self);
+  // Un control puede recrear su ventana (cambio de estilo, DPI...): la
+  // registracion se pierde con ella, asi que se vigila para repetirla.
+  FAnteriorWndProc := FControl.WindowProc;
+  FControl.WindowProc := ControlWndProc;
   Registrar;
+end;
+
+procedure TRecepcionArchivos.ControlWndProc(var Mensaje: TMessage);
+begin
+  if (Mensaje.Msg = WM_DESTROY) and FRegistrado then
+  begin
+    RevokeDragDrop(FControl.Handle);
+    FRegistrado := False;
+  end;
+  FAnteriorWndProc(Mensaje);
+  if Mensaje.Msg = WM_CREATE then
+    Registrar;
 end;
 
 procedure TRecepcionArchivos.Registrar;
@@ -245,6 +265,8 @@ end;
 
 destructor TRecepcionArchivos.Destroy;
 begin
+  if Assigned(FAnteriorWndProc) and (FControl <> nil) then
+    FControl.WindowProc := FAnteriorWndProc;
   if FRegistrado and (FControl <> nil) and FControl.HandleAllocated then
     RevokeDragDrop(FControl.Handle);
   // el destino ya no debe avisar a un componente liberado
