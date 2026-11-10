@@ -28,6 +28,10 @@ type
     [Test]
     procedure Propiedades_ClicEnVerHistoria_DisparaEvento;
     [Test]
+    procedure Metadatos_SinEvento_DiceQueNoDefine;
+    [Test]
+    procedure Metadatos_ConEvento_MuestraEtiquetasYValores;
+    [Test]
     procedure Seleccion_PonePestanasCabeceraYContadorDeArchivos;
     [Test]
     procedure Filtro_PorTexto_DejaSoloLosQueCoinciden;
@@ -460,6 +464,80 @@ begin
     if (Padre.Controls[I] is TWinControl) and
       HayEtiquetaVisible(TWinControl(Padre.Controls[I]), Texto) then
       Exit(True);
+  end;
+end;
+
+type
+  TProveedorMeta = class
+    Vacio: Boolean;
+    function Pedir(const Clave: TClaveDocumento): TArray<TPropiedad>;
+  end;
+
+function TProveedorMeta.Pedir(const Clave: TClaveDocumento): TArray<TPropiedad>;
+begin
+  Result := nil;
+  if Vacio then
+    Exit;
+  SetLength(Result, 2);
+  Result[0].Grupo := 'Proyectos';
+  Result[0].Etiqueta := 'Municipio';
+  Result[0].Valor := 'Palma Soriano';
+  Result[1].Grupo := 'Proyectos';
+  Result[1].Etiqueta := 'Ejecutor';
+  Result[1].Valor := '';
+end;
+
+function BuscarListaMeta(P: TPanelDocumentos): TListaPropiedades;
+var
+  Pag: TWinControl;
+  I: Integer;
+begin
+  Result := nil;
+  Pag := P.Documento.Pagina(pdMetadatos);
+  for I := 0 to Pag.ControlCount - 1 do
+    if Pag.Controls[I] is TListaPropiedades then
+      Result := TListaPropiedades(Pag.Controls[I]);
+end;
+
+procedure TPruebasPanelDocumentos.Metadatos_SinEvento_DiceQueNoDefine;
+var
+  F: TForm;
+  P: TPanelDocumentos;
+  LV: TListView;
+begin
+  F := TForm.CreateNew(nil);
+  try
+    P := PanelCargado(F);
+    LV := BuscarLista(P);
+    LV.Items[0].Selected := True;
+    PonerAlDia;
+    Assert.IsTrue(Pos('no define metadatos', BuscarListaMeta(P).Contenido) > 0);
+  finally
+    F.Free;
+  end;
+end;
+
+procedure TPruebasPanelDocumentos.Metadatos_ConEvento_MuestraEtiquetasYValores;
+var
+  F: TForm;
+  P: TPanelDocumentos;
+  LV: TListView;
+  Prov: TProveedorMeta;
+begin
+  F := TForm.CreateNew(nil);
+  Prov := TProveedorMeta.Create;
+  try
+    P := PanelCargado(F);
+    P.OnPedirMetadatos := Prov.Pedir;
+    LV := BuscarLista(P);
+    LV.Items[0].Selected := True;
+    PonerAlDia;
+    Assert.IsTrue(Pos('Municipio', BuscarListaMeta(P).Contenido) > 0);
+    Assert.IsTrue(Pos('Palma Soriano', BuscarListaMeta(P).Contenido) > 0);
+    Assert.IsTrue(Pos('-', BuscarListaMeta(P).Contenido) > 0, 'el valor vacio va con guion');
+  finally
+    F.Free;
+    Prov.Free;
   end;
 end;
 

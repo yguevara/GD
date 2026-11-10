@@ -780,6 +780,7 @@ type
       out HayMas: Boolean; out Motivo: string): TArray<TEventoDoc>;
     procedure ListaDocsAlternar(Sender: TObject);
     function ListaDocsUbicacionSubserie: TUbicacion;
+    function ListaDocsMetadatos(const Clave: TClaveDocumento): TArray<TPropiedad>;
     // Barra de trabajo: series como fichas y filtro de la lista
     procedure BarraNotificar(Sender: TObject);
     procedure BarraRefrescar(Sender: TObject);
@@ -6930,6 +6931,7 @@ begin
     FListaDocs.OnPedirFicheros := ListaDocsFicheros;
     FListaDocs.OnPedirHistoria := ListaDocsHistoria;
     FListaDocs.OnPedirUbicacionSubserie := ListaDocsUbicacionSubserie;
+    FListaDocs.OnPedirMetadatos := ListaDocsMetadatos;
 
     FTimerDocs := TTimer.Create(Self);
     FTimerDocs.Enabled := False;
@@ -7606,6 +7608,52 @@ begin
       UDM.tb_Serietree.FieldByName('gaveta').AsString)
   else
     Result := UbicacionDeSubserie('', '', '', '');
+end;
+
+// Valores de las variables (metadatos) del documento: la fila actual de md_var
+// (detalle de tb_SeriesDatos) con las etiquetas de md_def. Subserie sin
+// variables, o sin tabla de metadatos abierta: arreglo vacio.
+function TMAIN.ListaDocsMetadatos(const Clave: TClaveDocumento): TArray<TPropiedad>;
+var
+  N: Integer;
+  Campo: TField;
+  Subserie: string;
+begin
+  Result := nil;
+  if not (md_var.Active and md_def.Active) or md_def.IsEmpty then
+    Exit;
+  if not ListaDocsLocalizar(Clave) then
+    Exit;
+  try
+    Subserie := EscalarCache('SELECT subserie FROM cl_subseries WHERE codsubs=' +
+      QuotedStr(Clave.CodSubs));
+  except
+    Subserie := Clave.CodSubs;
+  end;
+  N := 0;
+  SetLength(Result, md_def.RecordCount);
+  md_def.DisableControls;
+  try
+    md_def.First;
+    while not md_def.Eof do
+    begin
+      Result[N].Grupo := Subserie;
+      Result[N].Etiqueta := Trim(md_def.FieldByName('Etiqueta').AsString);
+      if Result[N].Etiqueta = '' then
+        Result[N].Etiqueta := md_def.FieldByName('NomVariable').AsString;
+      Campo := md_var.FindField(md_def.FieldByName('NomVariable').AsString);
+      if (Campo <> nil) and not md_var.IsEmpty then
+        Result[N].Valor := Campo.DisplayText
+      else
+        Result[N].Valor := '';
+      Inc(N);
+      md_def.Next;
+    end;
+    md_def.First;
+  finally
+    md_def.EnableControls;
+  end;
+  SetLength(Result, N);
 end;
 
 procedure TMAIN.ListaDocsAlternar(Sender: TObject);

@@ -18,6 +18,10 @@ type
       out Hallado: Boolean): string;
   public
     [Test]
+    procedure MetadatosParaMostrar_ValorVacio_PoneGuion;
+    [Test]
+    procedure MetadatosParaMostrar_SinVariables_Vacio;
+    [Test]
     procedure AgruparFicheros_SeparaAnexosYFuentesYOrdena;
     [Test]
     procedure AgruparFicheros_SinFicheros_Vacio;
@@ -384,6 +388,24 @@ procedure TPruebasDocumentoVista.FiltrarPorExpediente_SinFiltroYCodigoInexistent
 begin
   Assert.AreEqual(4, Integer(Length(FiltrarPorExpediente(Lista4, ''))));
   Assert.AreEqual(0, Integer(Length(FiltrarPorExpediente(Lista4, 'NO-EXISTE'))));
+end;
+
+procedure TPruebasDocumentoVista.MetadatosParaMostrar_ValorVacio_PoneGuion;
+var
+  M, R: TArray<TPropiedad>;
+begin
+  SetLength(M, 2);
+  M[0].Grupo := 'Proyectos'; M[0].Etiqueta := 'Municipio'; M[0].Valor := 'Palma Soriano';
+  M[1].Grupo := 'Proyectos'; M[1].Etiqueta := 'Ejecutor'; M[1].Valor := '   ';
+  R := MetadatosParaMostrar(M);
+  Assert.AreEqual(2, Integer(Length(R)));
+  Assert.AreEqual('Palma Soriano', R[0].Valor);
+  Assert.AreEqual('-', R[1].Valor, 'un valor en blanco se muestra con guion');
+end;
+
+procedure TPruebasDocumentoVista.MetadatosParaMostrar_SinVariables_Vacio;
+begin
+  Assert.AreEqual(0, Integer(Length(MetadatosParaMostrar(nil))));
 end;
 
 function Fichero(const Nombre, Ext: string; Tam: Double; Fuente: Boolean): TFicheroDoc;

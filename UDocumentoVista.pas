@@ -98,6 +98,11 @@ function AgruparFicheros(const F: TArray<TFicheroDoc>): TArray<TGrupoFicheros>;
   extension en mayusculas, valor = nombre y tamano. Sin ficheros: "Sin ficheros". }
 function PropiedadesDeArchivos(const F: TArray<TFicheroDoc>): TArray<TPropiedad>;
 
+{ Metadatos del documento listos para mostrar: un valor vacio o en blanco se
+  ve como un guion (para distinguirlo de una etiqueta sin dato). Sin
+  variables: vacio. }
+function MetadatosParaMostrar(const M: TArray<TPropiedad>): TArray<TPropiedad>;
+
 type
   { Un tramo de una ubicacion fisica (por ejemplo Archivo = "Archivo 2"). }
   TTramoUbicacion = record
@@ -138,6 +143,16 @@ implementation
 
 uses
   System.SysUtils, System.Math;
+
+function MetadatosParaMostrar(const M: TArray<TPropiedad>): TArray<TPropiedad>;
+var
+  I: Integer;
+begin
+  Result := Copy(M);
+  for I := 0 to High(Result) do
+    if Trim(Result[I].Valor) = '' then
+      Result[I].Valor := '-';
+end;
 
 function AgruparFicheros(const F: TArray<TFicheroDoc>): TArray<TGrupoFicheros>;
 var

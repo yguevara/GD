@@ -19,6 +19,9 @@ uses
   UListaPropiedades, UPanelDocumento, UVistaUbicacion;
 
 type
+  { Valores de las variables (metadatos) del documento: Grupo = subserie,
+    Etiqueta = variable, Valor = su valor. Sin variables, un arreglo vacio. }
+  TSolicitudMetadatos = function(const Clave: TClaveDocumento): TArray<TPropiedad> of object;
   { Ubicacion fisica de la subserie actual (la entrega quien usa el panel). }
   TSolicitudUbicacion = function: TUbicacion of object;
   TSolicitudFicheros = function(const Clave: TClaveDocumento): TArray<TFicheroDoc> of object;
@@ -54,6 +57,7 @@ type
       FPropContenido: TListaPropiedades;
     FVistaUbicacion: TVistaUbicacion;
     FOnPedirUbicacionSubserie: TSolicitudUbicacion;
+    FOnPedirMetadatos: TSolicitudMetadatos;
     FPie: TPanel;
     FBtnAbrir: TButton;
     FBtnExpediente: TButton;
@@ -115,6 +119,9 @@ type
     function CantidadVisibles: Integer;
     { Panel con las pestanas del documento seleccionado (Datos, Ubicacion...). }
     property Documento: TPanelDocumento read FDoc;
+    { Metadatos del documento; sin esto la pestana dice que no hay metadatos. }
+    property OnPedirMetadatos: TSolicitudMetadatos read FOnPedirMetadatos
+      write FOnPedirMetadatos;
     { Ubicacion de la subserie; sin esto la pestana Ubicacion solo muestra la del documento. }
     property OnPedirUbicacionSubserie: TSolicitudUbicacion
       read FOnPedirUbicacionSubserie write FOnPedirUbicacionSubserie;
@@ -648,7 +655,7 @@ end;
 procedure TPanelDocumentos.MostrarPropiedades(Indice: Integer);
 var
   D: TDatosDocumento;
-  Props: TArray<TPropiedad>;
+  Props, Meta: TArray<TPropiedad>;
   I, Digitales: Integer;
 begin
   if (Indice < 0) or (Indice > High(FVisibles)) then
@@ -703,7 +710,17 @@ begin
     FPropArchivos.Mostrar(PropiedadesDeArchivos(FFicherosActuales), nil, False, '', False);
   FPropHistoria.Mostrar(nil, FHistoriaActual, FHayMasHistoria, FMotivoHistoria,
     Assigned(FOnPedirHistoria));
-  FPropMetadatos.MostrarMensaje('Los metadatos del documento se mostraran aqui');
+  Meta := nil;
+  if Assigned(FOnPedirMetadatos) then
+  try
+    Meta := MetadatosParaMostrar(FOnPedirMetadatos(D.Clave));
+  except
+    Meta := nil;
+  end;
+  if Length(Meta) = 0 then
+    FPropMetadatos.MostrarMensaje('Esta subserie no define metadatos')
+  else
+    FPropMetadatos.Mostrar(Meta, nil, False, '', False);
   FPropContenido.MostrarMensaje('El contenido del documento se mostrara aqui');
   FDoc.FijarConteoArchivos(Length(FFicherosActuales));
 
