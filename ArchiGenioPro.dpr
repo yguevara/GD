@@ -53,6 +53,7 @@ uses
   UPanelDocumento in 'UPanelDocumento.pas',
   UVistaUbicacion in 'UVistaUbicacion.pas',
   UVisorContenido in 'UVisorContenido.pas',
+  URecepcionArchivos in 'URecepcionArchivos.pas',
   UIconos in 'UIconos.pas',
   UShellPrincipal in 'UShellPrincipal.pas',
   UAparienciaLegacy in 'UAparienciaLegacy.pas',
