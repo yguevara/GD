@@ -48,6 +48,7 @@ type
     FLblTitulo: TLabel;
     FLblCodigo: TLabel;
     FTira: TTiraPestanas;
+    FVacio: TPanel;
     FPaginas: TArray<TPanel>;
     FActiva: Integer;
     FOnCambioPagina: TNotifyEvent;
@@ -65,6 +66,8 @@ type
     { Titulo vacio: "Sin subserie". }
     procedure FijarCabecera(const Titulo, Codigo: string);
     function TextoCabecera: string;
+    { Texto guia que tapa las paginas mientras no hay subserie elegida. }
+    function VacioVisible: Boolean;
     { Recoloca y repinta todo el panel y sus controles. Al mostrarse por primera
       vez las paginas podian quedar en blanco hasta el primer evento. }
     procedure Repintar;
@@ -293,7 +296,25 @@ begin
   FTira.Configurar(FTema);
   FTira.OnElegir := TiraElegir;
 
+  // Sin subserie las paginas solo mostrarian rejillas vacias: se tapan con un texto guia
+  FVacio := TPanel.Create(Self);
+  FVacio.Parent := Self;
+  FVacio.Align := alClient;
+  FVacio.BevelOuter := bvNone;
+  FVacio.ParentBackground := False;
+  FVacio.StyleElements := [];
+  FVacio.Color := FTema.Superficie;
+  FVacio.Caption := 'Elija una subserie para ver su informacion';
+  FVacio.Font.Name := FUENTE;
+  FVacio.Font.Size := 10;
+  FVacio.Font.Color := FTema.TextoSuave;
+
   FijarCabecera('', '');
+end;
+
+function TPanelLateral.VacioVisible: Boolean;
+begin
+  Result := FVacio.Visible;
 end;
 
 function TPanelLateral.AgregarPagina(const Titulo: string): TPanel;
@@ -360,6 +381,9 @@ begin
     FLblTitulo.Caption := Trim(Titulo);
   FLblCodigo.Caption := ' ' + Trim(Codigo) + ' ';
   FLblCodigo.Visible := Trim(Codigo) <> '';
+  FVacio.Visible := Trim(Titulo) = '';
+  if FVacio.Visible then
+    FVacio.BringToFront;
 end;
 
 function TPanelLateral.TextoCabecera: string;

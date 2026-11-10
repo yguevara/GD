@@ -787,6 +787,7 @@ type
     procedure BarraFiltroCambio(Sender: TObject);
     procedure BloqueAccionCargar;
     function EscalarCache(const Sql: string): string;
+    function PerfilActivo: Boolean;
     procedure InvalidarCachesSubserie;
     procedure RegistrarPerfil(const Etiqueta: string; Milisegundos: Int64);
     procedure ConectarPanelLateral;
@@ -7018,6 +7019,8 @@ var
 begin
   if (FListaDocs = nil) or not FModoLista then
     Exit;
+  if PerfilActivo then
+    RegistrarErrorLista('PERFIL ListaDocsCargar disparada');
   DS := UDM.tb_SeriesDatos;
   if not DS.Active then
   begin
@@ -7158,11 +7161,20 @@ begin
 end;
 
 function TMAIN.ListaDocsLocalizar(const Clave: TClaveDocumento): Boolean;
+var
+  Antes: Integer;
 begin
+  Antes := -1;
+  if PerfilActivo and UDM.tb_SeriesDatos.Active then
+    Antes := UDM.tb_SeriesDatos.RecNo;
   Result := UDM.tb_SeriesDatos.Active and UDM.tb_SeriesDatos.Locate(
     'IdEstructura;id;codsubs;Fecha;Version;Codigodoc',
     VarArrayOf([Clave.IdEstructura, Clave.Id, Clave.CodSubs,
     VarFromDateTime(Clave.Fecha), Clave.Version, Clave.Codigodoc]), []);
+  if PerfilActivo then
+    RegistrarErrorLista(Format('PERFIL Locate %s: encontrado=%s recno %d -> %d de %d',
+      [Clave.Codigodoc, BoolToStr(Result, True), Antes, UDM.tb_SeriesDatos.RecNo,
+      UDM.tb_SeriesDatos.RecordCount]));
 end;
 
 // Obtener el expediente completo (F4): copia a un ZIP los ficheros del
@@ -7343,7 +7355,6 @@ begin
   FPanelLateral.Parent := PContainer;
   FPanelLateral.Align := alRight;
   FPanelLateral.Width := 380;
-  FPanelLateral.Visible := False;
   FSepLateral := TSplitter.Create(Self);
   FSepLateral.Parent := PContainer;
   FSepLateral.Align := alRight;
@@ -7353,7 +7364,6 @@ begin
   FSepLateral.ParentColor := False;
   FSepLateral.Color := TemaLegacyActual.Linea;
   FSepLateral.Left := FPanelLateral.Left - 1;
-  FSepLateral.Visible := False;
   PagSeries := FPanelLateral.AgregarPagina('Series');
   PagDetalle := FPanelLateral.AgregarPagina('Detalle');
   PagComp := FPanelLateral.AgregarPagina('Complementaria');
@@ -7377,6 +7387,11 @@ begin
   cxGrid1DBTableView1.OptionsView.ColumnAutoWidth := True;
   gVariablesDetailDBTableView1.OptionsView.ColumnAutoWidth := True;
   FPanelLateral.Activar(PAG_DETALLE);
+  // El componente antiguo (tres pestanas verticales) ya no se usa: se saca del
+  // formulario para que no vuelva a mostrarse; el panel nuevo siempre se ve.
+  advtpDetalle.Visible := False;
+  advtpDetalle.Parent := nil;
+  FPanelLateral.Repintar;
 end;
 
 // Con el panel lateral nuevo, advtpDetalle (las tres pestanas verticales) no se
@@ -7439,14 +7454,19 @@ end;
 
 // Escribe en lista_error.log cuanto tardo una operacion, solo si junto al
 // ejecutable existe el archivo perfil.flag (para medir sin recompilar).
-procedure TMAIN.RegistrarPerfil(const Etiqueta: string; Milisegundos: Int64);
+function TMAIN.PerfilActivo: Boolean;
 begin
   if not FPerfilListo then
   begin
     FPerfilListo := True;
     FPerfil := FileExists(ExtractFilePath(ParamStr(0)) + 'perfil.flag');
   end;
-  if FPerfil then
+  Result := FPerfil;
+end;
+
+procedure TMAIN.RegistrarPerfil(const Etiqueta: string; Milisegundos: Int64);
+begin
+  if PerfilActivo then
     RegistrarErrorLista('PERFIL ' + Etiqueta + ': ' + IntToStr(Milisegundos) + ' ms');
 end;
 
@@ -7484,6 +7504,8 @@ var
 begin
   if (FBarraTrabajo = nil) or FCargandoSeries then
     Exit;
+  if PerfilActivo then
+    RegistrarErrorLista('PERFIL BarraSeriesCargar disparada');
   // Recorrer el dataset maestro resincroniza el detalle: con un documento a
   // medio editar no se toca nada
   if UDM.tb_SeriesDatos.Active and

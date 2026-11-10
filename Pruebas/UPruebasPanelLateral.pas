@@ -21,6 +21,8 @@ type
     [Test]
     procedure FijarCabecera_SinTitulo_DiceSinSubserie;
     [Test]
+    procedure SinSubserie_MuestraElTextoGuiaYConSubserieLoQuita;
+    [Test]
     procedure MoverContenido_ConservaOrdenAlignYEventos;
     [Test]
     procedure MoverContenido_TresPaneles_QuedanEnSuPagina;
@@ -143,6 +145,25 @@ begin
     Assert.AreEqual('Sin subserie', P.TextoCabecera);
     P.FijarCabecera('Expedientes de planeamientos', '014001');
     Assert.AreEqual('Expedientes de planeamientos', P.TextoCabecera);
+  finally
+    F.Free;
+  end;
+end;
+
+procedure TPruebasPanelLateral.SinSubserie_MuestraElTextoGuiaYConSubserieLoQuita;
+var
+  F: TForm;
+  P: TPanelLateral;
+begin
+  F := TForm.CreateNew(nil);
+  try
+    P := NuevoPanel(F);
+    P.AgregarPagina('Series');
+    Assert.IsTrue(P.VacioVisible, 'al inicio no hay subserie');
+    P.FijarCabecera('Expedientes de planeamientos', '014001');
+    Assert.IsFalse(P.VacioVisible);
+    P.FijarCabecera('', '');
+    Assert.IsTrue(P.VacioVisible);
   finally
     F.Free;
   end;
