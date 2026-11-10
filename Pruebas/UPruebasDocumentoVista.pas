@@ -18,6 +18,12 @@ type
       out Hallado: Boolean): string;
   public
     [Test]
+    procedure UbicacionDeDocumento_Completa;
+    [Test]
+    procedure UbicacionDeDocumento_ConCeroOVacio_DiceSinAsignar;
+    [Test]
+    procedure UbicacionDeSubserie_SinPosicion;
+    [Test]
     procedure PropiedadesDePestana_Datos_SoloGeneralYExpediente;
     [Test]
     procedure PropiedadesDePestana_Archivos_SoloFicheros;
@@ -370,6 +376,54 @@ procedure TPruebasDocumentoVista.FiltrarPorExpediente_SinFiltroYCodigoInexistent
 begin
   Assert.AreEqual(4, Integer(Length(FiltrarPorExpediente(Lista4, ''))));
   Assert.AreEqual(0, Integer(Length(FiltrarPorExpediente(Lista4, 'NO-EXISTE'))));
+end;
+
+procedure TPruebasDocumentoVista.UbicacionDeDocumento_Completa;
+var
+  D: TDatosDocumento;
+  U: TUbicacion;
+begin
+  D := Nuevo('A1');
+  D.Servidor := '3';
+  D.Archivo := 'Archivo 2';
+  D.Deposito := 'Deposito 01';
+  D.Gaveta := 'Gaveta 02';
+  D.Posicion := 'Posicion 3';
+  U := UbicacionDeDocumento(D);
+  Assert.AreEqual('Documento', U.Titulo);
+  Assert.AreEqual(5, Integer(Length(U.Tramos)));
+  Assert.AreEqual('Archivo', U.Tramos[1].Rotulo);
+  Assert.AreEqual('Archivo 2', U.Tramos[1].Valor);
+  Assert.IsTrue(U.Completa);
+end;
+
+procedure TPruebasDocumentoVista.UbicacionDeDocumento_ConCeroOVacio_DiceSinAsignar;
+var
+  D: TDatosDocumento;
+  U: TUbicacion;
+begin
+  D := Nuevo('A1');
+  D.Archivo := '0';
+  D.Deposito := 'Deposito 01';
+  D.Gaveta := '';
+  U := UbicacionDeDocumento(D);
+  Assert.AreEqual('Sin asignar', U.Tramos[1].Valor, 'el 0 cuenta como sin dato');
+  Assert.AreEqual('Deposito 01', U.Tramos[2].Valor);
+  Assert.AreEqual('Sin asignar', U.Tramos[3].Valor);
+  Assert.IsFalse(U.Completa);
+end;
+
+procedure TPruebasDocumentoVista.UbicacionDeSubserie_SinPosicion;
+var
+  U: TUbicacion;
+begin
+  U := UbicacionDeSubserie('3', 'Archivo 2', 'Deposito 01', 'Gaveta 02');
+  Assert.AreEqual('Subserie', U.Titulo);
+  Assert.AreEqual(4, Integer(Length(U.Tramos)));
+  Assert.IsTrue(U.Completa);
+  U := UbicacionDeSubserie('', '', '', '');
+  Assert.IsFalse(U.Completa);
+  Assert.AreEqual('Sin asignar', U.Tramos[0].Valor);
 end;
 
 function PropsPrueba: TArray<TPropiedad>;

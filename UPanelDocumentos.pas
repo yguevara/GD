@@ -16,9 +16,11 @@ uses
   System.Classes, System.SysUtils, System.Generics.Collections,
   Winapi.Windows, Winapi.Messages, Vcl.Controls, Vcl.ExtCtrls, Vcl.ComCtrls,
   Vcl.StdCtrls, Vcl.Graphics, Vcl.Forms, UTema, UDocumentoVista, UTrazabilidad,
-  UListaPropiedades, UPanelDocumento;
+  UListaPropiedades, UPanelDocumento, UVistaUbicacion;
 
 type
+  { Ubicacion fisica de la subserie actual (la entrega quien usa el panel). }
+  TSolicitudUbicacion = function: TUbicacion of object;
   TSolicitudFicheros = function(const Clave: TClaveDocumento): TArray<TFicheroDoc> of object;
   TClaveEvent = procedure(const Clave: TClaveDocumento) of object;
   TSolicitudHistoria = function(const Clave: TClaveDocumento;
@@ -48,8 +50,10 @@ type
     FSplitter: TSplitter;
     FDer: TPanel;
     FDoc: TPanelDocumento;
-    FPropDatos, FPropUbicacion, FPropArchivos, FPropMetadatos, FPropHistoria,
+    FPropDatos, FPropArchivos, FPropMetadatos, FPropHistoria,
       FPropContenido: TListaPropiedades;
+    FVistaUbicacion: TVistaUbicacion;
+    FOnPedirUbicacionSubserie: TSolicitudUbicacion;
     FPie: TPanel;
     FBtnAbrir: TButton;
     FBtnExpediente: TButton;
@@ -111,6 +115,9 @@ type
     function CantidadVisibles: Integer;
     { Panel con las pestanas del documento seleccionado (Datos, Ubicacion...). }
     property Documento: TPanelDocumento read FDoc;
+    { Ubicacion de la subserie; sin esto la pestana Ubicacion solo muestra la del documento. }
+    property OnPedirUbicacionSubserie: TSolicitudUbicacion
+      read FOnPedirUbicacionSubserie write FOnPedirUbicacionSubserie;
     property ExpedienteFiltrado: string read FExpFiltrado;
     property OnSeleccion: TClaveEvent read FOnSeleccion write FOnSeleccion;
     property OnAbrirContenido: TClaveEvent read FOnAbrirContenido write FOnAbrirContenido;
@@ -307,7 +314,10 @@ begin
   FEnlaceExp.OnClick := EnlaceExpClick;
 
   FPropDatos := NuevaLista(pdDatos);
-  FPropUbicacion := NuevaLista(pdUbicacion);
+  FVistaUbicacion := TVistaUbicacion.Create(Self);
+  FVistaUbicacion.Parent := FDoc.Pagina(pdUbicacion);
+  FVistaUbicacion.Align := alClient;
+  FVistaUbicacion.AplicarTema(FTema);
   FPropArchivos := NuevaLista(pdArchivos);
   FPropMetadatos := NuevaLista(pdMetadatos);
   FPropHistoria := NuevaLista(pdHistoria);
@@ -626,7 +636,7 @@ begin
   FBtnExpediente.Visible := False;
   FEnlaceExp.Visible := False;
   FPropDatos.MostrarMensaje('Elija un documento para ver sus propiedades');
-  FPropUbicacion.MostrarMensaje('Elija un documento para ver su ubicacion');
+  FVistaUbicacion.MostrarMensaje('Elija un documento para ver su ubicacion');
   FPropArchivos.MostrarMensaje('Elija un documento para ver sus archivos');
   FPropMetadatos.MostrarMensaje('Elija un documento para ver sus metadatos');
   FPropHistoria.MostrarMensaje('Elija un documento para ver su historia');
@@ -682,7 +692,10 @@ begin
   // propias tareas y por ahora solo dicen que aun no estan disponibles
   FDoc.FijarCabecera(D.Clave.Codigodoc, D.Titulo, D.Estado);
   FPropDatos.Mostrar(PropiedadesDePestana(Props, pdDatos), nil, False, '', False);
-  FPropUbicacion.Mostrar(PropiedadesDePestana(Props, pdUbicacion), nil, False, '', False);
+  if Assigned(FOnPedirUbicacionSubserie) then
+    FVistaUbicacion.Mostrar([FOnPedirUbicacionSubserie(), UbicacionDeDocumento(D)])
+  else
+    FVistaUbicacion.Mostrar([UbicacionDeDocumento(D)]);
   FPropArchivos.Mostrar(PropiedadesDePestana(Props, pdArchivos), nil, False, '', False);
   FPropHistoria.Mostrar(nil, FHistoriaActual, FHayMasHistoria, FMotivoHistoria,
     Assigned(FOnPedirHistoria));

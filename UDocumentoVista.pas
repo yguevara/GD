@@ -84,6 +84,28 @@ function ConstruirPropiedades(const D: TDatosDocumento;
 function FiltrarPorExpediente(const Docs: TArray<TDatosDocumento>;
   const Codigo: string): TArray<TDatosDocumento>;
 
+type
+  { Un tramo de una ubicacion fisica (por ejemplo Archivo = "Archivo 2"). }
+  TTramoUbicacion = record
+    Rotulo: string;
+    Valor: string;
+  end;
+
+  { Ubicacion fisica de una subserie o de un documento: tramos de mayor a menor.
+    Completa solo si todos los tramos tienen valor. }
+  TUbicacion = record
+    Titulo: string;
+    Tramos: TArray<TTramoUbicacion>;
+    Completa: Boolean;
+  end;
+
+{ Servidor, Archivo, Deposito, Gaveta y Posicion del documento; un tramo vacio
+  o "0" dice "Sin asignar". }
+function UbicacionDeDocumento(const D: TDatosDocumento): TUbicacion;
+{ Como la del documento pero de la subserie: sin posicion. }
+function UbicacionDeSubserie(const Servidor, Archivo, Deposito,
+  Gaveta: string): TUbicacion;
+
 { Propiedades de ConstruirPropiedades que van en una pestana: Datos = grupos
   General y Expediente; Ubicacion = Posicion fisica; Archivos = Ficheros. Las
   demas pestanas (Metadatos, Historia, Contenido) se arman aparte: vacio. }
@@ -102,6 +124,48 @@ implementation
 
 uses
   System.SysUtils, System.Math;
+
+procedure AgregaTramo(var U: TUbicacion; const Rotulo, Valor: string);
+var
+  V: string;
+begin
+  V := Trim(Valor);
+  if V = '0' then
+    V := '';
+  SetLength(U.Tramos, Length(U.Tramos) + 1);
+  U.Tramos[High(U.Tramos)].Rotulo := Rotulo;
+  if V = '' then
+  begin
+    U.Tramos[High(U.Tramos)].Valor := 'Sin asignar';
+    U.Completa := False;
+  end
+  else
+    U.Tramos[High(U.Tramos)].Valor := V;
+end;
+
+function UbicacionDeDocumento(const D: TDatosDocumento): TUbicacion;
+begin
+  Result := Default(TUbicacion);
+  Result.Titulo := 'Documento';
+  Result.Completa := True;
+  AgregaTramo(Result, 'Servidor', D.Servidor);
+  AgregaTramo(Result, 'Archivo', D.Archivo);
+  AgregaTramo(Result, 'Deposito', D.Deposito);
+  AgregaTramo(Result, 'Gaveta', D.Gaveta);
+  AgregaTramo(Result, 'Posicion', D.Posicion);
+end;
+
+function UbicacionDeSubserie(const Servidor, Archivo, Deposito,
+  Gaveta: string): TUbicacion;
+begin
+  Result := Default(TUbicacion);
+  Result.Titulo := 'Subserie';
+  Result.Completa := True;
+  AgregaTramo(Result, 'Servidor', Servidor);
+  AgregaTramo(Result, 'Archivo', Archivo);
+  AgregaTramo(Result, 'Deposito', Deposito);
+  AgregaTramo(Result, 'Gaveta', Gaveta);
+end;
 
 function PropiedadesDePestana(const Props: TArray<TPropiedad>;
   P: TPestanaDoc): TArray<TPropiedad>;

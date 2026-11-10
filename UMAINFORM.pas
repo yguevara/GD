@@ -779,6 +779,7 @@ type
     function ListaDocsHistoria(const Clave: TClaveDocumento;
       out HayMas: Boolean; out Motivo: string): TArray<TEventoDoc>;
     procedure ListaDocsAlternar(Sender: TObject);
+    function ListaDocsUbicacionSubserie: TUbicacion;
     // Barra de trabajo: series como fichas y filtro de la lista
     procedure BarraNotificar(Sender: TObject);
     procedure BarraRefrescar(Sender: TObject);
@@ -6928,6 +6929,7 @@ begin
     FListaDocs.OnExpedienteCompleto := ListaDocsExpediente;
     FListaDocs.OnPedirFicheros := ListaDocsFicheros;
     FListaDocs.OnPedirHistoria := ListaDocsHistoria;
+    FListaDocs.OnPedirUbicacionSubserie := ListaDocsUbicacionSubserie;
 
     FTimerDocs := TTimer.Create(Self);
     FTimerDocs.Enabled := False;
@@ -7590,6 +7592,20 @@ begin
   UDM.tb_Serietree.Locate('codsubs', CodSubs, []);
   // la ficha activa se actualiza con el aviso de cambio de registro (temporizador)
   BarraNotificar(nil);
+end;
+
+// Ubicacion fisica de la subserie actual (servidor, archivo, deposito, gaveta),
+// de la fila actual de tb_Serietree. Sin subserie, todos los tramos "Sin asignar".
+function TMAIN.ListaDocsUbicacionSubserie: TUbicacion;
+begin
+  if UDM.tb_Serietree.Active and not UDM.tb_Serietree.IsEmpty then
+    Result := UbicacionDeSubserie(
+      UDM.tb_Serietree.FieldByName('idservidor').AsString,
+      UDM.tb_Serietree.FieldByName('Archivo').AsString,
+      UDM.tb_Serietree.FieldByName('deposito').AsString,
+      UDM.tb_Serietree.FieldByName('gaveta').AsString)
+  else
+    Result := UbicacionDeSubserie('', '', '', '');
 end;
 
 procedure TMAIN.ListaDocsAlternar(Sender: TObject);
