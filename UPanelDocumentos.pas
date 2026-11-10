@@ -15,7 +15,8 @@ interface
 uses
   System.Classes, System.SysUtils, System.Generics.Collections,
   Winapi.Windows, Winapi.Messages, Vcl.Controls, Vcl.ExtCtrls, Vcl.ComCtrls,
-  Vcl.StdCtrls, Vcl.Graphics, Vcl.Forms, UTema, UDocumentoVista, UTrazabilidad;
+  Vcl.StdCtrls, Vcl.Graphics, Vcl.Forms, UTema, UDocumentoVista, UTrazabilidad,
+  UListaPropiedades;
 
 type
   TSolicitudFicheros = function(const Clave: TClaveDocumento): TArray<TFicheroDoc> of object;
@@ -34,18 +35,19 @@ type
     FExpFiltrado: string;
     FSilencio: Boolean;
     FIndiceActual: Integer;
+    FTextoFiltro: string;
+    FFiltrarEstado: Boolean;
+    FEstadoFiltro: TEstadoDoc;
     FFicherosActuales: TArray<TFicheroDoc>;
-    FEtiquetas: TObjectList<TControl>;
     FBarra: TPanel;
     FLblTitulo: TLabel;
     FLblFiltro: TLabel;
     FEnlaceTodos: TLabel;
-    FBtnVista: TButton;
     FLista: TListView;
     FVacio: TLabel;
     FSplitter: TSplitter;
     FDer: TPanel;
-    FScroll: TScrollBox;
+    FProp: TListaPropiedades;
     FPie: TPanel;
     FBtnAbrir: TButton;
     FBtnExpediente: TButton;
@@ -54,7 +56,6 @@ type
     FOnAbrirContenido: TClaveEvent;
     FOnExpedienteCompleto: TClaveEvent;
     FOnPedirFicheros: TSolicitudFicheros;
-    FOnAlternarVista: TNotifyEvent;
     FConstruido: Boolean;
     FErrorFicheros: Boolean;
     FOnPedirHistoria: TSolicitudHistoria;
@@ -80,12 +81,9 @@ type
     procedure ListaKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure AbrirClick(Sender: TObject);
     procedure ExpedienteClick(Sender: TObject);
-    procedure VistaClick(Sender: TObject);
     procedure EnlaceExpClick(Sender: TObject);
     procedure HistoriaClick(Sender: TObject);
-    procedure RepintarPropiedades;
     procedure EnlaceTodosClick(Sender: TObject);
-    procedure ScrollResize(Sender: TObject);
     function IndiceSeleccionado: Integer;
     procedure AbrirSeleccionado;
   protected
@@ -103,13 +101,17 @@ type
     procedure SeleccionarClave(const Clave: TClaveDocumento);
     { Sin subserie elegida: lista vacia con su propio texto guia. }
     procedure MostrarSinSubserie;
+    { Texto (codigo, titulo, expediente) y, si FiltrarEstado, estado. Conserva
+      la seleccion si el documento sigue visible. }
+    procedure FijarFiltro(const Texto: string; FiltrarEstado: Boolean;
+      Estado: TEstadoDoc);
+    function CantidadVisibles: Integer;
     property ExpedienteFiltrado: string read FExpFiltrado;
     property OnSeleccion: TClaveEvent read FOnSeleccion write FOnSeleccion;
     property OnAbrirContenido: TClaveEvent read FOnAbrirContenido write FOnAbrirContenido;
     { Obtener el expediente completo (ficheros del expediente y de sus documentos) }
     property OnExpedienteCompleto: TClaveEvent read FOnExpedienteCompleto write FOnExpedienteCompleto;
     property OnPedirFicheros: TSolicitudFicheros read FOnPedirFicheros write FOnPedirFicheros;
-    property OnAlternarVista: TNotifyEvent read FOnAlternarVista write FOnAlternarVista;
     { Eventos del documento (F5); sin esto el panel no muestra la historia }
     property OnPedirHistoria: TSolicitudHistoria read FOnPedirHistoria write FOnPedirHistoria;
   end;
@@ -142,7 +144,6 @@ begin
     FTema := TemaOscuro
   else
     FTema := TemaClaro;
-  FEtiquetas := TObjectList<TControl>.Create(True);
   FIndiceActual := -1;
 end;
 
@@ -158,9 +159,6 @@ end;
 
 destructor TPanelDocumentos.Destroy;
 begin
-  // los controles de propiedades pertenecen a FScroll: se sueltan sin liberar
-  FEtiquetas.OwnsObjects := False;
-  FEtiquetas.Free;
   inherited Destroy;
 end;
 
@@ -219,15 +217,6 @@ begin
   FBarra.StyleElements := [];
   FBarra.ShowCaption := False;
   FBarra.Color := FTema.Superficie;
-
-  FBtnVista := TButton.Create(Self);
-  FBtnVista.Parent := FBarra;
-  FBtnVista.Caption := 'Ver rejilla';
-  FBtnVista.Align := alRight;
-  FBtnVista.Width := 110;
-  FBtnVista.AlignWithMargins := True;
-  FBtnVista.Margins.SetBounds(6, 8, 10, 8);
-  FBtnVista.OnClick := VistaClick;
 
   FLblTitulo := NuevaEtiqueta('', 11, FTema.Texto, True);
   FLblTitulo.Parent := FBarra;
@@ -299,14 +288,11 @@ begin
   FEnlaceExp.Visible := False;
   FEnlaceExp.OnClick := EnlaceExpClick;
 
-  FScroll := TScrollBox.Create(Self);
-  FScroll.Parent := FDer;
-  FScroll.Align := alClient;
-  FScroll.BorderStyle := bsNone;
-  FScroll.HorzScrollBar.Visible := False;
-  FScroll.StyleElements := [];
-  FScroll.Color := FTema.Superficie;
-  FScroll.OnResize := ScrollResize;
+  FProp := TListaPropiedades.Create(Self);
+  FProp.Parent := FDer;
+  FProp.Align := alClient;
+  FProp.AplicarTema(FTema, FOscuro);
+  FProp.OnVerHistoria := HistoriaClick;
 
   // Lista virtual
   FLista := TListView.Create(Self);
@@ -329,6 +315,7 @@ begin
   Col('Titulo', 270);
   Col('Fecha', 105);
   Col('Tipo', 115);
+  Col('Estado', 100);
   Col('Ficheros', 110);
   Col('Geo', 40);
   FLista.OnData := ListaData;
@@ -375,9 +362,20 @@ end;
 
 procedure TPanelDocumentos.AplicarFiltro;
 var
-  I: Integer;
+  I, N: Integer;
 begin
   FVisibles := FiltrarPorExpediente(FTodos, FExpFiltrado);
+  if (Trim(FTextoFiltro) <> '') or FFiltrarEstado then
+  begin
+    N := 0;
+    for I := 0 to High(FVisibles) do
+      if CoincideFiltro(FVisibles[I], FTextoFiltro, FFiltrarEstado, FEstadoFiltro) then
+      begin
+        FVisibles[N] := FVisibles[I];
+        Inc(N);
+      end;
+    SetLength(FVisibles, N);
+  end;
   TArray.Sort<TDatosDocumento>(FVisibles, TComparer<TDatosDocumento>.Construct(
     function(const A, B: TDatosDocumento): Integer
     begin
@@ -394,10 +392,35 @@ begin
   FLista.Items.Count := 0;
   FLista.Items.Count := Length(FVisibles);
   FLista.Invalidate;
-  FVacio.Caption := 'Esta subserie aun no tiene documentos';
+  if (Length(FVisibles) = 0) and (Length(FTodos) > 0) then
+    FVacio.Caption := 'Ningun documento coincide'
+  else
+    FVacio.Caption := 'Esta subserie aun no tiene documentos';
   FVacio.Visible := Length(FVisibles) = 0;
   LimpiarPropiedades;
   ActualizarBarra;
+end;
+
+procedure TPanelDocumentos.FijarFiltro(const Texto: string;
+  FiltrarEstado: Boolean; Estado: TEstadoDoc);
+var
+  Previa: TClaveDocumento;
+  Tenia: Boolean;
+begin
+  FTextoFiltro := Texto;
+  FFiltrarEstado := FiltrarEstado;
+  FEstadoFiltro := Estado;
+  Tenia := (FIndiceActual >= 0) and (FIndiceActual < Length(FVisibles));
+  if Tenia then
+    Previa := FVisibles[FIndiceActual].Clave;
+  AplicarFiltro;
+  if Tenia then
+    SeleccionarClave(Previa);
+end;
+
+function TPanelDocumentos.CantidadVisibles: Integer;
+begin
+  Result := Length(FVisibles);
 end;
 
 procedure TPanelDocumentos.ActualizarBarra;
@@ -444,11 +467,12 @@ begin
   Item.SubItems.Add(D.Titulo);
   Item.SubItems.Add(FormatDateTime('dd"/"mm"/"yyyy', D.Clave.Fecha));
   Item.SubItems.Add(Tipo);
+  Item.SubItems.Add(TextoEstadoDoc(D.Estado));
   Item.SubItems.Add(Ficheros);
   Item.SubItems.Add('');
   Geo := NombreInsigniaGeo(C);
   if Geo <> '' then
-    Item.SubItemImages[4] := IconoIdx(Geo);
+    Item.SubItemImages[5] := IconoIdx(Geo);
 end;
 
 function TPanelDocumentos.IndiceSeleccionado: Integer;
@@ -513,12 +537,6 @@ begin
     FOnExpedienteCompleto(FVisibles[I].Clave);
 end;
 
-procedure TPanelDocumentos.VistaClick(Sender: TObject);
-begin
-  if Assigned(FOnAlternarVista) then
-    FOnAlternarVista(Self);
-end;
-
 procedure TPanelDocumentos.EnlaceTodosClick(Sender: TObject);
 var
   Previa: TClaveDocumento;
@@ -573,58 +591,27 @@ begin
     end;
 end;
 
-procedure TPanelDocumentos.ScrollResize(Sender: TObject);
-begin
-  if (FIndiceActual >= 0) and (FIndiceActual < Length(FVisibles)) then
-    MostrarPropiedades(FIndiceActual)
-  else
-    LimpiarPropiedades;
-end;
-
 procedure TPanelDocumentos.HistoriaClick(Sender: TObject);
 begin
   MostrarHistoria(FTituloHistoria, FHistoriaActual, FHayMasHistoria, FTema);
 end;
 
-{ Al liberar etiquetas transparentes el TScrollBox no borra su fondo y queda el
-  texto anterior debajo del nuevo (el aviso "Elija un documento" se ve sobre
-  GENERAL). Se fuerza el borrado de todo el area y sus hijos. }
-procedure TPanelDocumentos.RepintarPropiedades;
-begin
-  if FScroll.HandleAllocated then
-    RedrawWindow(FScroll.Handle, nil, 0,
-      RDW_INVALIDATE or RDW_ERASE or RDW_ALLCHILDREN or RDW_UPDATENOW);
-end;
-
 procedure TPanelDocumentos.LimpiarPropiedades;
-var
-  L: TLabel;
 begin
   FFicherosActuales := nil;
   FHistoriaActual := nil;
   FHistoriaValida := False;
-  FEtiquetas.OwnsObjects := True;
-  FEtiquetas.Clear;
   FBtnAbrir.Enabled := False;
   FBtnExpediente.Visible := False;
   FEnlaceExp.Visible := False;
-  L := NuevaEtiqueta('Elija un documento para ver sus propiedades', 9,
-    FTema.TextoSuave, False);
-  L.Parent := FScroll;
-  L.AutoSize := False;
-  L.WordWrap := True;
-  L.SetBounds(14, 16, Max(120, FScroll.ClientWidth - 28), 40);
-  FEtiquetas.Add(L);
-  RepintarPropiedades;
+  FProp.MostrarMensaje('Elija un documento para ver sus propiedades');
 end;
 
 procedure TPanelDocumentos.MostrarPropiedades(Indice: Integer);
 var
   D: TDatosDocumento;
   Props: TArray<TPropiedad>;
-  I, Y, Ancho, Digitales: Integer;
-  GrupoActual: string;
-  Lbl, Val: TLabel;
+  I, Digitales: Integer;
 begin
   if (Indice < 0) or (Indice > High(FVisibles)) then
     Exit;
@@ -645,105 +632,26 @@ begin
       if Props[I].Grupo = 'Ficheros' then
         Props[I].Valor := 'No se pudieron leer los ficheros';
 
-  FScroll.DisableAlign;
-  try
-    FEtiquetas.OwnsObjects := True;
-    FEtiquetas.Clear;
-    Ancho := Max(120, FScroll.ClientWidth - 28);
-    Y := 10;
-    GrupoActual := '';
-    for I := 0 to High(Props) do
-    begin
-      if Props[I].Grupo <> GrupoActual then
-      begin
-        GrupoActual := Props[I].Grupo;
-        Lbl := NuevaEtiqueta(UpperCase(GrupoActual), 8, FTema.Acento, True);
-        Lbl.Parent := FScroll;
-        Lbl.Left := 14;
-        Lbl.Top := Y + 6;
-        FEtiquetas.Add(Lbl);
-        Inc(Y, Lbl.Height + 10);
-      end;
-      Lbl := NuevaEtiqueta(Props[I].Etiqueta, 8, FTema.TextoSuave, False);
-      Lbl.Parent := FScroll;
-      Lbl.Left := 14;
-      Lbl.Top := Y;
-      FEtiquetas.Add(Lbl);
-      Inc(Y, Lbl.Height);
-      Val := NuevaEtiqueta('', 10, FTema.Texto, False);
-      Val.AutoSize := False;
-      Val.WordWrap := True;
-      Val.Parent := FScroll;
-      Val.SetBounds(14, Y, Ancho, 20);
-      Val.Caption := Props[I].Valor;
-      Val.AutoSize := True; // con WordWrap el alto sale del ancho fijado
-      FEtiquetas.Add(Val);
-      Inc(Y, Val.Height + 4);
+  // Historia del documento: se pide una vez por documento seleccionado
+  FTituloHistoria := D.Titulo;
+  if Assigned(FOnPedirHistoria) and
+    not (FHistoriaValida and MismaClave(FHistoriaClave, D.Clave)) then
+  begin
+    FHistoriaActual := nil;
+    FHayMasHistoria := False;
+    FMotivoHistoria := '';
+    try
+      FHistoriaActual := FOnPedirHistoria(D.Clave, FHayMasHistoria,
+        FMotivoHistoria);
+    except
+      FHistoriaActual := nil;
+      FMotivoHistoria := 'error al pedir la historia';
     end;
-
-    // Historia del documento: los 5 eventos mas recientes y el enlace a todos
-    FTituloHistoria := D.Titulo;
-    if Assigned(FOnPedirHistoria) then
-    begin
-      if not (FHistoriaValida and MismaClave(FHistoriaClave, D.Clave)) then
-      begin
-        FHistoriaActual := nil;
-        FHayMasHistoria := False;
-        FMotivoHistoria := '';
-        try
-          FHistoriaActual := FOnPedirHistoria(D.Clave, FHayMasHistoria,
-            FMotivoHistoria);
-        except
-          FHistoriaActual := nil;
-          FMotivoHistoria := 'error al pedir la historia';
-        end;
-        FHistoriaClave := D.Clave;
-        FHistoriaValida := True;
-      end;
-      Lbl := NuevaEtiqueta('HISTORIA', 8, FTema.Acento, True);
-      Lbl.Parent := FScroll;
-      Lbl.Left := 14;
-      Lbl.Top := Y + 6;
-      FEtiquetas.Add(Lbl);
-      Inc(Y, Lbl.Height + 10);
-      if Length(FHistoriaActual) = 0 then
-      begin
-        // no decir "sin eventos" cuando en realidad no se pudo leer la historia
-        if FMotivoHistoria <> '' then
-          Val := NuevaEtiqueta('Historia no disponible', 9, FTema.TextoSuave, False)
-        else
-          Val := NuevaEtiqueta('Sin eventos registrados', 9, FTema.TextoSuave, False);
-        Val.Parent := FScroll;
-        Val.SetBounds(14, Y, Ancho, 16);
-        FEtiquetas.Add(Val);
-        Inc(Y, Val.Height + 4);
-      end
-      else
-      begin
-        for I := 0 to Min(4, High(FHistoriaActual)) do
-        begin
-          Val := NuevaEtiqueta(TextoFechaEvento(FHistoriaActual[I].Fecha) + '  ' +
-            EtiquetaEvento(FHistoriaActual[I].Tipo) + '  ' + FHistoriaActual[I].Usuario,
-            9, FTema.Texto, False);
-          Val.Parent := FScroll;
-          Val.SetBounds(14, Y, Ancho, 16);
-          FEtiquetas.Add(Val);
-          Inc(Y, Val.Height + 3);
-        end;
-        Val := NuevaEtiqueta('Ver historia completa', 9, FTema.Acento, False);
-        Val.Parent := FScroll;
-        Val.Font.Style := [fsUnderline];
-        Val.Cursor := crHandPoint;
-        Val.SetBounds(14, Y + 4, 200, 16);
-        Val.OnClick := HistoriaClick;
-        FEtiquetas.Add(Val);
-        Inc(Y, Val.Height + 8);
-      end;
-    end;
-  finally
-    FScroll.EnableAlign;
+    FHistoriaClave := D.Clave;
+    FHistoriaValida := True;
   end;
-  RepintarPropiedades;
+  FProp.Mostrar(Props, FHistoriaActual, FHayMasHistoria, FMotivoHistoria,
+    Assigned(FOnPedirHistoria));
 
   Digitales := 0;
   if Assigned(FOnPedirFicheros) then
