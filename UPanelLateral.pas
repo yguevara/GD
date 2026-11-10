@@ -16,6 +16,8 @@ const
   PAG_SERIES = 0;
   PAG_DETALLE = 1;
   PAG_COMPLEMENTARIA = 2;
+  MODO_SUBSERIE = 0;
+  MODO_DOCUMENTO = 1;
 
 type
   { Tira de pestanas: texto y subrayado de la activa. }
@@ -55,6 +57,12 @@ type
     FPaginas: TArray<TPanel>;
     FActiva: Integer;
     FOnCambioPagina: TNotifyEvent;
+    FTiraModos: TTiraPestanas;
+    FContDocumento: TPanel;
+    FModo: Integer;
+    FOnCambioModo: TNotifyEvent;
+    procedure ModoElegido(Sender: TObject);
+    procedure AplicarModo;
     procedure Construir;
     procedure TiraElegir(Sender: TObject);
     procedure MostrarActiva;
@@ -75,6 +83,18 @@ type
       vez las paginas podian quedar en blanco hasta el primer evento. }
     procedure Repintar;
     property OnCambioPagina: TNotifyEvent read FOnCambioPagina write FOnCambioPagina;
+    { Primer nivel de pestanas: Subserie (Series, Detalle, Complementaria) y
+      Documento. Sin llamar a AgregarModoDocumento el panel se comporta como siempre.
+      Devuelve el contenedor del modo Documento (ocupa todo el espacio bajo la tira). }
+    function AgregarModoDocumento: TPanel;
+    procedure ActivarModo(Modo: Integer);
+    function ModoActivo: Integer;
+    function TieneModoDocumento: Boolean;
+    property OnCambioModo: TNotifyEvent read FOnCambioModo write FOnCambioModo;
+    { Estado visible de cada parte (pruebas). }
+    function TiraModosVisible: Boolean;
+    function TiraPaginasVisible: Boolean;
+    function CabeceraSubserieVisible: Boolean;
   end;
 
 { Pasa cada hijo de Origen a Destino, en su orden. Conservan Align, Anchors,
@@ -332,6 +352,99 @@ begin
   FijarCabecera('', '');
 end;
 
+function TPanelLateral.AgregarModoDocumento: TPanel;
+begin
+  if FContDocumento <> nil then
+    Exit(FContDocumento);
+  FContDocumento := TPanel.Create(Self);
+  FContDocumento.Parent := Self;
+  FContDocumento.Align := alClient;
+  FContDocumento.BevelOuter := bvNone;
+  FContDocumento.ParentBackground := False;
+  FContDocumento.StyleElements := [];
+  FContDocumento.ShowCaption := False;
+  FContDocumento.Color := FTema.Superficie;
+  FTiraModos := TTiraPestanas.Create(Self);
+  FTiraModos.Parent := Self;
+  FTiraModos.Align := alTop;
+  FTiraModos.Top := -1; // encima de la cabecera de la subserie
+  FTiraModos.Configurar(FTema);
+  FTiraModos.Agregar('Subserie');
+  FTiraModos.Agregar('Documento');
+  FTiraModos.OnElegir := ModoElegido;
+  AplicarModo;
+  Result := FContDocumento;
+end;
+
+procedure TPanelLateral.AplicarModo;
+var
+  EnSubserie: Boolean;
+  I: Integer;
+begin
+  EnSubserie := (FContDocumento = nil) or (FModo = MODO_SUBSERIE);
+  FCabecera.Visible := EnSubserie;
+  FTira.Visible := EnSubserie;
+  for I := 0 to High(FPaginas) do
+    FPaginas[I].Visible := EnSubserie and (I = FActiva);
+  FVacio.Visible := EnSubserie and (Trim(FLblTitulo.Caption) = 'Sin subserie');
+  if FContDocumento <> nil then
+  begin
+    FContDocumento.Visible := not EnSubserie;
+    if not EnSubserie then
+      FContDocumento.BringToFront;
+  end;
+  if FVacio.Visible then
+    FVacio.BringToFront;
+end;
+
+procedure TPanelLateral.ActivarModo(Modo: Integer);
+begin
+  if (FContDocumento = nil) or (Modo < MODO_SUBSERIE) or (Modo > MODO_DOCUMENTO) or
+    (Modo = FModo) then
+    Exit;
+  FModo := Modo;
+  FTiraModos.Activa := Modo;
+  AplicarModo;
+  if Assigned(FOnCambioModo) then
+    FOnCambioModo(Self);
+end;
+
+procedure TPanelLateral.ModoElegido(Sender: TObject);
+begin
+  if FTiraModos.Activa <> FModo then
+  begin
+    FModo := FTiraModos.Activa;
+    AplicarModo;
+    if Assigned(FOnCambioModo) then
+      FOnCambioModo(Self);
+  end;
+end;
+
+function TPanelLateral.ModoActivo: Integer;
+begin
+  Result := FModo;
+end;
+
+function TPanelLateral.TieneModoDocumento: Boolean;
+begin
+  Result := FContDocumento <> nil;
+end;
+
+function TPanelLateral.TiraModosVisible: Boolean;
+begin
+  Result := (FTiraModos <> nil) and FTiraModos.Visible;
+end;
+
+function TPanelLateral.TiraPaginasVisible: Boolean;
+begin
+  Result := FTira.Visible;
+end;
+
+function TPanelLateral.CabeceraSubserieVisible: Boolean;
+begin
+  Result := FCabecera.Visible;
+end;
+
 function TPanelLateral.VacioVisible: Boolean;
 begin
   Result := FVacio.Visible;
@@ -358,7 +471,7 @@ var
   I: Integer;
 begin
   for I := 0 to High(FPaginas) do
-    FPaginas[I].Visible := I = FActiva;
+    FPaginas[I].Visible := (I = FActiva) and ((FContDocumento = nil) or (FModo = MODO_SUBSERIE));
 end;
 
 procedure TPanelLateral.Activar(Indice: Integer);
@@ -401,7 +514,7 @@ begin
     FLblTitulo.Caption := Trim(Titulo);
   FLblCodigo.Caption := ' ' + Trim(Codigo) + ' ';
   FLblCodigo.Visible := Trim(Codigo) <> '';
-  FVacio.Visible := Trim(Titulo) = '';
+  FVacio.Visible := (Trim(Titulo) = '') and ((FContDocumento = nil) or (FModo = MODO_SUBSERIE));
   if FVacio.Visible then
     FVacio.BringToFront;
 end;

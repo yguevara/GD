@@ -13,6 +13,16 @@ type
   TPruebasPanelLateral = class
   public
     [Test]
+    procedure Modos_SinModoDocumento_NoMuestraTiraDeModos;
+    [Test]
+    procedure Modos_ElegirDocumento_MuestraSuContenedorYOcultaLoDeLaSubserie;
+    [Test]
+    procedure Modos_VolverASubserie_RestauraLaPaginaActiva;
+    [Test]
+    procedure Modos_ConTituloVacio_ElTextoGuiaSoloEnSubserie;
+    [Test]
+    procedure Modos_OnCambioModo_DisparaSoloAlCambiar;
+    [Test]
     procedure AgregarPagina_SoloLaActivaEsVisible;
     [Test]
     procedure Activar_CambiaDePaginaYAvisa;
@@ -61,6 +71,121 @@ begin
   Result.Width := 380;
   F.Show;
   Application.ProcessMessages;
+end;
+
+function ConModoDocumento(F: TForm; out Doc: TPanel; out Pag: TPanel): TPanelLateral;
+begin
+  Result := NuevoPanel(F);
+  Pag := Result.AgregarPagina('Series');
+  Result.AgregarPagina('Detalle');
+  Result.AgregarPagina('Complementaria');
+  Doc := Result.AgregarModoDocumento;
+  Result.FijarCabecera('Expedientes', '014001');
+  Application.ProcessMessages;
+end;
+
+procedure TPruebasPanelLateral.Modos_SinModoDocumento_NoMuestraTiraDeModos;
+var
+  F: TForm;
+  P: TPanelLateral;
+begin
+  F := TForm.CreateNew(nil);
+  try
+    P := NuevoPanel(F);
+    P.AgregarPagina('Series');
+    Assert.IsFalse(P.TieneModoDocumento);
+    Assert.AreEqual(MODO_SUBSERIE, P.ModoActivo);
+    Assert.IsFalse(P.TiraModosVisible);
+  finally
+    F.Free;
+  end;
+end;
+
+procedure TPruebasPanelLateral.Modos_ElegirDocumento_MuestraSuContenedorYOcultaLoDeLaSubserie;
+var
+  F: TForm;
+  P: TPanelLateral;
+  Doc, Pag: TPanel;
+begin
+  F := TForm.CreateNew(nil);
+  try
+    P := ConModoDocumento(F, Doc, Pag);
+    Assert.IsTrue(P.TiraModosVisible);
+    Assert.IsFalse(Doc.Visible, 'empieza en Subserie');
+    P.ActivarModo(MODO_DOCUMENTO);
+    Application.ProcessMessages;
+    Assert.IsTrue(Doc.Visible);
+    Assert.IsFalse(Pag.Visible);
+    Assert.IsFalse(P.TiraPaginasVisible, 'la tira Series/Detalle/Complementaria se oculta');
+    Assert.IsFalse(P.CabeceraSubserieVisible);
+  finally
+    F.Free;
+  end;
+end;
+
+procedure TPruebasPanelLateral.Modos_VolverASubserie_RestauraLaPaginaActiva;
+var
+  F: TForm;
+  P: TPanelLateral;
+  Doc, Pag: TPanel;
+begin
+  F := TForm.CreateNew(nil);
+  try
+    P := ConModoDocumento(F, Doc, Pag);
+    P.Activar(PAG_DETALLE);
+    P.ActivarModo(MODO_DOCUMENTO);
+    P.ActivarModo(MODO_SUBSERIE);
+    Application.ProcessMessages;
+    Assert.AreEqual(PAG_DETALLE, P.PaginaActiva);
+    Assert.IsFalse(Doc.Visible);
+    Assert.IsTrue(P.TiraPaginasVisible);
+    Assert.IsTrue(P.CabeceraSubserieVisible);
+  finally
+    F.Free;
+  end;
+end;
+
+procedure TPruebasPanelLateral.Modos_ConTituloVacio_ElTextoGuiaSoloEnSubserie;
+var
+  F: TForm;
+  P: TPanelLateral;
+  Doc, Pag: TPanel;
+begin
+  F := TForm.CreateNew(nil);
+  try
+    P := ConModoDocumento(F, Doc, Pag);
+    P.FijarCabecera('', '');
+    Assert.IsTrue(P.VacioVisible);
+    P.ActivarModo(MODO_DOCUMENTO);
+    Assert.IsFalse(P.VacioVisible, 'en modo Documento el texto guia no tapa el panel');
+    P.ActivarModo(MODO_SUBSERIE);
+    Assert.IsTrue(P.VacioVisible);
+  finally
+    F.Free;
+  end;
+end;
+
+procedure TPruebasPanelLateral.Modos_OnCambioModo_DisparaSoloAlCambiar;
+var
+  F: TForm;
+  P: TPanelLateral;
+  Doc, Pag: TPanel;
+  R: TReceptor;
+begin
+  F := TForm.CreateNew(nil);
+  R := TReceptor.Create;
+  try
+    P := ConModoDocumento(F, Doc, Pag);
+    P.OnCambioModo := R.Aviso;
+    P.ActivarModo(MODO_SUBSERIE);
+    Assert.AreEqual(0, R.Cuenta, 'ya estaba en Subserie');
+    P.ActivarModo(MODO_DOCUMENTO);
+    P.ActivarModo(MODO_DOCUMENTO);
+    Assert.AreEqual(1, R.Cuenta);
+  finally
+    F.Free;
+    R.Free;
+  end;
 end;
 
 procedure TPruebasPanelLateral.AgregarPagina_SoloLaActivaEsVisible;
