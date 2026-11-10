@@ -12,8 +12,8 @@ unit UCargaDocumento;
 interface
 
 uses
-  System.SysUtils, FireDAC.Comp.Client, UAlcance, UAlmacenFicheros, UCargaModelo,
-  UMetadatosSubserie;
+  System.SysUtils, System.Classes, FireDAC.Comp.Client, UAlcance, UAlmacenFicheros,
+  UCargaModelo, UMetadatosSubserie;
 
 type
   TOrigenDocumento = record
@@ -40,10 +40,16 @@ function GuardarDocumento(Conn: TFDConnection; Alcance: TAlcanceUsuario;
   const Campos: TArray<TCampoMeta>; const TablaMeta: string;
   Progreso: TProgresoEvento): TResultadoDocumento;
 
+{ Id del tipo de fichero para una extension ('.pdf'); 102 si no se conoce. }
+function IdTipoExtension(Conn: TFDConnection; const Ext: string): Integer;
+{ Nombre que no se repite dentro de Usados para esa carpeta ('a.pdf', 'a (2).pdf'...);
+  lo registra en Usados. }
+function NombreUnico(Usados: TStringList; const Carpeta, Nombre: string): string;
+
 implementation
 
 uses
-  System.Classes, System.IOUtils, System.Variants, Data.DB, FireDAC.Stan.Intf,
+  System.IOUtils, System.Variants, Data.DB, FireDAC.Stan.Intf,
   FireDAC.Stan.Error, FireDAC.Stan.Param, UTopografia, UDocumentoVista,
   UTrazabilidadDatos;
 

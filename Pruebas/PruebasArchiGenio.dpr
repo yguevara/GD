@@ -63,6 +63,7 @@ uses
   UPruebasPanelDocumento in 'UPruebasPanelDocumento.pas',
   UPruebasVisorContenido in 'UPruebasVisorContenido.pas',
   UPruebasRecepcionArchivos in 'UPruebasRecepcionArchivos.pas',
+  UPruebasAgregarFicheros in 'UPruebasAgregarFicheros.pas',
   UPruebasMetadatosSubserie in 'UPruebasMetadatosSubserie.pas',
   UCargaDocumento in '..\UCargaDocumento.pas',
   UCargaLote in '..\UCargaLote.pas',

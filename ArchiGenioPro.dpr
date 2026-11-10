@@ -54,6 +54,7 @@ uses
   UVistaUbicacion in 'UVistaUbicacion.pas',
   UVisorContenido in 'UVisorContenido.pas',
   URecepcionArchivos in 'URecepcionArchivos.pas',
+  UAgregarFicheros in 'UAgregarFicheros.pas',
   UIconos in 'UIconos.pas',
   UShellPrincipal in 'UShellPrincipal.pas',
   UAparienciaLegacy in 'UAparienciaLegacy.pas',
