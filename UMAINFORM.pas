@@ -675,6 +675,10 @@ type
     FPerfilListo: Boolean;
     FTablaMetadatos: TDictionary<string, string>;
     FNombresSerie: TDictionary<string, string>;
+    // Contenido (PDF) descargado para la pestana Contenido: carpeta temporal de
+    // la sesion y una entrada por documento y fichero; se borra al cerrar.
+    FCarpetaContenido: string;
+    FContenidoCache: TDictionary<string, string>;
     FEnlaceDocs: TObject;
     FTimerDocs: TTimer;
     FModoLista: Boolean;
@@ -780,6 +784,7 @@ type
       out HayMas: Boolean; out Motivo: string): TArray<TEventoDoc>;
     procedure ListaDocsAlternar(Sender: TObject);
     function ListaDocsUbicacionSubserie: TUbicacion;
+    function ListaDocsContenido(const Clave: TClaveDocumento; out Motivo: string): string;
     function ListaDocsMetadatos(const Clave: TClaveDocumento): TArray<TPropiedad>;
     // Barra de trabajo: series como fichas y filtro de la lista
     procedure BarraNotificar(Sender: TObject);
@@ -828,7 +833,7 @@ uses
   USystemMsg, UNodeProperties, UCL_TiposExp, USysConfig, UTransferencias,
   UExportImportDocumentSubSeries, UManagementIndex, UAdminLog, UManagementTrans,
   UDepuracion, UTopoDocActual, UREditor, UNodeInfo, frmTransferencia, UPrestamos,
-  UShellPrincipal, System.Diagnostics;
+  UShellPrincipal, System.Diagnostics, System.IOUtils, System.Hash;
 
 {$R *.dfm}
 
@@ -4554,6 +4559,14 @@ begin
   FreeAndNil(FEnlaceDocs);
   FreeAndNil(FEnlaceSeries); // el enlace avisa a TMAIN: no puede sobrevivirle
   FreeAndNil(FNombresSerie);
+  FreeAndNil(FContenidoCache);
+  // los PDF descargados para verlos no deben quedar en el disco
+  if FCarpetaContenido <> '' then
+  try
+    TDirectory.Delete(FCarpetaContenido, True);
+  except
+    // si un visor aun lo tiene abierto se borrara en la limpieza del sistema
+  end;
   FreeAndNil(FTablaMetadatos);
   FreeAndNil(FEscalares);
   FComboBoxAssociations.Free; // Liberar la lista
@@ -6932,6 +6945,7 @@ begin
     FListaDocs.OnPedirHistoria := ListaDocsHistoria;
     FListaDocs.OnPedirUbicacionSubserie := ListaDocsUbicacionSubserie;
     FListaDocs.OnPedirMetadatos := ListaDocsMetadatos;
+    FListaDocs.OnPedirContenido := ListaDocsContenido;
 
     FTimerDocs := TTimer.Create(Self);
     FTimerDocs.Enabled := False;
@@ -7654,6 +7668,94 @@ begin
     md_def.EnableControls;
   end;
   SetLength(Result, N);
+end;
+
+// Contenido (PDF) del documento para la pestana Contenido: el primer anexo
+// digital en PDF (qryAnexosDig, detalle de tb_SeriesDatos). Lo descarga del
+// almacen (FTP o S3) a una carpeta temporal de la sesion, una vez por fichero, y
+// devuelve su ruta; si no hay PDF devuelve '' y el motivo. Cada vez que se
+// muestra se registra como visualizacion del documento.
+function TMAIN.ListaDocsContenido(const Clave: TClaveDocumento; out Motivo: string): string;
+var
+  Nombre, Ext, UrlRaiz, Path, ClaveFich, Llave: string;
+  HayOtros: Boolean;
+  Alm: IAlmacenFicheros;
+begin
+  Result := '';
+  Motivo := '';
+  if not ListaDocsLocalizar(Clave) then
+  begin
+    Motivo := 'No se pudo localizar el documento.';
+    Exit;
+  end;
+  if not UDM.qryAnexosDig.Active or UDM.qryAnexosDig.IsEmpty then
+  begin
+    Motivo := 'Este documento no tiene ficheros digitales.';
+    Exit;
+  end;
+  Nombre := '';
+  HayOtros := False;
+  UDM.qryAnexosDig.DisableControls;
+  try
+    UDM.qryAnexosDig.First;
+    while not UDM.qryAnexosDig.Eof do
+    begin
+      Ext := ExtensionNormal(UDM.qryAnexosDig.FieldByName('extnombre').AsString);
+      if Ext = '' then
+        Ext := ExtensionNormal(ExtractFileExt(UDM.qryAnexosDig.FieldByName('nombre').AsString));
+      if Ext = 'pdf' then
+      begin
+        Nombre := UDM.qryAnexosDig.FieldByName('nombre').AsString;
+        UrlRaiz := UDM.qryAnexosDig.FieldByName('urlraiz').AsString;
+        Path := UDM.qryAnexosDig.FieldByName('path').AsString;
+        Break;
+      end;
+      HayOtros := True;
+      UDM.qryAnexosDig.Next;
+    end;
+    UDM.qryAnexosDig.First;
+  finally
+    UDM.qryAnexosDig.EnableControls;
+  end;
+  if Nombre = '' then
+  begin
+    if HayOtros then
+      Motivo := 'El contenido incrustado solo admite PDF. Abra el archivo desde la pestana Archivos.'
+    else
+      Motivo := 'Este documento no tiene ficheros digitales.';
+    Exit;
+  end;
+  if FContenidoCache = nil then
+    FContenidoCache := TDictionary<string, string>.Create;
+  Llave := ClaveTexto(Clave) + '|' + LowerCase(Nombre);
+  if not (FContenidoCache.TryGetValue(Llave, Result) and FileExists(Result)) then
+  begin
+    Result := '';
+    try
+      if FCarpetaContenido = '' then
+      begin
+        FCarpetaContenido := TPath.Combine(TPath.GetTempPath,
+          'ArchiGenio_contenido_' + IntToHex(GetCurrentProcessId, 8));
+        ForceDirectories(FCarpetaContenido);
+      end;
+      Alm := AlmacenParaFichero(UDM.Conn, UrlRaiz,
+        UDM.cmdServer.FieldByName('Idservidor').AsInteger, ClaveFich, Path, Nombre);
+      Result := TPath.Combine(FCarpetaContenido,
+        THashMD5.GetHashString(Llave) + '.pdf');
+      Alm.Descargar(ClaveFich, Result, nil);
+      FContenidoCache.AddOrSetValue(Llave, Result);
+    except
+      on E: Exception do
+      begin
+        Result := '';
+        Motivo := 'No se pudo obtener el contenido: ' + E.Message;
+        RegistrarErrorLista('Contenido: ' + E.ClassName + ': ' + E.Message);
+        Exit;
+      end;
+    end;
+  end;
+  UDM.LogDocActual('Se visualizo el contenido del documento con codigo "' +
+    Trim(Clave.Codigodoc) + '".', ACCION_VISUALIZAR);
 end;
 
 procedure TMAIN.ListaDocsAlternar(Sender: TObject);

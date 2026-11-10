@@ -16,9 +16,13 @@ uses
   System.Classes, System.SysUtils, System.Generics.Collections,
   Winapi.Windows, Winapi.Messages, Vcl.Controls, Vcl.ExtCtrls, Vcl.ComCtrls,
   Vcl.StdCtrls, Vcl.Graphics, Vcl.Forms, UTema, UDocumentoVista, UTrazabilidad,
-  UListaPropiedades, UPanelDocumento, UVistaUbicacion;
+  UListaPropiedades, UPanelDocumento, UVistaUbicacion, UVisorContenido;
 
 type
+  { Ruta local de un archivo PDF con el contenido del documento, o '' y el
+    motivo (sin PDF, formato no admitido, fichero ausente del almacen). }
+  TSolicitudContenido = function(const Clave: TClaveDocumento;
+    out Motivo: string): string of object;
   { Valores de las variables (metadatos) del documento: Grupo = subserie,
     Etiqueta = variable, Valor = su valor. Sin variables, un arreglo vacio. }
   TSolicitudMetadatos = function(const Clave: TClaveDocumento): TArray<TPropiedad> of object;
@@ -53,8 +57,9 @@ type
     FSplitter: TSplitter;
     FDer: TPanel;
     FDoc: TPanelDocumento;
-    FPropDatos, FPropArchivos, FPropMetadatos, FPropHistoria,
-      FPropContenido: TListaPropiedades;
+    FPropDatos, FPropArchivos, FPropMetadatos, FPropHistoria: TListaPropiedades;
+    FVisor: TVisorContenido;
+    FOnPedirContenido: TSolicitudContenido;
     FVistaUbicacion: TVistaUbicacion;
     FOnPedirUbicacionSubserie: TSolicitudUbicacion;
     FOnPedirMetadatos: TSolicitudMetadatos;
@@ -81,6 +86,8 @@ type
     function NuevaEtiqueta(const Texto: string; Tam: Integer; Color: TColor;
       Negrita: Boolean): TLabel;
     procedure Construir;
+    procedure PestanaCambio(Sender: TObject);
+    procedure CargarContenido(const D: TDatosDocumento);
     function NuevaLista(P: TPestanaDoc): TListaPropiedades;
     procedure AplicarFiltro;
     procedure ActualizarBarra;
@@ -119,6 +126,11 @@ type
     function CantidadVisibles: Integer;
     { Panel con las pestanas del documento seleccionado (Datos, Ubicacion...). }
     property Documento: TPanelDocumento read FDoc;
+    { Visor del contenido (PDF) de la pestana Contenido. }
+    property Visor: TVisorContenido read FVisor;
+    { Contenido del documento; se pide solo al abrir la pestana Contenido. }
+    property OnPedirContenido: TSolicitudContenido read FOnPedirContenido
+      write FOnPedirContenido;
     { Metadatos del documento; sin esto la pestana dice que no hay metadatos. }
     property OnPedirMetadatos: TSolicitudMetadatos read FOnPedirMetadatos
       write FOnPedirMetadatos;
@@ -206,6 +218,45 @@ begin
   if Negrita then
     Result.Font.Style := [fsBold];
   Result.Caption := Texto;
+end;
+
+// Pide el contenido del documento y lo muestra en el visor; si no hay PDF muestra
+// el motivo. Se llama al abrir la pestana Contenido o al cambiar de documento con
+// ella abierta.
+procedure TPanelDocumentos.CargarContenido(const D: TDatosDocumento);
+var
+  Ruta, Motivo: string;
+begin
+  if not Assigned(FOnPedirContenido) then
+  begin
+    FVisor.MostrarMensaje('El contenido no esta disponible.');
+    Exit;
+  end;
+  Motivo := '';
+  try
+    Ruta := FOnPedirContenido(D.Clave, Motivo);
+  except
+    on E: Exception do
+    begin
+      Ruta := '';
+      Motivo := E.Message;
+    end;
+  end;
+  if Ruta = '' then
+  begin
+    if Motivo = '' then
+      Motivo := 'Este documento no tiene contenido.';
+    FVisor.MostrarMensaje(Motivo);
+  end
+  else
+    FVisor.Mostrar(Ruta, Trim(D.Clave.Codigodoc));
+end;
+
+procedure TPanelDocumentos.PestanaCambio(Sender: TObject);
+begin
+  if (FDoc.Activa = pdContenido) and (FIndiceActual >= 0) and
+    (FIndiceActual < Length(FVisibles)) then
+    CargarContenido(FVisibles[FIndiceActual]);
 end;
 
 // Lista de propiedades que ocupa toda la pagina de una pestana del documento
@@ -330,7 +381,10 @@ begin
   FPropHistoria := NuevaLista(pdHistoria);
   FPropHistoria.SinTituloHistoria := True;
   FPropHistoria.OnVerHistoria := HistoriaClick;
-  FPropContenido := NuevaLista(pdContenido);
+  FVisor := TVisorContenido.Create(Self);
+  FVisor.Parent := FDoc.Pagina(pdContenido);
+  FVisor.Align := alClient;
+  FDoc.OnCambioPestana := PestanaCambio;
 
   // Lista virtual
   FLista := TListView.Create(Self);
@@ -647,7 +701,7 @@ begin
   FPropArchivos.MostrarMensaje('Elija un documento para ver sus archivos');
   FPropMetadatos.MostrarMensaje('Elija un documento para ver sus metadatos');
   FPropHistoria.MostrarMensaje('Elija un documento para ver su historia');
-  FPropContenido.MostrarMensaje('Elija un documento para ver su contenido');
+  FVisor.MostrarMensaje('Elija un documento para ver su contenido');
   FDoc.FijarCabecera('', '', edDesconocido);
   FDoc.FijarConteoArchivos(0);
 end;
@@ -721,7 +775,11 @@ begin
     FPropMetadatos.MostrarMensaje('Esta subserie no define metadatos')
   else
     FPropMetadatos.Mostrar(Meta, nil, False, '', False);
-  FPropContenido.MostrarMensaje('El contenido del documento se mostrara aqui');
+  // El contenido se descarga solo si la pestana esta abierta: no al seleccionar
+  if FDoc.Activa = pdContenido then
+    CargarContenido(D)
+  else
+    FVisor.MostrarMensaje('Abra esta pestana para ver el contenido del documento.');
   FDoc.FijarConteoArchivos(Length(FFicherosActuales));
 
   Digitales := 0;

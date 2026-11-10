@@ -28,6 +28,12 @@ type
     [Test]
     procedure Propiedades_ClicEnVerHistoria_DisparaEvento;
     [Test]
+    procedure Contenido_SeCargaAlAbrirLaPestanaYNoAlSeleccionar;
+    [Test]
+    procedure Contenido_NoPdf_MuestraElMotivo;
+    [Test]
+    procedure Contenido_SinEvento_DiceNoDisponible;
+    [Test]
     procedure Metadatos_SinEvento_DiceQueNoDefine;
     [Test]
     procedure Metadatos_ConEvento_MuestraEtiquetasYValores;
@@ -94,7 +100,8 @@ begin
   Result := nil;
   for I := 0 to Padre.ControlCount - 1 do
   begin
-    if Padre.Controls[I] is TListView then
+    // la lista de documentos es virtual; el visor de PDF tiene listas propias
+    if (Padre.Controls[I] is TListView) and TListView(Padre.Controls[I]).OwnerData then
       Exit(TListView(Padre.Controls[I]));
     if Padre.Controls[I] is TWinControl then
     begin
@@ -497,6 +504,89 @@ begin
   for I := 0 to Pag.ControlCount - 1 do
     if Pag.Controls[I] is TListaPropiedades then
       Result := TListaPropiedades(Pag.Controls[I]);
+end;
+
+type
+  TProveedorContenido = class
+    Llamadas: Integer;
+    function Pedir(const Clave: TClaveDocumento; out Motivo: string): string;
+  end;
+
+function TProveedorContenido.Pedir(const Clave: TClaveDocumento; out Motivo: string): string;
+begin
+  Inc(Llamadas);
+  Motivo := 'El contenido incrustado solo admite PDF; abra el archivo desde Archivos.';
+  Result := '';
+end;
+
+procedure TPruebasPanelDocumentos.Contenido_SeCargaAlAbrirLaPestanaYNoAlSeleccionar;
+var
+  F: TForm;
+  P: TPanelDocumentos;
+  LV: TListView;
+  Prov: TProveedorContenido;
+begin
+  F := TForm.CreateNew(nil);
+  Prov := TProveedorContenido.Create;
+  try
+    P := PanelCargado(F);
+    P.OnPedirContenido := Prov.Pedir;
+    LV := BuscarLista(P);
+    LV.Items[0].Selected := True;
+    PonerAlDia;
+    Assert.AreEqual(0, Prov.Llamadas, 'seleccionar no descarga el contenido');
+    P.Documento.Activar(pdContenido);
+    PonerAlDia;
+    Assert.AreEqual(1, Prov.Llamadas, 'al abrir la pestana se pide una vez');
+    LV.Items[1].Selected := True;
+    PonerAlDia;
+    Assert.AreEqual(2, Prov.Llamadas, 'con la pestana abierta, cambiar de documento lo vuelve a pedir');
+  finally
+    F.Free;
+    Prov.Free;
+  end;
+end;
+
+procedure TPruebasPanelDocumentos.Contenido_NoPdf_MuestraElMotivo;
+var
+  F: TForm;
+  P: TPanelDocumentos;
+  LV: TListView;
+  Prov: TProveedorContenido;
+begin
+  F := TForm.CreateNew(nil);
+  Prov := TProveedorContenido.Create;
+  try
+    P := PanelCargado(F);
+    P.OnPedirContenido := Prov.Pedir;
+    LV := BuscarLista(P);
+    LV.Items[0].Selected := True;
+    P.Documento.Activar(pdContenido);
+    PonerAlDia;
+    Assert.IsTrue(Pos('solo admite PDF', P.Visor.TextoMensaje) > 0);
+  finally
+    F.Free;
+    Prov.Free;
+  end;
+end;
+
+procedure TPruebasPanelDocumentos.Contenido_SinEvento_DiceNoDisponible;
+var
+  F: TForm;
+  P: TPanelDocumentos;
+  LV: TListView;
+begin
+  F := TForm.CreateNew(nil);
+  try
+    P := PanelCargado(F);
+    LV := BuscarLista(P);
+    LV.Items[0].Selected := True;
+    P.Documento.Activar(pdContenido);
+    PonerAlDia;
+    Assert.IsTrue(Pos('no esta disponible', P.Visor.TextoMensaje) > 0);
+  finally
+    F.Free;
+  end;
 end;
 
 procedure TPruebasPanelDocumentos.Metadatos_SinEvento_DiceQueNoDefine;
