@@ -665,6 +665,14 @@ type
     // no del documento: se consultan una vez por subserie, no al moverse entre
     // documentos (antes cada movimiento repetia las consultas y parpadeaba la rejilla).
     FSubserieVariables: string;
+    // Cache de consultas escalares (SQL -> resultado) y claves de lo ya preparado.
+    // Se descartan en InvalidarCachesSubserie cuando cambian las series del nodo.
+    FEscalares: TDictionary<string, string>;
+    FClaveSSDisp: string;
+    FClaveVariables: string;
+    // Medicion de tiempos: solo si existe perfil.flag junto al ejecutable
+    FPerfil: Boolean;
+    FPerfilListo: Boolean;
     FTablaMetadatos: TDictionary<string, string>;
     FNombresSerie: TDictionary<string, string>;
     FEnlaceDocs: TObject;
@@ -778,6 +786,9 @@ type
     procedure BarraElegirSerie(const CodSubs: string);
     procedure BarraFiltroCambio(Sender: TObject);
     procedure BloqueAccionCargar;
+    function EscalarCache(const Sql: string): string;
+    procedure InvalidarCachesSubserie;
+    procedure RegistrarPerfil(const Etiqueta: string; Milisegundos: Int64);
     procedure ConectarPanelLateral;
     procedure AjustarPanelLateral;
     procedure ActualizarCabeceraLateral(const Cod: string);
@@ -814,7 +825,7 @@ uses
   USystemMsg, UNodeProperties, UCL_TiposExp, USysConfig, UTransferencias,
   UExportImportDocumentSubSeries, UManagementIndex, UAdminLog, UManagementTrans,
   UDepuracion, UTopoDocActual, UREditor, UNodeInfo, frmTransferencia, UPrestamos,
-  UShellPrincipal;
+  UShellPrincipal, System.Diagnostics;
 
 {$R *.dfm}
 
@@ -4541,6 +4552,7 @@ begin
   FreeAndNil(FEnlaceSeries); // el enlace avisa a TMAIN: no puede sobrevivirle
   FreeAndNil(FNombresSerie);
   FreeAndNil(FTablaMetadatos);
+  FreeAndNil(FEscalares);
   FComboBoxAssociations.Free; // Liberar la lista
   inherited Destroy;
 end;
@@ -4857,7 +4869,7 @@ var
       Exit;
     end;
 
-    CantDoc := UDM.Conn.ExecSQLScalar('SELECT count(subserie) AS cantidad FROM cl_subseries WHERE codsubs=' + QuotedStr(UDM.tb_SeriesDatos.FieldByName('codsubs').AsString));
+    CantDoc := StrToIntDef(EscalarCache('SELECT count(subserie) AS cantidad FROM cl_subseries WHERE codsubs=' + QuotedStr(UDM.tb_SeriesDatos.FieldByName('codsubs').AsString)), 0);
     if CantDoc <= 0 then
     begin
       pVerticalTitle.Caption := ' << SIN DOCUMENTOS >>';
@@ -4871,7 +4883,7 @@ var
     pVerticalTitle.Color := $00F0CAAE;
     pVerticalTitle.Font.Color := $0050370A;
     pVerticalTitle.Font.Style := [fsBold];
-    pVerticalTitle.Caption := ' Subserie: ' + VarToStr(UDM.Conn.ExecSQLScalar('SELECT subserie FROM cl_subseries WHERE codsubs=' + QuotedStr(UDM.tb_SeriesDatos.FieldByName('codsubs').AsString)));
+    pVerticalTitle.Caption := ' Subserie: ' + EscalarCache('SELECT subserie FROM cl_subseries WHERE codsubs=' + QuotedStr(UDM.tb_SeriesDatos.FieldByName('codsubs').AsString));
   end;
 
   procedure ConfigureInitialUI;
@@ -4910,7 +4922,15 @@ var
     end;
   end;
 
+var
+  Cronometro: TStopwatch;
+  Parcial: Int64;
 begin
+  // Un cambio de un solo campo (por ejemplo mientras se teclea en la rejilla)
+  // no cambia de documento ni de subserie: no hay nada que recalcular
+  if Field <> nil then
+    Exit;
+  Cronometro := TStopwatch.StartNew;
   UDM.Conn.ResourceOptions.SilentMode := True; // Desactiva cambios automáticos de cursor
 //  UDM.Conn.ResourceOptions.WaitCursor := crDefault; // Fuerza crDefault si se muestra un cursor
   try
@@ -4919,12 +4939,16 @@ begin
 //
 //    cxGrid2DBTableView1.Invalidate;
     ConfigureInitialUI;
+    Parcial := Cronometro.ElapsedMilliseconds;
+    RegistrarPerfil('seriesdatos.ConfigureInitialUI', Parcial);
     UpdateVariablesView;
     UpdateSubserieDetails;
     UpdateTabVisibility;
+    RegistrarPerfil('seriesdatos.Variables+Subserie+Pestanas', Cronometro.ElapsedMilliseconds - Parcial);
 //    RefreshGrid;
     ApplyBestFit(cxDBVerticalGrid3);
 //    cxGrid2DBTableView1.Invalidate;
+    RegistrarPerfil('seriesdatos.TOTAL', Cronometro.ElapsedMilliseconds);
   finally
     UDM.Conn.ResourceOptions.SilentMode := False; // Desactiva cambios automáticos de cursor
 //    UDM.Conn.ResourceOptions.WaitCursor := crSQLWait; // Fuerza crDefault si se muestra un cursor
@@ -4937,6 +4961,8 @@ var
   aNombre: string;
   CantDoc: Integer;
   HasVariables: Boolean;
+  Clave: string;
+  Cronometro: TStopwatch;
 
   procedure PrepareViews;
   begin
@@ -4946,7 +4972,17 @@ var
     if (UDM.tb_tree.State in [dsInsert, dsEdit]) or (UDM.tb_Serietree.State in [dsInsert, dsEdit]) then
       Exit;
 
-    PrepareSSDisp;
+    // Las series disponibles solo cambian con el nodo o al asignar/quitar series
+    // (cambia el numero de series del nodo): no se vuelven a consultar al
+    // moverse entre las series del mismo nodo
+    Clave := UDM.tb_Serietree.FieldByName('IdEstructura').AsString + '|' +
+      UDM.tb_Serietree.FieldByName('id').AsString + '|' +
+      IntToStr(UDM.tb_Serietree.RecordCount);
+    if (Clave <> FClaveSSDisp) or not UDM.Tb_SeriesDispo.Active then
+    begin
+      PrepareSSDisp;
+      FClaveSSDisp := Clave;
+    end;
     PrepareSSDetailView;
     PrepareServerDetailView;
     ArchivoActual;
@@ -4966,7 +5002,7 @@ var
     // Obtiene la cantidad de documentos asociados a la subserie actual
     CantDoc := 0;
     try
-      CantDoc := UDM.Conn.ExecSQLScalar('SELECT COUNT(subserie) AS cantidad FROM cl_subseries WHERE codsubs=' + QuotedStr(UDM.tb_Serietree.FieldByName('codsubs').AsString));
+      CantDoc := StrToIntDef(EscalarCache('SELECT COUNT(subserie) AS cantidad FROM cl_subseries WHERE codsubs=' + QuotedStr(UDM.tb_Serietree.FieldByName('codsubs').AsString)), 0);
     except
       on E: Exception do
       begin
@@ -4984,7 +5020,7 @@ var
       if Trim(UDM.tb_Serietree.FieldByName('codsubs').AsString) <> '' then
       begin
         // Asumimos que las variables están en una tabla 'cl_VarSubserie' relacionada con 'codsubs'
-        Result := UDM.Conn.ExecSQLScalar('SELECT COUNT(*) FROM cl_VarSubserie WHERE codsubs=' + QuotedStr(UDM.tb_Serietree.FieldByName('codsubs').AsString)) > 0;
+        Result := StrToIntDef(EscalarCache('SELECT COUNT(*) FROM cl_VarSubserie WHERE codsubs=' + QuotedStr(UDM.tb_Serietree.FieldByName('codsubs').AsString)), 0) > 0;
       end;
     except
       on E: Exception do
@@ -5020,8 +5056,16 @@ var
       end;
     end;
 
-    // Actualiza las variables y ajusta la cuadrícula vertical
-    ShowVariablesForSubserie;
+    // Actualiza las variables y ajusta la cuadrícula vertical. Armar la consulta
+    // de metadatos es costoso y solo cambia con la subserie
+    Clave := UDM.tb_Serietree.FieldByName('IdEstructura').AsString + '|' +
+      UDM.tb_Serietree.FieldByName('id').AsString + '|' +
+      UDM.tb_Serietree.FieldByName('codsubs').AsString;
+    if Clave <> FClaveVariables then
+    begin
+      ShowVariablesForSubserie;
+      FClaveVariables := Clave;
+    end;
     ApplyBestFit(cxDBVerticalGrid3);
   end;
 
@@ -5035,7 +5079,7 @@ var
     end;
 
     try
-      aNombre := VarToStr(UDM.Conn.ExecSQLScalar('SELECT subserie FROM cl_subseries WHERE codsubs=' + QuotedStr(UDM.tb_Serietree.FieldByName('codsubs').AsString)));
+      aNombre := EscalarCache('SELECT subserie FROM cl_subseries WHERE codsubs=' + QuotedStr(UDM.tb_Serietree.FieldByName('codsubs').AsString));
       if Trim(aNombre) <> '' then
         pVerticalTitle.Caption := 'Subserie: ' + AnsiQuotedStr(aNombre, '"');
 //        pVerticalTitle.Caption := pVerticalTitle.Caption + AnsiQuotedStr(aNombre, '"');
@@ -5049,6 +5093,10 @@ var
   end;
 
 begin
+  // Un cambio de un solo campo no cambia de serie: nada que recalcular
+  if Field <> nil then
+    Exit;
+  Cronometro := TStopwatch.StartNew;
   // Primer try-finally para garantizar que el cursor se restaure siempre
     // Muestra el cursor de espera mientras se procesan los cambios de datos
   UDM.Conn.ResourceOptions.SilentMode := True; // Desactiva cambios automáticos de cursor
@@ -5060,10 +5108,12 @@ begin
       // Ejecuta las actualizaciones necesarias
 
       PrepareViews;
+      RegistrarPerfil('serietree.PrepareViews', Cronometro.ElapsedMilliseconds);
       UpdateCoordinateTab;
       LoadDocumentCount;
       UpdateVariablesTab;
       UpdateTitle;
+      RegistrarPerfil('serietree.TOTAL', Cronometro.ElapsedMilliseconds);
     except
       {on E: Exception do
       begin
@@ -5696,6 +5746,7 @@ var
 begin
   MaxLabelWidth := 100;
   MaxValueWidth := 100;
+  FieldText := '';
   // Iterar a través de todas las filas del cxDBVerticalGrid
   for I := 0 to DBVerticalGrid.Rows.Count - 1 do
   begin
@@ -5708,6 +5759,7 @@ begin
       MaxLabelWidth := Max(MaxLabelWidth, LabelWidth);
 
       // Medir el ancho del valor actual en la fila (si está asociado a un campo)
+      FieldText := '';
       if CurrentRow.Properties.DataBinding.Field <> nil then
         FieldText := CurrentRow.Properties.DataBinding.Field.DisplayText;
       ValueWidth := DBVerticalGrid.Canvas.TextWidth(FieldText);
@@ -5716,8 +5768,11 @@ begin
   end;
 
   // Ajustar el ancho de las filas con el mayor ancho encontrado
-  DBVerticalGrid.OptionsView.RowHeaderWidth := MaxLabelWidth + 20;  // Espacio adicional para margen
-  DBVerticalGrid.OptionsView.ValueWidth := MaxValueWidth + 20;      // Espacio adicional para margen
+  // Solo si cambian: reasignar un ancho igual provoca un recalculo y parpadeo
+  if DBVerticalGrid.OptionsView.RowHeaderWidth <> MaxLabelWidth + 20 then
+    DBVerticalGrid.OptionsView.RowHeaderWidth := MaxLabelWidth + 20;  // Espacio adicional para margen
+  if DBVerticalGrid.OptionsView.ValueWidth <> MaxValueWidth + 20 then
+    DBVerticalGrid.OptionsView.ValueWidth := MaxValueWidth + 20;      // Espacio adicional para margen
 end;
 
 procedure TMAIN.ArchivoActual;
@@ -7356,6 +7411,45 @@ begin
   end;
 end;
 
+// Resultado de una consulta escalar (una sola fila y columna) con cache: la
+// misma consulta se repetia al mover cada documento o serie. El cache se
+// descarta en InvalidarCachesSubserie. Un error no se guarda y se propaga.
+function TMAIN.EscalarCache(const Sql: string): string;
+begin
+  if FEscalares = nil then
+    FEscalares := TDictionary<string, string>.Create;
+  if not FEscalares.TryGetValue(Sql, Result) then
+  begin
+    Result := VarToStr(UDM.Conn.ExecSQLScalar(Sql));
+    FEscalares.AddOrSetValue(Sql, Result);
+  end;
+end;
+
+// Descarta lo calculado por subserie: se vuelve a consultar al siguiente cambio.
+procedure TMAIN.InvalidarCachesSubserie;
+begin
+  FSubserieVariables := '';
+  FClaveSSDisp := '';
+  FClaveVariables := '';
+  if FEscalares <> nil then
+    FEscalares.Clear;
+  if FTablaMetadatos <> nil then
+    FTablaMetadatos.Clear;
+end;
+
+// Escribe en lista_error.log cuanto tardo una operacion, solo si junto al
+// ejecutable existe el archivo perfil.flag (para medir sin recompilar).
+procedure TMAIN.RegistrarPerfil(const Etiqueta: string; Milisegundos: Int64);
+begin
+  if not FPerfilListo then
+  begin
+    FPerfilListo := True;
+    FPerfil := FileExists(ExtractFilePath(ParamStr(0)) + 'perfil.flag');
+  end;
+  if FPerfil then
+    RegistrarErrorLista('PERFIL ' + Etiqueta + ': ' + IntToStr(Milisegundos) + ' ms');
+end;
+
 procedure TMAIN.BarraNotificar(Sender: TObject);
 begin
   if (FBarraTrabajo = nil) or FCargandoSeries or (FTimerBarra = nil) then
@@ -7398,9 +7492,7 @@ begin
   FCargandoSeries := True;
   try
     // la definicion de las series pudo cambiar (alta, baja, edicion)
-    FSubserieVariables := '';
-    if FTablaMetadatos <> nil then
-      FTablaMetadatos.Clear;
+    InvalidarCachesSubserie;
     DS := UDM.tb_Serietree;
     if (not DS.Active) or (DS.State in [dsInsert, dsEdit]) then
     begin
