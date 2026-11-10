@@ -153,6 +153,7 @@ begin
   // letra legible en toda rejilla cx (antes Tahoma 8)
   Result.Font.Name := 'Segoe UI';
   Result.Font.Size := 9;
+  Result.AssignedValues := Result.AssignedValues + [svFont];
 end;
 
 constructor TEstilosLegacy.CrearCon(const T: TTemaColores);
@@ -250,6 +251,8 @@ begin
   TreeView_SetItemHeight(A.Handle, Alto);
 end;
 
+procedure FijarColorProp(Obj: TObject; const Nombre: string; Valor: TColor); forward;
+
 { Fuente antigua (Tahoma, MS Sans Serif...) a Segoe UI de al menos 9 pt. }
 procedure ModernizarFuente(F: TFont);
 begin
@@ -272,6 +275,19 @@ var
   I: Integer;
   Obj: TObject;
 begin
+  // El rotulo del panel usa la fuente del propio panel
+  if GetPropInfo(P, 'Font') <> nil then
+  begin
+    Obj := GetObjectProp(P, 'Font');
+    if Obj is TFont then
+    begin
+      TFont(Obj).Name := 'Segoe UI';
+      TFont(Obj).Size := 10;
+      TFont(Obj).Style := [fsBold];
+    end;
+  end;
+  FijarColorProp(P, 'FocusCaptionFontColor', T.Texto);
+  FijarColorProp(P, 'NoFocusCaptionFontColor', T.Texto);
   if GetPropInfo(P, 'CaptionFont') <> nil then
   begin
     Obj := GetObjectProp(P, 'CaptionFont');
@@ -323,10 +339,15 @@ begin
     [pcoGradient, pcoGradientClientArea] + [pcoUsePageColorForTab];
   PC.ParentBackground := False;
   PC.Color := T.Superficie;
+  PC.Font.Name := 'Segoe UI';
+  PC.Font.Size := 9;
+  PC.Font.Color := T.Texto;
   for I := 0 to PC.PageCount - 1 do
   begin
     PC.Pages[I].ParentColor := False;
     PC.Pages[I].Color := T.Superficie;
+    PC.Pages[I].Font.Name := 'Segoe UI';
+    PC.Pages[I].Font.Size := 9;
   end;
 end;
 
