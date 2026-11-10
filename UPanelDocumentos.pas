@@ -696,7 +696,11 @@ begin
     FVistaUbicacion.Mostrar([FOnPedirUbicacionSubserie(), UbicacionDeDocumento(D)])
   else
     FVistaUbicacion.Mostrar([UbicacionDeDocumento(D)]);
-  FPropArchivos.Mostrar(PropiedadesDePestana(Props, pdArchivos), nil, False, '', False);
+  if FErrorFicheros then
+    // no decir "Sin ficheros" cuando en realidad no se pudieron leer
+    FPropArchivos.Mostrar(PropiedadesDePestana(Props, pdArchivos), nil, False, '', False)
+  else
+    FPropArchivos.Mostrar(PropiedadesDeArchivos(FFicherosActuales), nil, False, '', False);
   FPropHistoria.Mostrar(nil, FHistoriaActual, FHayMasHistoria, FMotivoHistoria,
     Assigned(FOnPedirHistoria));
   FPropMetadatos.MostrarMensaje('Los metadatos del documento se mostraran aqui');

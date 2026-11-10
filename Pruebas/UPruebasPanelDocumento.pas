@@ -20,6 +20,8 @@ type
     [Test]
     procedure Panel_FijarConteoArchivos_ActualizaLaPestana;
     [Test]
+    procedure Archivos_MuchosFicheros_LaAlturaSuperaLaDelPanel;
+    [Test]
     procedure Ubicacion_DosBloques_MuestraTitulosYSinAsignar;
     [Test]
     procedure Ubicacion_Mensaje_ReemplazaLosBloques;
@@ -31,7 +33,7 @@ implementation
 
 uses
   System.SysUtils, System.Classes, Vcl.Controls, Vcl.Forms, Vcl.ExtCtrls,
-  UPanelDocumento, UDocumentoVista, UVistaUbicacion;
+  UPanelDocumento, UDocumentoVista, UVistaUbicacion, UListaPropiedades;
 
 type
   TReceptor = class
@@ -126,6 +128,36 @@ begin
     Assert.AreEqual('Archivos 3', P.TituloPestana(pdArchivos));
     P.FijarConteoArchivos(0);
     Assert.AreEqual('Archivos', P.TituloPestana(pdArchivos));
+  finally
+    F.Free;
+  end;
+end;
+
+procedure TPruebasPanelDocumento.Archivos_MuchosFicheros_LaAlturaSuperaLaDelPanel;
+var
+  F: TForm;
+  L: TListaPropiedades;
+  Fic: TArray<TFicheroDoc>;
+  I: Integer;
+begin
+  F := TForm.CreateNew(nil);
+  try
+    F.SetBounds(50, 50, 420, 500);
+    L := TListaPropiedades.Create(F);
+    L.Parent := F;
+    L.SetBounds(0, 0, 380, 400);
+    F.Show;
+    Application.ProcessMessages;
+    SetLength(Fic, 200);
+    for I := 0 to 199 do
+    begin
+      Fic[I].Nombre := Format('fichero%.3d.pdf', [I]);
+      Fic[I].Extension := 'pdf';
+      Fic[I].Tamano := 1024 * (I + 1);
+    end;
+    L.Mostrar(PropiedadesDeArchivos(Fic), nil, False, '', False);
+    Assert.IsTrue(L.AlturaContenido > 4000, 'la lista se desplaza: no recorta ficheros');
+    Assert.IsTrue(Pos('fichero199.pdf', L.Contenido) > 0, 'estan los 200');
   finally
     F.Free;
   end;

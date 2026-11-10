@@ -85,6 +85,20 @@ function FiltrarPorExpediente(const Docs: TArray<TDatosDocumento>;
   const Codigo: string): TArray<TDatosDocumento>;
 
 type
+  { Ficheros de un documento agrupados para mostrarlos (anexos y fuentes). }
+  TGrupoFicheros = record
+    Titulo: string;
+    Ficheros: TArray<TFicheroDoc>;
+  end;
+
+{ Grupos "Anexos digitales" (no fuentes) y "Fuentes", solo los no vacios y con
+  los ficheros ordenados por nombre. }
+function AgruparFicheros(const F: TArray<TFicheroDoc>): TArray<TGrupoFicheros>;
+{ Una propiedad por fichero, en su grupo, para la pestana Archivos: etiqueta =
+  extension en mayusculas, valor = nombre y tamano. Sin ficheros: "Sin ficheros". }
+function PropiedadesDeArchivos(const F: TArray<TFicheroDoc>): TArray<TPropiedad>;
+
+type
   { Un tramo de una ubicacion fisica (por ejemplo Archivo = "Archivo 2"). }
   TTramoUbicacion = record
     Rotulo: string;
@@ -124,6 +138,93 @@ implementation
 
 uses
   System.SysUtils, System.Math;
+
+function AgruparFicheros(const F: TArray<TFicheroDoc>): TArray<TGrupoFicheros>;
+var
+  Anexos, Fuentes: TArray<TFicheroDoc>;
+  I, NA, NF: Integer;
+
+  procedure Ordena(var L: TArray<TFicheroDoc>);
+  var
+    A, B: Integer;
+    T: TFicheroDoc;
+  begin
+    for A := 1 to High(L) do
+    begin
+      T := L[A];
+      B := A - 1;
+      while (B >= 0) and (CompareText(L[B].Nombre, T.Nombre) > 0) do
+      begin
+        L[B + 1] := L[B];
+        Dec(B);
+      end;
+      L[B + 1] := T;
+    end;
+  end;
+
+begin
+  SetLength(Anexos, Length(F));
+  SetLength(Fuentes, Length(F));
+  NA := 0;
+  NF := 0;
+  for I := 0 to High(F) do
+    if F[I].EsFuente then
+    begin
+      Fuentes[NF] := F[I];
+      Inc(NF);
+    end
+    else
+    begin
+      Anexos[NA] := F[I];
+      Inc(NA);
+    end;
+  SetLength(Anexos, NA);
+  SetLength(Fuentes, NF);
+  Ordena(Anexos);
+  Ordena(Fuentes);
+  Result := nil;
+  if NA > 0 then
+  begin
+    SetLength(Result, Length(Result) + 1);
+    Result[High(Result)].Titulo := 'Anexos digitales';
+    Result[High(Result)].Ficheros := Anexos;
+  end;
+  if NF > 0 then
+  begin
+    SetLength(Result, Length(Result) + 1);
+    Result[High(Result)].Titulo := 'Fuentes';
+    Result[High(Result)].Ficheros := Fuentes;
+  end;
+end;
+
+function PropiedadesDeArchivos(const F: TArray<TFicheroDoc>): TArray<TPropiedad>;
+var
+  G: TArray<TGrupoFicheros>;
+  I, J, N: Integer;
+begin
+  G := AgruparFicheros(F);
+  if Length(G) = 0 then
+  begin
+    SetLength(Result, 1);
+    Result[0].Grupo := 'Archivos';
+    Result[0].Etiqueta := 'Archivos';
+    Result[0].Valor := 'Sin ficheros';
+    Exit;
+  end;
+  SetLength(Result, Length(F));
+  N := 0;
+  for I := 0 to High(G) do
+    for J := 0 to High(G[I].Ficheros) do
+    begin
+      Result[N].Grupo := G[I].Titulo;
+      Result[N].Etiqueta := UpperCase(ExtensionNormal(G[I].Ficheros[J].Extension));
+      if Result[N].Etiqueta = '' then
+        Result[N].Etiqueta := 'FICHERO';
+      Result[N].Valor := G[I].Ficheros[J].Nombre + ' (' +
+        FormatoTamano(G[I].Ficheros[J].Tamano) + ')';
+      Inc(N);
+    end;
+end;
 
 procedure AgregaTramo(var U: TUbicacion; const Rotulo, Valor: string);
 var

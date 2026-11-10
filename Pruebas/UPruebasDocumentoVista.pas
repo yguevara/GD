@@ -18,6 +18,14 @@ type
       out Hallado: Boolean): string;
   public
     [Test]
+    procedure AgruparFicheros_SeparaAnexosYFuentesYOrdena;
+    [Test]
+    procedure AgruparFicheros_SinFicheros_Vacio;
+    [Test]
+    procedure PropiedadesDeArchivos_ConFicheros_UnaFilaPorFichero;
+    [Test]
+    procedure PropiedadesDeArchivos_SinFicheros_DiceSinFicheros;
+    [Test]
     procedure UbicacionDeDocumento_Completa;
     [Test]
     procedure UbicacionDeDocumento_ConCeroOVacio_DiceSinAsignar;
@@ -376,6 +384,57 @@ procedure TPruebasDocumentoVista.FiltrarPorExpediente_SinFiltroYCodigoInexistent
 begin
   Assert.AreEqual(4, Integer(Length(FiltrarPorExpediente(Lista4, ''))));
   Assert.AreEqual(0, Integer(Length(FiltrarPorExpediente(Lista4, 'NO-EXISTE'))));
+end;
+
+function Fichero(const Nombre, Ext: string; Tam: Double; Fuente: Boolean): TFicheroDoc;
+begin
+  Result.Nombre := Nombre;
+  Result.Extension := Ext;
+  Result.Tamano := Tam;
+  Result.EsFuente := Fuente;
+end;
+
+procedure TPruebasDocumentoVista.AgruparFicheros_SeparaAnexosYFuentesYOrdena;
+var
+  G: TArray<TGrupoFicheros>;
+begin
+  G := AgruparFicheros([Fichero('b.pdf', 'pdf', 100, False),
+    Fichero('memoria.docx', 'docx', 200, True), Fichero('a.pdf', 'pdf', 50, False)]);
+  Assert.AreEqual(2, Integer(Length(G)));
+  Assert.AreEqual('Anexos digitales', G[0].Titulo);
+  Assert.AreEqual('a.pdf', G[0].Ficheros[0].Nombre, 'ordenados por nombre');
+  Assert.AreEqual(2, Integer(Length(G[0].Ficheros)));
+  Assert.AreEqual('Fuentes', G[1].Titulo);
+  Assert.AreEqual(1, Integer(Length(G[1].Ficheros)));
+end;
+
+procedure TPruebasDocumentoVista.AgruparFicheros_SinFicheros_Vacio;
+begin
+  Assert.AreEqual(0, Integer(Length(AgruparFicheros(nil))));
+  // solo fuentes: no aparece el grupo de anexos
+  Assert.AreEqual(1, Integer(Length(AgruparFicheros([Fichero('x.docx', 'docx', 1, True)]))));
+end;
+
+procedure TPruebasDocumentoVista.PropiedadesDeArchivos_ConFicheros_UnaFilaPorFichero;
+var
+  P: TArray<TPropiedad>;
+begin
+  P := PropiedadesDeArchivos([Fichero('plano.pdf', 'pdf', 1536, False),
+    Fichero('memoria.docx', 'docx', 2048, True)]);
+  Assert.AreEqual(2, Integer(Length(P)));
+  Assert.AreEqual('Anexos digitales', P[0].Grupo);
+  Assert.AreEqual('PDF', P[0].Etiqueta);
+  Assert.AreEqual('plano.pdf (1.5 KB)', P[0].Valor);
+  Assert.AreEqual('Fuentes', P[1].Grupo);
+end;
+
+procedure TPruebasDocumentoVista.PropiedadesDeArchivos_SinFicheros_DiceSinFicheros;
+var
+  P: TArray<TPropiedad>;
+begin
+  P := PropiedadesDeArchivos(nil);
+  Assert.AreEqual(1, Integer(Length(P)));
+  Assert.AreEqual('Sin ficheros', P[0].Valor);
 end;
 
 procedure TPruebasDocumentoVista.UbicacionDeDocumento_Completa;
