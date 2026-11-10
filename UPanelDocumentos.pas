@@ -16,7 +16,7 @@ uses
   System.Classes, System.SysUtils, System.Generics.Collections,
   Winapi.Windows, Winapi.Messages, Vcl.Controls, Vcl.ExtCtrls, Vcl.ComCtrls,
   Vcl.StdCtrls, Vcl.Graphics, Vcl.Forms, UTema, UDocumentoVista, UTrazabilidad,
-  UListaPropiedades;
+  UListaPropiedades, UPanelDocumento;
 
 type
   TSolicitudFicheros = function(const Clave: TClaveDocumento): TArray<TFicheroDoc> of object;
@@ -47,7 +47,9 @@ type
     FVacio: TLabel;
     FSplitter: TSplitter;
     FDer: TPanel;
-    FProp: TListaPropiedades;
+    FDoc: TPanelDocumento;
+    FPropDatos, FPropUbicacion, FPropArchivos, FPropMetadatos, FPropHistoria,
+      FPropContenido: TListaPropiedades;
     FPie: TPanel;
     FBtnAbrir: TButton;
     FBtnExpediente: TButton;
@@ -71,6 +73,7 @@ type
     function NuevaEtiqueta(const Texto: string; Tam: Integer; Color: TColor;
       Negrita: Boolean): TLabel;
     procedure Construir;
+    function NuevaLista(P: TPestanaDoc): TListaPropiedades;
     procedure AplicarFiltro;
     procedure ActualizarBarra;
     procedure MostrarPropiedades(Indice: Integer);
@@ -106,6 +109,8 @@ type
     procedure FijarFiltro(const Texto: string; FiltrarEstado: Boolean;
       Estado: TEstadoDoc);
     function CantidadVisibles: Integer;
+    { Panel con las pestanas del documento seleccionado (Datos, Ubicacion...). }
+    property Documento: TPanelDocumento read FDoc;
     property ExpedienteFiltrado: string read FExpFiltrado;
     property OnSeleccion: TClaveEvent read FOnSeleccion write FOnSeleccion;
     property OnAbrirContenido: TClaveEvent read FOnAbrirContenido write FOnAbrirContenido;
@@ -189,6 +194,15 @@ begin
   Result.Caption := Texto;
 end;
 
+// Lista de propiedades que ocupa toda la pagina de una pestana del documento
+function TPanelDocumentos.NuevaLista(P: TPestanaDoc): TListaPropiedades;
+begin
+  Result := TListaPropiedades.Create(Self);
+  Result.Parent := FDoc.Pagina(P);
+  Result.Align := alClient;
+  Result.AplicarTema(FTema, FOscuro);
+end;
+
 procedure TPanelDocumentos.Construir;
 
   procedure Col(const Titulo: string; Ancho: Integer);
@@ -256,8 +270,12 @@ begin
   FDer.Left := Width; // el separador queda a su izquierda
   FSplitter.Left := FDer.Left - 1;
 
+  FDoc := TPanelDocumento.Create(Self);
+  FDoc.Parent := FDer;
+  FDoc.Align := alClient;
+
   FPie := TPanel.Create(Self);
-  FPie.Parent := FDer;
+  FPie.Parent := FDoc.Pagina(pdArchivos);
   FPie.Align := alBottom;
   FPie.Height := 112;
   FPie.BevelOuter := bvNone;
@@ -288,11 +306,14 @@ begin
   FEnlaceExp.Visible := False;
   FEnlaceExp.OnClick := EnlaceExpClick;
 
-  FProp := TListaPropiedades.Create(Self);
-  FProp.Parent := FDer;
-  FProp.Align := alClient;
-  FProp.AplicarTema(FTema, FOscuro);
-  FProp.OnVerHistoria := HistoriaClick;
+  FPropDatos := NuevaLista(pdDatos);
+  FPropUbicacion := NuevaLista(pdUbicacion);
+  FPropArchivos := NuevaLista(pdArchivos);
+  FPropMetadatos := NuevaLista(pdMetadatos);
+  FPropHistoria := NuevaLista(pdHistoria);
+  FPropHistoria.SinTituloHistoria := True;
+  FPropHistoria.OnVerHistoria := HistoriaClick;
+  FPropContenido := NuevaLista(pdContenido);
 
   // Lista virtual
   FLista := TListView.Create(Self);
@@ -604,7 +625,14 @@ begin
   FBtnAbrir.Enabled := False;
   FBtnExpediente.Visible := False;
   FEnlaceExp.Visible := False;
-  FProp.MostrarMensaje('Elija un documento para ver sus propiedades');
+  FPropDatos.MostrarMensaje('Elija un documento para ver sus propiedades');
+  FPropUbicacion.MostrarMensaje('Elija un documento para ver su ubicacion');
+  FPropArchivos.MostrarMensaje('Elija un documento para ver sus archivos');
+  FPropMetadatos.MostrarMensaje('Elija un documento para ver sus metadatos');
+  FPropHistoria.MostrarMensaje('Elija un documento para ver su historia');
+  FPropContenido.MostrarMensaje('Elija un documento para ver su contenido');
+  FDoc.FijarCabecera('', '', edDesconocido);
+  FDoc.FijarConteoArchivos(0);
 end;
 
 procedure TPanelDocumentos.MostrarPropiedades(Indice: Integer);
@@ -650,8 +678,17 @@ begin
     FHistoriaClave := D.Clave;
     FHistoriaValida := True;
   end;
-  FProp.Mostrar(Props, FHistoriaActual, FHayMasHistoria, FMotivoHistoria,
+  // Cada pestana recibe sus propiedades; Metadatos y Contenido se llenan en sus
+  // propias tareas y por ahora solo dicen que aun no estan disponibles
+  FDoc.FijarCabecera(D.Clave.Codigodoc, D.Titulo, D.Estado);
+  FPropDatos.Mostrar(PropiedadesDePestana(Props, pdDatos), nil, False, '', False);
+  FPropUbicacion.Mostrar(PropiedadesDePestana(Props, pdUbicacion), nil, False, '', False);
+  FPropArchivos.Mostrar(PropiedadesDePestana(Props, pdArchivos), nil, False, '', False);
+  FPropHistoria.Mostrar(nil, FHistoriaActual, FHayMasHistoria, FMotivoHistoria,
     Assigned(FOnPedirHistoria));
+  FPropMetadatos.MostrarMensaje('Los metadatos del documento se mostraran aqui');
+  FPropContenido.MostrarMensaje('El contenido del documento se mostrara aqui');
+  FDoc.FijarConteoArchivos(Length(FFicherosActuales));
 
   Digitales := 0;
   if Assigned(FOnPedirFicheros) then

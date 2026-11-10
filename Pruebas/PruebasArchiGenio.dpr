@@ -60,6 +60,7 @@ uses
   UPruebasBarraTrabajo in 'UPruebasBarraTrabajo.pas',
   UPruebasBloqueAccion in 'UPruebasBloqueAccion.pas',
   UPruebasPanelLateral in 'UPruebasPanelLateral.pas',
+  UPruebasPanelDocumento in 'UPruebasPanelDocumento.pas',
   UPruebasMetadatosSubserie in 'UPruebasMetadatosSubserie.pas',
   UCargaDocumento in '..\UCargaDocumento.pas',
   UCargaLote in '..\UCargaLote.pas',

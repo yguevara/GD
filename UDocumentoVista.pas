@@ -11,6 +11,10 @@ interface
 type
   TTipoDocumento = (tdDocumento, tdExpediente);
 
+  { Pestanas del panel del documento. }
+  TPestanaDoc = (pdDatos, pdUbicacion, pdArchivos, pdMetadatos, pdHistoria,
+    pdContenido);
+
   { Estado fisico del documento: sin dato (no se pudo consultar), en archivo o
     con un prestamo abierto (sin devolucion). }
   TEstadoDoc = (edDesconocido, edEnArchivo, edPrestado);
@@ -80,6 +84,12 @@ function ConstruirPropiedades(const D: TDatosDocumento;
 function FiltrarPorExpediente(const Docs: TArray<TDatosDocumento>;
   const Codigo: string): TArray<TDatosDocumento>;
 
+{ Propiedades de ConstruirPropiedades que van en una pestana: Datos = grupos
+  General y Expediente; Ubicacion = Posicion fisica; Archivos = Ficheros. Las
+  demas pestanas (Metadatos, Historia, Contenido) se arman aparte: vacio. }
+function PropiedadesDePestana(const Props: TArray<TPropiedad>;
+  P: TPestanaDoc): TArray<TPropiedad>;
+
 { '', 'En archivo' o 'Prestado'. }
 function TextoEstadoDoc(E: TEstadoDoc): string;
 { Texto: sin distinguir mayusculas ni espacios extremos, busca en codigo,
@@ -92,6 +102,32 @@ implementation
 
 uses
   System.SysUtils, System.Math;
+
+function PropiedadesDePestana(const Props: TArray<TPropiedad>;
+  P: TPestanaDoc): TArray<TPropiedad>;
+var
+  I, N: Integer;
+  Quiere: Boolean;
+begin
+  SetLength(Result, Length(Props));
+  N := 0;
+  for I := 0 to High(Props) do
+  begin
+    case P of
+      pdDatos: Quiere := (Props[I].Grupo = 'General') or (Props[I].Grupo = 'Expediente');
+      pdUbicacion: Quiere := Props[I].Grupo = 'Posicion fisica';
+      pdArchivos: Quiere := Props[I].Grupo = 'Ficheros';
+    else
+      Quiere := False;
+    end;
+    if Quiere then
+    begin
+      Result[N] := Props[I];
+      Inc(N);
+    end;
+  end;
+  SetLength(Result, N);
+end;
 
 function TextoEstadoDoc(E: TEstadoDoc): string;
 begin

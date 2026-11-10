@@ -31,6 +31,7 @@ type
     FDesplazamiento: Integer;
     FMidiendo: Boolean;
     FOnVerHistoria: TNotifyEvent;
+    FSinTituloHistoria: Boolean;
     procedure Medir;
     function AnchoTexto: Integer;
     procedure ConfigurarFuente(Tipo: TTipoFila);
@@ -67,6 +68,8 @@ type
       si no hay. }
     function RectEnlaceHistoria: TRect;
     property OnVerHistoria: TNotifyEvent read FOnVerHistoria write FOnVerHistoria;
+    { En la pestana Historia el rotulo "HISTORIA" sobra: la pestana ya lo dice. }
+    property SinTituloHistoria: Boolean read FSinTituloHistoria write FSinTituloHistoria;
   end;
 
 implementation
@@ -286,7 +289,8 @@ begin
   end;
   if MostrarHistoria then
   begin
-    Anade(tfGrupo, 'HISTORIA');
+    if not FSinTituloHistoria then
+      Anade(tfGrupo, 'HISTORIA');
     if Length(Historia) = 0 then
     begin
       // no decir "sin eventos" cuando en realidad no se pudo leer la historia

@@ -28,6 +28,8 @@ type
     [Test]
     procedure Propiedades_ClicEnVerHistoria_DisparaEvento;
     [Test]
+    procedure Seleccion_PonePestanasCabeceraYContadorDeArchivos;
+    [Test]
     procedure Filtro_PorTexto_DejaSoloLosQueCoinciden;
     [Test]
     procedure Filtro_SinResultados_MuestraTextoYNoSeleccion;
@@ -458,6 +460,30 @@ begin
     if (Padre.Controls[I] is TWinControl) and
       HayEtiquetaVisible(TWinControl(Padre.Controls[I]), Texto) then
       Exit(True);
+  end;
+end;
+
+procedure TPruebasPanelDocumentos.Seleccion_PonePestanasCabeceraYContadorDeArchivos;
+var
+  F: TForm;
+  P: TPanelDocumentos;
+  LV: TListView;
+begin
+  F := TForm.CreateNew(nil);
+  try
+    P := PanelCargado(F);
+    Assert.AreEqual('Sin documento', P.Documento.TextoCodigo);
+    LV := BuscarLista(P);
+    LV.Items[1].Selected := True;
+    PonerAlDia;
+    Assert.AreEqual('A 03.01.02.0002', P.Documento.TextoCodigo);
+    Assert.AreEqual('Prestado', P.Documento.TextoEstado);
+    Assert.IsTrue(Pos('GENERAL', BuscarProp(P).Contenido) > 0,
+      'la pestana Datos muestra el grupo General');
+    Assert.IsFalse(Pos('POSICION FISICA', BuscarProp(P).Contenido) > 0,
+      'la ubicacion ya no va en la pestana Datos');
+  finally
+    F.Free;
   end;
 end;
 

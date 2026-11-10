@@ -18,6 +18,12 @@ type
       out Hallado: Boolean): string;
   public
     [Test]
+    procedure PropiedadesDePestana_Datos_SoloGeneralYExpediente;
+    [Test]
+    procedure PropiedadesDePestana_Archivos_SoloFicheros;
+    [Test]
+    procedure PropiedadesDePestana_Metadatos_Vacio;
+    [Test]
     procedure TextoEstadoDoc_TresValores;
     [Test]
     procedure CoincideFiltro_TextoPorCodigoTituloYExpediente;
@@ -364,6 +370,50 @@ procedure TPruebasDocumentoVista.FiltrarPorExpediente_SinFiltroYCodigoInexistent
 begin
   Assert.AreEqual(4, Integer(Length(FiltrarPorExpediente(Lista4, ''))));
   Assert.AreEqual(0, Integer(Length(FiltrarPorExpediente(Lista4, 'NO-EXISTE'))));
+end;
+
+function PropsPrueba: TArray<TPropiedad>;
+  procedure Pon(I: Integer; const G, E, V: string);
+  begin
+    Result[I].Grupo := G;
+    Result[I].Etiqueta := E;
+    Result[I].Valor := V;
+  end;
+begin
+  SetLength(Result, 5);
+  Pon(0, 'General', 'Codigo', 'A1');
+  Pon(1, 'Expediente', 'Contiene', '2 documentos');
+  Pon(2, 'Posicion fisica', 'Ubicacion', 'Archivo 2');
+  Pon(3, 'Ficheros', 'Ficheros', 'Sin ficheros');
+  Pon(4, 'General', 'Titulo', 'T');
+end;
+
+procedure TPruebasDocumentoVista.PropiedadesDePestana_Datos_SoloGeneralYExpediente;
+var
+  R: TArray<TPropiedad>;
+begin
+  R := PropiedadesDePestana(PropsPrueba, pdDatos);
+  Assert.AreEqual(3, Integer(Length(R)));
+  Assert.AreEqual('Codigo', R[0].Etiqueta);
+  Assert.AreEqual('Contiene', R[1].Etiqueta);
+  Assert.AreEqual('Titulo', R[2].Etiqueta);
+  Assert.AreEqual(1, Integer(Length(PropiedadesDePestana(PropsPrueba, pdUbicacion))));
+end;
+
+procedure TPruebasDocumentoVista.PropiedadesDePestana_Archivos_SoloFicheros;
+var
+  R: TArray<TPropiedad>;
+begin
+  R := PropiedadesDePestana(PropsPrueba, pdArchivos);
+  Assert.AreEqual(1, Integer(Length(R)));
+  Assert.AreEqual('Ficheros', R[0].Grupo);
+end;
+
+procedure TPruebasDocumentoVista.PropiedadesDePestana_Metadatos_Vacio;
+begin
+  Assert.AreEqual(0, Integer(Length(PropiedadesDePestana(PropsPrueba, pdMetadatos))));
+  Assert.AreEqual(0, Integer(Length(PropiedadesDePestana(PropsPrueba, pdHistoria))));
+  Assert.AreEqual(0, Integer(Length(PropiedadesDePestana(PropsPrueba, pdContenido))));
 end;
 
 procedure TPruebasDocumentoVista.TextoEstadoDoc_TresValores;

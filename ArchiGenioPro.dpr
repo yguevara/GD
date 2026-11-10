@@ -50,6 +50,7 @@ uses
   UBarraTrabajo in 'UBarraTrabajo.pas',
   UBloqueAccion in 'UBloqueAccion.pas',
   UPanelLateral in 'UPanelLateral.pas',
+  UPanelDocumento in 'UPanelDocumento.pas',
   UIconos in 'UIconos.pas',
   UShellPrincipal in 'UShellPrincipal.pas',
   UAparienciaLegacy in 'UAparienciaLegacy.pas',

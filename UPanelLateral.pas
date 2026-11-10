@@ -36,6 +36,9 @@ type
     constructor Create(AOwner: TComponent); override;
     procedure Configurar(const T: TTemaColores);
     procedure Agregar(const Titulo: string);
+    { Cambia el texto de una pestana (por ejemplo para anadir un contador). }
+    procedure Retitular(Indice: Integer; const Titulo: string);
+    function Titulo(Indice: Integer): string;
     property Activa: Integer read FActiva write SetActiva;
     property OnElegir: TNotifyEvent read FOnElegir write FOnElegir;
   end;
@@ -126,6 +129,23 @@ begin
   SetLength(FTitulos, Length(FTitulos) + 1);
   FTitulos[High(FTitulos)] := Titulo;
   Invalidate;
+end;
+
+procedure TTiraPestanas.Retitular(Indice: Integer; const Titulo: string);
+begin
+  if (Indice >= 0) and (Indice <= High(FTitulos)) and (FTitulos[Indice] <> Titulo) then
+  begin
+    FTitulos[Indice] := Titulo;
+    Invalidate;
+  end;
+end;
+
+function TTiraPestanas.Titulo(Indice: Integer): string;
+begin
+  if (Indice >= 0) and (Indice <= High(FTitulos)) then
+    Result := FTitulos[Indice]
+  else
+    Result := '';
 end;
 
 function TTiraPestanas.IndiceEn(X: Integer): Integer;
