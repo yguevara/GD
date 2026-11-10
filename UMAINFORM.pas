@@ -32,7 +32,7 @@ uses
   cxDBRichEdit, System.Generics.Collections, cxSplitter, AdvListV, DBAdvLst,
   IniFiles, cxSpinEdit, Vcl.Grids, Vcl.DBGrids, JvDBControls, cxMaskEdit,
   dxScreenTip, dxCustomHint, cxHint, cxEditRepositoryItems, cxGroupBox,
-  UBusqueda, UAlcance, UPanelDocumentos, UBarraTrabajo, UBloqueAccion, UDocumentoVista, UMigracionPantalla, UExpedienteCompleto, UProgresoTransferencia, UTrazabilidad, UTrazabilidadDatos,
+  UBusqueda, UAlcance, UPanelDocumentos, UBarraTrabajo, UBloqueAccion, UPanelLateral, UDocumentoVista, UMigracionPantalla, UExpedienteCompleto, UProgresoTransferencia, UTrazabilidad, UTrazabilidadDatos,
   UAlmacenFicheros, UAlmacenServidor;
 
 type
@@ -657,6 +657,8 @@ type
     FTimerBarra: TTimer;
     FEnlaceSeries: TObject;
     FBloqueAccion: TBloqueAccion;
+    FPanelLateral: TPanelLateral;
+    FSepLateral: TSplitter;
     FCargandoSeries: Boolean;
     FCuadroPedido: Boolean;
     FNombresSerie: TDictionary<string, string>;
@@ -771,6 +773,9 @@ type
     procedure BarraElegirSerie(const CodSubs: string);
     procedure BarraFiltroCambio(Sender: TObject);
     procedure BloqueAccionCargar;
+    procedure ConectarPanelLateral;
+    procedure AjustarPanelLateral;
+    procedure ActualizarCabeceraLateral(const Cod: string);
     procedure BloqueAccionElegir(const Clave: string);
     procedure AjustarCuadroClasif;
     function CuadroClasifVisible: Boolean;
@@ -3260,6 +3265,11 @@ begin
     udm.sms('No hay datos para mostrar.', 2);
     Exit;
   end;
+  if FPanelLateral <> nil then
+  begin
+    FPanelLateral.Activar(PAG_COMPLEMENTARIA);
+    Exit;
+  end;
   {if not advtpDetalle.Visible then
     Exit;
   if (UDM.qryAnexosDig.RecordCount = 0) and (UDM.qryFuentesDig.RecordCount = 0) and (UDM.tb_DocCoord.RecordCount = 0) then
@@ -5333,6 +5343,11 @@ end;
 
 procedure TMAIN.PLADClick(Sender: TObject);
 begin
+  if FPanelLateral <> nil then
+  begin
+    FPanelLateral.Activar(PAG_COMPLEMENTARIA);
+    Exit;
+  end;
   if advtpDetalle.Visible then
   begin
 
@@ -5378,6 +5393,11 @@ end;
 
 procedure TMAIN.PLDSClick(Sender: TObject);
 begin
+  if FPanelLateral <> nil then
+  begin
+    FPanelLateral.Activar(PAG_DETALLE);
+    Exit;
+  end;
   if advtpDetalle.Visible then
   begin
     advtpDetail.Visible := True;
@@ -6590,14 +6610,18 @@ begin
     else
       advtpCuadroClasif.Show;
   end;
-  if Key = 121 then
+  if (Key = 121) and (FPanelLateral <> nil) then
+    FPanelLateral.Activar(PAG_DETALLE)
+  else if Key = 121 then
   begin
     if advtpDetail.Showing then
       advtpDetail.Hide
     else
       advtpDetail.Show;
   end;
-  if Key = 122 then
+  if (Key = 122) and (FPanelLateral <> nil) then
+    FPanelLateral.Activar(PAG_SERIES)
+  else if Key = 122 then
   begin
     if advtpSSDispo.Showing then
       advtpSSDispo.Hide
@@ -6799,6 +6823,7 @@ begin
     FBarraTrabajo.OnFiltroCambio := BarraFiltroCambio;
     FBarraTrabajo.OnEditar := ListaDocsAlternar;
     FBarraTrabajo.OnElegirSerie := BarraElegirSerie;
+    ConectarPanelLateral;
 
     FListaDocs := TPanelDocumentos.Create(Self);
     FListaDocs.Parent := PSeriesDatos;
@@ -6851,6 +6876,9 @@ begin
       FreeAndNil(FBarraTrabajo);
       FreeAndNil(FBloqueAccion);
       FreeAndNil(FEnlaceSeries);
+      FreeAndNil(FSepLateral);
+      FreeAndNil(FPanelLateral);
+      AjustarPanelLateral;
       AjustarCuadroClasif;
     end;
   end;
@@ -7208,6 +7236,71 @@ begin
   end;
 end;
 
+// Un solo panel a la derecha con tres pestanas (Series, Detalle,
+// Complementaria): los controles de los tres paneles de advtpDetalle se mueven
+// a sus paginas sin recrearlos, asi que conservan datos y manejadores.
+procedure TMAIN.ConectarPanelLateral;
+var
+  PagSeries, PagDetalle, PagComp: TPanel;
+begin
+  FPanelLateral := TPanelLateral.Create(Self);
+  FPanelLateral.Parent := PContainer;
+  FPanelLateral.Align := alRight;
+  FPanelLateral.Width := 380;
+  FPanelLateral.Visible := False;
+  FSepLateral := TSplitter.Create(Self);
+  FSepLateral.Parent := PContainer;
+  FSepLateral.Align := alRight;
+  FSepLateral.Width := 5;
+  FSepLateral.MinSize := 300;
+  FSepLateral.StyleElements := [];
+  FSepLateral.ParentColor := False;
+  FSepLateral.Color := TemaLegacyActual.Linea;
+  FSepLateral.Left := FPanelLateral.Left - 1;
+  FSepLateral.Visible := False;
+  PagSeries := FPanelLateral.AgregarPagina('Series');
+  PagDetalle := FPanelLateral.AgregarPagina('Detalle');
+  PagComp := FPanelLateral.AgregarPagina('Complementaria');
+  MoverContenido(advtpSSDispo, PagSeries, Self);
+  MoverContenido(advtpDetail, PagDetalle, Self);
+  MoverContenido(pArchivoDig, PagComp, Self);
+  // en 380 px las columnas se reparten el ancho en vez de salirse
+  cxGrid1DBTableView1.OptionsView.ColumnAutoWidth := True;
+  gVariablesDetailDBTableView1.OptionsView.ColumnAutoWidth := True;
+  FPanelLateral.Activar(PAG_DETALLE);
+end;
+
+// Con el panel lateral nuevo, advtpDetalle (las tres pestanas verticales) no se
+// muestra; sin el, queda como siempre.
+procedure TMAIN.AjustarPanelLateral;
+begin
+  if FPanelLateral <> nil then
+  begin
+    advtpDetalle.Visible := False;
+    FPanelLateral.Visible := True;
+    FSepLateral.Visible := True;
+  end
+  else
+    advtpDetalle.Visible := True;
+end;
+
+procedure TMAIN.ActualizarCabeceraLateral(const Cod: string);
+var
+  Nombre: string;
+begin
+  if FPanelLateral = nil then
+    Exit;
+  if Cod = '' then
+    FPanelLateral.FijarCabecera('', '')
+  else
+  begin
+    Nombre := Cod;
+    if FNombresSerie <> nil then
+      FNombresSerie.TryGetValue(Cod, Nombre);
+    FPanelLateral.FijarCabecera(Nombre, Cod);
+  end;
+end;
+
 procedure TMAIN.BarraNotificar(Sender: TObject);
 begin
   if (FBarraTrabajo = nil) or FCargandoSeries or (FTimerBarra = nil) then
@@ -7253,7 +7346,10 @@ begin
     if (not DS.Active) or (DS.State in [dsInsert, dsEdit]) then
     begin
       if not DS.Active then
+      begin
         FBarraTrabajo.FijarSeries(nil, '');
+        ActualizarCabeceraLateral('');
+      end;
       Exit;
     end;
     Actual := '';
@@ -7299,6 +7395,7 @@ begin
     end;
     SetLength(Series, N);
     FBarraTrabajo.FijarSeries(Series, Actual);
+    ActualizarCabeceraLateral(Actual);
   finally
     FCargandoSeries := False;
   end;
@@ -10695,7 +10792,7 @@ var
         etiquetaNA := NodeData.Etiqueta;
         advtpCuadroClasif.Caption := 'CDC ACTIVO ' + AnsiQuotedStr(etiquetaNA, '"');
         AjustarCuadroClasif;
-        advtpDetalle.Visible := True;
+        AjustarPanelLateral;
 
         if CuadroClasifVisible and not advtpCuadroClasif.Showing then
         begin
@@ -10860,7 +10957,7 @@ begin
             if UDM.tb_tree.Locate('IdEstructura;Id', VarArrayOf([PDataRec(AnItem.data).estruct, PDataRec(AnItem.data).id]), []) then
             begin
               AjustarCuadroClasif;
-              advtpDetalle.Visible := True;
+              AjustarPanelLateral;
               if CuadroClasifVisible and not advtpCuadroClasif.Showing then
               begin
                 advtpCuadroClasif.Show;
@@ -10905,7 +11002,7 @@ begin
 //           Estamos trabajando en este punto...
 //          BuscaAdministrador(AnItem, );
           AjustarCuadroClasif;
-          advtpDetalle.Visible := True;
+          AjustarPanelLateral;
           if CuadroClasifVisible and not advtpCuadroClasif.Showing then
           begin
             advtpCuadroClasif.Show;

@@ -49,6 +49,7 @@ uses
   UListaPropiedades in 'UListaPropiedades.pas',
   UBarraTrabajo in 'UBarraTrabajo.pas',
   UBloqueAccion in 'UBloqueAccion.pas',
+  UPanelLateral in 'UPanelLateral.pas',
   UIconos in 'UIconos.pas',
   UShellPrincipal in 'UShellPrincipal.pas',
   UAparienciaLegacy in 'UAparienciaLegacy.pas',
