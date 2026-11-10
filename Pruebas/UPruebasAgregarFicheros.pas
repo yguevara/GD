@@ -52,6 +52,12 @@ type
     [Test]
     procedure DocumentoConFicheros_UsaSuCarpetaYRaiz;
     [Test]
+    procedure RaicesMezcladas_CadaFicheroVaAlAlmacenDeSuRaiz;
+    [Test]
+    procedure Cancelar_DejaOmitidosLosQueFaltan;
+    [Test]
+    procedure Reemplaza_ConservaLaPosicionDelPdfPrincipal;
+    [Test]
     procedure Reemplaza_SubeElNuevoYBorraElAnterior;
     [Test]
     procedure Reemplaza_FallaLaSubida_ElAnteriorSigueIntacto;
@@ -209,7 +215,7 @@ begin
     var
       R: TResultadoFicheros;
     begin
-      R := AgregarFicheros(FConn, nil, FOrigen, FClave, FAlmI,
+      R := AgregarFicheros(FConn, nil, FOrigen, FClave, FabricaUnica(FAlmI),
         [Nuevo(Archivo('plano.pdf', 500), False)], nil);
       Assert.AreEqual(1, R.Agregados);
       Assert.AreEqual(0, R.Fallidos);
@@ -227,7 +233,7 @@ begin
     var
       R: TResultadoFicheros;
     begin
-      R := AgregarFicheros(FConn, nil, FOrigen, FClave, FAlmI,
+      R := AgregarFicheros(FConn, nil, FOrigen, FClave, FabricaUnica(FAlmI),
         [Nuevo(Archivo('memoria.docx', 300), True)], nil);
       Assert.AreEqual(1, R.Agregados);
       Assert.AreEqual(1, Cuenta('SELECT COUNT(*) FROM tb_ssArchdigital WHERE Codigodoc = ''' +
@@ -246,14 +252,14 @@ begin
       TDirectory.CreateDirectory(TPath.Combine(FCarpeta, 'otra'));
       Otro := TPath.Combine(FCarpeta, 'otra\a.pdf');
       TFile.WriteAllBytes(Otro, [1, 2, 3]);
-      R := AgregarFicheros(FConn, nil, FOrigen, FClave, FAlmI,
+      R := AgregarFicheros(FConn, nil, FOrigen, FClave, FabricaUnica(FAlmI),
         [Nuevo(TPath.Combine(FCarpeta, 'a.pdf'), False), Nuevo(Otro, False)], nil);
       Assert.AreEqual(2, R.Agregados);
       Assert.AreEqual(2, FAlm.Objetos.Count, 'no se pisan en el almacen');
       Assert.AreEqual(1, Cuenta('SELECT COUNT(*) FROM tb_ssArchdigital WHERE Codigodoc = ''' +
         COD + ''' AND nombre = ''a (2).pdf'''));
       // un segundo soltado con el mismo nombre tambien se renombra
-      R := AgregarFicheros(FConn, nil, FOrigen, FClave, FAlmI,
+      R := AgregarFicheros(FConn, nil, FOrigen, FClave, FabricaUnica(FAlmI),
         [Nuevo(TPath.Combine(FCarpeta, 'a.pdf'), False)], nil);
       Assert.AreEqual(1, Cuenta('SELECT COUNT(*) FROM tb_ssArchdigital WHERE Codigodoc = ''' +
         COD + ''' AND nombre = ''a (3).pdf'''));
@@ -267,11 +273,11 @@ begin
       R: TResultadoFicheros;
     begin
       // el segundo archivo falla al subir: el primero queda, el segundo no deja nada
-      R := AgregarFicheros(FConn, nil, FOrigen, FClave, FAlmI,
+      R := AgregarFicheros(FConn, nil, FOrigen, FClave, FabricaUnica(FAlmI),
         [Nuevo(Archivo('uno.pdf', 10), False)], nil);
       Assert.AreEqual(1, R.Agregados);
       FAlm.FallarSubidaEn := 'A.4.3/07/074/F6T-001/Anexos Digitales/dos.pdf';
-      R := AgregarFicheros(FConn, nil, FOrigen, FClave, FAlmI,
+      R := AgregarFicheros(FConn, nil, FOrigen, FClave, FabricaUnica(FAlmI),
         [Nuevo(Archivo('dos.pdf', 10), False)], nil);
       Assert.AreEqual(0, R.Agregados);
       Assert.AreEqual(1, R.Fallidos);
@@ -293,7 +299,7 @@ begin
       if not EsSql then
         Exit;
       FClave.Codigodoc := 'F6T-NOEXISTE';
-      R := AgregarFicheros(FConn, nil, FOrigen, FClave, FAlmI,
+      R := AgregarFicheros(FConn, nil, FOrigen, FClave, FabricaUnica(FAlmI),
         [Nuevo(Archivo('tres.pdf', 10), False)], nil);
       Assert.AreEqual(1, R.Fallidos);
       Assert.AreEqual(0, FAlm.Objetos.Count, 'el objeto subido se borra al fallar la fila');
@@ -309,7 +315,7 @@ begin
   Conectar(False);
   Al := TAlcanceUsuario.Create(False, nil, nil, nil, nil);
   try
-    var R := AgregarFicheros(FConn, Al, FOrigen, FClave, FAlmI,
+    var R := AgregarFicheros(FConn, Al, FOrigen, FClave, FabricaUnica(FAlmI),
       [Nuevo(Archivo('x.pdf', 10), False)], nil);
     Assert.AreEqual(0, R.Agregados);
     Assert.IsTrue(Pos('permiso', R.Mensaje) > 0);
@@ -325,7 +331,7 @@ begin
     var
       R: TResultadoFicheros;
     begin
-      R := AgregarFicheros(FConn, nil, FOrigen, FClave, FAlmI,
+      R := AgregarFicheros(FConn, nil, FOrigen, FClave, FabricaUnica(FAlmI),
         [Nuevo(TPath.Combine(FCarpeta, 'no_existe.pdf'), False),
         Nuevo(Archivo('bien.pdf', 10), False)], nil);
       Assert.AreEqual(1, R.Agregados, 'el siguiente archivo se procesa igual');
@@ -346,11 +352,84 @@ begin
         '''viejo.pdf'', 1, ''.pdf'', ''s3://5/'', ''\viejo\carpeta\'', 10, 0, 0, ''N'', ''viejo'')',
         [FClave.IdEstructura, FClave.Id, FClave.CodSubs, FClave.Fecha, FClave.Version,
         FClave.Codigodoc]);
-      R := AgregarFicheros(FConn, nil, FOrigen, FClave, FAlmI,
+      R := AgregarFicheros(FConn, nil, FOrigen, FClave, FabricaUnica(FAlmI),
         [Nuevo(Archivo('nuevo.pdf', 10), False)], nil);
       Assert.AreEqual(1, R.Agregados);
       Assert.AreEqual(1, Cuenta('SELECT COUNT(*) FROM tb_ssArchdigital WHERE Codigodoc = ''' +
         COD + ''' AND nombre = ''nuevo.pdf'' AND urlraiz = ''s3://5/'' AND path = ''\viejo\carpeta\'''));
+    end);
+end;
+
+procedure TPruebasAgregarFicheros.RaicesMezcladas_CadaFicheroVaAlAlmacenDeSuRaiz;
+begin
+  EnCadaMotor(procedure(EsSql: Boolean)
+    var
+      R: TResultadoFicheros;
+      OtroI: IAlmacenFicheros;
+      Otro: TAlmacenMemoria;
+      Fab: TFabricaAlmacen;
+    begin
+      // el documento tiene su anexo en la raiz s3://5/ (por ejemplo FTP antiguo) y
+      // aun no tiene fuentes: la fuente nueva va a la raiz de los documentos nuevos
+      FConn.ExecSQL('INSERT INTO tb_ssArchdigital (IdEstructura, id, codsubs, Fecha, ' +
+        'Version, Codigodoc, idhijo, nombre, ext, extnombre, urlraiz, path, tamano, ' +
+        'padre, nivel, fuente, Etiqueta) VALUES (:a, :b, :c, :d, :e, :f, 900002, ' +
+        '''viejo.pdf'', 1, ''.pdf'', ''s3://5/'', ''\viejo\carpeta\'', 10, 0, 0, ''N'', ''viejo'')',
+        [FClave.IdEstructura, FClave.Id, FClave.CodSubs, FClave.Fecha, FClave.Version,
+        FClave.Codigodoc]);
+      Otro := TAlmacenMemoria.Create;
+      OtroI := Otro;
+      Fab := function(const UrlRaiz, Path, Nombre: string; out Clave: string): IAlmacenFicheros
+        begin
+          Clave := ClaveDeObjeto(UrlRaiz, Path, Nombre);
+          if UrlRaiz = 's3://5/' then
+            Result := FAlmI
+          else
+            Result := OtroI;
+        end;
+      R := AgregarFicheros(FConn, nil, FOrigen, FClave, Fab,
+        [Nuevo(Archivo('fuente.docx', 10), True), Nuevo(Archivo('anexo.pdf', 10), False)], nil);
+      Assert.AreEqual(2, R.Agregados);
+      Assert.AreEqual(1, Otro.Objetos.Count, 'la fuente va al almacen de la raiz de documentos nuevos');
+      Assert.AreEqual(1, FAlm.Objetos.Count, 'el anexo va al almacen de su raiz existente');
+    end);
+end;
+
+procedure TPruebasAgregarFicheros.Cancelar_DejaOmitidosLosQueFaltan;
+begin
+  EnCadaMotor(procedure(EsSql: Boolean)
+    var
+      R: TResultadoFicheros;
+    begin
+      R := AgregarFicheros(FConn, nil, FOrigen, FClave, FabricaUnica(FAlmI),
+        [Nuevo(Archivo('c1.pdf', 10), False), Nuevo(Archivo('c2.pdf', 10), False),
+        Nuevo(Archivo('c3.pdf', 10), False)],
+        procedure(Hecho, Total: Int64; var Cancelar: Boolean)
+        begin
+          Cancelar := True; // el usuario cancela en el primer archivo
+        end);
+      Assert.AreEqual(0, R.Agregados);
+      Assert.AreEqual(1, R.Fallidos, 'el que se estaba subiendo');
+      Assert.AreEqual(2, R.Omitidos, 'los demas ni se intentan');
+      Assert.AreEqual(1, FAlm.Subidas);
+    end);
+end;
+
+procedure TPruebasAgregarFicheros.Reemplaza_ConservaLaPosicionDelPdfPrincipal;
+begin
+  EnCadaMotor(procedure(EsSql: Boolean)
+    var
+      Antes, Despues: Integer;
+    begin
+      AgregarFicheros(FConn, nil, FOrigen, FClave, FabricaUnica(FAlmI),
+        [Nuevo(Archivo('contenido.pdf', 40), False), Nuevo(Archivo('anexo2.pdf', 40), False)], nil);
+      Antes := Cuenta('SELECT idhijo FROM tb_ssArchdigital WHERE Codigodoc = ''' + COD +
+        ''' AND nombre = ''contenido.pdf''');
+      ReemplazarContenido(FConn, nil, FOrigen, FClave, FabricaUnica(FAlmI),
+        Archivo('reemplazo.pdf', 60), nil);
+      Despues := Cuenta('SELECT idhijo FROM tb_ssArchdigital WHERE Codigodoc = ''' + COD +
+        ''' AND nombre = ''reemplazo.pdf''');
+      Assert.AreEqual(Antes, Despues, 'el nuevo ocupa el lugar del anterior: sigue siendo el principal');
     end);
 end;
 
@@ -360,10 +439,10 @@ begin
     var
       R: TResultadoFicheros;
     begin
-      AgregarFicheros(FConn, nil, FOrigen, FClave, FAlmI,
+      AgregarFicheros(FConn, nil, FOrigen, FClave, FabricaUnica(FAlmI),
         [Nuevo(Archivo('viejo.pdf', 40), False)], nil);
       Assert.AreEqual(1, FAlm.Objetos.Count);
-      R := ReemplazarContenido(FConn, nil, FOrigen, FClave, FAlmI,
+      R := ReemplazarContenido(FConn, nil, FOrigen, FClave, FabricaUnica(FAlmI),
         Archivo('nuevo.pdf', 60), nil);
       Assert.AreEqual(1, R.Agregados);
       Assert.AreEqual('', R.Mensaje);
@@ -384,10 +463,10 @@ begin
     var
       R: TResultadoFicheros;
     begin
-      AgregarFicheros(FConn, nil, FOrigen, FClave, FAlmI,
+      AgregarFicheros(FConn, nil, FOrigen, FClave, FabricaUnica(FAlmI),
         [Nuevo(Archivo('viejo.pdf', 40), False)], nil);
       FAlm.FallarSubidaEn := 'A.4.3/07/074/F6T-001/Anexos Digitales/nuevo.pdf';
-      R := ReemplazarContenido(FConn, nil, FOrigen, FClave, FAlmI,
+      R := ReemplazarContenido(FConn, nil, FOrigen, FClave, FabricaUnica(FAlmI),
         Archivo('nuevo.pdf', 60), nil);
       Assert.AreEqual(0, R.Agregados);
       Assert.AreEqual(1, R.Fallidos);
@@ -404,7 +483,7 @@ begin
     var
       R: TResultadoFicheros;
     begin
-      R := ReemplazarContenido(FConn, nil, FOrigen, FClave, FAlmI,
+      R := ReemplazarContenido(FConn, nil, FOrigen, FClave, FabricaUnica(FAlmI),
         Archivo('memoria.docx', 20), nil);
       Assert.AreEqual(0, R.Agregados);
       Assert.IsTrue(Pos('PDF', R.Mensaje) > 0);
@@ -418,7 +497,7 @@ begin
     var
       R: TResultadoFicheros;
     begin
-      R := ReemplazarContenido(FConn, nil, FOrigen, FClave, FAlmI,
+      R := ReemplazarContenido(FConn, nil, FOrigen, FClave, FabricaUnica(FAlmI),
         Archivo('primero.pdf', 20), nil);
       Assert.AreEqual(1, R.Agregados);
       Assert.AreEqual(1, Cuenta('SELECT COUNT(*) FROM tb_ssArchdigital WHERE Codigodoc = ''' +
@@ -433,10 +512,10 @@ begin
     var
       R: TResultadoFicheros;
     begin
-      AgregarFicheros(FConn, nil, FOrigen, FClave, FAlmI,
+      AgregarFicheros(FConn, nil, FOrigen, FClave, FabricaUnica(FAlmI),
         [Nuevo(Archivo('viejo.pdf', 40), False)], nil);
       FAlm.FallarBorrado := True;
-      R := ReemplazarContenido(FConn, nil, FOrigen, FClave, FAlmI,
+      R := ReemplazarContenido(FConn, nil, FOrigen, FClave, FabricaUnica(FAlmI),
         Archivo('nuevo.pdf', 60), nil);
       Assert.AreEqual(1, R.Agregados, 'el nuevo ya esta guardado');
       Assert.IsTrue(Pos('anterior', R.Mensaje) > 0, 'avisa que el anterior quedo en el almacen');

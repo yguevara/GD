@@ -21,6 +21,7 @@ type
   TDestinoSoltar = class(TInterfacedObject, IDropTarget)
   private
     FDuenio: TRecepcionArchivos;
+    FEntro: Boolean;     // el arrastre actual trae archivos y se acepto
     function HayArchivos(const Datos: IDataObject): Boolean;
     function LeerRutas(const Datos: IDataObject): TArray<string>;
   public
@@ -45,6 +46,9 @@ type
     FOnSoltar: TSoltarEvent;
     FAnteriorWndProc: TWndMethod;
     procedure ControlWndProc(var Mensaje: TMessage);
+  protected
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+  private
     procedure Entrar;
     procedure Salir;
     procedure Soltado(const Rutas: TArray<string>);
@@ -75,6 +79,20 @@ implementation
 
 uses
   System.IOUtils;
+
+var
+  GOleIniciado: Boolean = False;
+
+{ OleInitialize una sola vez por proceso (el VCL ya lo hace al arrancar la
+  aplicacion; en las pruebas de consola no). S_FALSE significa que ya estaba. }
+procedure IniciarOle;
+begin
+  if not GOleIniciado then
+  begin
+    GOleIniciado := True;
+    OleInitialize(nil);
+  end;
+end;
 
 function FiltrarRutas(const Rutas, Extensiones: TArray<string>;
   out Rechazadas: TArray<string>): TArray<string>;
@@ -174,7 +192,8 @@ end;
 function TDestinoSoltar.DragEnter(const dataObj: IDataObject; grfKeyState: Longint;
   pt: TPoint; var dwEffect: Longint): HResult;
 begin
-  if (FDuenio <> nil) and FDuenio.FActivo and HayArchivos(dataObj) then
+  FEntro := (FDuenio <> nil) and FDuenio.FActivo and HayArchivos(dataObj);
+  if FEntro then
   begin
     dwEffect := DROPEFFECT_COPY;
     FDuenio.Entrar;
@@ -187,7 +206,8 @@ end;
 function TDestinoSoltar.DragOver(grfKeyState: Longint; pt: TPoint;
   var dwEffect: Longint): HResult;
 begin
-  if (FDuenio <> nil) and FDuenio.FActivo then
+  // el cursor de copiar solo si lo que se arrastra son archivos y se acepta
+  if FEntro and (FDuenio <> nil) and FDuenio.FActivo then
     dwEffect := DROPEFFECT_COPY
   else
     dwEffect := DROPEFFECT_NONE;
@@ -196,8 +216,9 @@ end;
 
 function TDestinoSoltar.DragLeave: HResult;
 begin
-  if FDuenio <> nil then
+  if FEntro and (FDuenio <> nil) then
     FDuenio.Salir;
+  FEntro := False;
   Result := S_OK;
 end;
 
@@ -205,9 +226,11 @@ function TDestinoSoltar.Drop(const dataObj: IDataObject; grfKeyState: Longint;
   pt: TPoint; var dwEffect: Longint): HResult;
 var
   Rutas: TArray<string>;
+  Yo: IDropTarget;
 begin
-  if FDuenio <> nil then
+  if FEntro and (FDuenio <> nil) then
     FDuenio.Salir;
+  FEntro := False;
   dwEffect := DROPEFFECT_NONE;
   if (FDuenio <> nil) and FDuenio.FActivo and HayArchivos(dataObj) then
   begin
@@ -215,7 +238,20 @@ begin
     if Length(Rutas) > 0 then
     begin
       dwEffect := DROPEFFECT_COPY;
-      FDuenio.Soltado(Rutas);
+      // El trabajo (ventanas modales, subidas) no corre dentro de la llamada OLE:
+      // el Explorador, que arrastra, quedaria congelado y una excepcion se
+      // perderia. Se encola y la llamada vuelve enseguida. La referencia a este
+      // destino lo mantiene vivo hasta que se ejecute.
+      Yo := Self;
+      TThread.ForceQueue(nil,
+        procedure
+        var
+          D: TDestinoSoltar;
+        begin
+          D := TDestinoSoltar(Yo as TObject);
+          if D.FDuenio <> nil then
+            D.FDuenio.Soltado(Rutas);
+        end);
     end;
   end;
   Result := S_OK;
@@ -233,7 +269,21 @@ begin
   // registracion se pierde con ella, asi que se vigila para repetirla.
   FAnteriorWndProc := FControl.WindowProc;
   FControl.WindowProc := ControlWndProc;
+  // si el control se libera antes que este componente (mismo duenio), no se le
+  // vuelve a tocar
+  FControl.FreeNotification(Self);
   Registrar;
+end;
+
+procedure TRecepcionArchivos.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited Notification(AComponent, Operation);
+  if (Operation = opRemove) and (AComponent = FControl) then
+  begin
+    FControl := nil;
+    FRegistrado := False;
+    FAnteriorWndProc := nil;
+  end;
 end;
 
 procedure TRecepcionArchivos.ControlWndProc(var Mensaje: TMessage);
@@ -252,7 +302,7 @@ procedure TRecepcionArchivos.Registrar;
 begin
   if FRegistrado or (FControl = nil) then
     Exit;
-  OleInitialize(nil);
+  IniciarOle;
   try
     FControl.HandleNeeded;
     if Succeeded(RegisterDragDrop(FControl.Handle, FDestino)) then
@@ -265,7 +315,9 @@ end;
 
 destructor TRecepcionArchivos.Destroy;
 begin
-  if Assigned(FAnteriorWndProc) and (FControl <> nil) then
+  // se quita el vigilante solo si sigue siendo este (otro pudo instalarse encima)
+  if Assigned(FAnteriorWndProc) and (FControl <> nil) and
+    (TMethod(FControl.WindowProc).Data = Pointer(Self)) then
     FControl.WindowProc := FAnteriorWndProc;
   if FRegistrado and (FControl <> nil) and FControl.HandleAllocated then
     RevokeDragDrop(FControl.Handle);

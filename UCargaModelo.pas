@@ -259,6 +259,21 @@ var
     Lista.Add(Ruta);
   end;
 
+  // Archivos de una carpeta y, si Sub, de sus subcarpetas, sin entrar en
+  // enlaces simbolicos ni uniones (un enlace que apunta a una carpeta superior
+  // haria un bucle infinito o recorreria medio disco)
+  procedure Recorre(const Carpeta: string; Sub: Boolean);
+  var
+    F, D: string;
+  begin
+    for F in TDirectory.GetFiles(Carpeta, '*', TSearchOption.soTopDirectoryOnly) do
+      Agregar(F);
+    if Sub then
+      for D in TDirectory.GetDirectories(Carpeta, '*', TSearchOption.soTopDirectoryOnly) do
+        if not (TFileAttribute.faSymLink in TDirectory.GetAttributes(D, False)) then
+          Recorre(D, True);
+  end;
+
 begin
   Vistos := TDictionary<string, Boolean>.Create;
   Lista := TList<string>.Create;
@@ -270,10 +285,7 @@ begin
     for I := 0 to High(Rutas) do
     begin
       if TDirectory.Exists(Rutas[I]) then
-      begin
-        for A in TDirectory.GetFiles(Rutas[I], '*', Opcion) do
-          Agregar(A);
-      end
+        Recorre(Rutas[I], Recursivo)
       else if TFile.Exists(Rutas[I]) then
         Agregar(Rutas[I]);
     end;

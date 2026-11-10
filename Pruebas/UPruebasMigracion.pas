@@ -97,11 +97,19 @@ end;
 function TAlmacenMemoria.Subir(const Local, Clave: string; Progreso: TProgresoEvento): TResultadoSubida;
 var
   B: TBytes;
+  Cancelar: Boolean;
 begin
   Inc(Subidas);
   if (FallarSubidaEn <> '') and (Clave = FallarSubidaEn) then
     raise EAlmacen.Create('fallo simulado de subida');
   B := TFile.ReadAllBytes(Local);
+  if Assigned(Progreso) then
+  begin
+    Cancelar := False;
+    Progreso(Length(B), Length(B), Cancelar);
+    if Cancelar then
+      raise EAlmacen.Create('subida cancelada');
+  end;
   Objetos.AddOrSetValue(Clave, B);
   Result.Tamano := Length(B);
   Result.Md5 := LowerCase(THashMD5.GetHashStringFromFile(Local));

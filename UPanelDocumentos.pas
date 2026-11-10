@@ -626,6 +626,7 @@ begin
   if TeniaSeleccion then
     Previa := FVisibles[FIndiceActual].Clave;
   FSinSubserie := False;
+  FRecepLista.Activo := True;
   FTodos := Copy(Docs);
   FTitulo := Titulo;
   FExpFiltrado := '';
@@ -637,6 +638,7 @@ end;
 procedure TPanelDocumentos.MostrarSinSubserie;
 begin
   FSinSubserie := True;
+  FRecepLista.Activo := False; // sin subserie no hay donde agregar: el cursor lo dice
   FTodos := nil;
   FTitulo := '';
   FExpFiltrado := '';

@@ -33,7 +33,7 @@ uses
   IniFiles, cxSpinEdit, Vcl.Grids, Vcl.DBGrids, JvDBControls, cxMaskEdit,
   dxScreenTip, dxCustomHint, cxHint, cxEditRepositoryItems, cxGroupBox,
   UBusqueda, UAlcance, UPanelDocumentos, UBarraTrabajo, UBloqueAccion, UPanelLateral,
-  UCargaDocumento, UDocumentoVista, UMigracionPantalla, UExpedienteCompleto, UProgresoTransferencia, UTrazabilidad, UTrazabilidadDatos,
+  UCargaDocumento, UAgregarFicheros, UDocumentoVista, UMigracionPantalla, UExpedienteCompleto, UProgresoTransferencia, UTrazabilidad, UTrazabilidadDatos,
   UAlmacenFicheros, UAlmacenServidor;
 
 type
@@ -811,8 +811,9 @@ type
     procedure AgregarDocumentosConRutas(const Rutas: TArray<string>);
     procedure ListaDocsSoltar(const Rutas: TArray<string>);
     function ListaDocsPuedeEditar: Boolean;
-    function AlmacenParaDocumento(const Clave: TClaveDocumento;
-      out Origen: TOrigenDocumento; out Almacen: IAlmacenFicheros): Boolean;
+    function OrigenParaDocumento(const Clave: TClaveDocumento;
+      out Origen: TOrigenDocumento): Boolean;
+    function FabricaDeAlmacenes: TFabricaAlmacen;
     procedure ListaDocsSoltarContenido(const Clave: TClaveDocumento; const Pdf: string);
     procedure ShellAvisoSoltar(const Texto: string);
     procedure ListaDocsSoltarFicheros(const Clave: TClaveDocumento;
@@ -846,7 +847,7 @@ uses
   USystemMsg, UNodeProperties, UCL_TiposExp, USysConfig, UTransferencias,
   UExportImportDocumentSubSeries, UManagementIndex, UAdminLog, UManagementTrans,
   UDepuracion, UTopoDocActual, UREditor, UNodeInfo, frmTransferencia, UPrestamos,
-  UShellPrincipal, System.Diagnostics, System.IOUtils, System.Hash, UAgregarFicheros,
+  UShellPrincipal, System.Diagnostics, System.IOUtils, System.Hash,
   UCargaModelo;
 
 {$R *.dfm}
@@ -7763,10 +7764,8 @@ begin
     UDM.qryAnexosDig.First;
     while not UDM.qryAnexosDig.Eof do
     begin
-      Ext := ExtensionNormal(UDM.qryAnexosDig.FieldByName('extnombre').AsString);
-      if Ext = '' then
-        Ext := ExtensionNormal(ExtractFileExt(UDM.qryAnexosDig.FieldByName('nombre').AsString));
-      if Ext = 'pdf' then
+      if EsPdfDeFichero(UDM.qryAnexosDig.FieldByName('nombre').AsString,
+        UDM.qryAnexosDig.FieldByName('extnombre').AsString) then
       begin
         Nombre := UDM.qryAnexosDig.FieldByName('nombre').AsString;
         UrlRaiz := UDM.qryAnexosDig.FieldByName('urlraiz').AsString;
@@ -7897,20 +7896,31 @@ begin
       UDM.tb_Serietree.FieldByName('codsubs').AsString);
   end
   else
-    Result := (UDM.Alcance = nil) and (nbPost in dbnSeriesDatos.VisibleButtons);
+    Result := (UDM.Alcance = nil) and (nbPost in dbnSeriesDatos.VisibleButtons) and
+      UDM.tb_SeriesDatos.Active and UDM.tb_SeriesDatos.CanModify;
 end;
 
-// Origen y almacen para agregar ficheros a un documento: se usa el servidor de
-// los ficheros que el documento ya tiene (S3 o el FTP por defecto); si no tiene
-// ninguno, el servidor S3 de los documentos nuevos.
-function TMAIN.AlmacenParaDocumento(const Clave: TClaveDocumento;
-  out Origen: TOrigenDocumento; out Almacen: IAlmacenFicheros): Boolean;
+// Almacen de cada fichero segun su raiz: un documento puede tener ficheros en
+// servidores distintos (FTP antiguo y S3), asi que no hay un almacen por documento.
+function TMAIN.FabricaDeAlmacenes: TFabricaAlmacen;
+begin
+  Result := function(const UrlRaiz, Path, Nombre: string; out Clave: string): IAlmacenFicheros
+    begin
+      Result := AlmacenParaFichero(UDM.Conn, UrlRaiz,
+        UDM.cmdServer.FieldByName('Idservidor').AsInteger, Clave, Path, Nombre);
+    end;
+end;
+
+// Origen para agregar ficheros a un documento. Si el documento aun no tiene
+// ficheros, los nuevos van al servidor S3 de documentos nuevos: se comprueba que
+// exista antes de empezar.
+function TMAIN.OrigenParaDocumento(const Clave: TClaveDocumento;
+  out Origen: TOrigenDocumento): Boolean;
 var
-  UrlRaiz: string;
-  IdS3, IdServ: Integer;
+  IdServ: Integer;
+  SinFicheros: Boolean;
 begin
   Result := False;
-  Almacen := nil;
   Origen := Default(TOrigenDocumento);
   Origen.IdEstructura := Clave.IdEstructura;
   Origen.Id := Clave.Id;
@@ -7919,31 +7929,23 @@ begin
   Origen.Usuario := UDM.UserName;
   Origen.Rol := UDM.Rol;
   Origen.UrlRaiz := UDM.UrlRaizNuevos;
-  UrlRaiz := '';
-  if UDM.qryAnexosDig.Active and not UDM.qryAnexosDig.IsEmpty then
-    UrlRaiz := UDM.qryAnexosDig.FieldByName('urlraiz').AsString
-  else if UDM.qryFuentesDig.Active and not UDM.qryFuentesDig.IsEmpty then
-    UrlRaiz := UDM.qryFuentesDig.FieldByName('urlraiz').AsString;
-  try
-    if (UrlRaiz <> '') and EsUrlRaizS3(UrlRaiz, IdS3) then
-      Almacen := CrearAlmacen(UDM.Conn, IdS3)
-    else if UrlRaiz <> '' then
-      Almacen := CrearAlmacen(UDM.Conn, UDM.cmdServer.FieldByName('Idservidor').AsInteger)
-    else
-    begin
+  SinFicheros := not ((UDM.qryAnexosDig.Active and not UDM.qryAnexosDig.IsEmpty) or
+    (UDM.qryFuentesDig.Active and not UDM.qryFuentesDig.IsEmpty));
+  if SinFicheros then
+  begin
+    IdServ := 0;
+    try
       IdServ := ServidorDestinoNuevos(UDM.Conn);
-      if IdServ <= 0 then
-      begin
-        UDM.sms('Registre primero un servidor S3 en Clasificadores > Servidores.', 3);
-        Exit;
-      end;
-      Almacen := CrearAlmacen(UDM.Conn, IdServ);
+    except
+      IdServ := 0;
     end;
-    Result := True;
-  except
-    on E: Exception do
-      UDM.sms('No se pudo preparar el servidor de ficheros: ' + E.Message, 3);
+    if IdServ <= 0 then
+    begin
+      UDM.sms('Registre primero un servidor S3 en Clasificadores > Servidores.', 3);
+      Exit;
+    end;
   end;
+  Result := True;
 end;
 
 procedure TMAIN.ShellAvisoSoltar(const Texto: string);
@@ -7957,7 +7959,6 @@ end;
 procedure TMAIN.ListaDocsSoltarContenido(const Clave: TClaveDocumento; const Pdf: string);
 var
   Origen: TOrigenDocumento;
-  Almacen: IAlmacenFicheros;
   R: TResultadoFicheros;
   Prog: TProgresoTransferencia;
   Anterior: string;
@@ -7977,7 +7978,9 @@ begin
       UDM.qryAnexosDig.First;
       while not UDM.qryAnexosDig.Eof do
       begin
-        if SameText(ExtractFileExt(UDM.qryAnexosDig.FieldByName('nombre').AsString), '.pdf') then
+        // la misma regla de "es PDF" que el visor y que el reemplazo
+        if EsPdfDeFichero(UDM.qryAnexosDig.FieldByName('nombre').AsString,
+          UDM.qryAnexosDig.FieldByName('extnombre').AsString) then
         begin
           Anterior := UDM.qryAnexosDig.FieldByName('nombre').AsString;
           Break;
@@ -7993,11 +7996,11 @@ begin
     '").' + sLineBreak + 'Reemplazarlo por "' + ExtractFileName(Pdf) + '"?',
     mtConfirmation, [mbYes, mbNo], 0) <> mrYes) then
     Exit;
-  if not AlmacenParaDocumento(Clave, Origen, Almacen) then
+  if not OrigenParaDocumento(Clave, Origen) then
     Exit;
   Prog := TProgresoTransferencia.Create(nil, 'Guardando el contenido', Trim(Clave.Codigodoc));
   try
-    R := ReemplazarContenido(UDM.Conn, UDM.Alcance, Origen, Clave, Almacen, Pdf,
+    R := ReemplazarContenido(UDM.Conn, UDM.Alcance, Origen, Clave, FabricaDeAlmacenes(), Pdf,
       procedure(Hecho, Total: Int64; var Cancelar: Boolean)
       begin
         Prog.Actualizar(Hecho, Total, Cancelar);
@@ -8015,7 +8018,9 @@ begin
       FContenidoCache.Clear;
     if UDM.qryAnexosDig.Active then
       UDM.qryAnexosDig.Refresh;
-    if FListaDocs <> nil then
+    if (FListaDocs <> nil) and FModoLista then
+      ListaDocsCargar
+    else if FListaDocs <> nil then
       FListaDocs.SeleccionarClave(Clave);
   end
   else
@@ -8032,10 +8037,10 @@ var
   Archivos: TArray<string>;
   Lista: TArray<TFicheroNuevo>;
   Origen: TOrigenDocumento;
-  Almacen: IAlmacenFicheros;
   R: TResultadoFicheros;
   Prog: TProgresoTransferencia;
   I: Integer;
+  HayCarpeta: Boolean;
 begin
   if not ListaDocsPuedeEditar then
   begin
@@ -8050,7 +8055,18 @@ begin
     UDM.sms('No se encontraron archivos que agregar.', 2);
     Exit;
   end;
-  if not AlmacenParaDocumento(Clave, Origen, Almacen) then
+  // soltar una carpeta o varios archivos sube muchos ficheros: se confirma
+  HayCarpeta := False;
+  for I := 0 to High(Rutas) do
+    if TDirectory.Exists(Rutas[I]) then
+      HayCarpeta := True;
+  if (HayCarpeta or (Length(Archivos) > 1)) and
+    (MessageDlg(Format('Agregar %d archivo(s) al documento "%s" como %s?',
+    [Length(Archivos), Trim(Clave.Codigodoc),
+    IfThen(EsFuente, 'fuentes', 'anexos digitales')]), mtConfirmation,
+    [mbYes, mbNo], 0) <> mrYes) then
+    Exit;
+  if not OrigenParaDocumento(Clave, Origen) then
     Exit;
   SetLength(Lista, Length(Archivos));
   for I := 0 to High(Archivos) do
@@ -8060,7 +8076,7 @@ begin
   end;
   Prog := TProgresoTransferencia.Create(nil, 'Agregando ficheros', Trim(Clave.Codigodoc));
   try
-    R := AgregarFicheros(UDM.Conn, UDM.Alcance, Origen, Clave, Almacen, Lista,
+    R := AgregarFicheros(UDM.Conn, UDM.Alcance, Origen, Clave, FabricaDeAlmacenes(), Lista,
       procedure(Hecho, Total: Int64; var Cancelar: Boolean)
       begin
         Prog.Actualizar(Hecho, Total, Cancelar);
@@ -8081,7 +8097,10 @@ begin
       UDM.qryAnexosDig.Refresh;
     if UDM.qryFuentesDig.Active then
       UDM.qryFuentesDig.Refresh;
-    if FListaDocs <> nil then
+    // se recarga la lista para que su columna de ficheros refleje lo agregado
+    if (FListaDocs <> nil) and FModoLista then
+      ListaDocsCargar
+    else if FListaDocs <> nil then
       FListaDocs.SeleccionarClave(Clave);
   end;
 end;

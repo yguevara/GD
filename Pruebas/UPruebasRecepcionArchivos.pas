@@ -41,7 +41,7 @@ implementation
 
 uses
   System.SysUtils, System.Classes, System.IOUtils, Vcl.Forms, Vcl.Controls,
-  Vcl.ExtCtrls, Winapi.Messages, URecepcionArchivos;
+  Vcl.ExtCtrls, Winapi.Messages, Winapi.Windows, URecepcionArchivos;
 
 type
   TReceptor = class
@@ -149,6 +149,9 @@ begin
     TWinControl(F.Controls[0]).Perform(CM_RECREATEWND, 0, 0);
     Application.ProcessMessages;
     Assert.IsTrue(Rc.Registrado, 'tras recrear la ventana se registra de nuevo');
+    // OLE guarda el destino en una propiedad de la ventana: debe estar en la nueva
+    Assert.IsTrue(GetProp(TWinControl(F.Controls[0]).Handle, 'OleDropTargetInterface') <> 0,
+      'el control nuevo debe estar registrado en OLE de verdad');
   finally
     F.Free;
     R.Free;
