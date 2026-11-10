@@ -18,12 +18,18 @@ procedure InstalarAparienciaLegacy;
 { Adapta un formulario (una sola vez por formulario). }
 procedure AplicarAparienciaLegacy(Form: TForm; const Tema: TTemaColores);
 
+{ Paleta del tema en uso (la misma con la que se adaptan los formularios). }
+function TemaLegacyActual: TTemaColores;
+
 implementation
 
 uses
   System.SysUtils, System.Classes, System.TypInfo, System.Generics.Collections,
-  Winapi.Windows, Vcl.Controls, Vcl.Graphics, Vcl.ExtCtrls, Vcl.StdCtrls,
-  cxGraphics, cxStyles, cxGridTableView, cxGridCustomTableView, cxVGrid, cxPC, JvTransparentButton,
+  Winapi.Windows, Winapi.CommCtrl, Winapi.UxTheme, Vcl.Controls, Vcl.Graphics,
+  Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.ComCtrls,
+  cxGraphics, cxStyles, cxControls, cxLookAndFeels, cxGrid, cxGridTableView,
+  cxGridCustomTableView, cxVGrid, cxPC, JvTransparentButton, dxNavBar, dxNavBarBase,
+  dxNavBarCollns,
   UShellPrincipal, UIconos;
 
 type
@@ -144,6 +150,9 @@ begin
   Result := TcxStyle.Create(Self);
   Result.Color := Color;
   Result.TextColor := Texto;
+  // letra legible en toda rejilla cx (antes Tahoma 8)
+  Result.Font.Name := 'Segoe UI';
+  Result.Font.Size := 9;
 end;
 
 constructor TEstilosLegacy.CrearCon(const T: TTemaColores);
@@ -201,6 +210,106 @@ begin
   G.Styles.Inactive := GEstilos.Inactivo;
   G.Styles.Selection := GEstilos.Seleccion;
   G.Styles.IncSearch := GEstilos.Busqueda;
+end;
+
+{ Rejilla cx: sin el marco negro ni el aspecto 3D antiguo. }
+procedure AdaptarRejilla(G: TcxGrid);
+begin
+  G.BorderStyle := cxcbsNone;
+  G.LookAndFeel.NativeStyle := False;
+  G.LookAndFeel.Kind := lfUltraFlat;
+  if SameText(G.Font.Name, 'Tahoma') or SameText(G.Font.Name, 'MS Sans Serif') then
+  begin
+    G.Font.Name := 'Segoe UI';
+    G.Font.Size := 10;
+  end;
+end;
+
+{ Arbol del cuadro de clasificacion y demas TTreeView: fuente legible, sin
+  lineas punteadas, filas completas, chevrones del estilo Explorer y los colores
+  del tema. La altura de fila sigue a los iconos (32 px en el arbol principal). }
+procedure AdaptarArbol(A: TTreeView; const T: TTemaColores);
+var
+  Alto: Integer;
+begin
+  A.StyleElements := [];
+  A.BorderStyle := bsNone;
+  A.Color := T.Superficie;
+  A.Font.Name := 'Segoe UI';
+  A.Font.Size := 11;
+  A.Font.Color := T.Texto;
+  A.ShowLines := False;
+  A.RowSelect := True;
+  A.Indent := 24;
+  A.HandleNeeded;
+  SetWindowTheme(A.Handle, 'Explorer', nil);
+  SendMessage(A.Handle, TVM_SETEXTENDEDSTYLE, TVS_EX_DOUBLEBUFFER, TVS_EX_DOUBLEBUFFER);
+  Alto := 28;
+  if (A.Images <> nil) and (A.Images.Height + 4 > Alto) then
+    Alto := A.Images.Height + 4;
+  TreeView_SetItemHeight(A.Handle, Alto);
+end;
+
+{ Fuente antigua (Tahoma, MS Sans Serif...) a Segoe UI de al menos 9 pt. }
+procedure ModernizarFuente(F: TFont);
+begin
+  if F = nil then
+    Exit;
+  if SameText(F.Name, 'Tahoma') or SameText(F.Name, 'MS Sans Serif') or
+    SameText(F.Name, 'MS Shell Dlg') or SameText(F.Name, 'MS Shell Dlg 2') or
+    SameText(F.Name, 'Arial') then
+  begin
+    F.Name := 'Segoe UI';
+    if F.Size < 9 then
+      F.Size := 9;
+  end;
+end;
+
+{ Paneles laterales de detalle (TAdvToolPanel): cabecera y todo lo que llevan
+  dentro pasan a Segoe UI. Los colores ya los pone AdaptarPanelTercero. }
+procedure AdaptarPanelLateral(P: TWinControl; const T: TTemaColores);
+var
+  I: Integer;
+  Obj: TObject;
+begin
+  if GetPropInfo(P, 'CaptionFont') <> nil then
+  begin
+    Obj := GetObjectProp(P, 'CaptionFont');
+    if Obj is TFont then
+    begin
+      TFont(Obj).Name := 'Segoe UI';
+      TFont(Obj).Size := 10;
+      TFont(Obj).Style := [fsBold];
+      TFont(Obj).Color := T.Texto;
+    end;
+  end;
+  for I := 0 to P.ControlCount - 1 do
+  begin
+    if GetPropInfo(P.Controls[I], 'Font') <> nil then
+    begin
+      Obj := GetObjectProp(P.Controls[I], 'Font');
+      if Obj is TFont then
+        ModernizarFuente(TFont(Obj));
+    end;
+    if P.Controls[I] is TWinControl then
+      AdaptarPanelLateral(TWinControl(P.Controls[I]), T);
+  end;
+end;
+
+{ Panel de navegacion (nbMain, "Mi area"): la cabecera pierde el degradado azul
+  del esquema y usa la superficie y el texto del tema. }
+procedure AdaptarNavBar(N: TdxNavBar; const T: TTemaColores);
+begin
+  with N.DefaultStyles.NavigationPaneHeader do
+  begin
+    Font.Name := 'Segoe UI';
+    Font.Size := 9;
+    Font.Style := [fsBold];
+    Font.Color := T.TextoSuave;
+    BackColor := T.Superficie2;
+    BackColor2 := T.Superficie2;
+  end;
+  N.Color := T.Superficie;
 end;
 
 { Paginas con pestanas: sin degradado ni el azul de fondo, con la superficie
@@ -334,6 +443,12 @@ begin
     AdaptarBoton(TJvTransparentButton(C), T)
   else if C is TcxPageControl then
     AdaptarPaginas(TcxPageControl(C), T)
+  else if C is TcxGrid then
+    AdaptarRejilla(TcxGrid(C))
+  else if C is TTreeView then
+    AdaptarArbol(TTreeView(C), T)
+  else if C is TdxNavBar then
+    AdaptarNavBar(TdxNavBar(C), T)
   else if (C.ClassName = 'TAdvPanel') or (C.ClassName = 'TAdvToolPanel') or
     (C.ClassName = 'TAdvToolPanelTab') or (C.ClassName = 'TJvCaptionPanel') then
     AdaptarPanelTercero(C, T)
@@ -528,6 +643,16 @@ begin
     // Solo apariencia: quedan los iconos anteriores
   end;
   try
+    // Paneles laterales de detalle del formulario principal
+    if Form.ClassName = 'TMAIN' then
+      for I := 0 to Form.ComponentCount - 1 do
+        if (Form.Components[I].ClassName = 'TAdvToolPanel') and
+          (Form.Components[I] is TWinControl) then
+          AdaptarPanelLateral(TWinControl(Form.Components[I]), Tema);
+  except
+    // Solo apariencia
+  end;
+  try
     // "Series agregadas a la estructura actual" (cuadro de clasificacion)
     if (Form.ClassName = 'TMAIN') and (Form.FindComponent('PageControl1') is TcxPageControl) then
       EncabezadoPagina(TcxPageControl(Form.FindComponent('PageControl1')),
@@ -535,6 +660,16 @@ begin
   except
     // Solo apariencia
   end;
+end;
+
+function TemaLegacyActual: TTemaColores;
+begin
+  if GTemaListo then
+    Result := GTema
+  else if TemaWindowsOscuro then
+    Result := TemaOscuro
+  else
+    Result := TemaClaro;
 end;
 
 { TManejadorApariencia }
