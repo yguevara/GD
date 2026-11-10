@@ -64,6 +64,7 @@ uses
   UPruebasVisorContenido in 'UPruebasVisorContenido.pas',
   UPruebasRecepcionArchivos in 'UPruebasRecepcionArchivos.pas',
   UPruebasAgregarFicheros in 'UPruebasAgregarFicheros.pas',
+  UPruebasEdicionDocumento in 'UPruebasEdicionDocumento.pas',
   UPruebasMetadatosSubserie in 'UPruebasMetadatosSubserie.pas',
   UCargaDocumento in '..\UCargaDocumento.pas',
   UCargaLote in '..\UCargaLote.pas',
