@@ -32,7 +32,7 @@ uses
   cxDBRichEdit, System.Generics.Collections, cxSplitter, AdvListV, DBAdvLst,
   IniFiles, cxSpinEdit, Vcl.Grids, Vcl.DBGrids, JvDBControls, cxMaskEdit,
   dxScreenTip, dxCustomHint, cxHint, cxEditRepositoryItems, cxGroupBox,
-  UBusqueda, UAlcance, UPanelDocumentos, UDocumentoVista, UMigracionPantalla, UExpedienteCompleto, UProgresoTransferencia, UTrazabilidad, UTrazabilidadDatos,
+  UBusqueda, UAlcance, UPanelDocumentos, UBarraTrabajo, UBloqueAccion, UDocumentoVista, UMigracionPantalla, UExpedienteCompleto, UProgresoTransferencia, UTrazabilidad, UTrazabilidadDatos,
   UAlmacenFicheros, UAlmacenServidor;
 
 type
@@ -653,7 +653,11 @@ type
     FShellMenuClasif: TPopupMenu;
     // Lista de documentos de la subserie (F2)
     FListaDocs: TPanelDocumentos;
-    FBarraRejilla: TPanel;
+    FBarraTrabajo: TBarraTrabajo;
+    FTimerBarra: TTimer;
+    FEnlaceSeries: TObject;
+    FBloqueAccion: TBloqueAccion;
+    FCargandoSeries: Boolean;
     FEnlaceDocs: TObject;
     FTimerDocs: TTimer;
     FModoLista: Boolean;
@@ -758,6 +762,15 @@ type
     function ListaDocsHistoria(const Clave: TClaveDocumento;
       out HayMas: Boolean; out Motivo: string): TArray<TEventoDoc>;
     procedure ListaDocsAlternar(Sender: TObject);
+    // Barra de trabajo: series como fichas y filtro de la lista
+    procedure BarraNotificar(Sender: TObject);
+    procedure BarraRefrescar(Sender: TObject);
+    procedure BarraSeriesCargar;
+    procedure BarraElegirSerie(const CodSubs: string);
+    procedure BarraFiltroCambio(Sender: TObject);
+    procedure BloqueAccionCargar;
+    procedure BloqueAccionElegir(const Clave: string);
+    procedure AjustarCuadroClasif;
     procedure ShellAgregarDocumento(Sender: TObject);
     procedure ShellBuscar(const Texto: string; Ambito: TAmbitoBusqueda);
     function SeleccionarNodoEnArbol(const Nodo: TClaveNodo): Boolean;
@@ -782,7 +795,7 @@ var
 implementation
 
 uses
-  UAparienciaLegacy, UIconos, UDocumentoVistaDatos, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UCapaDatos, UUserGest, UDocManagement,
+  UAparienciaLegacy, UTema, UIconos, UDocumentoVistaDatos, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UCapaDatos, UUserGest, UDocManagement,
   UPantallaCarga, UCargaDocumento, UCLSeriesDocumentales, UCLFtpServer, UGestEstruct, UMangementArch,
   UManagementFileSeries, UViewFunciones, UVeditor, UExcelExport, UManagementNode,
   USystemMsg, UNodeProperties, UCL_TiposExp, USysConfig, UTransferencias,
@@ -5350,7 +5363,7 @@ end;
 
 procedure TMAIN.PLCCClick(Sender: TObject);
 begin
-  if advtpCC.Visible then
+  if advtpCC.Visible and (FBarraTrabajo = nil) then
   begin
     advtpCuadroClasif.Visible := True;
     advtpCuadroClasif.Locked := True;
@@ -6558,7 +6571,7 @@ begin
   if Key = 123 then
     if UDM.tb_Serietree.RecordCount > 0 then
       jvcpSSDetail.Visible := not jvcpSSDetail.Visible;
-  if Key = 120 then
+  if (Key = 120) and (FBarraTrabajo = nil) then
   begin
     if advtpCuadroClasif.Showing then
       advtpCuadroClasif.Hide
@@ -6728,25 +6741,52 @@ end;
 // exista la carga nueva. Se alimenta de UDM.tb_SeriesDatos, el mismo dataset
 // de la rejilla, de modo que lista lo que el usuario ya veia. Sin efecto con
 // shell_clasico.flag (ConectarShell solo corre con el shell activo).
+{ Avisa cuando cambian las series del nodo o el registro actual de
+  tb_Serietree (la ficha activa es la subserie actual). }
+type
+  TEnlaceSeries = class(TDataLink)
+  private
+    FAlCambiar: TNotifyEvent;
+  protected
+    procedure ActiveChanged; override;
+    procedure DataSetChanged; override;
+    procedure DataSetScrolled(Distance: Integer); override;
+  public
+    property AlCambiar: TNotifyEvent read FAlCambiar write FAlCambiar;
+  end;
+
+procedure TEnlaceSeries.ActiveChanged;
+begin
+  inherited ActiveChanged;
+  if Assigned(FAlCambiar) then
+    FAlCambiar(Self);
+end;
+
+procedure TEnlaceSeries.DataSetChanged;
+begin
+  inherited DataSetChanged;
+  if Assigned(FAlCambiar) then
+    FAlCambiar(Self);
+end;
+
+procedure TEnlaceSeries.DataSetScrolled(Distance: Integer);
+begin
+  inherited DataSetScrolled(Distance);
+  if Assigned(FAlCambiar) then
+    FAlCambiar(Self);
+end;
+
 procedure TMAIN.ConectarListaDocumentos;
 begin
   if FListaDocs <> nil then
     Exit;
   try
-    FBarraRejilla := TPanel.Create(Self);
-    FBarraRejilla.Parent := PSeriesDatos;
-    FBarraRejilla.Align := alTop;
-    FBarraRejilla.Height := 34;
-    FBarraRejilla.BevelOuter := bvNone;
-    FBarraRejilla.ShowCaption := False;
-    FBarraRejilla.Visible := False;
-    with TButton.Create(FBarraRejilla) do
-    begin
-      Parent := FBarraRejilla;
-      Caption := 'Ver lista';
-      SetBounds(8, 4, 110, 26);
-      OnClick := ListaDocsAlternar;
-    end;
+    FBarraTrabajo := TBarraTrabajo.Create(Self);
+    FBarraTrabajo.Parent := PSeriesDatos;
+    FBarraTrabajo.Align := alTop;
+    FBarraTrabajo.OnFiltroCambio := BarraFiltroCambio;
+    FBarraTrabajo.OnEditar := ListaDocsAlternar;
+    FBarraTrabajo.OnElegirSerie := BarraElegirSerie;
 
     FListaDocs := TPanelDocumentos.Create(Self);
     FListaDocs.Parent := PSeriesDatos;
@@ -6756,12 +6796,24 @@ begin
     FListaDocs.OnExpedienteCompleto := ListaDocsExpediente;
     FListaDocs.OnPedirFicheros := ListaDocsFicheros;
     FListaDocs.OnPedirHistoria := ListaDocsHistoria;
-    FListaDocs.OnAlternarVista := ListaDocsAlternar;
 
     FTimerDocs := TTimer.Create(Self);
     FTimerDocs.Enabled := False;
     FTimerDocs.Interval := 150;
     FTimerDocs.OnTimer := ListaDocsRefrescar;
+
+    FBloqueAccion := TBloqueAccion.Create(Self);
+    FBloqueAccion.Parent := bgBDControl;
+    FBloqueAccion.Align := alBottom;
+    FBloqueAccion.OnElegir := BloqueAccionElegir;
+
+    FTimerBarra := TTimer.Create(Self);
+    FTimerBarra.Enabled := False;
+    FTimerBarra.Interval := 120;
+    FTimerBarra.OnTimer := BarraRefrescar;
+    FEnlaceSeries := TEnlaceSeries.Create;
+    TEnlaceSeries(FEnlaceSeries).DataSource := UDM.dstb_Serietree;
+    TEnlaceSeries(FEnlaceSeries).AlCambiar := BarraNotificar;
 
     FEnlaceDocs := TEnlaceDocumentos.Create;
     TEnlaceDocumentos(FEnlaceDocs).DataSource := UDM.dstb_SeriesDatos;
@@ -6772,6 +6824,8 @@ begin
     FListaDocs.Visible := True;
     FListaDocs.BringToFront;
     ListaDocsCargar;
+    AjustarCuadroClasif;
+    BarraSeriesCargar;
   except
     on E: Exception do
     begin
@@ -6781,7 +6835,8 @@ begin
       FModoLista := False;
       cxPageControl2.Visible := True;
       FreeAndNil(FListaDocs);
-      FreeAndNil(FBarraRejilla);
+      FreeAndNil(FBarraTrabajo);
+      AjustarCuadroClasif;
     end;
   end;
 end;
@@ -6809,6 +6864,8 @@ var
   N, IdNodo: Integer;
   Ind: TIndicadoresDocs;
   Indic: TIndicadoresDoc;
+  Estados: TIndicadoresEstados;
+  EstadoDoc: TEstadoDoc;
   Est, CodSubs, Titulo: string;
   Bm: TBookmark;
   D: TDatosDocumento;
@@ -6855,6 +6912,7 @@ begin
 
   FCargandoDocs := True;
   Ind := nil;
+  Estados := nil;
   try
     if CodSubs <> '' then
       Ind := CargarIndicadores(UDM.Conn, UDM.Alcance, Est, IdNodo, CodSubs);
@@ -6864,6 +6922,17 @@ begin
       // sin indicadores: se listan igual, como documentos simples
       Ind := nil;
       RegistrarErrorLista('Indicadores: ' + E.ClassName + ': ' + E.Message);
+    end;
+  end;
+  try
+    if CodSubs <> '' then
+      Estados := CargarEstados(UDM.Conn, UDM.Alcance, Est, IdNodo, CodSubs);
+  except
+    on E: Exception do
+    begin
+      // sin estados: se listan igual, con la columna Estado en blanco
+      Estados := nil;
+      RegistrarErrorLista('Estados: ' + E.ClassName + ': ' + E.Message);
     end;
   end;
   try
@@ -6901,6 +6970,8 @@ begin
           if Indic.ExtPrincipal <> '' then
             D.ExtPrincipal := Indic.ExtPrincipal;
         end;
+        if (Estados <> nil) and Estados.TryGetValue(ClaveTexto(D.Clave), EstadoDoc) then
+          D.Estado := EstadoDoc;
         if N > High(Docs) then
           SetLength(Docs, N + 1);
         Docs[N] := D;
@@ -6917,8 +6988,32 @@ begin
     FListaDocs.Cargar(Docs, Titulo);
   finally
     Ind.Free;
+    Estados.Free;
     FCargandoDocs := False;
   end;
+  BloqueAccionCargar;
+end;
+
+// Lo que pide atencion, dentro del alcance del usuario; sin datos queda oculto
+procedure TMAIN.BloqueAccionCargar;
+begin
+  if FBloqueAccion = nil then
+    Exit;
+  try
+    FBloqueAccion.Mostrar(CargarRequiereAccion(UDM.Conn, UDM.Alcance));
+  except
+    on E: Exception do
+    begin
+      FBloqueAccion.Mostrar(nil);
+      RegistrarErrorLista('Requiere accion: ' + E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+procedure TMAIN.BloqueAccionElegir(const Clave: string);
+begin
+  if (Clave = 'prestados') and (FBarraTrabajo <> nil) then
+    FBarraTrabajo.FijarEstado(edPrestado);
 end;
 
 function TMAIN.ListaDocsLocalizar(const Clave: TClaveDocumento): Boolean;
@@ -7068,6 +7163,122 @@ begin
   end;
 end;
 
+// Con la barra de trabajo el panel "CDC ACTIVO" y su rejilla de series no se
+// muestran: las series son fichas de la barra. Sin barra (o con el shell clasico)
+// queda como siempre.
+procedure TMAIN.AjustarCuadroClasif;
+begin
+  if FBarraTrabajo <> nil then
+  begin
+    advtpCC.Visible := False;
+    advtpCuadroClasif.Hide;
+  end
+  else
+    advtpCC.Visible := True;
+end;
+
+procedure TMAIN.BarraNotificar(Sender: TObject);
+begin
+  if (FBarraTrabajo = nil) or FCargandoSeries or (FTimerBarra = nil) then
+    Exit;
+  FTimerBarra.Enabled := False;
+  FTimerBarra.Enabled := True;
+end;
+
+procedure TMAIN.BarraRefrescar(Sender: TObject);
+begin
+  FTimerBarra.Enabled := False;
+  BarraSeriesCargar;
+end;
+
+procedure TMAIN.BarraFiltroCambio(Sender: TObject);
+begin
+  if (FListaDocs <> nil) and (FBarraTrabajo <> nil) then
+    FListaDocs.FijarFiltro(FBarraTrabajo.Texto, FBarraTrabajo.FiltrarEstado,
+      FBarraTrabajo.Estado);
+end;
+
+// Una ficha por cada serie asignada al nodo (la ruta y el nombre del nodo ya
+// los muestra la cabecera del shell)
+procedure TMAIN.BarraSeriesCargar;
+var
+  Series: TArray<TSerieFiltro>;
+  DS: TDataSet;
+  Bm: TBookmark;
+  Actual, Cod, Nombre: string;
+  N: Integer;
+begin
+  if (FBarraTrabajo = nil) or FCargandoSeries then
+    Exit;
+  FCargandoSeries := True;
+  try
+    DS := UDM.tb_Serietree;
+    if (not DS.Active) or (DS.State in [dsInsert, dsEdit]) then
+    begin
+      if not DS.Active then
+        FBarraTrabajo.FijarSeries(nil, '');
+      Exit;
+    end;
+    Actual := '';
+    if not DS.IsEmpty then
+      Actual := DS.FieldByName('codsubs').AsString;
+    N := 0;
+    SetLength(Series, DS.RecordCount);
+    Bm := DS.GetBookmark;
+    DS.DisableControls;
+    try
+      DS.First;
+      while not DS.Eof do
+      begin
+        Cod := DS.FieldByName('codsubs').AsString;
+        Nombre := Cod;
+        try
+          Nombre := VarToStr(UDM.Conn.ExecSQLScalar(
+            'SELECT subserie FROM cl_subseries WHERE codsubs = :c', [Cod]));
+          if Trim(Nombre) = '' then
+            Nombre := Cod;
+        except
+          Nombre := Cod;
+        end;
+        if N > High(Series) then
+          SetLength(Series, N + 1);
+        Series[N].CodSubs := Cod;
+        Series[N].Nombre := Nombre;
+        Series[N].Cantidad := -1; // el conteo respetaria el alcance: no se calcula
+        Inc(N);
+        DS.Next;
+      end;
+    finally
+      if DS.BookmarkValid(Bm) then
+        DS.GotoBookmark(Bm);
+      DS.FreeBookmark(Bm);
+      DS.EnableControls;
+    end;
+    SetLength(Series, N);
+    FBarraTrabajo.FijarSeries(Series, Actual);
+  finally
+    FCargandoSeries := False;
+  end;
+end;
+
+// Cambia de serie en la rejilla de siempre (tb_Serietree): la lista y el resto
+// de paneles siguen al registro actual. Con un documento a medio editar no se
+// cambia: se avisa y se deja la ficha anterior.
+procedure TMAIN.BarraElegirSerie(const CodSubs: string);
+begin
+  if not UDM.tb_Serietree.Active then
+    Exit;
+  if not (PuedeCambiarSerie(UDM.tb_SeriesDatos.State) and
+    PuedeCambiarSerie(UDM.tb_Serietree.State)) then
+  begin
+    UDM.sms('Guarde o cancele el documento antes de cambiar de serie.', 3);
+    BarraSeriesCargar;
+    Exit;
+  end;
+  UDM.tb_Serietree.Locate('codsubs', CodSubs, []);
+  BarraSeriesCargar;
+end;
+
 procedure TMAIN.ListaDocsAlternar(Sender: TObject);
 begin
   if FListaDocs = nil then
@@ -7075,14 +7286,14 @@ begin
   FModoLista := not FModoLista;
   FListaDocs.Visible := FModoLista;
   cxPageControl2.Visible := not FModoLista;
-  FBarraRejilla.Visible := not FModoLista;
+  FBarraTrabajo.ModoEdicion(not FModoLista);
   if FModoLista then
   begin
     FListaDocs.BringToFront;
     ListaDocsCargar;
   end
   else
-    FBarraRejilla.BringToFront;
+    FBarraTrabajo.BringToFront;
 end;
 
 procedure TMAIN.ConectarShell;
@@ -10338,20 +10549,22 @@ begin
 end;
 
 procedure TMAIN.tvTreeCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode; State: TCustomDrawState; var DefaultDraw: Boolean);
+var
+  T: TTemaColores;
 begin
+  T := TemaLegacyActual;
   if cdsSelected in State then
   begin
-    // Mantén el nodo resaltado incluso si el TreeView pierde el foco
-    tvTree.Canvas.Brush.Color := $00EFCD85; //$00F0CAAE;
-    tvTree.Canvas.Font.Style := [fsBold, fsUnderline];
-    tvTree.Canvas.Font.Color := clWindowText; //clHighlightText;
+    // Mantiene el nodo resaltado incluso si el TreeView pierde el foco
+    tvTree.Canvas.Brush.Color := T.AcentoSuave;
+    tvTree.Canvas.Font.Style := [fsBold];
+    tvTree.Canvas.Font.Color := T.Texto;
   end
   else
   begin
-    // Dibuja los nodos no seleccionados con el color de fondo predeterminado
-    tvTree.Canvas.Brush.Color := clWindow;
+    tvTree.Canvas.Brush.Color := T.Superficie;
     tvTree.Canvas.Font.Style := [];
-    tvTree.Canvas.Font.Color := clWindowText;
+    tvTree.Canvas.Font.Color := T.Texto;
   end;
 
   DefaultDraw := True; // Permite que Delphi dibuje el nodo con los colores establecidos
@@ -10438,10 +10651,10 @@ var
       begin
         etiquetaNA := NodeData.Etiqueta;
         advtpCuadroClasif.Caption := 'CDC ACTIVO ' + AnsiQuotedStr(etiquetaNA, '"');
-        advtpCC.Visible := True;
+        AjustarCuadroClasif;
         advtpDetalle.Visible := True;
 
-        if not advtpCuadroClasif.Showing then
+        if (FBarraTrabajo = nil) and not advtpCuadroClasif.Showing then
         begin
           advtpCuadroClasif.Show;
           advtpCuadroClasif.Locked := True;
@@ -10603,9 +10816,9 @@ begin
 //          BuscaAdministrador(AnItem, );
             if UDM.tb_tree.Locate('IdEstructura;Id', VarArrayOf([PDataRec(AnItem.data).estruct, PDataRec(AnItem.data).id]), []) then
             begin
-              advtpCC.Visible := True;
+              AjustarCuadroClasif;
               advtpDetalle.Visible := True;
-              if not advtpCuadroClasif.Showing then
+              if (FBarraTrabajo = nil) and not advtpCuadroClasif.Showing then
               begin
                 advtpCuadroClasif.Show;
                 advtpCuadroClasif.Locked := True;
@@ -10648,9 +10861,9 @@ begin
         begin
 //           Estamos trabajando en este punto...
 //          BuscaAdministrador(AnItem, );
-          advtpCC.Visible := True;
+          AjustarCuadroClasif;
           advtpDetalle.Visible := True;
-          if not advtpCuadroClasif.Showing then
+          if (FBarraTrabajo = nil) and not advtpCuadroClasif.Showing then
           begin
             advtpCuadroClasif.Show;
             advtpCuadroClasif.Locked := True;
