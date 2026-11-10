@@ -25,16 +25,41 @@ type
   end;
   PPila = ^TPila;
 
-function RtlCaptureStackBackTrace(FramesToSkip, FramesToCapture: DWORD;
-  BackTrace: Pointer; BackTraceHash: PDWORD): WORD; stdcall;
-  external 'kernel32.dll' name 'RtlCaptureStackBackTrace';
-
 function CapturaPila(P: System.PExceptionRecord): Pointer;
 var
   Pila: PPila;
+  Sp: PNativeUInt;
+  Fin: NativeUInt;
+  V: NativeUInt;
+  Inicio, Largo: NativeUInt;
+  B: PByte;
 begin
   New(Pila);
-  Pila^.N := RtlCaptureStackBackTrace(0, MAX_MARCOS, @Pila^.Dir[0], nil);
+  Pila^.N := 0;
+  // Recorrido crudo de la pila: se toman los valores que parecen direcciones de
+  // retorno dentro del codigo del ejecutable (precedidas de una instruccion CALL).
+  Inicio := NativeUInt(HInstance) + $1000;
+  Largo := $A00000;
+  Sp := @Pila;
+  Fin := NativeUInt(Sp) + 65536;
+  try
+    while (NativeUInt(Sp) < Fin) and (Pila^.N < MAX_MARCOS) do
+    begin
+      V := Sp^;
+      if (V > Inicio + 8) and (V < Inicio + Largo) then
+      begin
+        B := PByte(V - 5);
+        if (B^ = $E8) or (PByte(V - 2)^ = $FF) or (PByte(V - 3)^ = $FF) or (PByte(V - 6)^ = $FF) then
+        begin
+          Pila^.Dir[Pila^.N] := Pointer(V);
+          Inc(Pila^.N);
+        end;
+      end;
+      Inc(Sp);
+    end;
+  except
+    // fin de la pila legible
+  end;
   Result := Pila;
 end;
 
