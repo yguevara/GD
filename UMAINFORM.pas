@@ -33,7 +33,7 @@ uses
   IniFiles, cxSpinEdit, Vcl.Grids, Vcl.DBGrids, JvDBControls, cxMaskEdit,
   dxScreenTip, dxCustomHint, cxHint, cxEditRepositoryItems, cxGroupBox,
   UBusqueda, UAlcance, UPanelDocumentos, UBarraTrabajo, UBloqueAccion, UPanelLateral,
-  UCargaDocumento, UAgregarFicheros, UDocumentoVista, UMigracionPantalla, UExpedienteCompleto, UProgresoTransferencia, UTrazabilidad, UTrazabilidadDatos,
+  UCargaDocumento, UAgregarFicheros, UEdicionDocumento, UDocumentoVista, UMigracionPantalla, UExpedienteCompleto, UProgresoTransferencia, UTrazabilidad, UTrazabilidadDatos,
   UAlmacenFicheros, UAlmacenServidor;
 
 type
@@ -811,6 +811,11 @@ type
     procedure AgregarDocumentosConRutas(const Rutas: TArray<string>);
     procedure ListaDocsSoltar(const Rutas: TArray<string>);
     function ListaDocsPuedeEditar: Boolean;
+    function ListaDocsPuedeTopografia: Boolean;
+    function ListaDocsActuales(const Clave: TClaveDocumento): TCambiosDoc;
+    procedure ListaDocsGuardarEdicion(const Claves: TArray<TClaveDocumento>;
+      const Cambios, Anteriores: TCambiosDoc; out Error: string);
+    procedure BarraEditar(Sender: TObject);
     function OrigenParaDocumento(const Clave: TClaveDocumento;
       out Origen: TOrigenDocumento): Boolean;
     function FabricaDeAlmacenes: TFabricaAlmacen;
@@ -6962,7 +6967,7 @@ begin
     FBarraTrabajo.Parent := PSeriesDatos;
     FBarraTrabajo.Align := alTop;
     FBarraTrabajo.OnFiltroCambio := BarraFiltroCambio;
-    FBarraTrabajo.OnEditar := ListaDocsAlternar;
+    FBarraTrabajo.OnEditar := BarraEditar;
     FBarraTrabajo.OnElegirSerie := BarraElegirSerie;
 
     FListaDocs := TPanelDocumentos.Create(Self);
@@ -6978,6 +6983,10 @@ begin
     FListaDocs.OnPedirContenido := ListaDocsContenido;
     FListaDocs.OnSoltarArchivos := ListaDocsSoltar;
     FListaDocs.OnPuedeEditar := ListaDocsPuedeEditar;
+    FListaDocs.OnPuedeTopografia := ListaDocsPuedeTopografia;
+    FListaDocs.OnPedirActuales := ListaDocsActuales;
+    FListaDocs.OnGuardarEdicion := ListaDocsGuardarEdicion;
+    FListaDocs.OnVistaAvanzada := ListaDocsAlternar;
     FListaDocs.OnSoltarFicheros := ListaDocsSoltarFicheros;
     FListaDocs.OnSoltarContenido := ListaDocsSoltarContenido;
     FListaDocs.OnAvisoSoltar := ShellAvisoSoltar;
@@ -7898,6 +7907,123 @@ begin
   else
     Result := (UDM.Alcance = nil) and (nbPost in dbnSeriesDatos.VisibleButtons) and
       UDM.tb_SeriesDatos.Active and UDM.tb_SeriesDatos.CanModify;
+end;
+
+function TMAIN.ListaDocsPuedeTopografia: Boolean;
+var
+  Nodo: TClaveNodo;
+begin
+  if (UDM.Alcance <> nil) and UDM.tb_Serietree.Active and not UDM.tb_Serietree.IsEmpty then
+  begin
+    Nodo.IdEstructura := UDM.tb_Serietree.FieldByName('IdEstructura').AsString;
+    Nodo.Id := UDM.tb_Serietree.FieldByName('id').AsInteger;
+    Result := UDM.Alcance.PuedeRealizar(acEditarTopografia, Nodo,
+      UDM.tb_Serietree.FieldByName('codsubs').AsString);
+  end
+  else
+    Result := UDM.Alcance = nil;
+end;
+
+// Boton Editar de la barra: en la lista abre el formulario con los documentos
+// marcados; en la rejilla antigua (Vista avanzada) vuelve a la lista.
+procedure TMAIN.BarraEditar(Sender: TObject);
+var
+  Claves: TArray<TClaveDocumento>;
+begin
+  if FListaDocs = nil then
+    Exit;
+  if not FModoLista then
+  begin
+    ListaDocsAlternar(Sender);
+    Exit;
+  end;
+  Claves := FListaDocs.ClavesSeleccionadas;
+  if Length(Claves) = 0 then
+  begin
+    UDM.sms('Marque uno o varios documentos de la lista para editarlos.', 2);
+    Exit;
+  end;
+  FListaDocs.Editar(Claves);
+end;
+
+// Valores actuales del documento para rellenar el formulario de edicion
+function TMAIN.ListaDocsActuales(const Clave: TClaveDocumento): TCambiosDoc;
+var
+  Q: TFDQuery;
+begin
+  Result := Default(TCambiosDoc);
+  Q := TFDQuery.Create(nil);
+  try
+    Q.Connection := UDM.Conn;
+    Q.SQL.Text := 'SELECT titulodoc, observaciones, IDExpediente, subexp, visible, ' +
+      'Archivo, deposito, gaveta, Idservidor, posicion FROM tb_SeriesDatos ' +
+      'WHERE IdEstructura = :ke AND id = :ki AND codsubs = :kc AND Fecha = :kf ' +
+      'AND Version = :kv AND Codigodoc = :kd';
+    Q.ParamByName('ke').AsString := Clave.IdEstructura;
+    Q.ParamByName('ki').AsInteger := Clave.Id;
+    Q.ParamByName('kc').AsString := Clave.CodSubs;
+    Q.ParamByName('kf').AsDateTime := Clave.Fecha;
+    Q.ParamByName('kv').AsString := Clave.Version;
+    Q.ParamByName('kd').AsString := Clave.Codigodoc;
+    Q.Open;
+    if Q.IsEmpty then
+      Exit;
+    Result.TieneTitulo := True;      Result.Titulo := Trim(Q.Fields[0].AsString);
+    Result.TieneObservaciones := True; Result.Observaciones := Trim(Q.Fields[1].AsString);
+    Result.TieneIdExpediente := True; Result.IdExpediente := Trim(Q.Fields[2].AsString);
+    Result.TieneSubExp := True;      Result.SubExp := Trim(Q.Fields[3].AsString);
+    Result.TieneVisible := True;     Result.Visible := Trim(Q.Fields[4].AsString);
+    Result.TieneArchivo := True;
+    if Q.Fields[5].IsNull then Result.Archivo := -1 else Result.Archivo := Q.Fields[5].AsInteger;
+    Result.TieneDeposito := True;    Result.Deposito := Trim(Q.Fields[6].AsString);
+    Result.TieneGaveta := True;      Result.Gaveta := Trim(Q.Fields[7].AsString);
+    Result.TieneIdServidor := True;
+    if Q.Fields[8].IsNull then Result.IdServidor := -1 else Result.IdServidor := Q.Fields[8].AsInteger;
+    Result.TienePosicion := True;    Result.Posicion := Trim(Q.Fields[9].AsString);
+  finally
+    Q.Free;
+  end;
+end;
+
+// Guarda lo editado en el formulario: un documento a la vez (si uno falla no
+// impide los demas) y con bitacora. Si no se guardo ninguno, devuelve el motivo
+// y el formulario queda abierto; si se guardo alguno, resume y recarga la lista.
+procedure TMAIN.ListaDocsGuardarEdicion(const Claves: TArray<TClaveDocumento>;
+  const Cambios, Anteriores: TCambiosDoc; out Error: string);
+var
+  Origen: TOrigenDocumento;
+  R: TResultadoEdicion;
+  Resumen: string;
+begin
+  Error := '';
+  if Length(Claves) = 0 then
+    Exit;
+  if not HayCambios(Cambios) then
+    Exit; // nada que guardar: se cierra
+  Origen := Default(TOrigenDocumento);
+  Origen.IdEstructura := Claves[0].IdEstructura;
+  Origen.Id := Claves[0].Id;
+  Origen.CodSubs := Claves[0].CodSubs;
+  Origen.CodSerie := UDM.SudSDetail.FieldByName('codserie').AsString;
+  Origen.Usuario := UDM.UserName;
+  Origen.Rol := UDM.Rol;
+  R := ActualizarDocumentos(UDM.Conn, UDM.Alcance, Origen, Claves, Cambios, Anteriores);
+  if R.Guardados = 0 then
+  begin
+    if R.Mensaje <> '' then
+      Error := R.Mensaje
+    else
+      Error := 'No se guardo ningun documento.';
+    Exit;
+  end;
+  Resumen := Format('Se guardaron %d documento(s).', [R.Guardados]);
+  if R.Fallidos > 0 then
+    Resumen := Resumen + Format(' %d no se pudieron guardar. ', [R.Fallidos]) + R.Mensaje
+  else if R.Mensaje <> '' then
+    Resumen := Resumen + ' ' + R.Mensaje;
+  UDM.sms(Resumen, 2);
+  InvalidarCachesSubserie;
+  ListaDocsCargar;
 end;
 
 // Almacen de cada fichero segun su raiz: un documento puede tener ficheros en
