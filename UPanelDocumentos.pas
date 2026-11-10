@@ -35,6 +35,8 @@ type
   TGuardarEdicionEvent = procedure(const Claves: TArray<TClaveDocumento>;
     const Cambios, Anteriores: TCambiosDoc; out Error: string) of object;
   { Valores actuales de un documento para el formulario de edicion. }
+  TSoltarEnLoteEvent = procedure(const Claves: TArray<TClaveDocumento>;
+    const Rutas: TArray<string>) of object;
   TActualesEvent = function(const Clave: TClaveDocumento): TCambiosDoc of object;
   { Ruta local de un archivo PDF con el contenido del documento, o '' y el
     motivo (sin PDF, formato no admitido, fichero ausente del almacen). }
@@ -84,6 +86,8 @@ type
     FOnPedirActuales: TActualesEvent;
     FOnPuedeTopografia: TConsultaPermiso;
     FOnVistaAvanzada: TNotifyEvent;
+    FOnEliminarDocumento: TClaveEvent;
+    FOnSoltarEnFormulario: TSoltarEnLoteEvent;
     FUltimaCantidad: Integer;
     FSeleccionandoVarios: Boolean;
     FZonaAnexos, FZonaFuentes: TPanel;
@@ -158,6 +162,8 @@ type
     procedure FormularioGuardar(Sender: TObject);
     procedure FormularioCancelar(Sender: TObject);
     procedure FormularioAvanzada(Sender: TObject);
+    procedure FormularioEliminar(Sender: TObject);
+    procedure FormularioSoltar(const Rutas: TArray<string>);
   protected
     { Los controles hijos se crean al recibir el padre: un control con
       ventana necesita que toda la cadena de padres exista. }
@@ -195,6 +201,12 @@ type
     property OnPuedeTopografia: TConsultaPermiso read FOnPuedeTopografia
       write FOnPuedeTopografia;
     property OnVistaAvanzada: TNotifyEvent read FOnVistaAvanzada write FOnVistaAvanzada;
+    { Eliminar el documento que se esta editando (quien lo usa confirma y borra). }
+    property OnEliminarDocumento: TClaveEvent read FOnEliminarDocumento
+      write FOnEliminarDocumento;
+    { Archivos soltados sobre el formulario: se agregan a todos los documentos editados. }
+    property OnSoltarEnFormulario: TSoltarEnLoteEvent read FOnSoltarEnFormulario
+      write FOnSoltarEnFormulario;
     { Claves de los documentos marcados en la lista (uno o varios). }
     function ClavesSeleccionadas: TArray<TClaveDocumento>;
     { Se dispara al cambiar la cantidad de documentos marcados. }
@@ -557,6 +569,8 @@ begin
   FFormulario.OnGuardar := FormularioGuardar;
   FFormulario.OnCancelar := FormularioCancelar;
   FFormulario.OnVistaAvanzada := FormularioAvanzada;
+  FFormulario.OnEliminar := FormularioEliminar;
+  FFormulario.OnSoltarArchivos := FormularioSoltar;
 
   FPie := TPanel.Create(Self);
   FPie.Parent := FDoc.Pagina(pdArchivos);
@@ -730,6 +744,24 @@ end;
 procedure TPanelDocumentos.FormularioCancelar(Sender: TObject);
 begin
   CerrarEdicion;
+end;
+
+procedure TPanelDocumentos.FormularioEliminar(Sender: TObject);
+var
+  K: TArray<TClaveDocumento>;
+begin
+  K := FFormulario.Claves;
+  if (Length(K) = 1) and Assigned(FOnEliminarDocumento) then
+  begin
+    CerrarEdicion;
+    FOnEliminarDocumento(K[0]);
+  end;
+end;
+
+procedure TPanelDocumentos.FormularioSoltar(const Rutas: TArray<string>);
+begin
+  if Assigned(FOnSoltarEnFormulario) then
+    FOnSoltarEnFormulario(FFormulario.Claves, Rutas);
 end;
 
 procedure TPanelDocumentos.FormularioAvanzada(Sender: TObject);

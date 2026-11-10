@@ -816,6 +816,9 @@ type
     procedure ListaDocsGuardarEdicion(const Claves: TArray<TClaveDocumento>;
       const Cambios, Anteriores: TCambiosDoc; out Error: string);
     procedure BarraEditar(Sender: TObject);
+    procedure ListaDocsEliminar(const Clave: TClaveDocumento);
+    procedure ListaDocsSoltarEnLote(const Claves: TArray<TClaveDocumento>;
+      const Rutas: TArray<string>);
     function OrigenParaDocumento(const Clave: TClaveDocumento;
       out Origen: TOrigenDocumento): Boolean;
     function FabricaDeAlmacenes: TFabricaAlmacen;
@@ -6987,6 +6990,8 @@ begin
     FListaDocs.OnPedirActuales := ListaDocsActuales;
     FListaDocs.OnGuardarEdicion := ListaDocsGuardarEdicion;
     FListaDocs.OnVistaAvanzada := ListaDocsAlternar;
+    FListaDocs.OnEliminarDocumento := ListaDocsEliminar;
+    FListaDocs.OnSoltarEnFormulario := ListaDocsSoltarEnLote;
     FListaDocs.OnSoltarFicheros := ListaDocsSoltarFicheros;
     FListaDocs.OnSoltarContenido := ListaDocsSoltarContenido;
     FListaDocs.OnAvisoSoltar := ShellAvisoSoltar;
@@ -7944,6 +7949,115 @@ begin
     Exit;
   end;
   FListaDocs.Editar(Claves);
+end;
+
+// Eliminar el documento que se edita: pide confirmacion y reutiliza el borrado
+// de siempre (tb_SeriesDatos.Delete), que comprueba el rol y quita los ficheros
+// del documento; la bitacora la deja el propio evento del dataset.
+procedure TMAIN.ListaDocsEliminar(const Clave: TClaveDocumento);
+begin
+  if not ListaDocsPuedeEditar then
+  begin
+    UDM.sms('No tiene permiso para eliminar este documento.', 3);
+    Exit;
+  end;
+  if MessageDlg(Format('Eliminar el documento "%s"? Esta accion no se puede deshacer.',
+    [Trim(Clave.Codigodoc)]), mtWarning, [mbYes, mbNo], 0) <> mrYes then
+    Exit;
+  if not ListaDocsLocalizar(Clave) then
+  begin
+    UDM.sms('No se encontro el documento: ya no existe o cambio la lista.', 2);
+    Exit;
+  end;
+  try
+    UDM.tb_SeriesDatos.Delete;
+  except
+    on E: Exception do
+    begin
+      UDM.sms('No se pudo eliminar el documento. ' + E.Message, 1);
+      Exit;
+    end;
+  end;
+  InvalidarCachesSubserie;
+  ListaDocsCargar;
+end;
+
+// Archivos soltados sobre el formulario con varios documentos: se agregan como
+// anexos digitales a cada uno, un documento a la vez (si uno falla no impide los
+// demas), con una sola confirmacion y su bitacora.
+procedure TMAIN.ListaDocsSoltarEnLote(const Claves: TArray<TClaveDocumento>;
+  const Rutas: TArray<string>);
+var
+  Archivos: TArray<string>;
+  Lista: TArray<TFicheroNuevo>;
+  Origen: TOrigenDocumento;
+  R: TResultadoFicheros;
+  Prog: TProgresoTransferencia;
+  I, J, Agregados, Fallidos, Docs: Integer;
+  Msg: string;
+begin
+  if not ListaDocsPuedeEditar then
+  begin
+    UDM.sms('No tiene permiso para agregar ficheros a estos documentos.', 3);
+    Exit;
+  end;
+  Archivos := ExpandirRutas(Rutas, True);
+  if Length(Archivos) = 0 then
+  begin
+    UDM.sms('No se encontraron archivos que agregar.', 2);
+    Exit;
+  end;
+  if MessageDlg(Format('Agregar %d archivo(s) como anexos digitales a %d documento(s)?',
+    [Length(Archivos), Length(Claves)]), mtConfirmation, [mbYes, mbNo], 0) <> mrYes then
+    Exit;
+  SetLength(Lista, Length(Archivos));
+  for J := 0 to High(Archivos) do
+  begin
+    Lista[J].Local := Archivos[J];
+    Lista[J].EsFuente := False;
+  end;
+  Agregados := 0;
+  Fallidos := 0;
+  Docs := 0;
+  Msg := '';
+  for I := 0 to High(Claves) do
+  begin
+    if not ListaDocsLocalizar(Claves[I]) then
+    begin
+      Inc(Fallidos, Length(Archivos));
+      Continue;
+    end;
+    if not OrigenParaDocumento(Claves[I], Origen) then
+      Break;
+    Prog := TProgresoTransferencia.Create(nil, Format('Agregando ficheros (%d de %d)',
+      [I + 1, Length(Claves)]), Trim(Claves[I].Codigodoc));
+    try
+      R := AgregarFicheros(UDM.Conn, UDM.Alcance, Origen, Claves[I], FabricaDeAlmacenes(), Lista,
+        procedure(Hecho, Total: Int64; var Cancelar: Boolean)
+        begin
+          Prog.Actualizar(Hecho, Total, Cancelar);
+        end);
+    finally
+      Prog.Free;
+    end;
+    Inc(Agregados, R.Agregados);
+    Inc(Fallidos, R.Fallidos);
+    if R.Agregados > 0 then
+      Inc(Docs);
+    if (Msg = '') and (R.Mensaje <> '') then
+      Msg := R.Mensaje;
+  end;
+  if Fallidos = 0 then
+    UDM.sms(Format('Se agregaron %d fichero(s) a %d documento(s).', [Agregados, Docs]), 3)
+  else
+    UDM.sms(Format('Se agregaron %d fichero(s); %d no se pudieron agregar. %s',
+      [Agregados, Fallidos, Msg]), 2);
+  if Agregados > 0 then
+  begin
+    if FContenidoCache <> nil then
+      FContenidoCache.Clear;
+    ListaDocsCargar;
+  end;
 end;
 
 // Valores actuales del documento para rellenar el formulario de edicion

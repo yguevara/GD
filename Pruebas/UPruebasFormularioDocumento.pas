@@ -31,6 +31,10 @@ type
     procedure LasClavesNoSeEditan;
     [Test]
     procedure Numero_NoNumerico_MuestraElErrorBajoElCampo;
+    [Test]
+    procedure Eliminar_SoloConUnDocumento;
+    [Test]
+    procedure Soltar_DisparaElEventoConLasRutas;
   end;
 
 implementation
@@ -43,9 +47,23 @@ type
   TReceptor = class
     Guardados: Integer;
     Cancelados: Integer;
+    Eliminados: Integer;
+    Rutas: Integer;
+    procedure Eliminar(Sender: TObject);
+    procedure Soltar(const Rutas: TArray<string>);
     procedure Guardar(Sender: TObject);
     procedure Cancelar(Sender: TObject);
   end;
+
+procedure TReceptor.Eliminar(Sender: TObject);
+begin
+  Inc(Eliminados);
+end;
+
+procedure TReceptor.Soltar(const Rutas: TArray<string>);
+begin
+  Self.Rutas := Length(Rutas);
+end;
 
 procedure TReceptor.Guardar(Sender: TObject);
 begin
@@ -297,6 +315,51 @@ begin
     Fm.Guardar;
     Assert.AreEqual(0, R.Guardados);
     Assert.IsTrue(Fm.ErrorDe('archivo') <> '');
+  finally
+    F.Free;
+    R.Free;
+  end;
+end;
+
+procedure TPruebasFormularioDocumento.Eliminar_SoloConUnDocumento;
+var
+  F: TForm;
+  Fm: TFormularioDocumento;
+  R: TReceptor;
+begin
+  F := TForm.CreateNew(nil);
+  R := TReceptor.Create;
+  try
+    Fm := Nuevo(F);
+    Fm.OnEliminar := R.Eliminar;
+    Fm.Abrir([Clave('A')], Actuales, True);
+    Assert.IsTrue(Fm.EliminarVisible);
+    Fm.Eliminar;
+    Assert.AreEqual(1, R.Eliminados);
+    Fm.Abrir([Clave('A'), Clave('B')], Actuales, True);
+    Assert.IsFalse(Fm.EliminarVisible, 'por lotes no se elimina');
+    Fm.Eliminar;
+    Assert.AreEqual(1, R.Eliminados, 'con varios no dispara');
+  finally
+    F.Free;
+    R.Free;
+  end;
+end;
+
+procedure TPruebasFormularioDocumento.Soltar_DisparaElEventoConLasRutas;
+var
+  F: TForm;
+  Fm: TFormularioDocumento;
+  R: TReceptor;
+begin
+  F := TForm.CreateNew(nil);
+  R := TReceptor.Create;
+  try
+    Fm := Nuevo(F);
+    Fm.OnSoltarArchivos := R.Soltar;
+    Fm.Abrir([Clave('A'), Clave('B')], Actuales, True);
+    Fm.Receptor.SimularSoltar(['a.pdf', 'b.pdf']);
+    Assert.AreEqual(2, R.Rutas);
   finally
     F.Free;
     R.Free;

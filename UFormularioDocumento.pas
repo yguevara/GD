@@ -15,7 +15,7 @@ interface
 uses
   System.Classes, System.SysUtils, Winapi.Windows, Vcl.Controls, Vcl.ExtCtrls,
   Vcl.StdCtrls, Vcl.Graphics, Vcl.Forms, UTema, UDocumentoVista,
-  UEdicionDocumento;
+  UEdicionDocumento, URecepcionArchivos;
 
 type
   { Una opcion de una lista (por ejemplo un gestor): su id y su texto. }
@@ -55,8 +55,14 @@ type
     FOnGuardar: TNotifyEvent;
     FOnCancelar: TNotifyEvent;
     FOnVistaAvanzada: TNotifyEvent;
-    FBtnAvanzada: TButton;
+    FOnEliminar: TNotifyEvent;
+    FOnSoltarArchivos: TSoltarEvent;
+    FBtnAvanzada, FBtnEliminar: TButton;
+    FZona: TPanel;
+    FReceptor: TRecepcionArchivos;
     FMensaje: string;
+    procedure EliminarClick(Sender: TObject);
+    procedure ZonaSoltar(const Rutas: TArray<string>);
     procedure VistaAvanzadaClick(Sender: TObject);
     procedure OcultaCampo(const Nombre: string);
     procedure Construir;
@@ -99,6 +105,14 @@ type
     property OnCancelar: TNotifyEvent read FOnCancelar write FOnCancelar;
     { Abre la rejilla antigua de documentos (para lo que este formulario no cubre). }
     property OnVistaAvanzada: TNotifyEvent read FOnVistaAvanzada write FOnVistaAvanzada;
+    { Eliminar el documento (solo con uno abierto); quien usa el formulario confirma. }
+    property OnEliminar: TNotifyEvent read FOnEliminar write FOnEliminar;
+    procedure Eliminar;
+    function EliminarVisible: Boolean;
+    { Archivos o carpetas soltados sobre la zona del formulario: se agregan a
+      todos los documentos que se editan. }
+    property OnSoltarArchivos: TSoltarEvent read FOnSoltarArchivos write FOnSoltarArchivos;
+    property Receptor: TRecepcionArchivos read FReceptor;
     { Mensaje general (por ejemplo el resultado de un guardado fallido). }
     procedure MostrarMensaje(const Texto: string);
     function MensajeActual: string;
@@ -264,6 +278,15 @@ begin
   FBtnAvanzada.Caption := 'Vista avanzada';
   FBtnAvanzada.OnClick := VistaAvanzadaClick;
 
+  FBtnEliminar := TButton.Create(Self);
+  FBtnEliminar.Parent := FBarra;
+  FBtnEliminar.Align := alLeft;
+  FBtnEliminar.Width := 90;
+  FBtnEliminar.AlignWithMargins := True;
+  FBtnEliminar.Margins.SetBounds(0, 8, 6, 8);
+  FBtnEliminar.Caption := 'Eliminar...';
+  FBtnEliminar.OnClick := EliminarClick;
+
   FBtnCancelar := TButton.Create(Self);
   FBtnCancelar.Parent := FBarra;
   FBtnCancelar.Align := alRight;
@@ -273,6 +296,23 @@ begin
   FBtnCancelar.Caption := 'Cancelar';
   FBtnCancelar.Cancel := True;
   FBtnCancelar.OnClick := CancelarClick;
+
+  FZona := TPanel.Create(Self);
+  FZona.Parent := Self;
+  FZona.Align := alBottom;
+  FZona.Height := 44;
+  FZona.AlignWithMargins := True;
+  FZona.Margins.SetBounds(16, 4, 16, 8);
+  FZona.BevelOuter := bvNone;
+  FZona.ParentBackground := False;
+  FZona.StyleElements := [];
+  FZona.Color := FTema.Superficie2;
+  FZona.Font.Name := FUENTE;
+  FZona.Font.Size := 9;
+  FZona.Font.Color := FTema.TextoSuave;
+  FZona.Caption := 'Arrastre aqui archivos para agregarlos como anexos digitales';
+  FZona.Hint := 'Los archivos se agregan a todos los documentos que se editan';
+  FZona.ShowHint := True;
 
   FScroll := TScrollBox.Create(Self);
   FScroll.Parent := Self;
@@ -297,6 +337,31 @@ begin
   AgregaCampo('posicion', 'Posicion', tcTexto, True);
   OcultaCampo('gestor'); // hereda de la subserie; no hay lista de gestores que ofrecer
   Distribuir;
+  FReceptor := TRecepcionArchivos.Crear(Self, FZona);
+  FReceptor.Activo := True;
+  FReceptor.OnSoltar := ZonaSoltar;
+end;
+
+procedure TFormularioDocumento.ZonaSoltar(const Rutas: TArray<string>);
+begin
+  if Assigned(FOnSoltarArchivos) then
+    FOnSoltarArchivos(Rutas);
+end;
+
+procedure TFormularioDocumento.EliminarClick(Sender: TObject);
+begin
+  Eliminar;
+end;
+
+function TFormularioDocumento.EliminarVisible: Boolean;
+begin
+  Result := (FBtnEliminar <> nil) and FBtnEliminar.Visible;
+end;
+
+procedure TFormularioDocumento.Eliminar;
+begin
+  if (not EsLote) and (Length(FClaves) = 1) and Assigned(FOnEliminar) then
+    FOnEliminar(Self);
 end;
 
 procedure TFormularioDocumento.OcultaCampo(const Nombre: string);
@@ -508,6 +573,7 @@ begin
   FClaves := Copy(Claves);
   FOriginal := Actuales;
   FMensaje := '';
+  FBtnEliminar.Visible := Length(FClaves) = 1;
   LimpiarErrores;
   if EsLote then
   begin
