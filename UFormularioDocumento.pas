@@ -35,6 +35,7 @@ type
     Error: TLabel;
     Vaciar: TButton;
     Vaciado: Boolean;
+    Rotulo: TLabel;
   end;
 
   TFormularioDocumento = class(TPanel)
@@ -53,6 +54,11 @@ type
     FGestores: TArray<TOpcionLista>;
     FOnGuardar: TNotifyEvent;
     FOnCancelar: TNotifyEvent;
+    FOnVistaAvanzada: TNotifyEvent;
+    FBtnAvanzada: TButton;
+    FMensaje: string;
+    procedure VistaAvanzadaClick(Sender: TObject);
+    procedure OcultaCampo(const Nombre: string);
     procedure Construir;
     procedure AgregaCampo(const Nombre, Etiqueta: string; Tipo: TTipoCampoForm;
       Ubicacion: Boolean);
@@ -91,6 +97,11 @@ type
     procedure FijarGestores(const Lista: TArray<TOpcionLista>);
     property OnGuardar: TNotifyEvent read FOnGuardar write FOnGuardar;
     property OnCancelar: TNotifyEvent read FOnCancelar write FOnCancelar;
+    { Abre la rejilla antigua de documentos (para lo que este formulario no cubre). }
+    property OnVistaAvanzada: TNotifyEvent read FOnVistaAvanzada write FOnVistaAvanzada;
+    { Mensaje general (por ejemplo el resultado de un guardado fallido). }
+    procedure MostrarMensaje(const Texto: string);
+    function MensajeActual: string;
     { Acceso para pruebas y diagnostico }
     function TextoCampo(const Campo: string): string;
     procedure EscribirCampo(const Campo, Texto: string);
@@ -153,6 +164,7 @@ begin
   Rotulo.Font.Color := FTema.TextoSuave;
   Rotulo.Caption := Etiqueta;
   Rotulo.Tag := Length(FCampos);
+  C.Rotulo := Rotulo;
   case Tipo of
     tcMemo:
       begin
@@ -243,6 +255,15 @@ begin
   FBtnGuardar.Default := True;
   FBtnGuardar.OnClick := GuardarClick;
 
+  FBtnAvanzada := TButton.Create(Self);
+  FBtnAvanzada.Parent := FBarra;
+  FBtnAvanzada.Align := alLeft;
+  FBtnAvanzada.Width := 110;
+  FBtnAvanzada.AlignWithMargins := True;
+  FBtnAvanzada.Margins.SetBounds(14, 8, 6, 8);
+  FBtnAvanzada.Caption := 'Vista avanzada';
+  FBtnAvanzada.OnClick := VistaAvanzadaClick;
+
   FBtnCancelar := TButton.Create(Self);
   FBtnCancelar.Parent := FBarra;
   FBtnCancelar.Align := alRight;
@@ -274,7 +295,45 @@ begin
   AgregaCampo('gaveta', 'Gaveta', tcTexto, True);
   AgregaCampo('servidor', 'Servidor (numero)', tcNumero, True);
   AgregaCampo('posicion', 'Posicion', tcTexto, True);
+  OcultaCampo('gestor'); // hereda de la subserie; no hay lista de gestores que ofrecer
   Distribuir;
+end;
+
+procedure TFormularioDocumento.OcultaCampo(const Nombre: string);
+var
+  I: Integer;
+begin
+  I := Indice(Nombre);
+  if I < 0 then
+    Exit;
+  FCampos[I].Control.Visible := False;
+  FCampos[I].Error.Visible := False;
+  FCampos[I].Vaciar.Visible := False;
+  if FCampos[I].Control.Tag >= 0 then
+    FCampos[I].Rotulo.Visible := False;
+end;
+
+procedure TFormularioDocumento.VistaAvanzadaClick(Sender: TObject);
+begin
+  if Assigned(FOnVistaAvanzada) then
+    FOnVistaAvanzada(Self);
+end;
+
+procedure TFormularioDocumento.MostrarMensaje(const Texto: string);
+begin
+  FMensaje := Texto;
+  if Texto = '' then
+    Exit;
+  FAviso.Caption := Texto;
+  if FOscuro then
+    FAviso.Font.Color := RGB($F0, $8A, $80)
+  else
+    FAviso.Font.Color := RGB($B4, $23, $18);
+end;
+
+function TFormularioDocumento.MensajeActual: string;
+begin
+  Result := FMensaje;
 end;
 
 procedure TFormularioDocumento.Distribuir;
@@ -288,6 +347,8 @@ begin
   Y := 4;
   for I := 0 to High(FCampos) do
   begin
+    if not FCampos[I].Control.Visible then
+      Continue;
     Alto := IfThen(FCampos[I].Tipo = tcMemo, 62, 24);
     AnchoVaciar := IfThen(FCampos[I].Vaciar.Visible, 64, 0);
     // el rotulo es el control anterior del mismo indice (se crea antes que el campo)
@@ -446,6 +507,7 @@ var
 begin
   FClaves := Copy(Claves);
   FOriginal := Actuales;
+  FMensaje := '';
   LimpiarErrores;
   if EsLote then
   begin
@@ -466,7 +528,8 @@ begin
   begin
     FCampos[I].Vaciado := False;
     FCampos[I].Control.Enabled := PuedeTopografia or not FCampos[I].Ubicacion;
-    FCampos[I].Vaciar.Visible := EsLote and FCampos[I].Control.Enabled;
+    FCampos[I].Vaciar.Visible := EsLote and FCampos[I].Control.Enabled and
+      FCampos[I].Control.Visible;
     case FCampos[I].Tipo of
       tcVisible:
         begin
@@ -516,6 +579,8 @@ var
   N: Integer;
 begin
   Result := Default(TCambiosDoc);
+  if not FCampos[I].Control.Visible then
+    Exit;
   Cur := TextoDe(I);
   Orig := OriginalDe(I);
   if EsLote then

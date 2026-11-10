@@ -28,6 +28,16 @@ type
     [Test]
     procedure Propiedades_ClicEnVerHistoria_DisparaEvento;
     [Test]
+    procedure Editar_AbreElFormularioConLasClaves;
+    [Test]
+    procedure Editar_SinPermiso_NoAbre;
+    [Test]
+    procedure Editar_Guardar_LlamaAlEventoYCierra;
+    [Test]
+    procedure Editar_GuardarConError_DejaAbiertoConElMensaje;
+    [Test]
+    procedure Editar_Cancelar_Cierra;
+    [Test]
     procedure Seleccion_Varios_DevuelveSusClaves;
     [Test]
     procedure Seleccion_Uno_SigueMostrandoSusDatos;
@@ -78,7 +88,7 @@ implementation
 uses
   System.SysUtils, System.Classes, Winapi.Windows, Winapi.Messages, Vcl.Graphics, Vcl.Controls,
   Vcl.Forms, Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ExtCtrls, UPanelDocumentos,
-  UDocumentoVista, UListaPropiedades, UTrazabilidad;
+  UDocumentoVista, UListaPropiedades, UTrazabilidad, UEdicionDocumento;
 
 const
   AVISO = 'Elija un documento para ver sus propiedades';
@@ -549,8 +559,152 @@ end;
 type
   TContador = class
     Avisos: Integer;
+    Llamadas: Integer;
+    Claves: Integer;
+    ErrorADevolver: string;
+    Permiso: Boolean;
     procedure Aviso(Sender: TObject);
+    function PuedeEditar: Boolean;
+    procedure Guardar(const Claves: TArray<TClaveDocumento>; const Cambios,
+      Anteriores: TCambiosDoc; out Error: string);
   end;
+
+function ClavesDocs(const Indices: array of Integer): TArray<TClaveDocumento>;
+var
+  D: TArray<TDatosDocumento>;
+  I: Integer;
+begin
+  D := Documentos;
+  SetLength(Result, Length(Indices));
+  for I := 0 to High(Indices) do
+    Result[I] := D[Indices[I]].Clave;
+end;
+
+function TContador.PuedeEditar: Boolean;
+begin
+  Result := Permiso;
+end;
+
+procedure TContador.Guardar(const Claves: TArray<TClaveDocumento>; const Cambios,
+  Anteriores: TCambiosDoc; out Error: string);
+begin
+  Inc(Llamadas);
+  Self.Claves := Length(Claves);
+  Error := ErrorADevolver;
+end;
+
+procedure TPruebasPanelDocumentos.Editar_AbreElFormularioConLasClaves;
+var
+  F: TForm;
+  P: TPanelDocumentos;
+  C: TContador;
+begin
+  F := TForm.CreateNew(nil);
+  C := TContador.Create;
+  try
+    P := PanelCargado(F);
+    C.Permiso := True;
+    P.OnPuedeEditar := C.PuedeEditar;
+    P.Editar(ClavesDocs([0, 1]));
+    Assert.IsTrue(P.Formulario.Visible);
+    Assert.IsTrue(P.Formulario.EsLote);
+    Assert.AreEqual(2, Integer(Length(P.Formulario.Claves)));
+  finally
+    F.Free;
+    C.Free;
+  end;
+end;
+
+procedure TPruebasPanelDocumentos.Editar_SinPermiso_NoAbre;
+var
+  F: TForm;
+  P: TPanelDocumentos;
+  C: TContador;
+begin
+  F := TForm.CreateNew(nil);
+  C := TContador.Create;
+  try
+    P := PanelCargado(F);
+    C.Permiso := False;
+    P.OnPuedeEditar := C.PuedeEditar;
+    P.Editar(ClavesDocs([0]));
+    Assert.IsFalse(P.Formulario.Visible);
+  finally
+    F.Free;
+    C.Free;
+  end;
+end;
+
+procedure TPruebasPanelDocumentos.Editar_Guardar_LlamaAlEventoYCierra;
+var
+  F: TForm;
+  P: TPanelDocumentos;
+  C: TContador;
+begin
+  F := TForm.CreateNew(nil);
+  C := TContador.Create;
+  try
+    P := PanelCargado(F);
+    C.Permiso := True;
+    P.OnPuedeEditar := C.PuedeEditar;
+    P.OnGuardarEdicion := C.Guardar;
+    P.Editar(ClavesDocs([0, 2]));
+    P.Formulario.EscribirCampo('gaveta', 'G5');
+    P.Formulario.Guardar;
+    Assert.AreEqual(1, C.Llamadas);
+    Assert.AreEqual(2, C.Claves);
+    Assert.IsFalse(P.Formulario.Visible, 'al guardar bien se cierra');
+  finally
+    F.Free;
+    C.Free;
+  end;
+end;
+
+procedure TPruebasPanelDocumentos.Editar_GuardarConError_DejaAbiertoConElMensaje;
+var
+  F: TForm;
+  P: TPanelDocumentos;
+  C: TContador;
+begin
+  F := TForm.CreateNew(nil);
+  C := TContador.Create;
+  try
+    P := PanelCargado(F);
+    C.Permiso := True;
+    C.ErrorADevolver := 'No se pudo guardar nada';
+    P.OnPuedeEditar := C.PuedeEditar;
+    P.OnGuardarEdicion := C.Guardar;
+    P.Editar(ClavesDocs([0]));
+    P.Formulario.EscribirCampo('titulo', 'Otro titulo');
+    P.Formulario.Guardar;
+    Assert.IsTrue(P.Formulario.Visible, 'con error se queda abierto para corregir');
+    Assert.IsTrue(Pos('No se pudo guardar nada', P.Formulario.MensajeActual) > 0);
+  finally
+    F.Free;
+    C.Free;
+  end;
+end;
+
+procedure TPruebasPanelDocumentos.Editar_Cancelar_Cierra;
+var
+  F: TForm;
+  P: TPanelDocumentos;
+  C: TContador;
+begin
+  F := TForm.CreateNew(nil);
+  C := TContador.Create;
+  try
+    P := PanelCargado(F);
+    C.Permiso := True;
+    P.OnPuedeEditar := C.PuedeEditar;
+    P.Editar(ClavesDocs([0]));
+    P.Formulario.Cancelar;
+    Assert.IsFalse(P.Formulario.Visible);
+  finally
+    F.Free;
+    C.Free;
+  end;
+end;
 
 procedure TContador.Aviso(Sender: TObject);
 begin

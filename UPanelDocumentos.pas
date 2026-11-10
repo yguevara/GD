@@ -17,7 +17,7 @@ uses
   Winapi.Windows, Winapi.Messages, Vcl.Controls, Vcl.ExtCtrls, Vcl.ComCtrls,
   Vcl.StdCtrls, Vcl.Graphics, Vcl.Forms, UTema, UDocumentoVista, UTrazabilidad,
   UListaPropiedades, UPanelDocumento, UVistaUbicacion, UVisorContenido,
-  URecepcionArchivos;
+  URecepcionArchivos, UEdicionDocumento, UFormularioDocumento;
 
 type
   { Archivos soltados sobre la zona de anexos (EsFuente = False) o de fuentes
@@ -29,6 +29,13 @@ type
     const Pdf: string) of object;
   { Si el usuario puede modificar los ficheros del documento actual. }
   TConsultaPermiso = function: Boolean of object;
+
+  { Guarda los cambios hechos en el formulario de edicion. Si algo impide guardar
+    devuelve el motivo en Error (el formulario queda abierto). }
+  TGuardarEdicionEvent = procedure(const Claves: TArray<TClaveDocumento>;
+    const Cambios, Anteriores: TCambiosDoc; out Error: string) of object;
+  { Valores actuales de un documento para el formulario de edicion. }
+  TActualesEvent = function(const Clave: TClaveDocumento): TCambiosDoc of object;
   { Ruta local de un archivo PDF con el contenido del documento, o '' y el
     motivo (sin PDF, formato no admitido, fichero ausente del almacen). }
   TSolicitudContenido = function(const Clave: TClaveDocumento;
@@ -72,6 +79,11 @@ type
     FOnPedirContenido: TSolicitudContenido;
     FRecepLista: TRecepcionArchivos;
     FOnSeleccionMultiple: TNotifyEvent;
+    FFormulario: TFormularioDocumento;
+    FOnGuardarEdicion: TGuardarEdicionEvent;
+    FOnPedirActuales: TActualesEvent;
+    FOnPuedeTopografia: TConsultaPermiso;
+    FOnVistaAvanzada: TNotifyEvent;
     FUltimaCantidad: Integer;
     FSeleccionandoVarios: Boolean;
     FZonaAnexos, FZonaFuentes: TPanel;
@@ -143,6 +155,9 @@ type
     procedure EnlaceTodosClick(Sender: TObject);
     function IndiceSeleccionado: Integer;
     procedure AbrirSeleccionado;
+    procedure FormularioGuardar(Sender: TObject);
+    procedure FormularioCancelar(Sender: TObject);
+    procedure FormularioAvanzada(Sender: TObject);
   protected
     { Los controles hijos se crean al recibir el padre: un control con
       ventana necesita que toda la cadena de padres exista. }
@@ -170,6 +185,16 @@ type
     property OnSoltarArchivos: TSoltarEvent read FOnSoltarArchivos write FOnSoltarArchivos;
     { Receptor de arrastre de la lista (pruebas). }
     property ReceptorLista: TRecepcionArchivos read FRecepLista;
+    { Abre el formulario de edicion sobre el panel del documento (uno o varios). }
+    procedure Editar(const Claves: TArray<TClaveDocumento>);
+    procedure CerrarEdicion;
+    property Formulario: TFormularioDocumento read FFormulario;
+    property OnGuardarEdicion: TGuardarEdicionEvent read FOnGuardarEdicion
+      write FOnGuardarEdicion;
+    property OnPedirActuales: TActualesEvent read FOnPedirActuales write FOnPedirActuales;
+    property OnPuedeTopografia: TConsultaPermiso read FOnPuedeTopografia
+      write FOnPuedeTopografia;
+    property OnVistaAvanzada: TNotifyEvent read FOnVistaAvanzada write FOnVistaAvanzada;
     { Claves de los documentos marcados en la lista (uno o varios). }
     function ClavesSeleccionadas: TArray<TClaveDocumento>;
     { Se dispara al cambiar la cantidad de documentos marcados. }
@@ -525,6 +550,14 @@ begin
   FDoc.Parent := FDer;
   FDoc.Align := alClient;
 
+  FFormulario := TFormularioDocumento.Create(Self);
+  FFormulario.Parent := FDer;
+  FFormulario.Align := alClient;
+  FFormulario.Visible := False;
+  FFormulario.OnGuardar := FormularioGuardar;
+  FFormulario.OnCancelar := FormularioCancelar;
+  FFormulario.OnVistaAvanzada := FormularioAvanzada;
+
   FPie := TPanel.Create(Self);
   FPie.Parent := FDoc.Pagina(pdArchivos);
   FPie.Align := alBottom;
@@ -653,6 +686,59 @@ end;
 
 // Marca los documentos de esas claves que estan en la lista y muestra el estado
 // que corresponde (uno o varios)
+procedure TPanelDocumentos.Editar(const Claves: TArray<TClaveDocumento>);
+var
+  Actuales: TCambiosDoc;
+  PuedeTopo: Boolean;
+begin
+  if Length(Claves) = 0 then
+    Exit;
+  if not (Assigned(FOnPuedeEditar) and FOnPuedeEditar()) then
+  begin
+    if Assigned(FOnAvisoSoltar) then
+      FOnAvisoSoltar('No tiene permiso para editar estos documentos.');
+    Exit;
+  end;
+  Actuales := Default(TCambiosDoc);
+  if (Length(Claves) = 1) and Assigned(FOnPedirActuales) then
+    Actuales := FOnPedirActuales(Claves[0]);
+  PuedeTopo := (not Assigned(FOnPuedeTopografia)) or FOnPuedeTopografia();
+  FFormulario.Abrir(Claves, Actuales, PuedeTopo);
+  FFormulario.Visible := True;
+  FFormulario.BringToFront;
+end;
+
+procedure TPanelDocumentos.CerrarEdicion;
+begin
+  if FFormulario <> nil then
+    FFormulario.Visible := False;
+end;
+
+procedure TPanelDocumentos.FormularioGuardar(Sender: TObject);
+var
+  Error: string;
+begin
+  Error := '';
+  if Assigned(FOnGuardarEdicion) then
+    FOnGuardarEdicion(FFormulario.Claves, FFormulario.Cambios, FFormulario.Anteriores, Error);
+  if Error <> '' then
+    FFormulario.MostrarMensaje(Error)
+  else
+    CerrarEdicion;
+end;
+
+procedure TPanelDocumentos.FormularioCancelar(Sender: TObject);
+begin
+  CerrarEdicion;
+end;
+
+procedure TPanelDocumentos.FormularioAvanzada(Sender: TObject);
+begin
+  CerrarEdicion;
+  if Assigned(FOnVistaAvanzada) then
+    FOnVistaAvanzada(Self);
+end;
+
 procedure TPanelDocumentos.SeleccionarClaves(const Claves: TArray<TClaveDocumento>);
 var
   I, J: Integer;
