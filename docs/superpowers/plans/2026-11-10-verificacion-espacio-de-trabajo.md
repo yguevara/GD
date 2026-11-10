@@ -44,3 +44,18 @@ Estado de la suite automatica al escribir esta lista: 316 pruebas, 0 fallos
 
 - "Prestados vencidos" no existe: la tabla de prestamos no guarda fecha limite.
 - Las fichas de serie no muestran cantidad de documentos para no revelar documentos fuera del alcance.
+
+## Panel del documento (pestanas)
+
+23. Al elegir un documento, la cabecera del panel muestra codigo, titulo y estado (En archivo / Prestado).
+24. Pestana Datos: codigo, titulo, fecha, version, tipo y expediente; ya no muestra la posicion fisica ni los ficheros.
+25. Pestana Ubicacion: dos bloques, Subserie (servidor, archivo, deposito, gaveta) y Documento (con posicion); un tramo sin dato dice "Sin asignar" y el bloque avisa cuantos faltan.
+26. Pestana Archivos: anexos digitales y fuentes en grupos, con extension, nombre y tamano; el titulo de la pestana lleva el numero de archivos; "Abrir contenido" y "Obtener expediente completo" siguen alli.
+27. Pestana Metadatos: etiquetas y valores de las variables del documento; un valor vacio sale como guion; una subserie sin variables dice "Esta subserie no define metadatos".
+28. Pestana Historia: los eventos y "Ver historia completa"; sin el rotulo HISTORIA repetido.
+29. Pestana Contenido: no descarga nada al elegir el documento; al abrirla muestra el PDF; con otro documento y la pestana abierta, lo cambia.
+30. Contenido de un documento sin PDF: dice el motivo ("no tiene ficheros digitales" o "solo admite PDF"), sin error.
+31. "Mostrar aparte" saca el visor a una ventana; "Volver a la aplicacion" (o cerrar la ventana) lo devuelve; con la ventana aparte, elegir un documento sin PDF vuelve el visor a la aplicacion.
+32. El visor no ofrece guardar, imprimir ni copiar (solo visualiza, como PDFExpressViewer.exe).
+33. Cada vez que se muestra un contenido queda un registro de visualizacion del documento (administracion de log).
+34. Al cerrar la aplicacion se borra la carpeta temporal `ArchiGenio_contenido_*` del directorio temporal.
