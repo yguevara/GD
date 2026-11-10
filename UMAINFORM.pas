@@ -7242,6 +7242,8 @@ end;
 procedure TMAIN.ConectarPanelLateral;
 var
   PagSeries, PagDetalle, PagComp: TPanel;
+  I: Integer;
+  Diag: string;
 begin
   FPanelLateral := TPanelLateral.Create(Self);
   FPanelLateral.Parent := PContainer;
@@ -7261,9 +7263,22 @@ begin
   PagSeries := FPanelLateral.AgregarPagina('Series');
   PagDetalle := FPanelLateral.AgregarPagina('Detalle');
   PagComp := FPanelLateral.AgregarPagina('Complementaria');
+  Diag := Format('origen: Series=%d Detalle=%d Complementaria=%d; ',
+    [advtpSSDispo.ControlCount, advtpDetail.ControlCount, pArchivoDig.ControlCount]);
   MoverContenido(advtpSSDispo, PagSeries, Self);
   MoverContenido(advtpDetail, PagDetalle, Self);
   MoverContenido(pArchivoDig, PagComp, Self);
+  // Un TAdvToolPanel oculto puede dejar a sus hijos con Visible = False: en el
+  // panel nuevo se muestran los que no administra el codigo (gVariablesDetail
+  // y su separador se muestran segun haya variables).
+  for I := 0 to PagSeries.ControlCount - 1 do
+    PagSeries.Controls[I].Visible := True;
+  cxDBVerticalGrid2.Visible := True;
+  sbAD.Visible := True;
+  cxPageControl1.Visible := True;
+  Diag := Diag + Format('destino: Series=%d Detalle=%d Complementaria=%d',
+    [PagSeries.ControlCount, PagDetalle.ControlCount, PagComp.ControlCount]);
+  RegistrarErrorLista('Panel lateral ' + Diag);
   // en 380 px las columnas se reparten el ancho en vez de salirse
   cxGrid1DBTableView1.OptionsView.ColumnAutoWidth := True;
   gVariablesDetailDBTableView1.OptionsView.ColumnAutoWidth := True;
