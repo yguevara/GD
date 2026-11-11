@@ -4589,6 +4589,20 @@ begin
   // visor suelta el que tiene abierto
   if (FListaDocs <> nil) and (FListaDocs.Visor <> nil) then
     FListaDocs.Visor.Limpiar;
+  // Con la ventana principal todavia viva: se para lo que reacciona a mensajes y
+  // se libera la lista de documentos (y con ella el visor, que puede estar en una
+  // ventana aparte) antes de que la VCL destruya los contenedores. El panel del
+  // documento ahora vive dentro del panel lateral y se destruiria antes que ella.
+  if FTimerDocs <> nil then
+    FTimerDocs.Enabled := False;
+  if FTimerBarra <> nil then
+    FTimerBarra.Enabled := False;
+  if FListaDocs <> nil then
+  begin
+    if (FListaDocs.Visor <> nil) and FListaDocs.Visor.Separado then
+      FListaDocs.Visor.Reincorporar;
+    FreeAndNil(FListaDocs);
+  end;
   if FCarpetaContenido <> '' then
   try
     TDirectory.Delete(FCarpetaContenido, True);
@@ -7333,7 +7347,8 @@ end;
 procedure TMAIN.ListaDocsSeleccion(const Clave: TClaveDocumento);
 begin
   // elegir un documento abre el modo Documento del panel lateral
-  if (FPanelLateral <> nil) and FPanelLateral.TieneModoDocumento then
+  if (FPanelLateral <> nil) and FPanelLateral.TieneModoDocumento and
+    (FListaDocs <> nil) and FListaDocs.DocumentoSeparado then
     FPanelLateral.ActivarModo(MODO_DOCUMENTO);
   // el registro actual de tb_SeriesDatos sigue a la lista: los datasets de
   // ficheros (maestro-detalle) y los botones por rol trabajan sobre el
@@ -7511,6 +7526,7 @@ begin
     begin
       RegistrarErrorLista('Modo Documento: ' + E.ClassName + ': ' + E.Message);
       FListaDocs.RestaurarDocumento;
+      FPanelLateral.QuitarModoDocumento;
     end;
   end;
   FPanelLateral.Activar(PAG_DETALLE);
@@ -7994,9 +8010,9 @@ begin
     UDM.sms('Marque uno o varios documentos de la lista para editarlos.', 2);
     Exit;
   end;
-  if (FPanelLateral <> nil) and FPanelLateral.TieneModoDocumento then
+  if FListaDocs.Editar(Claves) and (FPanelLateral <> nil) and
+    FPanelLateral.TieneModoDocumento and FListaDocs.DocumentoSeparado then
     FPanelLateral.ActivarModo(MODO_DOCUMENTO);
-  FListaDocs.Editar(Claves);
 end;
 
 // Eliminar el documento que se edita: pide confirmacion y reutiliza el borrado

@@ -4238,7 +4238,7 @@ begin
     Append;
     FieldByName('usuariopc').AsString := DatosPC.Usuario;
     FieldByName('pc').AsString := DatosPC.Nombre;
-    FieldByName('fecha').AsString := FormatDateTime('[ddd dd mmm, hh:nn:ss:zzz]', Now);
+    FieldByName('fecha').AsString := FormatDateTime('[ddd dd mmm, hh:nn:ss:zzz]', MarcaTiempoUnica);
     FieldByName('ip').AsString := DatosPC.IP;
     FieldByName('usuario_sistema').AsString := UDM.UserName;
     FieldByName('accion').AsInteger := acc;

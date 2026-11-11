@@ -87,6 +87,9 @@ type
       Documento. Sin llamar a AgregarModoDocumento el panel se comporta como siempre.
       Devuelve el contenedor del modo Documento (ocupa todo el espacio bajo la tira). }
     function AgregarModoDocumento: TPanel;
+    { Quita la tira de modos y el contenedor del documento y deja el panel como
+      antes (camino de respaldo si el documento no pudo colocarse). }
+    procedure QuitarModoDocumento;
     procedure ActivarModo(Modo: Integer);
     function ModoActivo: Integer;
     function TieneModoDocumento: Boolean;
@@ -374,6 +377,16 @@ begin
   FTiraModos.OnElegir := ModoElegido;
   AplicarModo;
   Result := FContDocumento;
+end;
+
+procedure TPanelLateral.QuitarModoDocumento;
+begin
+  FModo := MODO_SUBSERIE;
+  if FTiraModos <> nil then
+    FreeAndNil(FTiraModos);
+  if FContDocumento <> nil then
+    FreeAndNil(FContDocumento);
+  AplicarModo;
 end;
 
 procedure TPanelLateral.AplicarModo;

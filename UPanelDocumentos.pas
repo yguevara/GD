@@ -91,6 +91,7 @@ type
     FUltimaCantidad: Integer;
     FSeleccionandoVarios: Boolean;
     FDocumentoSeparado: Boolean;
+    FContenidoPospuesto: Boolean;
     FZonaAnexos, FZonaFuentes: TPanel;
     FRecepAnexos, FRecepFuentes: TRecepcionArchivos;
     FOnSoltarFicheros: TSoltarFicherosEvent;
@@ -196,7 +197,7 @@ type
     { Receptor de arrastre de la lista (pruebas). }
     property ReceptorLista: TRecepcionArchivos read FRecepLista;
     { Abre el formulario de edicion sobre el panel del documento (uno o varios). }
-    procedure Editar(const Claves: TArray<TClaveDocumento>);
+    function Editar(const Claves: TArray<TClaveDocumento>): Boolean;
     procedure CerrarEdicion;
     { Saca el bloque derecho (panel del documento y formulario de edicion) y lo
       coloca a todo el espacio de Destino; la lista queda a todo el ancho.
@@ -381,7 +382,12 @@ begin
   // con el panel del documento oculto nadie veria el contenido: no se descarga;
   // AlMostrarseDocumento lo pide cuando vuelva a verse
   if DocumentoSeVe or FVisor.Separado then
+  begin
+    FContenidoPospuesto := False;
     CargarContenido(FContenidoPendiente);
+  end
+  else
+    FContenidoPospuesto := True;
 end;
 
 // Zona de soltar de la pestana Archivos: recuadro con texto; resalta mientras se
@@ -718,11 +724,12 @@ end;
 
 // Marca los documentos de esas claves que estan en la lista y muestra el estado
 // que corresponde (uno o varios)
-procedure TPanelDocumentos.Editar(const Claves: TArray<TClaveDocumento>);
+function TPanelDocumentos.Editar(const Claves: TArray<TClaveDocumento>): Boolean;
 var
   Actuales: TCambiosDoc;
   PuedeTopo: Boolean;
 begin
+  Result := False;
   if Length(Claves) = 0 then
     Exit;
   if not (Assigned(FOnPuedeEditar) and FOnPuedeEditar()) then
@@ -738,6 +745,7 @@ begin
   FFormulario.Abrir(Claves, Actuales, PuedeTopo);
   FFormulario.Visible := True;
   FFormulario.BringToFront;
+  Result := True;
 end;
 
 // Si algun documento que se esta editando ya no esta en la lista (otra subserie,
@@ -783,11 +791,11 @@ procedure TPanelDocumentos.ColocarDocumentoEn(Destino: TWinControl);
 begin
   if (Destino = nil) or (FDer = nil) then
     Exit;
+  FDocumentoSeparado := True; // antes de mover: si algo falla, Restaurar sabe deshacer
   FSplitter.Visible := False;
   FDer.Parent := Destino;
   FDer.Align := alClient;
   FDer.Visible := True;
-  FDocumentoSeparado := True;
   RegistrarReceptores;
 end;
 
@@ -809,14 +817,19 @@ end;
 
 procedure TPanelDocumentos.AlMostrarseDocumento;
 begin
-  if (FDoc.Activa = pdContenido) and (FIndiceActual >= 0) and
+  // solo si hubo una carga que se omitio por no verse: si el visor ya muestra el
+  // documento, volver a mostrar el panel no repite la descarga ni la visualizacion
+  if FContenidoPospuesto and (FDoc.Activa = pdContenido) and (FIndiceActual >= 0) and
     (FIndiceActual < Length(FVisibles)) then
+  begin
+    FContenidoPospuesto := False;
     ProgramarContenido(FVisibles[FIndiceActual]);
+  end;
 end;
 
 procedure TPanelDocumentos.RestaurarDocumento;
 begin
-  if (FDer = nil) or not FDocumentoSeparado then
+  if (FDer = nil) or not (FDocumentoSeparado or (FDer.Parent <> Self)) then
     Exit;
   FDocumentoSeparado := False;
   FDer.Parent := Self;

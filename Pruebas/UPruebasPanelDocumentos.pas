@@ -40,6 +40,10 @@ type
     [Test]
     procedure Contenido_ConElPanelOculto_NoDescargaYAlMostrarseSi;
     [Test]
+    procedure Contenido_AlMostrarseSinNadaPospuesto_NoVuelveAPedir;
+    [Test]
+    procedure Editar_DevuelveSiAbrio;
+    [Test]
     procedure Colocar_MueveElBloqueAlDestinoYLaListaOcupaTodo;
     [Test]
     procedure Colocar_ElVisorYLosReceptoresSiguenRegistrados;
@@ -1466,6 +1470,55 @@ begin
   finally
     F.Free;
     Prov.Free;
+  end;
+end;
+
+procedure TPruebasPanelDocumentos.Contenido_AlMostrarseSinNadaPospuesto_NoVuelveAPedir;
+var
+  F: TForm;
+  P: TPanelDocumentos;
+  LV: TListView;
+  Prov: TProveedorContenido;
+begin
+  F := TForm.CreateNew(nil);
+  Prov := TProveedorContenido.Create;
+  try
+    P := PanelCargado(F);
+    P.OnPedirContenido := Prov.Pedir;
+    LV := BuscarLista(P);
+    LV.Items[0].Selected := True;
+    P.Documento.Activar(pdContenido);
+    PonerAlDia;
+    Assert.AreEqual(1, Prov.Llamadas);
+    // el visor ya muestra este documento: volver a mostrar el panel no repite la
+    // descarga ni la visualizacion registrada
+    P.AlMostrarseDocumento;
+    EsperarContenido;
+    Assert.AreEqual(1, Prov.Llamadas);
+  finally
+    F.Free;
+    Prov.Free;
+  end;
+end;
+
+procedure TPruebasPanelDocumentos.Editar_DevuelveSiAbrio;
+var
+  F: TForm;
+  P: TPanelDocumentos;
+  C: TContador;
+begin
+  F := TForm.CreateNew(nil);
+  C := TContador.Create;
+  try
+    P := PanelCargado(F);
+    C.Permiso := False;
+    P.OnPuedeEditar := C.PuedeEditar;
+    Assert.IsFalse(P.Editar(ClavesDocs([0])), 'sin permiso no abre');
+    C.Permiso := True;
+    Assert.IsTrue(P.Editar(ClavesDocs([0])), 'con permiso abre');
+  finally
+    F.Free;
+    C.Free;
   end;
 end;
 

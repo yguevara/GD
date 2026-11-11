@@ -21,6 +21,8 @@ type
     [Test]
     procedure Modos_ConTituloVacio_ElTextoGuiaSoloEnSubserie;
     [Test]
+    procedure Modos_Quitar_DejaElPanelComoAntes;
+    [Test]
     procedure Modos_ActivarPagina_VuelveAlModoSubserie;
     [Test]
     procedure Modos_OnCambioModo_DisparaSoloAlCambiar;
@@ -162,6 +164,32 @@ begin
     Assert.IsFalse(P.VacioVisible, 'en modo Documento el texto guia no tapa el panel');
     P.ActivarModo(MODO_SUBSERIE);
     Assert.IsTrue(P.VacioVisible);
+  finally
+    F.Free;
+  end;
+end;
+
+procedure TPruebasPanelLateral.Modos_Quitar_DejaElPanelComoAntes;
+var
+  F: TForm;
+  P: TPanelLateral;
+  Doc, Pag: TPanel;
+begin
+  F := TForm.CreateNew(nil);
+  try
+    P := ConModoDocumento(F, Doc, Pag);
+    P.ActivarModo(MODO_DOCUMENTO);
+    // camino de respaldo: si el documento no pudo colocarse, el panel vuelve a lo de siempre
+    P.QuitarModoDocumento;
+    Application.ProcessMessages;
+    Assert.IsFalse(P.TieneModoDocumento);
+    Assert.AreEqual(MODO_SUBSERIE, P.ModoActivo);
+    Assert.IsFalse(P.TiraModosVisible);
+    Assert.IsTrue(P.TiraPaginasVisible);
+    Assert.IsTrue(P.CabeceraSubserieVisible);
+    // elegir "Documento" ya no hace nada
+    P.ActivarModo(MODO_DOCUMENTO);
+    Assert.AreEqual(MODO_SUBSERIE, P.ModoActivo);
   finally
     F.Free;
   end;
