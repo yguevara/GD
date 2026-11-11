@@ -7550,8 +7550,10 @@ begin
   FPanelLateral.Activar(PAG_DETALLE);
   // El componente antiguo (tres pestanas verticales) ya no se usa: se saca del
   // formulario para que no vuelva a mostrarse; el panel nuevo siempre se ve.
+  // Se queda en su sitio, solo oculto: TAdvToolPanelTab.RemovePanel (al destruir sus
+  // paneles al cerrar) usa su Parent, y con Parent = nil provocaba los errores de memoria
+  // al salir de la aplicacion.
   advtpDetalle.Visible := False;
-  advtpDetalle.Parent := nil;
   FPanelLateral.Repintar;
 end;
 
