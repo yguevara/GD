@@ -16,6 +16,8 @@ type
     [Test]
     procedure Panel_Activar_AvisaUnaVezPorCambio;
     [Test]
+    procedure Panel_TituloLargo_SeVeEnDosLineasYTieneHint;
+    [Test]
     procedure Panel_FijarCabecera_MuestraCodigoYEstado;
     [Test]
     procedure Panel_FijarConteoArchivos_ActualizaLaPestana;
@@ -93,6 +95,32 @@ begin
   finally
     F.Free;
     R.Free;
+  end;
+end;
+
+procedure TPruebasPanelDocumento.Panel_TituloLargo_SeVeEnDosLineasYTieneHint;
+const
+  LARGO = 'Plan de ordenamiento territorial y urbano del municipio de Palma Soriano, ' +
+    'provincia de Santiago de Cuba, con anexos tecnicos, planos y memoria descriptiva';
+var
+  F: TForm;
+  P: TPanelDocumento;
+  AltoCorto: Integer;
+begin
+  F := TForm.CreateNew(nil);
+  try
+    P := NuevoPanel(F);
+    P.FijarCabecera('A 03.01.02.0003', 'Alcantarillado', edDesconocido);
+    Application.ProcessMessages;
+    Assert.AreEqual(1, P.LineasTitulo, 'un titulo corto cabe en una linea');
+    AltoCorto := P.AltoCabecera;
+    P.FijarCabecera('A 03.01.02.0003', LARGO, edDesconocido);
+    Application.ProcessMessages;
+    Assert.AreEqual(2, P.LineasTitulo, 'un titulo largo usa dos lineas en vez de cortarse en una');
+    Assert.IsTrue(P.AltoCabecera > AltoCorto, 'la cabecera crece para las dos lineas');
+    Assert.IsTrue(Pos(LARGO, P.HintCabecera) > 0, 'el titulo completo esta en el globo de ayuda');
+  finally
+    F.Free;
   end;
 end;
 

@@ -30,6 +30,10 @@ type
     [Test]
     procedure RecrearLaVentana_VuelveAEstarRegistrado;
     [Test]
+    procedure ReceptorLiberadoConOtraCapaEncima_NoRompeAlDestruirLaVentana;
+    [Test]
+    procedure ControlLiberado_SinMensajesPerdidos_NoRompe;
+    [Test]
     procedure SimularSoltar_Activo_AvisaConLasRutas;
     [Test]
     procedure SimularSoltar_ConActivoFalso_NoAvisa;
@@ -132,6 +136,69 @@ begin
   R := TReceptor.Create;
   Result := TRecepcionArchivos.Crear(F, P);
   Result.OnSoltar := R.Soltar;
+end;
+
+type
+  { Otro vigilante de mensajes instalado encima del del receptor (como hace
+    cualquier otro componente que enlaza WindowProc). }
+  TCapaExtra = class
+    Anterior: TWndMethod;
+    Mensajes: Integer;
+    procedure WndProc(var M: TMessage);
+  end;
+
+procedure TCapaExtra.WndProc(var M: TMessage);
+begin
+  Inc(Mensajes);
+  Anterior(M);
+end;
+
+procedure TPruebasRecepcionArchivos.ReceptorLiberadoConOtraCapaEncima_NoRompeAlDestruirLaVentana;
+var
+  F: TForm;
+  Rc: TRecepcionArchivos;
+  R: TReceptor;
+  P: TPanel;
+  Capa: TCapaExtra;
+begin
+  F := TForm.CreateNew(nil);
+  Capa := TCapaExtra.Create;
+  try
+    Rc := NuevoReceptor(F, R);
+    P := TPanel(F.Controls[0]);
+    Capa.Anterior := P.WindowProc;
+    P.WindowProc := Capa.WndProc;
+    // el receptor muere antes que el control y no puede quitar su vigilante (hay otro encima)
+    Rc.Free;
+    // destruir y recrear la ventana pasa por la capa y por el vigilante del receptor muerto
+    P.Perform(CM_RECREATEWND, 0, 0);
+    Application.ProcessMessages;
+    Assert.IsTrue(Capa.Mensajes > 0);
+  finally
+    F.Free;
+    Capa.Free;
+    R.Free;
+  end;
+end;
+
+procedure TPruebasRecepcionArchivos.ControlLiberado_SinMensajesPerdidos_NoRompe;
+var
+  F: TForm;
+  Rc: TRecepcionArchivos;
+  R: TReceptor;
+begin
+  F := TForm.CreateNew(nil);
+  try
+    Rc := NuevoReceptor(F, R);
+    // el control hijo se libera con su ventana viva: WM_DESTROY y la baja del
+    // receptor no deben llamar a un vigilante vacio
+    F.Controls[0].Free;
+    Application.ProcessMessages;
+    Assert.IsFalse(Rc.Registrado);
+  finally
+    F.Free;
+    R.Free;
+  end;
 end;
 
 procedure TPruebasRecepcionArchivos.RecrearLaVentana_VuelveAEstarRegistrado;

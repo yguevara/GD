@@ -660,6 +660,7 @@ type
     FBloqueAccion: TBloqueAccion;
     FPanelLateral: TPanelLateral;
     FSepLateral: TSplitter;
+    FBtnAsignarSerie: TButton;
     FCargandoSeries: Boolean;
     FCuadroPedido: Boolean;
     // La definicion de variables y la tabla de metadatos dependen de la subserie,
@@ -812,11 +813,13 @@ type
     procedure AgregarDocumentosConRutas(const Rutas: TArray<string>);
     procedure ListaDocsSoltar(const Rutas: TArray<string>);
     function ListaDocsPuedeEditar: Boolean;
+    function ShellPuedeAgregar: Boolean;
     function ListaDocsPuedeTopografia: Boolean;
     function ListaDocsActuales(const Clave: TClaveDocumento): TCambiosDoc;
     procedure ListaDocsGuardarEdicion(const Claves: TArray<TClaveDocumento>;
       const Cambios, Anteriores: TCambiosDoc; out Error: string);
     procedure BarraEditar(Sender: TObject);
+    procedure ActualizarBotonAsignarSerie;
     procedure PanelLateralCambioModo(Sender: TObject);
     procedure ListaDocsEliminar(const Clave: TClaveDocumento);
     procedure ListaDocsSoltarEnLote(const Claves: TArray<TClaveDocumento>;
@@ -7529,6 +7532,21 @@ begin
       FPanelLateral.QuitarModoDocumento;
     end;
   end;
+  // Agregar una subserie al nodo del cuadro de clasificación: la acción de siempre
+  // (el icono pequeño de la barra de "Subseries disponibles"), ahora con texto
+  // y en lo alto de la pestaña Series. Solo la ven quienes pueden asignar series.
+  FBtnAsignarSerie := TButton.Create(Self);
+  FBtnAsignarSerie.Parent := PagSeries;
+  FBtnAsignarSerie.Align := alTop;
+  FBtnAsignarSerie.Top := 0;
+  FBtnAsignarSerie.Height := 32;
+  FBtnAsignarSerie.AlignWithMargins := True;
+  FBtnAsignarSerie.Margins.SetBounds(10, 8, 10, 4);
+  FBtnAsignarSerie.Caption := 'Agregar subserie al nodo';
+  FBtnAsignarSerie.Hint := 'Asigna la subserie elegida en la lista al nodo seleccionado del cuadro de clasificación';
+  FBtnAsignarSerie.ShowHint := True;
+  FBtnAsignarSerie.OnClick := btnAsignSSClick;
+  ActualizarBotonAsignarSerie;
   FPanelLateral.Activar(PAG_DETALLE);
   // El componente antiguo (tres pestanas verticales) ya no se usa: se saca del
   // formulario para que no vuelva a mostrarse; el panel nuevo siempre se ve.
@@ -7539,6 +7557,14 @@ end;
 
 // Con el panel lateral nuevo, advtpDetalle (las tres pestanas verticales) no se
 // muestra; sin el, queda como siempre.
+// El botón "Agregar subserie al nodo" se ve cuando el usuario puede asignar series
+// (el mismo permiso que muestra el icono antiguo btnAsignSS).
+procedure TMAIN.ActualizarBotonAsignarSerie;
+begin
+  if FBtnAsignarSerie <> nil then
+    FBtnAsignarSerie.Visible := btnAsignSS.Visible;
+end;
+
 procedure TMAIN.AjustarPanelLateral;
 begin
   if FPanelLateral <> nil then
@@ -8695,9 +8721,33 @@ end;
 // codigo por rol (adminOptions, GestorOptions...), asi que son la fuente del
 // permiso. Transferencias, Depuracion e Indices estan ocultos en el .dfm pero
 // cuelgan de Herramientas (btnTool): se ofrecen a quien ve Herramientas.
+// Agregar documentos: no al invitado ni al visor; con alcance (SQL Server) lo decide
+// UAlcance para el nodo y la subserie elegidos; sin el (Access) la misma regla que
+// habilita el boton Insertar del navegador de documentos.
+function TMAIN.ShellPuedeAgregar: Boolean;
+var
+  Nodo: TClaveNodo;
+begin
+  if SameText(UDM.UserName, 'Invitado') or SameText(UDM.Rol, 'Visor') then
+    Exit(False);
+  if (UDM.Alcance <> nil) and UDM.tb_Serietree.Active and not UDM.tb_Serietree.IsEmpty then
+  begin
+    Nodo.IdEstructura := UDM.tb_Serietree.FieldByName('IdEstructura').AsString;
+    Nodo.Id := UDM.tb_Serietree.FieldByName('id').AsInteger;
+    Result := UDM.Alcance.PuedeRealizar(acAgregar, Nodo,
+      UDM.tb_Serietree.FieldByName('codsubs').AsString);
+  end
+  else if UDM.Alcance <> nil then
+    Result := True // sin subserie elegida: el propio alta avisa que falta elegirla
+  else
+    Result := nbInsert in dbnSeriesDatos.VisibleButtons;
+end;
+
 function TMAIN.ShellSeccionDisponible(const Nombre: string): Boolean;
 begin
-  if Nombre = SECCION_TRASLADOS then
+  if Nombre = SECCION_AGREGAR then
+    Result := ShellPuedeAgregar
+  else if Nombre = SECCION_TRASLADOS then
     Result := btnTool.Visible and btnTransfer.Enabled
   else if Nombre = SECCION_PRESTAMOS then
     Result := btnTool.Visible and P3.Visible and P3.Enabled
@@ -8992,6 +9042,7 @@ begin
   btnExportExcelCC.Visible := False;
   btnAsignSS.Visible := False;
   btnAsignarSS.Visible := False;
+  ActualizarBotonAsignarSerie;
   btnExcelExportSSD.Visible := False;
   btnExportExcelDoc.Visible := False;
 //  JvTransparentButton5.Visible := False;
@@ -9187,6 +9238,7 @@ begin
   btnExportExcelCC.Visible := True;
   btnAsignSS.Visible := True;
   btnAsignarSS.Visible := True;
+  ActualizarBotonAsignarSerie;
   btnExcelExportSSD.Visible := True;
   btnExportExcelDoc.Visible := True;
 //  JvTransparentButton5.Visible := True;

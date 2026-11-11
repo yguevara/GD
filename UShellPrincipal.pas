@@ -38,6 +38,7 @@ const
   SECCION_USUARIOS = 'usuarios';
   SECCION_CONFIGURACION = 'configuracion';
   SECCION_ACERCA = 'acerca';
+  SECCION_AGREGAR = 'agregar'; // el boton Agregar documento (no es una seccion del menu)
 
 type
   TBuscarEvent = procedure(const Texto: string; Ambito: TAmbitoBusqueda) of object;
@@ -1213,7 +1214,10 @@ begin
   else
     AnchoAmb := 0;
   AnchoChip := Min(FChipUsuario.AnchoIdeal, Esc(ANCHO_CHIP_MAX));
-  AnchoAgr := FBtnAgregar.AnchoIdeal;
+  if FBtnAgregar.Visible then
+    AnchoAgr := FBtnAgregar.AnchoIdeal
+  else
+    AnchoAgr := 0;
   if Libre < MinTit then
     AnchoBus := Max(Esc(ANCHO_BUSQUEDA_MIN), AnchoBus - (MinTit - Libre));
   if Libre < MinTit then
@@ -1224,7 +1228,8 @@ begin
   if Libre < MinTit then
   begin
     FBtnAgregar.SoloIcono := True;
-    AnchoAgr := FBtnAgregar.AnchoIdeal;
+    if FBtnAgregar.Visible then
+      AnchoAgr := FBtnAgregar.AnchoIdeal;
   end;
 
   X := W - Pad - AnchoChip;
@@ -1399,6 +1404,14 @@ begin
     Ajustar(FSecciones[I], SECCIONES_PERMISO[I].Nombre);
   if Cambio and (FColumna <> nil) then
     OrdenarColumna;
+  // "Agregar documento" solo se ofrece a quien puede agregar (no al invitado)
+  if FBtnAgregar <> nil then
+  begin
+    Cambio := False;
+    Ajustar(FBtnAgregar, SECCION_AGREGAR);
+    if Cambio then
+      Reacomodar;
+  end;
 end;
 
 procedure TShellPrincipal.SeccionClick(Sender: TObject);

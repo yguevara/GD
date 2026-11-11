@@ -21,14 +21,22 @@ type
   private
     FTema: TTemaColores;
     FCodigo, FTitulo, FEstado: string;
+    FOnAltoCambio: TNotifyEvent;
+    FAltoUltimo: Integer;
     procedure PrepararLienzo;
+    procedure AvisarAlto;
   protected
     procedure Paint; override;
+    procedure Resize; override;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Configurar(const T: TTemaColores);
     procedure Fijar(const Codigo, Titulo, Estado: string);
     function AltoNecesario: Integer;
+    { Lineas que ocupa el titulo con el ancho actual (1 o 2; si no cabe en dos se
+      termina en "..." y el titulo completo esta en el globo de ayuda). }
+    function LineasTitulo: Integer;
+    property OnAltoCambio: TNotifyEvent read FOnAltoCambio write FOnAltoCambio;
     property Codigo: string read FCodigo;
     property Estado: string read FEstado;
   end;
@@ -44,6 +52,7 @@ type
     FActiva: TPestanaDoc;
     FOnCambioPestana: TNotifyEvent;
     procedure Construir;
+    procedure CabeceraAlto(Sender: TObject);
     procedure TiraElegir(Sender: TObject);
     procedure MostrarActiva;
   protected
@@ -59,6 +68,9 @@ type
     { Numero de archivos del documento junto al nombre de la pestana Archivos. }
     procedure FijarConteoArchivos(N: Integer);
     function TextoCodigo: string;
+    function LineasTitulo: Integer;
+    function AltoCabecera: Integer;
+    function HintCabecera: string;
     function TextoEstado: string;
     function TituloPestana(P: TPestanaDoc): string;
     property OnCambioPestana: TNotifyEvent read FOnCambioPestana write FOnCambioPestana;
@@ -95,7 +107,48 @@ begin
   FCodigo := Codigo;
   FTitulo := Titulo;
   FEstado := Estado;
+  Hint := Trim(Codigo + ' - ' + Titulo);
+  ShowHint := Titulo <> '';
   Invalidate;
+  AvisarAlto;
+end;
+
+procedure TCabeceraDoc.Resize;
+begin
+  inherited Resize;
+  AvisarAlto;
+end;
+
+procedure TCabeceraDoc.AvisarAlto;
+var
+  A: Integer;
+begin
+  A := AltoNecesario;
+  if (A <> FAltoUltimo) then
+  begin
+    FAltoUltimo := A;
+    if Assigned(FOnAltoCambio) then
+      FOnAltoCambio(Self);
+  end;
+end;
+
+function TCabeceraDoc.LineasTitulo: Integer;
+var
+  R: TRect;
+  H1: Integer;
+begin
+  Result := 1;
+  if (FTitulo = '') or (Width < 60) then
+    Exit;
+  PrepararLienzo;
+  Canvas.Font.Size := 9;
+  Canvas.Font.Style := [];
+  H1 := Canvas.TextHeight('Ag');
+  R := Rect(0, 0, Width - 28, 0);
+  DrawText(Canvas.Handle, PChar(FTitulo), -1, R,
+    DT_CALCRECT or DT_WORDBREAK or DT_NOPREFIX or DT_LEFT);
+  if (R.Bottom - R.Top) > H1 + 2 then
+    Result := 2;
 end;
 
 procedure TCabeceraDoc.PrepararLienzo;
@@ -111,7 +164,7 @@ begin
   Result := Canvas.TextHeight('Ag') + 10;
   Canvas.Font.Size := 9;
   Canvas.Font.Style := [];
-  Result := Result + Canvas.TextHeight('Ag') + 12;
+  Result := Result + LineasTitulo * Canvas.TextHeight('Ag') + 12;
 end;
 
 procedure TCabeceraDoc.Paint;
@@ -150,9 +203,11 @@ begin
   Canvas.Font.Size := 9;
   Canvas.Font.Style := [];
   Canvas.Font.Color := FTema.TextoSuave;
-  RT := Rect(14, Y + H1 + 4, R.Right - 14, Y + H1 + 4 + Canvas.TextHeight('Ag'));
+  // hasta dos lineas: lo que no cabe termina en "..." (el titulo completo esta en el hint)
+  RT := Rect(14, Y + H1 + 4, R.Right - 14,
+    Y + H1 + 4 + 2 * Canvas.TextHeight('Ag') + 2);
   DrawText(Canvas.Handle, PChar(FTitulo), -1, RT,
-    DT_LEFT or DT_SINGLELINE or DT_NOPREFIX or DT_END_ELLIPSIS);
+    DT_LEFT or DT_WORDBREAK or DT_NOPREFIX or DT_END_ELLIPSIS);
 end;
 
 { TPanelDocumento }
@@ -201,6 +256,7 @@ begin
   FCab.Align := alClient;
   FCab.Configurar(FTema);
   FCabecera.Height := FCab.AltoNecesario;
+  FCab.OnAltoCambio := CabeceraAlto;
 
   FTira := TTiraPestanas.Create(Self);
   FTira.Parent := Self;
@@ -282,6 +338,26 @@ begin
     FTira.Retitular(Ord(pdArchivos), 'Archivos ' + IntToStr(N))
   else
     FTira.Retitular(Ord(pdArchivos), 'Archivos');
+end;
+
+function TPanelDocumento.LineasTitulo: Integer;
+begin
+  Result := FCab.LineasTitulo;
+end;
+
+function TPanelDocumento.AltoCabecera: Integer;
+begin
+  Result := FCabecera.Height;
+end;
+
+function TPanelDocumento.HintCabecera: string;
+begin
+  Result := FCab.Hint;
+end;
+
+procedure TPanelDocumento.CabeceraAlto(Sender: TObject);
+begin
+  FCabecera.Height := FCab.AltoNecesario;
 end;
 
 function TPanelDocumento.TextoCodigo: string;
