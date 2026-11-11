@@ -111,7 +111,7 @@ begin
   L.Font.Name := 'Segoe UI';
   L.Font.Size := 11;
   L.Font.Color := T.TextoSobreAcento;
-  L.Caption := 'Gestion de archivo documental';
+  L.Caption := 'Gestión de archivo documental';
   L.Left := 30;
   L.Top := 72;
   L.OnClick := BASClick;
@@ -128,9 +128,9 @@ begin
   lblBuild.BringToFront;
 
   if programver = 'PROFESIONAL' then
-    Etiqueta('Edicion: Profesional', 168, 10, T.Texto, False)
+    Etiqueta('Edición: Profesional', 168, 10, T.Texto, False)
   else
-    Etiqueta('Edicion: Basica', 168, 10, T.Texto, False);
+    Etiqueta('Edición: Básica', 168, 10, T.Texto, False);
   Etiqueta('Compilacion: ' + buildprogram, 218, 10, T.TextoSuave, False);
   Etiqueta('Desarrollado por', 258, 9, T.TextoSuave, False);
   // Logo de EMSERGO S.R.L. (recurso LOGO_EMSERGO de Iconos.rc)

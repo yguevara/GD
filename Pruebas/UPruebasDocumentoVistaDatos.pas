@@ -1,4 +1,4 @@
-unit UPruebasDocumentoVistaDatos;
+﻿unit UPruebasDocumentoVistaDatos;
 
 { Pruebas de UDocumentoVistaDatos (indicadores por documento: hijos de un
   expediente con alcance, vertices geo y ficheros).
@@ -308,7 +308,7 @@ begin
   R := Cargar('administrador', True);
   try
     Assert.IsTrue(R.TryGetValue(ClaveTexto(TSembradoVista.Clave('F2T-EXP', '014001')), I));
-    Assert.AreEqual(4, I.NumHijos, '3 con el codigo exacto + 1 con espacio');
+    Assert.AreEqual(4, I.NumHijos, '3 con el código exacto + 1 con espacio');
   finally
     R.Free;
   end;

@@ -1,4 +1,4 @@
-unit UPruebasEsquema;
+﻿unit UPruebasEsquema;
 
 interface
 
@@ -210,7 +210,7 @@ begin
   CrearEsquemaAlcance(FConn, True);
   CrearEsquemaAlcance(FConn, True);
   Despues := ContarFilasTablas;
-  Assert.AreEqual(Antes, Despues, 'Cambio el numero de filas');
+  Assert.AreEqual(Antes, Despues, 'Cambio el número de filas');
   Assert.IsTrue(TablaExiste('tb_nodo_egd'));
 end;
 
@@ -280,7 +280,7 @@ begin
   Assert.IsTrue(ColumnaExiste('cl_Resp_Gest_Arch', 'usuario_ad'), 'Access: falta usuario_ad');
   Antes := ContarFilasTablas;
   CrearEsquemaAlcance(FConn, False);
-  Assert.AreEqual(Antes, ContarFilasTablas, 'Access: cambio el numero de filas');
+  Assert.AreEqual(Antes, ContarFilasTablas, 'Access: cambio el número de filas');
   for I := Low(TABLAS_NUEVAS) to High(TABLAS_NUEVAS) do
     Assert.IsTrue(TablaExiste(TABLAS_NUEVAS[I]), 'Access: falta la tabla ' + TABLAS_NUEVAS[I]);
 end;

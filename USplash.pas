@@ -231,9 +231,9 @@ begin
   Edicion.Font.Size := 15;
   Edicion.Font.Color := T.Acento;
   if VERS = 'PROFESIONAL' then
-    Edicion.Caption := 'Edicion Profesional - gestion de archivo documental'
+    Edicion.Caption := 'Edición Profesional - gestión de archivo documental'
   else
-    Edicion.Caption := 'Edicion Basica - gestion de archivo documental';
+    Edicion.Caption := 'Edición Básica - gestión de archivo documental';
   Edicion.Left := 60;
   Edicion.Top := 222;
 

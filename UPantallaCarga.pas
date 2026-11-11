@@ -1,4 +1,4 @@
-unit UPantallaCarga;
+﻿unit UPantallaCarga;
 
 { Pantalla "Agregar documentos": se sueltan archivos o carpetas, cada archivo es
   un documento candidato, se completan los datos comunes y se guardan todos.
@@ -239,7 +239,7 @@ begin
   FZona.BevelOuter := bvNone;
   FZona.ParentBackground := False;
   FZona.Color := FTema.AcentoSuave;
-  FZona.Caption := 'Suelte aqui archivos o carpetas';
+  FZona.Caption := 'Suelte aquí archivos o carpetas';
   FZona.Font.Color := FTema.Texto;
 
   Barra := TPanel.Create(Self);
@@ -285,7 +285,7 @@ begin
   Col.Caption := 'Archivo';
   Col.Width := 220;
   Col := FLista.Columns.Add;
-  Col.Caption := 'Titulo';
+  Col.Caption := 'Título';
   Col.Width := 200;
   Col := FLista.Columns.Add;
   Col.Caption := 'Estado';
@@ -302,14 +302,14 @@ begin
   FEdArchivo.ReadOnly := True;
   FEdArchivo.Anchors := [akLeft, akTop, akRight];
 
-  Etiqueta(Der, 'Titulo', 66);
+  Etiqueta(Der, 'Título', 66);
   FEdTitulo := TEdit.Create(Self);
   FEdTitulo.Parent := Der;
   FEdTitulo.SetBounds(12, 84, 300, 23);
   FEdTitulo.Anchors := [akLeft, akTop, akRight];
   FEdTitulo.OnChange := EditoCampo;
 
-  Etiqueta(Der, 'Codigo', 118);
+  Etiqueta(Der, 'Código', 118);
   FEdCodigo := TEdit.Create(Self);
   FEdCodigo.Parent := Der;
   FEdCodigo.SetBounds(12, 136, 300, 23);
@@ -730,7 +730,7 @@ begin
   if Hallado < 0 then
     Exit;
   case MessageDlg(Format('Hay una carga sin terminar del %s con %d documento(s) pendientes.' +
-    #13#10#13#10 + 'Si = retomarla (titulo y datos de la subserie se completan de nuevo)' +
+    #13#10#13#10 + 'Sí = retomarla (título y datos de la subserie se completan de nuevo)' +
     #13#10 + 'No = descartarla' + #13#10 + 'Cancelar = decidir mas tarde',
     [FormatDateTime('dd/mm/yyyy hh:nn', P[Hallado].Fecha), P[Hallado].Pendientes]),
     mtConfirmation, [mbYes, mbNo, mbCancel], 0) of
@@ -1128,7 +1128,7 @@ begin
   Plantilla := FLote[I];
   AplicarATodos(FLote, Plantilla, [ccFecha]);
   if (FScroll <> nil) and
-    (MessageDlg('Aplicar tambien los datos de la subserie de este documento a todos los demas?',
+    (MessageDlg('Aplicar también los datos de la subserie de este documento a todos los demas?',
       mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
     for I := 0 to High(FLote) do
       if not (FLote[I].Estado in [ecGuardado, ecSubiendo]) then

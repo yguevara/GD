@@ -1,4 +1,4 @@
-unit UHistoriaDocumento;
+﻿unit UHistoriaDocumento;
 
 { Dialogo modal con la historia completa de un documento (F5): fecha, evento,
   usuario y detalle, el mas reciente primero. Se crea por codigo (sin .dfm) y no
@@ -121,7 +121,7 @@ begin
       Item.Caption := '';
       Item.SubItems.Add('Sin eventos registrados');
       Item.SubItems.Add('');
-      Item.SubItems.Add('La historia empieza cuando se instalo esta version.');
+      Item.SubItems.Add('La historia empieza cuando se instaló esta version.');
     end
     else
       for I := 0 to High(Eventos) do

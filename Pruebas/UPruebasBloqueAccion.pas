@@ -1,4 +1,4 @@
-unit UPruebasBloqueAccion;
+﻿unit UPruebasBloqueAccion;
 
 { Bloque "Requiere accion" (VCL). Codigo en ASCII. }
 
@@ -40,7 +40,7 @@ begin
   Result[0].Texto := 'Prestados ahora';
   Result[0].Cantidad := 3;
   Result[1].Clave := 'sinubicacion';
-  Result[1].Texto := 'Sin ubicacion';
+  Result[1].Texto := 'Sin ubicación';
   Result[1].Cantidad := 7;
 end;
 
@@ -78,7 +78,7 @@ begin
     B.Mostrar(Dos);
     Assert.AreEqual(2, B.CantidadFilas);
     B.ClicFila(1);
-    Assert.AreEqual('', R.Clave, 'sin ubicacion es informativo');
+    Assert.AreEqual('', R.Clave, 'sin ubicación es informativo');
     B.ClicFila(0);
     Assert.AreEqual('prestados', R.Clave);
   finally

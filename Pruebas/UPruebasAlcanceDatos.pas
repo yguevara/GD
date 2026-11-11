@@ -1,4 +1,4 @@
-unit UPruebasAlcanceDatos;
+﻿unit UPruebasAlcanceDatos;
 
 { Pruebas del filtro SQL de alcance (UAlcanceDatos).
   - TPruebasFiltroTexto: sin base de datos, sobre el texto generado.
@@ -407,7 +407,7 @@ begin
     for P in F.Parametros do
       if VarToStr(P.Valor) = UpperCase(COD_APOSTROFE) then
         Hallado := True;
-    Assert.IsTrue(Hallado, 'El codigo con apostrofe no se paso como parametro');
+    Assert.IsTrue(Hallado, 'El código con apostrofe no se paso como parametro');
   finally
     Al.Free;
   end;
@@ -751,7 +751,7 @@ begin
       while not Q.Eof do
       begin
         Assert.IsTrue(EnConjunto(N, Clave(Q.Fields[0].AsString, Q.Fields[1].AsInteger)),
-          'El Visor no ve el nodo ' + Q.Fields[0].AsString + ' con subserie publica');
+          'El Visor no ve el nodo ' + Q.Fields[0].AsString + ' con subserie pública');
         Q.Next;
       end;
       Assert.IsFalse(EnConjunto(N, Clave('A.4.6', 160)) and

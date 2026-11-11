@@ -1,4 +1,4 @@
-unit UPruebasBusquedaDatos;
+﻿unit UPruebasBusquedaDatos;
 
 { Pruebas de UBusquedaDatos.
   - TPruebasBusquedaDatos: validaciones de Buscar que no tocan la base.
@@ -234,7 +234,7 @@ begin
   Assert.AreEqual(1, CuentaMd(Conn, ConSqlServer, 'a_C', '', '', ''),
     'el guion bajo es literal');
   Assert.AreEqual(1, CuentaMd(Conn, ConSqlServer, '', 'Fecha_ing', '2026-01-01', '2026-01-31'),
-    'rango de fechas con dia mayor que 12, incluye el ultimo dia');
+    'rango de fechas con dia mayor que 12, incluye el último dia');
   Assert.AreEqual(2, CuentaMd(Conn, ConSqlServer, '', 'Fecha_ing', '2026-02-05', ''),
     'solo desde');
   Assert.AreEqual(1, CuentaMd(Conn, ConSqlServer, '', 'Folios', '5', '10'),
@@ -513,7 +513,7 @@ begin
   SembrarDocPropio(FConn, 'A.4.6', 160, '074', 'PBAMB-1');
   T := BuscarEnAmbito(FConn, True, 'prueba_alc_vacio', False, abGeneral, ClaveN('', 0));
   try
-    Assert.IsTrue(T.RecordCount > 0, 'debe devolver al menos el documento publico');
+    Assert.IsTrue(T.RecordCount > 0, 'debe devolver al menos el documento público');
     Assert.AreEqual(0, FilasConAccesoDistinto(T, 'Publica'), 'solo publicas');
   finally
     T.Free;
@@ -529,7 +529,7 @@ begin
   T := BuscarEnAmbito(FConn, True, 'prueba_alc_usr1', False, abNodoActual,
     ClaveN('A.4.6', 160));
   try
-    Assert.IsTrue(T.RecordCount > 0, 'debe devolver al menos el documento publico');
+    Assert.IsTrue(T.RecordCount > 0, 'debe devolver al menos el documento público');
     Assert.AreEqual(0, FilasConAccesoDistinto(T, 'Publica'), 'solo publicas');
   finally
     T.Free;
@@ -549,7 +549,7 @@ begin
     // el de 014001 (permitido) y el publico; no los 2 de '003' del mismo nodo
     Assert.AreEqual(2, T.RecordCount);
     Assert.AreEqual(1, FilasConCodsubs(T, '014001'), '014001 del nodo');
-    Assert.AreEqual(1, FilasConCodsubs(T, '074'), 'publico del nodo');
+    Assert.AreEqual(1, FilasConCodsubs(T, '074'), 'público del nodo');
     Assert.AreEqual(2, FilasEn(T, 'A.4.3'), 'todas del nodo');
   finally
     T.Free;

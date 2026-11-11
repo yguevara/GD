@@ -1,4 +1,4 @@
-unit UBusquedaDocumentos;
+﻿unit UBusquedaDocumentos;
 
 { Pantalla provisional de busqueda integrada de documentos (Fase 4).
   Caja de texto libre, subserie opcional y, al elegir una subserie, un filtro
@@ -159,7 +159,7 @@ begin
   FTexto := TEdit.Create(Self);
   FTexto.Parent := Barra;
   FTexto.SetBounds(56, 10, 280, 24);
-  FTexto.TextHint := 'Titulo, codigo o cualquier dato del documento';
+  FTexto.TextHint := 'Título, código o cualquier dato del documento';
   FTexto.OnChange := TextoChange;
   // Filtra mientras se escribe: busca 350 ms despues de la ultima tecla
   FTemporizador := TTimer.Create(Self);
@@ -217,8 +217,8 @@ begin
   FLista.ReadOnly := True;
   FLista.RowSelect := True;
   FLista.OnDblClick := ListaDblClick;
-  with FLista.Columns.Add do begin Caption := 'Codigo'; Width := 100; end;
-  with FLista.Columns.Add do begin Caption := 'Titulo'; Width := 230; end;
+  with FLista.Columns.Add do begin Caption := 'Código'; Width := 100; end;
+  with FLista.Columns.Add do begin Caption := 'Título'; Width := 230; end;
   with FLista.Columns.Add do begin Caption := 'Subserie'; Width := 140; end;
   with FLista.Columns.Add do begin Caption := 'Nodo'; Width := 340; end;
   with FLista.Columns.Add do begin Caption := 'Acceso'; Width := 80; end;
@@ -532,7 +532,7 @@ begin
       FBarra.SimpleText := IntToStr(FLista.Items.Count) + ' documento(s)';
       if Truncado then
         FBarra.SimpleText := FBarra.SimpleText +
-          '. Hay mas resultados: afine la busqueda.';
+          '. Hay más resultados: afine la búsqueda.';
     finally
       T.Free;
     end;

@@ -1,4 +1,4 @@
-unit UPruebasEdicionDocumento;
+﻿unit UPruebasEdicionDocumento;
 
 { Edicion de uno o varios documentos (logica y datos). SQL Server:
   ARCHIGENIO_TEST_DB. Access: ARCHIGENIO_TEST_MDB (COPIA). Cada prueba corre en
@@ -142,7 +142,7 @@ begin
     'fecha, version, titulodoc, observaciones, deposito, gaveta) VALUES ' +
     '(:e, :i, :c, :d, :f, :v, :t, ''obs inicial'', ''C'', ''G1'')',
     [C.IdEstructura, C.Id, C.CodSubs, C.Codigodoc, C.Fecha, C.Version,
-    'Titulo original ' + IntToStr(N)]);
+    'Título original ' + IntToStr(N)]);
 end;
 
 function TPruebasEdicionDocumento.Texto(N: Integer; const Campo: string): string;
@@ -200,9 +200,9 @@ begin
   C := Default(TCambiosDoc);
   C.TieneTitulo := True;
   C.Titulo := '   ';
-  Assert.IsTrue(ValidarCambios(C) <> '', 'titulo en blanco');
+  Assert.IsTrue(ValidarCambios(C) <> '', 'título en blanco');
   C.Titulo := StringOfChar('x', 256);
-  Assert.IsTrue(ValidarCambios(C) <> '', 'titulo de mas de 255');
+  Assert.IsTrue(ValidarCambios(C) <> '', 'título de mas de 255');
   C.Titulo := StringOfChar('x', 255);
   Assert.AreEqual('', ValidarCambios(C));
 end;
@@ -231,7 +231,7 @@ begin
   C := Default(TCambiosDoc);
   C.TienePosicion := True;
   C.Posicion := StringOfChar('p', 11);
-  Assert.IsTrue(ValidarCambios(C) <> '', 'posicion de mas de 10');
+  Assert.IsTrue(ValidarCambios(C) <> '', 'posición de mas de 10');
   C := Default(TCambiosDoc);
   C.TieneIdExpediente := True;
   C.IdExpediente := StringOfChar('e', 21);
@@ -252,10 +252,10 @@ begin
       Sembrar(1);
       C := Default(TCambiosDoc);
       C.TieneTitulo := True;
-      C.Titulo := 'Titulo nuevo';
+      C.Titulo := 'Título nuevo';
       R := ActualizarDocumentos(FConn, nil, FOrigen, [Clave(1)], C, Default(TCambiosDoc));
       Assert.AreEqual(1, R.Guardados);
-      Assert.AreEqual('Titulo nuevo', Texto(1, 'titulodoc'));
+      Assert.AreEqual('Título nuevo', Texto(1, 'titulodoc'));
       Assert.AreEqual('obs inicial', Texto(1, 'observaciones'), 'lo que no se pidio no cambia');
     end);
 end;
@@ -280,7 +280,7 @@ begin
       Assert.AreEqual(3, R.Guardados, R.Mensaje);
       Assert.AreEqual('G9', Texto(2, 'gaveta'));
       Assert.AreEqual('P-006', Texto(3, 'IDExpediente'));
-      Assert.AreEqual('Titulo original 2', Texto(2, 'titulodoc'));
+      Assert.AreEqual('Título original 2', Texto(2, 'titulodoc'));
     end);
 end;
 
@@ -318,7 +318,7 @@ begin
         Default(TCambiosDoc));
       Assert.AreEqual(0, R.Guardados);
       Assert.AreEqual(0, R.Fallidos);
-      Assert.AreEqual('Titulo original 1', Texto(1, 'titulodoc'));
+      Assert.AreEqual('Título original 1', Texto(1, 'titulodoc'));
     end);
 end;
 
@@ -387,7 +387,7 @@ begin
       // el formulario se abrio cuando el titulo era "Titulo original 1"
       Ant := Default(TCambiosDoc);
       Ant.TieneTitulo := True;
-      Ant.Titulo := 'Titulo original 1';
+      Ant.Titulo := 'Título original 1';
       // mientras tanto otro usuario lo cambio
       FConn.ExecSQL('UPDATE tb_SeriesDatos SET titulodoc = ''Cambio ajeno'' WHERE Codigodoc = ''F7T-001''');
       C := Default(TCambiosDoc);
@@ -443,7 +443,7 @@ begin
     R := ActualizarDocumentos(FConn, Al, FOrigen, [Clave(1)], C, Default(TCambiosDoc));
     Assert.AreEqual(0, R.Guardados);
     Assert.AreEqual(1, R.Omitidos);
-    Assert.AreEqual('Titulo original 1', Texto(1, 'titulodoc'));
+    Assert.AreEqual('Título original 1', Texto(1, 'titulodoc'));
   finally
     Al.Free;
   end;
@@ -468,10 +468,10 @@ begin
     C.TieneGaveta := True;
     C.Gaveta := 'NUEVA';
     R := ActualizarDocumentos(FConn, Al, FOrigen, [Clave(1)], C, Default(TCambiosDoc));
-    Assert.AreEqual(1, R.Guardados, 'el titulo si se guarda');
+    Assert.AreEqual(1, R.Guardados, 'el título si se guarda');
     Assert.AreEqual('Si cambia', Texto(1, 'titulodoc'));
-    Assert.AreEqual('G1', Texto(1, 'gaveta'), 'la gaveta no cambia sin permiso de topografia');
-    Assert.IsTrue(Pos('ubicacion', LowerCase(R.Mensaje)) > 0, 'avisa que omitio la ubicacion');
+    Assert.AreEqual('G1', Texto(1, 'gaveta'), 'la gaveta no cambia sin permiso de topografía');
+    Assert.IsTrue(Pos('ubicación', LowerCase(R.Mensaje)) > 0, 'avisa que omitio la ubicación');
   finally
     Al.Free;
     FreeAndNil(GArbol);

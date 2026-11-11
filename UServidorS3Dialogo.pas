@@ -1,4 +1,4 @@
-unit UServidorS3Dialogo;
+﻿unit UServidorS3Dialogo;
 
 { Dialogo (construido por codigo, sin .dfm) para dar de alta o editar un
   servidor S3/MinIO en el clasificador de servidores, con "Probar conexion".
@@ -87,7 +87,7 @@ begin
   FServidor := Fila('Servidor (nombre o IP, sin puerto)', 62);
   FPuerto := Fila('Puerto', 108, 100);
   FBucket := Fila('Bucket', 154);
-  FRegion := Fila('Region (vacio = us-east-1)', 200);
+  FRegion := Fila('Region (vacío = us-east-1)', 200);
   FHttps := TCheckBox.Create(Self);
   FHttps.Parent := Self;
   FHttps.SetBounds(20, 248, 300, 20);
@@ -104,7 +104,7 @@ begin
   FProbar := TButton.Create(Self);
   FProbar.Parent := Self;
   FProbar.SetBounds(340, 30, 120, 30);
-  FProbar.Caption := 'Probar conexion';
+  FProbar.Caption := 'Probar conexión';
   FProbar.OnClick := AlProbar;
   FGuardar := TButton.Create(Self);
   FGuardar.Parent := Self;
@@ -163,7 +163,7 @@ begin
     FHttps.Checked := Q.FieldByName('usohttps').AsBoolean;
     FClave.Text := Q.FieldByName('clave_acceso').AsString;
     FSecretoGuardado := DescifrarSecreto(Q.FieldByName('secreto_cifrado').AsString);
-    FSecreto.TextHint := 'Dejar vacio para conservar el actual';
+    FSecreto.TextHint := 'Dejar vacío para conservar el actual';
   finally
     Q.Free;
   end;
@@ -205,7 +205,7 @@ begin
   FProbar.Enabled := False;
   FGuardar.Enabled := False;
   FResultado.Font.Color := clWindowText;
-  FResultado.Caption := 'Probando la conexion...';
+  FResultado.Caption := 'Probando la conexión...';
   // La prueba (red) corre fuera del hilo principal; el secreto solo vive en el hilo
   TThread.CreateAnonymousThread(
     procedure

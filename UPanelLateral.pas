@@ -1,4 +1,4 @@
-unit UPanelLateral;
+﻿unit UPanelLateral;
 
 { Panel lateral unico de la pantalla de documentos: cabecera con el nombre y el
   codigo de la subserie, tira de pestanas y una pagina por pestana. Se crea por
@@ -347,7 +347,7 @@ begin
   FVacio.ParentBackground := False;
   FVacio.StyleElements := [];
   FVacio.Color := FTema.Superficie;
-  FVacio.Caption := 'Elija una subserie para ver su informacion';
+  FVacio.Caption := 'Elija una subserie para ver su información';
   FVacio.Font.Name := FUENTE;
   FVacio.Font.Size := 10;
   FVacio.Font.Color := FTema.TextoSuave;

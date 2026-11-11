@@ -1,4 +1,4 @@
-unit UTrazabilidadDatos;
+﻿unit UTrazabilidadDatos;
 
 { Trazabilidad del documento (F5), acceso a datos: escritura de eventos en
   tb_log con la clave del documento y lectura de la linea de tiempo (log y

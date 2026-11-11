@@ -1,4 +1,4 @@
-unit UAparienciaLegacy;
+﻿unit UAparienciaLegacy;
 
 { Fase 1 de la identidad visual: adapta los formularios viejos (rejillas
   DevExpress, botones con iconos blancos, paneles azules) a la paleta de
@@ -544,7 +544,7 @@ const
     (Clave: 'importar'; Icono: 'importar'),
     (Clave: 'exportar'; Icono: 'exportar'),
     (Clave: 'cargar'; Icono: 'cargar'),
-    (Clave: 'prueba de conexion'; Icono: 'conexion'),
+    (Clave: 'prueba de conexión'; Icono: 'conexion'),
     (Clave: 'ver todas'; Icono: 'ver'),
     (Clave: 'mostrar'; Icono: 'ver'),
     (Clave: 'ocultar'; Icono: 'ocultar'),

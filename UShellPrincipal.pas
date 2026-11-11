@@ -1,4 +1,4 @@
-unit UShellPrincipal;
+﻿unit UShellPrincipal;
 
 { Shell de la variante A sobre la pantalla principal (TMAIN), construido por
   codigo y sin tocar UMAINFORM.dfm:
@@ -263,31 +263,31 @@ const
     (Nombre: SECCION_CLASIFICADORES; Texto: 'Clasificad.'; Icono: 'clasificadores';
       Ayuda: 'Clasificadores: archivos, servidores FTP, series y subseries'; Abajo: False),
     (Nombre: SECCION_CUADRO; Texto: 'Cuadro'; Icono: 'cuadro';
-      Ayuda: 'Administrar el cuadro de clasificacion'; Abajo: False),
+      Ayuda: 'Administrar el cuadro de clasificación'; Abajo: False),
     (Nombre: SECCION_TRASLADOS; Texto: 'Traslados'; Icono: 'traslados';
       Ayuda: 'Transferencias de documentos entre archivos'; Abajo: False),
     (Nombre: SECCION_PRESTAMOS; Texto: 'Prestamos'; Icono: 'prestamos';
       Ayuda: 'Prestamos de documentos'; Abajo: False),
-    (Nombre: SECCION_DEPURACION; Texto: 'Depuracion'; Icono: 'depuracion';
-      Ayuda: 'Depuracion de documentos'; Abajo: False),
+    (Nombre: SECCION_DEPURACION; Texto: 'Depuración'; Icono: 'depuracion';
+      Ayuda: 'Depuración de documentos'; Abajo: False),
     (Nombre: SECCION_INDICES; Texto: 'Indices'; Icono: 'indices';
-      Ayuda: 'Gestion e indices de archivos'; Abajo: False),
+      Ayuda: 'Gestión e indices de archivos'; Abajo: False),
     (Nombre: SECCION_USUARIOS; Texto: 'Usuarios'; Icono: 'usuarios';
-      Ayuda: 'Administracion de usuarios'; Abajo: True),
+      Ayuda: 'Administración de usuarios'; Abajo: True),
     (Nombre: SECCION_CONFIGURACION; Texto: 'Config.'; Icono: 'configuracion';
-      Ayuda: 'Configuracion del sistema, base de datos y registros'; Abajo: True),
+      Ayuda: 'Configuración del sistema, base de datos y registros'; Abajo: True),
     (Nombre: SECCION_ACERCA; Texto: 'Acerca de'; Icono: 'acerca';
-      Ayuda: 'Acerca de ArchiGenio: version, edicion y creditos'; Abajo: True));
+      Ayuda: 'Acerca de ArchiGenio: version, edición y créditos'; Abajo: True));
 
   { Botones de la barra antigua (pMainContainer), en el orden del menu
     Gestion. Grupo distinto = separador. }
   BOTONES_CLASICOS: array[0..9] of TBotonClasico = (
-    (Nombre: 'btnautentica'; Texto: 'Iniciar o cerrar sesion'; Grupo: 0),
+    (Nombre: 'btnautentica'; Texto: 'Iniciar o cerrar sesión'; Grupo: 0),
     (Nombre: 'btnRecuperacion'; Texto: 'Localizar documentos y subseries'; Grupo: 0),
-    (Nombre: 'btnusercontrol'; Texto: 'Administracion de usuarios'; Grupo: 1),
-    (Nombre: 'btnLC'; Texto: 'Listas de codigos'; Grupo: 1),
+    (Nombre: 'btnusercontrol'; Texto: 'Administración de usuarios'; Grupo: 1),
+    (Nombre: 'btnLC'; Texto: 'Listas de códigos'; Grupo: 1),
     (Nombre: 'btnPrint'; Texto: 'Impresiones y reportes'; Grupo: 1),
-    (Nombre: 'btnManagementTree'; Texto: 'Administrar cuadro de clasificacion'; Grupo: 1),
+    (Nombre: 'btnManagementTree'; Texto: 'Administrar cuadro de clasificación'; Grupo: 1),
     (Nombre: 'btnTool'; Texto: 'Herramientas administrativas'; Grupo: 1),
     (Nombre: 'btnViewPanel'; Texto: 'Mostrar paneles ocultos'; Grupo: 1),
     (Nombre: 'btnSystemHelp'; Texto: 'Ayuda del sistema'; Grupo: 2),
@@ -768,7 +768,7 @@ begin
     begin
       FCaptionGrupoAntes := GetStrProp(FGrupoArbol, 'Caption');
       FCambioGrupo := True;
-      SetStrProp(FGrupoArbol, 'Caption', 'Mi area');
+      SetStrProp(FGrupoArbol, 'Caption', 'Mi área');
     end;
 
     FConMargenesAntes := FContenedor.AlignWithMargins;
@@ -882,7 +882,7 @@ begin
       SECCIONES_PERMISO[I].Icono, A);
     FSecciones[I].Hint := SECCIONES_PERMISO[I].Ayuda;
   end;
-  FBtnGestion := CrearBotonColumna('Gestion', 'gestion', alBottom);
+  FBtnGestion := CrearBotonColumna('Gestión', 'gestion', alBottom);
   FBtnGestion.OnClick := GestionClick;
   FBtnArchivo.Seleccionado := True;
   OrdenarColumna;
@@ -1001,7 +1001,7 @@ begin
   FBusqueda.Parent := FCabecera;
   FBusqueda.Colores(FTema.Superficie, FTema.Superficie2, FTema.Linea, FTema.Texto,
     IconoSobre('buscar', FTema.Superficie2));
-  FBusqueda.Edit.TextHint := 'Buscar por titulo, codigo o dato...';
+  FBusqueda.Edit.TextHint := 'Buscar por título, código o dato...';
   FBusqueda.OnBuscar := BusquedaBuscar;
 
   // Ranura del selector de ambito (general / nodo actual): Tarea 4
@@ -1134,7 +1134,7 @@ begin
   Guia.Font.Name := FUENTE;
   Guia.Font.Height := -Esc(14);
   Guia.Font.Color := FTema.TextoSuave;
-  Guia.Caption := 'Para trabajar en su area, elijala en el arbol de la izquierda.';
+  Guia.Caption := 'Para trabajar en su área, elijala en el arbol de la izquierda.';
   Guia.SetBounds(0, Esc(150), FInicioGrupo.Width, Esc(24));
   InicioResize(nil);
 end;
@@ -1315,7 +1315,7 @@ begin
     N := FArbol.Selected;
   if N = nil then
   begin
-    Ruta := 'Mi area';
+    Ruta := 'Mi área';
     Titulo := 'Elija un nodo en el arbol';
   end
   else
@@ -1332,7 +1332,7 @@ begin
       P := P.Parent;
     end;
     if Ruta = '' then
-      Ruta := 'Mi area';
+      Ruta := 'Mi área';
   end;
   if FSelAmbito <> nil then
   begin
@@ -1365,7 +1365,7 @@ begin
   if FChipUsuario.Texto <> T then
   begin
     FChipUsuario.Texto := T;
-    FChipUsuario.Hint := T + ' (clic para iniciar o cerrar sesion)';
+    FChipUsuario.Hint := T + ' (clic para iniciar o cerrar sesión)';
     Reacomodar;
   end;
 end;

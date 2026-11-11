@@ -1,4 +1,4 @@
-unit UPruebasCargaDocumento;
+﻿unit UPruebasCargaDocumento;
 
 { Guardar un documento con sus ficheros, metadatos y bitacora, con un almacen en
   memoria. SQL Server: ARCHIGENIO_TEST_DB. Access: ARCHIGENIO_TEST_MDB (COPIA).
@@ -377,7 +377,7 @@ begin
   Assert.AreEqual('F3T-009', R1.Codigodoc);
   Assert.AreEqual('F3T-010', R2.Codigodoc);
   Assert.AreEqual(2, Cuenta('SELECT COUNT(*) FROM tb_SeriesDatos WHERE Codigodoc LIKE ''F3T-0%'''));
-  Assert.IsTrue(FAlm.Objetos.ContainsKey('A.4.3/014/014001/F3T-010/Anexos Digitales/a.pdf'), 'la ruta usa el codigo final');
+  Assert.IsTrue(FAlm.Objetos.ContainsKey('A.4.3/014/014001/F3T-010/Anexos Digitales/a.pdf'), 'la ruta usa el código final');
 end;
 
 procedure TPruebasCargaDocumento.SqlServer_NombresRepetidos_NoSePisan;

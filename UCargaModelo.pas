@@ -1,4 +1,4 @@
-unit UCargaModelo;
+﻿unit UCargaModelo;
 
 { Modelo de la carga de documentos: candidatos (un archivo = un documento
   candidato), sus estados, titulo sugerido, codigos consecutivos, "aplicar a
@@ -76,7 +76,7 @@ uses
 function ResumenLote(Guardados, Fallidos, Omitidos: Integer): string;
 begin
   if Guardados = 0 then
-    Result := 'No se guardo ningun documento'
+    Result := 'No se guardo ningún documento'
   else if Guardados = 1 then
     Result := 'Se guardo 1 documento'
   else
@@ -196,9 +196,9 @@ begin
   Result := nil;
   N := 0;
   if Trim(C.Titulo) = '' then
-    Agregar('Titulo');
+    Agregar('Título');
   if Trim(C.Codigo) = '' then
-    Agregar('Codigo');
+    Agregar('Código');
   if C.Fecha = 0 then
     Agregar('Fecha');
   for I := 0 to High(Obligatorios) do

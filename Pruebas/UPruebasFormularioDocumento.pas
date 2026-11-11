@@ -1,4 +1,4 @@
-unit UPruebasFormularioDocumento;
+﻿unit UPruebasFormularioDocumento;
 
 { Formulario de edicion de uno o varios documentos (VCL). Codigo en ASCII. }
 
@@ -166,7 +166,7 @@ begin
     C := Fm.Cambios;
     Assert.IsTrue(C.TieneGaveta);
     Assert.AreEqual('G9', C.Gaveta);
-    Assert.IsFalse(C.TieneTitulo, 'el titulo no se relleno: no se pisa');
+    Assert.IsFalse(C.TieneTitulo, 'el título no se relleno: no se pisa');
     Assert.IsFalse(C.TieneObservaciones);
     Assert.IsFalse(C.TieneDeposito);
   finally
@@ -185,10 +185,10 @@ begin
     Fm := Nuevo(F);
     Fm.Abrir([Clave('A')], Actuales, True);
     Assert.IsFalse(HayCambios(Fm.Cambios), 'recien abierto no hay cambios');
-    Fm.EscribirCampo('titulo', 'Titulo nuevo');
+    Fm.EscribirCampo('titulo', 'Título nuevo');
     C := Fm.Cambios;
     Assert.IsTrue(C.TieneTitulo);
-    Assert.AreEqual('Titulo nuevo', C.Titulo);
+    Assert.AreEqual('Título nuevo', C.Titulo);
     Assert.IsFalse(C.TieneObservaciones, 'lo que no se toco no sale');
     Assert.IsFalse(C.TieneGaveta);
   finally
@@ -211,7 +211,7 @@ begin
     Fm.EscribirCampo('titulo', '   ');
     Fm.Guardar;
     Assert.AreEqual(0, R.Guardados);
-    Assert.IsTrue(Pos('titulo', LowerCase(Fm.ErrorDe('titulo'))) > 0);
+    Assert.IsTrue(Pos('título', LowerCase(Fm.ErrorDe('titulo'))) > 0);
     Assert.AreEqual('', Fm.ErrorDe('gaveta'));
   finally
     F.Free;
@@ -232,7 +232,7 @@ begin
     Fm.OnGuardar := R.Guardar;
     Fm.OnCancelar := R.Cancelar;
     Fm.Abrir([Clave('A')], Actuales, True);
-    Fm.EscribirCampo('titulo', 'Titulo valido');
+    Fm.EscribirCampo('titulo', 'Título valido');
     Fm.Guardar;
     Assert.AreEqual(1, R.Guardados);
     Fm.Cancelar;
@@ -275,7 +275,7 @@ begin
     Fm.VaciarCampo('gaveta');
     C := Fm.Cambios;
     Assert.IsTrue(C.TieneGaveta);
-    Assert.AreEqual('', C.Gaveta, 'vaciar pone el campo vacio a proposito');
+    Assert.AreEqual('', C.Gaveta, 'vaciar pone el campo vacío a proposito');
     Assert.IsFalse(C.TieneDeposito);
   finally
     F.Free;
@@ -337,7 +337,7 @@ begin
     A.TieneVisible := True;
     A.Visible := 's'; // valor que el combo no reconoce
     Fm.Abrir([Clave('A')], A, True);
-    Fm.EscribirCampo('titulo', 'Solo el titulo');
+    Fm.EscribirCampo('titulo', 'Solo el título');
     C := Fm.Cambios;
     Assert.IsTrue(C.TieneTitulo);
     Assert.IsFalse(C.TieneVisible, 'visible no se toca si el usuario no lo cambio');

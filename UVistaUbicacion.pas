@@ -1,4 +1,4 @@
-unit UVistaUbicacion;
+﻿unit UVistaUbicacion;
 
 { Muestra la ubicacion fisica de la subserie y del documento: un bloque por
   ubicacion, con un recuadro por tramo (servidor, archivo, deposito, gaveta,
@@ -102,9 +102,9 @@ begin
       Result := Result + FBloques[I].Tramos[J].Rotulo + ': ' +
         FBloques[I].Tramos[J].Valor + #10;
     if FBloques[I].Completa then
-      Result := Result + 'Ubicacion completa' + #10
+      Result := Result + 'Ubicación completa' + #10
     else
-      Result := Result + 'Faltan datos de ubicacion' + #10;
+      Result := Result + 'Faltan datos de ubicación' + #10;
   end;
 end;
 
@@ -231,15 +231,15 @@ begin
       if FBloques[I].Completa then
       begin
         Canvas.Font.Color := FTema.TextoSuave;
-        Rot := 'Ubicacion completa';
+        Rot := 'Ubicación completa';
       end
       else
       begin
         Canvas.Font.Color := FTema.Acento;
         if FaltanN = 1 then
-          Rot := 'Falta 1 dato de ubicacion'
+          Rot := 'Falta 1 dato de ubicación'
         else
-          Rot := 'Faltan ' + IntToStr(FaltanN) + ' datos de ubicacion';
+          Rot := 'Faltan ' + IntToStr(FaltanN) + ' datos de ubicación';
       end;
       TextOut(Canvas.Handle, MARGEN, Y, PChar(Rot), Length(Rot));
     end;

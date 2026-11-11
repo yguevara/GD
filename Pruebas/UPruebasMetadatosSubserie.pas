@@ -1,4 +1,4 @@
-unit UPruebasMetadatosSubserie;
+﻿unit UPruebasMetadatosSubserie;
 
 { Metadatos dinamicos de la subserie. Validacion por tipo: sin base de datos.
   Lectura de campos y alta en la tabla md_*: SQL Server (ARCHIGENIO_TEST_DB) y
@@ -246,7 +246,7 @@ begin
     Assert.AreEqual('O''Brien', Q.FieldByName('Texto').AsString);
     Assert.AreEqual(42, Q.FieldByName('Cantidad').AsInteger);
     Assert.AreEqual(EncodeDate(2026, 2, 28), Double(Trunc(Q.FieldByName('FechaRef').AsDateTime)) + 0, 0.5);
-    Assert.IsTrue(Q.FieldByName('Nota').IsNull, 'valor vacio = NULL');
+    Assert.IsTrue(Q.FieldByName('Nota').IsNull, 'valor vacío = NULL');
   finally
     Q.Free;
   end;

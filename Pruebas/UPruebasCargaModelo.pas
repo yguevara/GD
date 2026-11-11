@@ -1,4 +1,4 @@
-unit UPruebasCargaModelo;
+﻿unit UPruebasCargaModelo;
 
 interface
 
@@ -111,7 +111,7 @@ var
 begin
   C := Candidato;
   F := Faltantes(C, ['Cantidad']);
-  Assert.AreEqual(4, Length(F), 'titulo, codigo, fecha y el obligatorio');
+  Assert.AreEqual(4, Length(F), 'título, código, fecha y el obligatorio');
   C.Titulo := 'T';
   C.Codigo := 'K';
   C.Fecha := EncodeDate(2026, 1, 1);
@@ -190,8 +190,8 @@ procedure TPruebasCargaModelo.ResumenLote_Casos;
 begin
   Assert.AreEqual('Se guardaron 3 documentos.', ResumenLote(3, 0, 0));
   Assert.AreEqual('Se guardo 1 documento.', ResumenLote(1, 0, 0));
-  Assert.AreEqual('No se guardo ningun documento.', ResumenLote(0, 0, 0));
-  Assert.AreEqual('No se guardo ningun documento y 2 no se pudieron guardar.', ResumenLote(0, 2, 0));
+  Assert.AreEqual('No se guardo ningún documento.', ResumenLote(0, 0, 0));
+  Assert.AreEqual('No se guardo ningún documento y 2 no se pudieron guardar.', ResumenLote(0, 2, 0));
   Assert.AreEqual('Se guardo 1 documento y 2 no se pudieron guardar.', ResumenLote(1, 2, 0));
   Assert.AreEqual('Se guardaron 3 documentos y 1 no se pudo guardar.', ResumenLote(3, 1, 0));
   Assert.AreEqual('Se guardaron 2 documentos. Se cancelo la carga: 4 quedaron sin procesar.', ResumenLote(2, 0, 4));

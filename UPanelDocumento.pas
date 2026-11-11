@@ -1,4 +1,4 @@
-unit UPanelDocumento;
+﻿unit UPanelDocumento;
 
 { Panel del documento seleccionado: cabecera (codigo, titulo y estado) y una
   pestana por tipo de informacion: Datos, Ubicacion, Archivos, Metadatos,
@@ -263,7 +263,7 @@ begin
   FTira.Align := alTop;
   FTira.Configurar(FTema);
   FTira.Agregar('Datos');
-  FTira.Agregar('Ubicacion');
+  FTira.Agregar('Ubicación');
   FTira.Agregar('Archivos');
   FTira.Agregar('Metadatos');
   FTira.Agregar('Historia');

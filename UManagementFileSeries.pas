@@ -236,7 +236,7 @@ begin
     Contenedor^.FieldByName(NombreCampo).Clear;
     try
       Contenedor^.Post;
-      UDM.sms('El fichero se elimino del sistema satisfactoriamente.', 3);
+      UDM.sms('El fichero se eliminó del sistema satisfactoriamente.', 3);
     except
       on E: EFDException do
       begin

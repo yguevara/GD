@@ -5226,7 +5226,7 @@ begin
       DataSet.FieldByName('fichero').Value := null;
       try
         DataSet.Post;
-        UDM.sms('El fichero se elimino del sistema satisfactoriamente.', 3);
+        UDM.sms('El fichero se eliminó del sistema satisfactoriamente.', 3);
       except
         on E: EFDException do
         begin
@@ -5568,7 +5568,7 @@ begin
   end;
   if DataSet.FieldByName('Administrador').Value = null then
   begin
-    sms('Debe especificar un valor para el Administrador del Area.', 2);
+    sms('Debe especificar un valor para el Administrador del Área.', 2);
     DataSet.Cancel;
     abort;
     exit;

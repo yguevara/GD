@@ -1,4 +1,4 @@
-unit UDocumentoVista;
+﻿unit UDocumentoVista;
 
 { Logica pura de la lista de documentos de una subserie (sin VCL ni datos):
   clasificacion (documento / expediente / mapa / georreferenciado), formatos
@@ -70,7 +70,7 @@ function NombreIconoDocumento(const C: TClaseDocumento): string;
 function NombreInsigniaGeo(const C: TClaseDocumento): string;
 
 { Partes no vacias de la ubicacion fisica, con su rotulo, separadas por ' > ';
-  'Sin ubicacion asignada' si no hay ninguna. }
+  'Sin ubicación asignada' si no hay ninguna. }
 function TextoPosicion(const D: TDatosDocumento): string;
 { '512 B', '1.5 KB', '1.2 MB', '3.0 GB' (base 1024, punto decimal siempre);
   negativo o no numerico: '-'. }
@@ -266,9 +266,9 @@ begin
   Result.Completa := True;
   AgregaTramo(Result, 'Servidor', D.Servidor);
   AgregaTramo(Result, 'Archivo', D.Archivo);
-  AgregaTramo(Result, 'Deposito', D.Deposito);
+  AgregaTramo(Result, 'Depósito', D.Deposito);
   AgregaTramo(Result, 'Gaveta', D.Gaveta);
-  AgregaTramo(Result, 'Posicion', D.Posicion);
+  AgregaTramo(Result, 'Posición', D.Posicion);
 end;
 
 function UbicacionDeSubserie(const Servidor, Archivo, Deposito,
@@ -279,7 +279,7 @@ begin
   Result.Completa := True;
   AgregaTramo(Result, 'Servidor', Servidor);
   AgregaTramo(Result, 'Archivo', Archivo);
-  AgregaTramo(Result, 'Deposito', Deposito);
+  AgregaTramo(Result, 'Depósito', Deposito);
   AgregaTramo(Result, 'Gaveta', Gaveta);
 end;
 
@@ -295,7 +295,7 @@ begin
   begin
     case P of
       pdDatos: Quiere := (Props[I].Grupo = 'General') or (Props[I].Grupo = 'Expediente');
-      pdUbicacion: Quiere := Props[I].Grupo = 'Posicion fisica';
+      pdUbicacion: Quiere := Props[I].Grupo = 'Posición física';
       pdArchivos: Quiere := Props[I].Grupo = 'Ficheros';
     else
       Quiere := False;
@@ -403,11 +403,11 @@ begin
   Result := '';
   AgregaPartePosicion(Result, 'Servidor', D.Servidor);
   AgregaPartePosicion(Result, 'Archivo', D.Archivo);
-  AgregaPartePosicion(Result, 'Deposito', D.Deposito);
+  AgregaPartePosicion(Result, 'Depósito', D.Deposito);
   AgregaPartePosicion(Result, 'Gaveta', D.Gaveta);
-  AgregaPartePosicion(Result, 'Posicion', D.Posicion);
+  AgregaPartePosicion(Result, 'Posición', D.Posicion);
   if Result = '' then
-    Result := 'Sin ubicacion asignada';
+    Result := 'Sin ubicación asignada';
 end;
 
 function FormatoTamano(Bytes: Double): string;
@@ -454,8 +454,8 @@ begin
     Tipo := 'Mapa'
   else
     Tipo := 'Documento';
-  AgregaProp(Result, 'General', 'Codigo', D.Clave.Codigodoc);
-  AgregaProp(Result, 'General', 'Titulo', D.Titulo);
+  AgregaProp(Result, 'General', 'Código', D.Clave.Codigodoc);
+  AgregaProp(Result, 'General', 'Título', D.Titulo);
   AgregaProp(Result, 'General', 'Fecha', FormatDateTime('dd"/"mm"/"yyyy', D.Clave.Fecha));
   AgregaProp(Result, 'General', 'Version', D.Clave.Version);
   AgregaProp(Result, 'General', 'Tipo', Tipo);
@@ -472,7 +472,7 @@ begin
     else
       AgregaProp(Result, 'Expediente', 'Contiene', IntToStr(D.NumHijos) + ' documentos');
   end;
-  AgregaProp(Result, 'Posicion fisica', 'Ubicacion', TextoPosicion(D));
+  AgregaProp(Result, 'Posición física', 'Ubicación', TextoPosicion(D));
   if Length(Ficheros) = 0 then
     AgregaProp(Result, 'Ficheros', 'Ficheros', 'Sin ficheros')
   else

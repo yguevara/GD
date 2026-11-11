@@ -1,4 +1,4 @@
-unit UMigracionFicheros;
+﻿unit UMigracionFicheros;
 
 { Utilidad de migracion de ficheros de un almacen de origen (FTP) a S3/MinIO.
   Recorre tb_ssArchdigital; por cada fila cuyo urlraiz no es 's3://' descarga el
@@ -163,13 +163,13 @@ var
         Md5Local := LowerCase(THashMD5.GetHashStringFromFile(Tmp));
         Sub := FDestino.Subir(Tmp, ClaveDestino, nil);
         if Sub.Tamano <> Tam then
-          raise EAlmacen.Create('El tamano subido no coincide con el del origen.');
+          raise EAlmacen.Create('El tamaño subido no coincide con el del origen.');
         if LowerCase(Sub.Md5) <> Md5Local then
           raise EAlmacen.Create('La suma de control subida no coincide con la del origen.');
         if not FDestino.Existe(ClaveDestino, TamDestino) then
           raise EAlmacen.Create('El fichero no aparece en el destino tras subirlo.');
         if TamDestino <> Tam then
-          raise EAlmacen.Create('El tamano en el destino no coincide con el del origen.');
+          raise EAlmacen.Create('El tamaño en el destino no coincide con el del origen.');
         // Verificado: recien ahora se cambia la fila (una sola sentencia, atomica)
         // La fecha se compara con una tolerancia de 10 ms: datetime de SQL Server
         // redondea a 1/300 s y la igualdad exacta fallaria con milisegundos.

@@ -1,4 +1,4 @@
-unit UBloqueAccion;
+﻿unit UBloqueAccion;
 
 { Bloque "Requiere accion" bajo el arbol de la estructura: lo que pide atencion
   (documentos prestados, documentos sin ubicacion) con su cantidad. Se crea por
@@ -77,7 +77,7 @@ begin
   FTitulo.Font.Size := 8;
   FTitulo.Font.Style := [fsBold];
   FTitulo.Font.Color := FTema.TextoSuave;
-  FTitulo.Caption := 'REQUIERE ACCION';
+  FTitulo.Caption := 'REQUIERE ACCIÓN';
   FTitulo.SetBounds(14, 10, 200, 16);
   Y := 32;
   SetLength(FFilas, Length(FContadores));

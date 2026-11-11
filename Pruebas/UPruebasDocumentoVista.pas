@@ -1,4 +1,4 @@
-unit UPruebasDocumentoVista;
+﻿unit UPruebasDocumentoVista;
 
 { Pruebas de la logica pura de la lista de documentos (UDocumentoVista):
   clasificacion (documento / expediente / mapa / georreferenciado), formatos
@@ -220,7 +220,7 @@ begin
   D.Deposito := 'D2';
   D.Gaveta := '14';
   D.Posicion := '3';
-  Assert.AreEqual('Servidor SRV1 > Archivo A2 > Deposito D2 > Gaveta 14 > Posicion 3',
+  Assert.AreEqual('Servidor SRV1 > Archivo A2 > Depósito D2 > Gaveta 14 > Posición 3',
     TextoPosicion(D));
 end;
 
@@ -231,7 +231,7 @@ begin
   D := Nuevo('P2');
   D.Deposito := 'D2';
   D.Gaveta := '14';
-  Assert.AreEqual('Deposito D2 > Gaveta 14', TextoPosicion(D));
+  Assert.AreEqual('Depósito D2 > Gaveta 14', TextoPosicion(D));
 end;
 
 procedure TPruebasDocumentoVista.TextoPosicion_Vacia;
@@ -239,9 +239,9 @@ var
   D: TDatosDocumento;
 begin
   D := Nuevo('P3');
-  Assert.AreEqual('Sin ubicacion asignada', TextoPosicion(D));
+  Assert.AreEqual('Sin ubicación asignada', TextoPosicion(D));
   D.Deposito := '   ';
-  Assert.AreEqual('Sin ubicacion asignada', TextoPosicion(D));
+  Assert.AreEqual('Sin ubicación asignada', TextoPosicion(D));
 end;
 
 procedure TPruebasDocumentoVista.FormatoTamano_Unidades;
@@ -264,9 +264,9 @@ begin
   D.Clave.Fecha := EncodeDate(2026, 11, 5);
   D.Clave.Version := '2';
   P := ConstruirPropiedades(D, nil);
-  Assert.AreEqual('EXP-0103', Valor(P, 'General', 'Codigo', Ok));
+  Assert.AreEqual('EXP-0103', Valor(P, 'General', 'Código', Ok));
   Assert.IsTrue(Ok);
-  Assert.AreEqual('Acta 103', Valor(P, 'General', 'Titulo', Ok));
+  Assert.AreEqual('Acta 103', Valor(P, 'General', 'Título', Ok));
   Assert.AreEqual('05/11/2026', Valor(P, 'General', 'Fecha', Ok));
   Assert.AreEqual('2', Valor(P, 'General', 'Version', Ok));
   Assert.AreEqual('Documento', Valor(P, 'General', 'Tipo', Ok));
@@ -310,9 +310,9 @@ begin
   D.SubExp := '  ';
   P := ConstruirPropiedades(D, nil);
   Valor(P, 'General', 'Pertenece al expediente', Ok);
-  Assert.IsFalse(Ok, 'vacio no aparece');
+  Assert.IsFalse(Ok, 'vacío no aparece');
   Valor(P, 'General', 'Subexpediente', Ok);
-  Assert.IsFalse(Ok, 'vacio no aparece');
+  Assert.IsFalse(Ok, 'vacío no aparece');
 end;
 
 procedure TPruebasDocumentoVista.Propiedades_Posicion;
@@ -324,7 +324,7 @@ begin
   D := Nuevo('D1');
   D.Deposito := 'D2';
   P := ConstruirPropiedades(D, nil);
-  Assert.AreEqual(TextoPosicion(D), Valor(P, 'Posicion fisica', 'Ubicacion', Ok));
+  Assert.AreEqual(TextoPosicion(D), Valor(P, 'Posición física', 'Ubicación', Ok));
   Assert.IsTrue(Ok);
 end;
 
@@ -467,9 +467,9 @@ begin
   D := Nuevo('A1');
   D.Servidor := '3';
   D.Archivo := 'Archivo 2';
-  D.Deposito := 'Deposito 01';
+  D.Deposito := 'Depósito 01';
   D.Gaveta := 'Gaveta 02';
-  D.Posicion := 'Posicion 3';
+  D.Posicion := 'Posición 3';
   U := UbicacionDeDocumento(D);
   Assert.AreEqual('Documento', U.Titulo);
   Assert.AreEqual(5, Integer(Length(U.Tramos)));
@@ -485,11 +485,11 @@ var
 begin
   D := Nuevo('A1');
   D.Archivo := '0';
-  D.Deposito := 'Deposito 01';
+  D.Deposito := 'Depósito 01';
   D.Gaveta := '';
   U := UbicacionDeDocumento(D);
   Assert.AreEqual('Sin asignar', U.Tramos[1].Valor, 'el 0 cuenta como sin dato');
-  Assert.AreEqual('Deposito 01', U.Tramos[2].Valor);
+  Assert.AreEqual('Depósito 01', U.Tramos[2].Valor);
   Assert.AreEqual('Sin asignar', U.Tramos[3].Valor);
   Assert.IsFalse(U.Completa);
 end;
@@ -498,7 +498,7 @@ procedure TPruebasDocumentoVista.UbicacionDeSubserie_SinPosicion;
 var
   U: TUbicacion;
 begin
-  U := UbicacionDeSubserie('3', 'Archivo 2', 'Deposito 01', 'Gaveta 02');
+  U := UbicacionDeSubserie('3', 'Archivo 2', 'Depósito 01', 'Gaveta 02');
   Assert.AreEqual('Subserie', U.Titulo);
   Assert.AreEqual(4, Integer(Length(U.Tramos)));
   Assert.IsTrue(U.Completa);
@@ -518,7 +518,7 @@ begin
   SetLength(Result, 5);
   Pon(0, 'General', 'Codigo', 'A1');
   Pon(1, 'Expediente', 'Contiene', '2 documentos');
-  Pon(2, 'Posicion fisica', 'Ubicacion', 'Archivo 2');
+  Pon(2, 'Posición física', 'Ubicacion', 'Archivo 2');
   Pon(3, 'Ficheros', 'Ficheros', 'Sin ficheros');
   Pon(4, 'General', 'Titulo', 'T');
 end;

@@ -2730,7 +2730,7 @@ begin
     if FileExists(Destino) then
    // ejecutaPDF(Destino)
     begin
-      UDM.LogDocActual('Se abrio un fichero fuente del documento.', ACCION_VISUALIZAR);
+      UDM.LogDocActual('Se abrió un fichero fuente del documento.', ACCION_VISUALIZAR);
       UDM.EjecutaFichero(Destino);
     end
     else
@@ -2752,7 +2752,7 @@ begin
       if FileExists(Destino) then
    // ejecutaPDF(Destino)
       begin
-        UDM.LogDocActual('Se abrio un anexo digital del documento.', ACCION_VISUALIZAR);
+        UDM.LogDocActual('Se abrió un anexo digital del documento.', ACCION_VISUALIZAR);
         UDM.EjecutaFichero(Destino);
       end
       else
@@ -4307,7 +4307,7 @@ begin
     UDM.tb_expxseries.Active := True;
     if UDM.tb_expxtiposerie.IsEmpty then
     begin
-      UDM.sms('No ha agregado ningun documento a esta subserie por lo que su acción no ha reflejado ningun resultado.', 2);
+      UDM.sms('No ha agregado ningún documento a esta subserie por lo que su acción no ha reflejado ningún resultado.', 2);
       exit;
     end;
     UDM.tb_expxtiposerie.Active := True;
@@ -4383,7 +4383,7 @@ begin
     if FileExists(Destino) then
    // ejecutaPDF(Destino)
     begin
-      UDM.LogDocActual('Se abrio un fichero fuente del documento.', ACCION_VISUALIZAR);
+      UDM.LogDocActual('Se abrió un fichero fuente del documento.', ACCION_VISUALIZAR);
       UDM.EjecutaFichero(Destino);
     end
     else
@@ -4405,7 +4405,7 @@ begin
       if FileExists(Destino) then
    // ejecutaPDF(Destino)
       begin
-        UDM.LogDocActual('Se abrio un anexo digital del documento.', ACCION_VISUALIZAR);
+        UDM.LogDocActual('Se abrió un anexo digital del documento.', ACCION_VISUALIZAR);
         UDM.EjecutaFichero(Destino);
       end
       else
@@ -7233,7 +7233,7 @@ begin
     on E: Exception do
     begin
       FBloqueAccion.Mostrar(nil);
-      RegistrarErrorLista('Requiere accion: ' + E.ClassName + ': ' + E.Message);
+      RegistrarErrorLista('Requiere acción: ' + E.ClassName + ': ' + E.Message);
     end;
   end;
 end;
@@ -7937,7 +7937,7 @@ begin
       end;
     end;
   end;
-  UDM.LogDocActual('Se visualizo el contenido del documento con codigo "' +
+  UDM.LogDocActual('Se visualizó el contenido del documento con código "' +
     Trim(Clave.Codigodoc) + '".', ACCION_VISUALIZAR);
 end;
 
@@ -8073,7 +8073,7 @@ begin
     UDM.sms('No tiene permiso para eliminar este documento.', 3);
     Exit;
   end;
-  if MessageDlg(Format('Eliminar el documento "%s"? Esta accion no se puede deshacer.',
+  if MessageDlg(Format('Eliminar el documento "%s"? Esta acción no se puede deshacer.',
     [Trim(Clave.Codigodoc)]), mtWarning, [mbYes, mbNo], 0) <> mrYes then
     Exit;
   try
@@ -8244,7 +8244,7 @@ begin
     if R.Mensaje <> '' then
       Error := R.Mensaje
     else
-      Error := 'No se guardo ningun documento.';
+      Error := 'No se guardo ningún documento.';
     Exit;
   end;
   Resumen := Format('Se guardaron %d documento(s).', [R.Guardados]);
@@ -10143,7 +10143,7 @@ begin
   param1 := UDM.tb_SeriesDatos.FieldByName('codigodoc').AsString;
   listParam := AnsiQuotedStr(param, '"') + ' ' + AnsiQuotedStr(param1, '"');
   // consulta del documento (lista nueva, arbol clasico y menu de ficheros)
-  UDM.LogDocActual('Se abrio el documento con codigo "' + Trim(param1) + '".',
+  UDM.LogDocActual('Se abrió el documento con código "' + Trim(param1) + '".',
     ACCION_VISUALIZAR);
   UDM.RunAndWaitShell(ExtractFilePath(Application.ExeName) + '\PDFExpressViewer.exe', listParam, SW_SHOWMAXIMIZED);
   screen.Cursor := crDefault;

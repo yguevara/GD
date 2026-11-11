@@ -1,4 +1,4 @@
-unit UPanelDocumentos;
+﻿unit UPanelDocumentos;
 
 { Lista de documentos de una subserie con panel de propiedades (F2). Se crea
   por codigo (sin .dfm) y no accede a datos: quien la usa le entrega los
@@ -445,8 +445,8 @@ begin
   FZonaFuentes.Enabled := Puede;
   if Puede then
   begin
-    FZonaAnexos.Caption := 'Suelte aqui los archivos para agregarlos como anexos digitales';
-    FZonaFuentes.Caption := 'Suelte aqui los archivos para agregarlos como fuentes';
+    FZonaAnexos.Caption := 'Suelte aquí los archivos para agregarlos como anexos digitales';
+    FZonaFuentes.Caption := 'Suelte aquí los archivos para agregarlos como fuentes';
   end
   else if Documento then
   begin
@@ -605,9 +605,9 @@ begin
   FPie.ShowCaption := False;
   FPie.Color := FTema.Superficie;
 
-  FZonaAnexos := NuevaZona('Suelte aqui los archivos para agregarlos como anexos digitales',
+  FZonaAnexos := NuevaZona('Suelte aquí los archivos para agregarlos como anexos digitales',
     AnexosSoltar, FRecepAnexos);
-  FZonaFuentes := NuevaZona('Suelte aqui los archivos para agregarlos como fuentes',
+  FZonaFuentes := NuevaZona('Suelte aquí los archivos para agregarlos como fuentes',
     FuentesSoltar, FRecepFuentes);
 
   FBtnAbrir := TButton.Create(Self);
@@ -670,8 +670,8 @@ begin
   FLista.Font.Color := FTema.Texto;
   FLista.BorderStyle := bsNone;
   FLista.SmallImages := TIconos.Lista;
-  Col('Codigo', 175);
-  Col('Titulo', 270);
+  Col('Código', 175);
+  Col('Título', 270);
   Col('Fecha', 105);
   Col('Tipo', 115);
   Col('Estado', 100);
@@ -960,7 +960,7 @@ begin
   FLista.Items.Count := Length(FVisibles);
   FLista.Invalidate;
   if (Length(FVisibles) = 0) and (Length(FTodos) > 0) then
-    FVacio.Caption := 'Ningun documento coincide'
+    FVacio.Caption := 'Ningún documento coincide'
   else
     FVacio.Caption := 'Esta subserie aun no tiene documentos';
   FVacio.Visible := Length(FVisibles) = 0;
@@ -1242,7 +1242,7 @@ begin
   FBtnExpediente.Visible := False;
   FEnlaceExp.Visible := False;
   FPropDatos.MostrarMensaje('Elija un documento para ver sus propiedades');
-  FVistaUbicacion.MostrarMensaje('Elija un documento para ver su ubicacion');
+  FVistaUbicacion.MostrarMensaje('Elija un documento para ver su ubicación');
   FPropArchivos.MostrarMensaje('Elija un documento para ver sus archivos');
   FPropMetadatos.MostrarMensaje('Elija un documento para ver sus metadatos');
   FPropHistoria.MostrarMensaje('Elija un documento para ver su historia');

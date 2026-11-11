@@ -1,4 +1,4 @@
-unit UMetadatosSubserie;
+﻿unit UMetadatosSubserie;
 
 { Campos propios de una subserie, definidos por el usuario en cl_VarSubserie, y
   su alta en la tabla de metadatos (md_*). Nada de esos campos esta escrito en
@@ -193,10 +193,10 @@ begin
         Result := Format('El dato "%s" admite hasta %d caracteres.', [Campo.Etiqueta, Campo.Longitud]);
     tmEntero:
       if not TryStrToInt(T, I) then
-        Result := 'El dato "' + Campo.Etiqueta + '" debe ser un numero entero.';
+        Result := 'El dato "' + Campo.Etiqueta + '" debe ser un número entero.';
     tmReal:
       if not TryStrToFloat(T, R, FS) then
-        Result := 'El dato "' + Campo.Etiqueta + '" debe ser un numero (decimales con punto).';
+        Result := 'El dato "' + Campo.Etiqueta + '" debe ser un número (decimales con punto).';
     tmFecha:
       if not TryStrToDate(T, D, FS) then
         Result := 'El dato "' + Campo.Etiqueta + '" debe ser una fecha valida (dd/mm/aaaa).';

@@ -1,4 +1,4 @@
-unit UPruebasVisorContenido;
+﻿unit UPruebasVisorContenido;
 
 { Visor del contenido (VCL + ExpressPDFViewer). Codigo en ASCII. }
 
@@ -213,7 +213,7 @@ begin
     Ventana := V.ContenedorDelVisor as TForm;
     Ventana.Close; // la X de la ventana
     Application.ProcessMessages;
-    Assert.IsFalse(V.Separado, 'cerrar la ventana vuelve el visor a la aplicacion');
+    Assert.IsFalse(V.Separado, 'cerrar la ventana vuelve el visor a la aplicación');
   finally
     F.Free;
     DeleteFile(Pdf);

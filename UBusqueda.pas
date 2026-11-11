@@ -1,4 +1,4 @@
-unit UBusqueda;
+﻿unit UBusqueda;
 
 { Reglas puras de la busqueda integrada de documentos: tipos de campo,
   validacion del pedido, escape de LIKE y generacion del SQL de UNA subserie
@@ -223,13 +223,13 @@ var
           if Cd.Desde <> '' then
           begin
             if not TryStrToInt64(Cd.Desde, I) then
-              raise EArgumentException.Create('Numero no valido: ' + Cd.Desde);
+              raise EArgumentException.Create('Número no valido: ' + Cd.Desde);
             Y(Col + ' >= ' + NuevoParam(I));
           end;
           if Cd.Hasta <> '' then
           begin
             if not TryStrToInt64(Cd.Hasta, I) then
-              raise EArgumentException.Create('Numero no valido: ' + Cd.Hasta);
+              raise EArgumentException.Create('Número no valido: ' + Cd.Hasta);
             Y(Col + ' <= ' + NuevoParam(I));
           end;
         end;
@@ -238,13 +238,13 @@ var
           if Cd.Desde <> '' then
           begin
             if not TryStrToFloat(Cd.Desde, N, FS) then
-              raise EArgumentException.Create('Numero no valido: ' + Cd.Desde);
+              raise EArgumentException.Create('Número no valido: ' + Cd.Desde);
             Y(Col + ' >= ' + NuevoParam(N));
           end;
           if Cd.Hasta <> '' then
           begin
             if not TryStrToFloat(Cd.Hasta, N, FS) then
-              raise EArgumentException.Create('Numero no valido: ' + Cd.Hasta);
+              raise EArgumentException.Create('Número no valido: ' + Cd.Hasta);
             Y(Col + ' <= ' + NuevoParam(N));
           end;
         end;

@@ -1,4 +1,4 @@
-unit UBusquedaDatos;
+﻿unit UBusquedaDatos;
 
 { Ejecuta la busqueda integrada: lee los campos de cada subserie
   (cl_VarSubserie), arma una consulta por subserie con UBusqueda.SqlSubserie y

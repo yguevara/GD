@@ -1,4 +1,4 @@
-unit UCargaDocumento;
+﻿unit UCargaDocumento;
 
 { Guarda un documento nuevo con sus ficheros, metadatos y bitacora.
   Orden: permiso y topografia -> validacion de datos -> reserva del codigo
@@ -208,7 +208,7 @@ begin
   finally
     Q.Free;
   end;
-  raise EAlmacen.Create('No se pudo reservar un codigo libre para el documento.');
+  raise EAlmacen.Create('No se pudo reservar un código libre para el documento.');
 end;
 
 procedure BorrarFilasDelDocumento(Conn: TFDConnection; const O: TOrigenDocumento;
@@ -498,7 +498,7 @@ begin
         finally
           Q.Free;
         end;
-        EscribirBitacora(Conn, Origen, Fecha, Codigo, Format('El documento "%s" con codigo "%s" fue agregado al sistema.',
+        EscribirBitacora(Conn, Origen, Fecha, Codigo, Format('El documento "%s" con código "%s" fue agregado al sistema.',
           [Cand.Titulo, Codigo]));
         if Propia then
           Conn.Commit;

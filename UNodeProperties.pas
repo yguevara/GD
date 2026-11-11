@@ -565,7 +565,7 @@ begin
   if trim(VarToStr(DisplayValue)) = '' then
   begin
     Error := False;
-    ErrorText := 'Este campo no debe ser vacio.'
+    ErrorText := 'Este campo no debe ser vacío.'
   end;
 end;
 

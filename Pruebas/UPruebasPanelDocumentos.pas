@@ -1,4 +1,4 @@
-unit UPruebasPanelDocumentos;
+﻿unit UPruebasPanelDocumentos;
 
 { Panel de documentos (VCL): crea la ventana de verdad (consola con mensajes
   procesados a mano) y cuenta los controles vivos. Detecta etiquetas que no se
@@ -217,9 +217,9 @@ begin
       'Estudio Ingeniero Geologico. Documento ' + IntToStr(I + 1);
     Result[I].IdExpediente := 'P-006';
     Result[I].Archivo := 'Archivo 2';
-    Result[I].Deposito := 'Deposito 01';
+    Result[I].Deposito := 'Depósito 01';
     Result[I].Gaveta := 'Gaveta 02';
-    Result[I].Posicion := 'Posicion 3';
+    Result[I].Posicion := 'Posición 3';
   end;
 end;
 
@@ -383,7 +383,7 @@ begin
     DrawText(B.Canvas.Handle, PChar(Largo), Length(Largo), R,
       DT_WORDBREAK or DT_NOPREFIX or DT_CALCRECT);
     Assert.IsTrue(PL.AlturaContenido >= R.Bottom + 60,
-      Format('alto %d no cubre las lineas del titulo (%d)', [PL.AlturaContenido, R.Bottom]));
+      Format('alto %d no cubre las lineas del título (%d)', [PL.AlturaContenido, R.Bottom]));
   finally
     B.Free;
     F.Free;
@@ -423,7 +423,7 @@ begin
           if Y >= PL.AlturaContenido then
             Inc(TintaDebajo);
         end;
-    Assert.IsTrue(TintaUltimas > 0, 'la ultima fila (Sin eventos registrados) debe verse');
+    Assert.IsTrue(TintaUltimas > 0, 'la última fila (Sin eventos registrados) debe verse');
     Assert.AreEqual(0, TintaDebajo, 'no se dibuja nada fuera del contenido medido');
   finally
     B.Free;
@@ -693,7 +693,7 @@ begin
     P.OnPuedeEditar := C.PuedeEditar;
     P.OnGuardarEdicion := C.Guardar;
     P.Editar(ClavesDocs([0]));
-    P.Formulario.EscribirCampo('titulo', 'Otro titulo');
+    P.Formulario.EscribirCampo('titulo', 'Otro título');
     P.Formulario.Guardar;
     Assert.IsTrue(P.Formulario.Visible, 'con error se queda abierto para corregir');
     Assert.IsTrue(Pos('No se pudo guardar nada', P.Formulario.MensajeActual) > 0);
@@ -1207,7 +1207,7 @@ begin
     LV.Items[0].Selected := True;
     PonerAlDia;
     EsperarContenido;
-    Assert.AreEqual(3, Prov.Llamadas, 'solo se pide el ultimo documento elegido');
+    Assert.AreEqual(3, Prov.Llamadas, 'solo se pide el último documento elegido');
   finally
     F.Free;
     Prov.Free;
@@ -1341,8 +1341,8 @@ begin
     Assert.AreEqual('Archivos', P.Documento.TituloPestana(pdArchivos), 'sin ficheros no hay contador');
     Assert.IsTrue(Pos('GENERAL', BuscarProp(P).Contenido) > 0,
       'la pestana Datos muestra el grupo General');
-    Assert.IsFalse(Pos('POSICION FISICA', BuscarProp(P).Contenido) > 0,
-      'la ubicacion ya no va en la pestana Datos');
+    Assert.IsFalse(Pos('POSICIÓN FÍSICA', BuscarProp(P).Contenido) > 0,
+      'la ubicación ya no va en la pestana Datos');
   finally
     F.Free;
   end;
@@ -1381,12 +1381,12 @@ begin
     P.FijarFiltro('zzz-no-existe', False, edDesconocido);
     PonerAlDia;
     Assert.AreEqual(0, P.CantidadVisibles);
-    Assert.IsTrue(HayEtiquetaVisible(P, 'Ningun documento coincide'));
+    Assert.IsTrue(HayEtiquetaVisible(P, 'Ningún documento coincide'));
     Assert.IsTrue(Pos(AVISO, BuscarProp(P).Contenido) > 0,
-      'sin seleccion, las propiedades vuelven al texto guia');
+      'sin selección, las propiedades vuelven al texto guia');
     P.FijarFiltro('', False, edDesconocido);
     PonerAlDia;
-    Assert.IsFalse(HayEtiquetaVisible(P, 'Ningun documento coincide'));
+    Assert.IsFalse(HayEtiquetaVisible(P, 'Ningún documento coincide'));
   finally
     F.Free;
   end;

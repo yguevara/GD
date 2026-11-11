@@ -1,4 +1,4 @@
-unit UFormularioDocumento;
+﻿unit UFormularioDocumento;
 
 { Formulario de edicion de uno o varios documentos. Se crea por codigo (sin
   .dfm) y no accede a datos: quien lo usa lo abre con las claves y los valores
@@ -314,7 +314,7 @@ begin
   FZona.Font.Name := FUENTE;
   FZona.Font.Size := 9;
   FZona.Font.Color := FTema.TextoSuave;
-  FZona.Caption := 'Arrastre aqui archivos para agregarlos como anexos digitales';
+  FZona.Caption := 'Arrastre aquí archivos para agregarlos como anexos digitales';
   FZona.Hint := 'Los archivos se agregan a todos los documentos que se editan';
   FZona.ShowHint := True;
 
@@ -328,17 +328,17 @@ begin
   FScroll.OnResize := nil;
 
   // Codigo, fecha y version (la clave) no figuran: no se editan
-  AgregaCampo('titulo', 'Titulo', tcTexto, False);
+  AgregaCampo('titulo', 'Título', tcTexto, False);
   AgregaCampo('observaciones', 'Observaciones', tcMemo, False);
   AgregaCampo('gestor', 'Gestor', tcGestor, False);
   AgregaCampo('expediente', 'Expediente', tcTexto, False);
   AgregaCampo('subexp', 'Subexpediente', tcTexto, False);
   AgregaCampo('visible', 'Visible', tcVisible, False);
-  AgregaCampo('archivo', 'Archivo (numero)', tcNumero, True);
-  AgregaCampo('deposito', 'Deposito', tcTexto, True);
+  AgregaCampo('archivo', 'Archivo (número)', tcNumero, True);
+  AgregaCampo('deposito', 'Depósito', tcTexto, True);
   AgregaCampo('gaveta', 'Gaveta', tcTexto, True);
-  AgregaCampo('servidor', 'Servidor (numero)', tcNumero, True);
-  AgregaCampo('posicion', 'Posicion', tcTexto, True);
+  AgregaCampo('servidor', 'Servidor (número)', tcNumero, True);
+  AgregaCampo('posicion', 'Posición', tcTexto, True);
   OcultaCampo('gestor'); // hereda de la subserie; no hay lista de gestores que ofrecer
   Distribuir;
   FReceptor := TRecepcionArchivos.Crear(Self, FZona);
@@ -589,7 +589,7 @@ begin
   begin
     FTitulo.Caption := 'Editar documento ' + IfThen(Length(FClaves) = 1,
       Trim(FClaves[0].Codigodoc), '');
-    FAviso.Caption := 'El codigo, la fecha y la version no se pueden cambiar.';
+    FAviso.Caption := 'El código, la fecha y la version no se pueden cambiar.';
     FBtnGuardar.Caption := 'Guardar';
   end;
   if (Indice('gestor') >= 0) then
@@ -616,7 +616,7 @@ begin
     FCampos[I].Inicial := TextoDe(I);
   end;
   if not PuedeTopografia then
-    FAviso.Caption := FAviso.Caption + ' Sin permiso para cambiar la ubicacion.';
+    FAviso.Caption := FAviso.Caption + ' Sin permiso para cambiar la ubicación.';
   Distribuir;
 end;
 
@@ -638,9 +638,9 @@ begin
     Exit;
   T := TextoDe(I);
   if (T <> '') and not TryStrToInt(T, N) then
-    Result := 'Escriba un numero entero.'
+    Result := 'Escriba un número entero.'
   else if (T <> '') and (N < 0) then
-    Result := 'El numero no puede ser negativo.';
+    Result := 'El número no puede ser negativo.';
 end;
 
 { Los cambios de un solo campo (para validarlo por separado). }

@@ -1,4 +1,4 @@
-unit UVisorContenido;
+﻿unit UVisorContenido;
 
 { Visor del contenido (PDF) de un documento dentro de la aplicacion, que se puede
   sacar a una ventana aparte y volver a incorporar. Solo muestra: no ofrece
@@ -181,7 +181,7 @@ procedure TVisorContenido.ActualizarBoton;
 begin
   if FEnVentana then
   begin
-    FBtnSeparar.Caption := 'Volver a la aplicacion';
+    FBtnSeparar.Caption := 'Volver a la aplicación';
     FBtnSeparar.Enabled := True;
   end
   else

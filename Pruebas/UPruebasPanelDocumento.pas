@@ -1,4 +1,4 @@
-unit UPruebasPanelDocumento;
+﻿unit UPruebasPanelDocumento;
 
 { Panel del documento con pestanas (VCL). Codigo en ASCII. }
 
@@ -112,13 +112,13 @@ begin
     P := NuevoPanel(F);
     P.FijarCabecera('A 03.01.02.0003', 'Alcantarillado', edDesconocido);
     Application.ProcessMessages;
-    Assert.AreEqual(1, P.LineasTitulo, 'un titulo corto cabe en una linea');
+    Assert.AreEqual(1, P.LineasTitulo, 'un título corto cabe en una linea');
     AltoCorto := P.AltoCabecera;
     P.FijarCabecera('A 03.01.02.0003', LARGO, edDesconocido);
     Application.ProcessMessages;
-    Assert.AreEqual(2, P.LineasTitulo, 'un titulo largo usa dos lineas en vez de cortarse en una');
+    Assert.AreEqual(2, P.LineasTitulo, 'un título largo usa dos lineas en vez de cortarse en una');
     Assert.IsTrue(P.AltoCabecera > AltoCorto, 'la cabecera crece para las dos lineas');
-    Assert.IsTrue(Pos(LARGO, P.HintCabecera) > 0, 'el titulo completo esta en el globo de ayuda');
+    Assert.IsTrue(Pos(LARGO, P.HintCabecera) > 0, 'el título completo esta en el globo de ayuda');
   finally
     F.Free;
   end;
@@ -213,13 +213,13 @@ begin
     D := Default(TDatosDocumento);
     D.Archivo := 'Archivo 2';
     D.Deposito := '0';
-    V.Mostrar([UbicacionDeSubserie('3', 'Archivo 2', 'Deposito 01', 'Gaveta 02'),
+    V.Mostrar([UbicacionDeSubserie('3', 'Archivo 2', 'Depósito 01', 'Gaveta 02'),
       UbicacionDeDocumento(D)]);
     Assert.IsTrue(Pos('SUBSERIE', V.Contenido) > 0);
     Assert.IsTrue(Pos('DOCUMENTO', V.Contenido) > 0);
-    Assert.IsTrue(Pos('Deposito: Sin asignar', V.Contenido) > 0);
-    Assert.IsTrue(Pos('Ubicacion completa', V.Contenido) > 0, 'la subserie esta completa');
-    Assert.IsTrue(Pos('Faltan datos de ubicacion', V.Contenido) > 0, 'el documento no');
+    Assert.IsTrue(Pos('Depósito: Sin asignar', V.Contenido) > 0);
+    Assert.IsTrue(Pos('Ubicación completa', V.Contenido) > 0, 'la subserie esta completa');
+    Assert.IsTrue(Pos('Faltan datos de ubicación', V.Contenido) > 0, 'el documento no');
   finally
     F.Free;
   end;
@@ -234,7 +234,7 @@ begin
   try
     V := VistaNueva(F, 380);
     V.Mostrar([UbicacionDeSubserie('3', 'A', 'D', 'G')]);
-    V.MostrarMensaje('Elija un documento para ver su ubicacion');
+    V.MostrarMensaje('Elija un documento para ver su ubicación');
     Assert.AreEqual(0, Pos('SUBSERIE', V.Contenido));
     Assert.IsTrue(Pos('Elija un documento', V.Contenido) > 0);
   finally
@@ -255,9 +255,9 @@ begin
     D := Default(TDatosDocumento);
     D.Servidor := 'Servidor central de produccion';
     D.Archivo := 'Archivo historico general';
-    D.Deposito := 'Deposito de documentos antiguos';
+    D.Deposito := 'Depósito de documentos antiguos';
     D.Gaveta := 'Gaveta 02';
-    D.Posicion := 'Posicion 3';
+    D.Posicion := 'Posición 3';
     V.Mostrar([UbicacionDeDocumento(D)]);
     Ancha := V.AlturaContenido;
     V.Width := 280;

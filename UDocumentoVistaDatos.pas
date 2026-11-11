@@ -1,4 +1,4 @@
-unit UDocumentoVistaDatos;
+﻿unit UDocumentoVistaDatos;
 
 { Indicadores por documento para la lista de una subserie: cuantos documentos
   referencian a un expediente (solo los que el alcance del usuario deja ver),
@@ -346,7 +346,7 @@ begin
     'H.IdEstructura = D.IdEstructura AND H.id = D.id AND H.codsubs = D.codsubs ' +
     'AND H.Codigodoc = D.Codigodoc AND H.fecha = D.fecha AND H.version = D.version ' +
     'WHERE P.FDevolucion IS NULL AND P.FCancelacion IS NULL AND ({filtro})) AS T');
-  Cuenta('sinubicacion', 'Sin ubicacion',
+  Cuenta('sinubicacion', 'Sin ubicación',
     'SELECT COUNT(*) FROM tb_SeriesDatos H WHERE ({filtro}) AND ' +
     '(H.Archivo IS NULL OR H.Archivo = 0 OR ' + // Archivo es numerico
     'H.deposito IS NULL OR H.deposito = '''' OR H.deposito = ''0'' OR ' +

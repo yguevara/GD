@@ -1,4 +1,4 @@
-unit UAgregarFicheros;
+﻿unit UAgregarFicheros;
 
 { Agrega ficheros (anexos digitales o fuentes) a un documento que ya existe, y
   reemplaza su contenido PDF. Por cada fichero: sube al almacen, inserta su fila
@@ -352,7 +352,7 @@ begin
         try
           InsertarFila(Conn, Clave, Destino, Nombre, Res.Tamano, Ficheros[I].EsFuente, 0);
           RegistrarEventoDoc(Conn, Clave, ACCION_MODIFICAR,
-            Format('Se agrego el %s "%s" al documento con codigo "%s".',
+            Format('Se agregó el %s "%s" al documento con código "%s".',
             [Que, Nombre, Trim(Clave.Codigodoc)]), Origen.Usuario, Origen.Rol,
             Origen.CodSerie);
           if Propia then
@@ -382,7 +382,7 @@ begin
     Usados.Free;
   end;
   if Result.Fallidos > 0 then
-    Result.Mensaje := Format('%d fichero(s) no se pudieron agregar. Ultimo error: %s',
+    Result.Mensaje := Format('%d fichero(s) no se pudieron agregar. Último error: %s',
       [Result.Fallidos, Ultimo]);
   if Result.Omitidos > 0 then
     Result.Mensaje := Trim(Result.Mensaje + Format(' Se cancelo: %d quedaron sin procesar.',
@@ -451,7 +451,7 @@ begin
         // con el mismo idhijo: sigue siendo el primer PDF, el principal
         InsertarFila(Conn, Clave, Destino, Nombre, Res.Tamano, False, IdViejo);
         RegistrarEventoDoc(Conn, Clave, ACCION_MODIFICAR,
-          Format('Se reemplazo el contenido del documento con codigo "%s": "%s" por "%s".',
+          Format('Se reemplazó el contenido del documento con código "%s": "%s" por "%s".',
           [Trim(Clave.Codigodoc), NombreViejo, Nombre]), Origen.Usuario, Origen.Rol,
           Origen.CodSerie);
         if Propia then
@@ -483,7 +483,7 @@ begin
       AlmViejo.Borrar(ClaveVieja);
     except
       on E: Exception do
-        Result.Mensaje := 'El contenido se reemplazo, pero el PDF anterior quedo en el ' +
+        Result.Mensaje := 'El contenido se reemplazó, pero el PDF anterior quedo en el ' +
           'almacen (' + NombreViejo + '): ' + E.Message;
     end;
   finally

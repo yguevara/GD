@@ -1,4 +1,4 @@
-unit UEdicionDocumento;
+﻿unit UEdicionDocumento;
 
 { Edicion de uno o varios documentos: valida los cambios y los aplica solo a los
   campos pedidos, un documento a la vez (cada uno en su propia transaccion, con su
@@ -71,26 +71,26 @@ begin
   if C.TieneTitulo then
   begin
     if Trim(C.Titulo) = '' then
-      Exit('El titulo no puede quedar vacio.');
+      Exit('El título no puede quedar vacío.');
     if Length(C.Titulo) > 255 then
-      Exit('El titulo admite hasta 255 caracteres.');
+      Exit('El título admite hasta 255 caracteres.');
   end;
   if C.TieneIdExpediente and (Length(C.IdExpediente) > 20) then
     Exit('El expediente admite hasta 20 caracteres.');
   if C.TieneSubExp and (Length(C.SubExp) > 50) then
     Exit('El subexpediente admite hasta 50 caracteres.');
   if C.TieneDeposito and (Length(C.Deposito) > 255) then
-    Exit('El deposito admite hasta 255 caracteres.');
+    Exit('El depósito admite hasta 255 caracteres.');
   if C.TieneGaveta and (Length(C.Gaveta) > 20) then
     Exit('La gaveta admite hasta 20 caracteres.');
   if C.TienePosicion and (Length(C.Posicion) > 10) then
-    Exit('La posicion admite hasta 10 caracteres.');
+    Exit('La posición admite hasta 10 caracteres.');
   if C.TieneVisible and not ((C.Visible = '') or (C.Visible = 'S') or (C.Visible = 'N')) then
     Exit('Visible solo puede ser S o N.');
   if C.TieneArchivo and (C.Archivo > 32767) then
-    Exit('El numero de archivo es demasiado grande.');
+    Exit('El número de archivo es demasiado grande.');
   if C.TieneIdServidor and (C.IdServidor > 32767) then
-    Exit('El numero de servidor es demasiado grande.');
+    Exit('El número de servidor es demasiado grande.');
 end;
 
 type
@@ -330,7 +330,7 @@ begin
           Q.Free;
         end;
         RegistrarEventoDoc(Conn, K, ACCION_MODIFICAR,
-          Format('Se modificaron los datos del documento con codigo "%s": %s.',
+          Format('Se modificaron los datos del documento con código "%s": %s.',
           [Trim(K.Codigodoc), Cambiados]), Origen.Usuario, Origen.Rol, Origen.CodSerie);
         if Propia then
           Conn.Commit;
@@ -354,8 +354,8 @@ begin
     Result.Mensaje := Trim(Result.Mensaje + Format(' %d documento(s) omitido(s) por falta de permiso.',
       [SinPermiso]));
   if TopoOmitida > 0 then
-    Result.Mensaje := Trim(Result.Mensaje + Format(' En %d documento(s) no se cambio la ubicacion: ' +
-      'falta permiso para editar la topografia.', [TopoOmitida]));
+    Result.Mensaje := Trim(Result.Mensaje + Format(' En %d documento(s) no se cambio la ubicación: ' +
+      'falta permiso para editar la topografía.', [TopoOmitida]));
 end;
 
 end.

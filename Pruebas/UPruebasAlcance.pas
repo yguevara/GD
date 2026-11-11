@@ -1,4 +1,4 @@
-unit UPruebasAlcance;
+﻿unit UPruebasAlcance;
 
 interface
 
@@ -654,7 +654,7 @@ begin
     Assert.IsTrue(Al.PuedeEliminarDocumento(Clave('A.4', 101), '074', 1));
     Assert.IsFalse(Al.PuedeEliminarDocumento(Clave('A.4', 101), '074', 3));
     Assert.IsTrue(Al.PuedeEliminarDocumento(Clave('A.4.3', 104), '074', -5),
-      'Dias negativos cuentan como 0');
+      'Días negativos cuentan como 0');
     Assert.IsFalse(Al.PuedeEliminarDocumento(Clave('A.1', 82), '074', 0));
   finally
     Al.Free;

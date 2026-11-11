@@ -188,7 +188,7 @@ begin
     frmSplash.Gauge1.MinValue := 0;
     frmSplash.Gauge1.Progress := 0;
     frmSplash.MueveBar(@frmSplash.Gauge1, 1);   }
-    frmSplash.Paso('Leyendo la configuracion...', 1);
+    frmSplash.Paso('Leyendo la configuración...', 1);
     AppPath := ExtractFilePath(Application.ExeName);
     programver := VERSION;
     if FileExists(AppPath + 'config.ini') then

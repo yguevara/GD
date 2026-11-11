@@ -1,4 +1,4 @@
-unit UBarraTrabajo;
+﻿unit UBarraTrabajo;
 
 { Barra de la pantalla de documentos: ruta y nombre del nodo, fichas de las
   series asignadas, busqueda, filtro de estado y el boton Editar (el alta es "Agregar documento" del shell).
@@ -262,7 +262,7 @@ begin
   FBusqueda.Align := alClient;
   FBusqueda.AlignWithMargins := True;
   FBusqueda.Margins.SetBounds(16, 7, 0, 8);
-  FBusqueda.TextHint := 'Filtrar esta lista por codigo, titulo o expediente';
+  FBusqueda.TextHint := 'Filtrar esta lista por código, título o expediente';
   FBusqueda.OnChange := BusquedaChange;
 
   FTemporizador := TTimer.Create(Self);

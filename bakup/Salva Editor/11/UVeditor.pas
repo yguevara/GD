@@ -1,0 +1,634 @@
+unit UVeditor;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, ActnList, ImgList, Controls,
+  Dialogs, StdCtrls, ComCtrls, DBCtrls, ToolWin, ExtCtrls, Graphics, Forms,
+  Menus, db, StdActns, ComObj, System.Actions, cxGraphics, cxControls,
+  cxLookAndFeels, cxLookAndFeelPainters, cxContainer, cxEdit, dxSkinsCore,
+  dxSkinBlack, dxSkinBlue, dxSkinBlueprint, dxSkinCaramel, dxSkinCoffee,
+  dxSkinDarkRoom, dxSkinDarkSide, dxSkinDevExpressDarkStyle,
+  dxSkinDevExpressStyle, dxSkinFoggy, dxSkinGlassOceans, dxSkinHighContrast,
+  dxSkiniMaginary, dxSkinLilian, dxSkinLiquidSky, dxSkinLondonLiquidSky,
+  dxSkinMcSkin, dxSkinMetropolis, dxSkinMetropolisDark, dxSkinMoneyTwins,
+  dxSkinOffice2007Black, dxSkinOffice2007Blue, dxSkinOffice2007Green,
+  dxSkinOffice2007Pink, dxSkinOffice2007Silver, dxSkinOffice2010Black,
+  dxSkinOffice2010Blue, dxSkinOffice2010Silver, dxSkinOffice2013DarkGray,
+  dxSkinOffice2013LightGray, dxSkinOffice2013White, dxSkinPumpkin, dxSkinSeven,
+  dxSkinSevenClassic, dxSkinSharp, dxSkinSharpPlus, dxSkinSilver,
+  dxSkinSpringTime, dxSkinStardust, dxSkinSummer2008, dxSkinTheAsphaltWorld,
+  dxSkinsDefaultPainters, dxSkinValentine, dxSkinVS2010, dxSkinWhiteprint,
+  dxSkinXmas2008Blue, cxTextEdit, cxMemo, cxRichEdit, cxDBRichEdit,
+  FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Param, FireDAC.Stan.Error,
+  FireDAC.DatS, FireDAC.Phys.Intf, FireDAC.DApt.Intf, FireDAC.Stan.Async,
+  FireDAC.DApt, FireDAC.Comp.DataSet, FireDAC.Comp.Client, DBAdvNavigator,
+  cxNavigator, cxDBNavigator, dxSkinOffice2016Colorful, dxSkinOffice2016Dark,
+  dxSkinTheBezier, dxSkinVisualStudio2013Blue, dxSkinVisualStudio2013Dark,
+  dxSkinVisualStudio2013Light, System.ImageList, UCapaDatos, JvExControls,
+  JvButton, JvTransparentButton, Vcl.ExtActns, cxMaskEdit, cxDropDownEdit,
+  cxBlobEdit, cxDBEdit, AdvPanel, JvExExtCtrls, JvExtComponent, JvCaptionPanel;
+
+resourcestring
+  sSaveChanges = 'Save changes to %s?';
+  sOverWrite = 'OK to overwrite %s';
+  sUntitled = 'Untitled';
+  sModified = 'Modified';
+  sColRowInfo = 'Line: %3d   Col: %3d';
+
+const
+  RulerAdj = 4 / 3;
+  GutterWid = 6;
+  ENGLISH = (SUBLANG_ENGLISH_US shl 10) or LANG_ENGLISH;
+  FRENCH = (SUBLANG_FRENCH shl 10) or LANG_FRENCH;
+  GERMAN = (SUBLANG_GERMAN shl 10) or LANG_GERMAN;
+
+type
+  TPMemoryStream = ^TMemorystream;
+
+  TFVeditor = class(TForm)
+    Ruler: TPanel;
+    FirstInd: TLabel;
+    LeftInd: TLabel;
+    RulerLine: TBevel;
+    RightInd: TLabel;
+    Bevel1: TBevel;
+    StatusBar: TStatusBar;
+    OpenDialog: TOpenDialog;
+    SaveDialog: TSaveDialog;
+    PrintDialog: TPrintDialog;
+    FontDialog1: TFontDialog;
+    ToolbarImages: TImageList;
+    ImageList1: TImageList;
+    pMainContainer: TPanel;
+    btnclose: TJvTransparentButton;
+    btnprint: TJvTransparentButton;
+    btnPrintconfig: TJvTransparentButton;
+    btnright: TJvTransparentButton;
+    btnSystemHelp: TJvTransparentButton;
+    btncut: TJvTransparentButton;
+    Edit1: TEdit;
+    btnpaste: TJvTransparentButton;
+    UnderlineButton: TJvTransparentButton;
+    ItalicButton: TJvTransparentButton;
+    BoldButton: TJvTransparentButton;
+    btnunder: TJvTransparentButton;
+    btncenter: TJvTransparentButton;
+    btnleft: TJvTransparentButton;
+    PrintDialog1: TPrintDialog;
+    ActionList1: TActionList;
+    EditCut1: TEditCut;
+    EditCopy1: TEditCopy;
+    EditPaste1: TEditPaste;
+    EditSelectAll1: TEditSelectAll;
+    EditUndo1: TEditUndo;
+    EditDelete1: TEditDelete;
+    FilePrintSetup1: TFilePrintSetup;
+    PrintDlg1: TPrintDlg;
+    btncopy: TJvTransparentButton;
+    Action1: TAction;
+    FormatRichEditBold1: TRichEditBold;
+    FormatRichEditItalic1: TRichEditItalic;
+    FormatRichEditUnderline1: TRichEditUnderline;
+    FormatRichEditAlignLeft1: TRichEditAlignLeft;
+    FormatRichEditAlignCenter1: TRichEditAlignCenter;
+    FormatRichEditAlignRight1: TRichEditAlignRight;
+    jvcpSSDetail: TJvCaptionPanel;
+    AdvPanel13: TAdvPanel;
+    Label4: TLabel;
+    edtCarpeta: TcxDBBlobEdit;
+    Panel2: TPanel;
+    JvTransparentButton11: TJvTransparentButton;
+    Edit3: TEdit;
+    font: TJvTransparentButton;
+    Panel1: TPanel;
+    Panel3: TPanel;
+    Panel4: TPanel;
+    FontName: TComboBox;
+    Panel5: TPanel;
+    FontSize: TEdit;
+    Timer1: TTimer;
+    DBNavigator1: TcxDBNavigator;
+    Editor: TDBRichEdit;
+    procedure ShowHint(Sender: TObject);
+    procedure CutButtonClick(Sender: TObject);
+    procedure CopyButtonClick(Sender: TObject);
+    procedure PasteButtonClick(Sender: TObject);
+    procedure UndoButtonClick(Sender: TObject);
+    procedure FontNameChange(Sender: TObject);
+    procedure FontSizeChange(Sender: TObject);
+    procedure BoldButtonClick(Sender: TObject);
+    procedure ItalicButtonClick(Sender: TObject);
+    procedure UnderlineButtonClick(Sender: TObject);
+    procedure LeftAlignClick(Sender: TObject);
+    procedure CenterAlignClick(Sender: TObject);
+    procedure RightAlignClick(Sender: TObject);
+    procedure miEditFontClick(Sender: TObject);
+    procedure EditorChange(Sender: TObject);
+    procedure RulerResize(Sender: TObject);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure FormCreate(Sender: TObject);
+    procedure FileSave(Sender: TObject);
+    procedure FileSaveAs(Sender: TObject);
+    procedure ToolButton3Click(Sender: TObject);
+    procedure FormPaint(Sender: TObject);
+    procedure FormResize(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure PrintButtonClick(Sender: TObject);
+    procedure btn2Click(Sender: TObject);
+    procedure FontNameKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure ToolButton7Click(Sender: TObject);
+    procedure FormActivate(Sender: TObject);
+    procedure btncloseClick(Sender: TObject);
+    procedure JvTransparentButton11Click(Sender: TObject);
+    procedure fontClick(Sender: TObject);
+    procedure Timer1Timer(Sender: TObject);
+  private
+    { Private declarations }
+//     Editorsalida:Trichedit;
+    FUpdating: Boolean;
+    FFileName: string;
+    salve: boolean;
+    RTA: string;
+    function CurrText: TTextAttributes;
+    procedure UpdateCursorPos;
+    procedure SetModified(Value: Boolean);
+    procedure CheckFileSave;
+    procedure SetFileName(const FileName: string);
+    procedure GetFontNames;
+    procedure SetupRuler;
+    procedure SetEditRect;
+    procedure PerformFileOpen(const AFileName: string);
+    procedure SalvaPosicion;
+    procedure CorrectorOrtograficoWord(Componente: TObject); // corrector Ortografico
+    function sms(aText: string; aTipo: Integer): integer;
+  public
+    { Public declarations }
+  end;
+
+var
+  s: string;
+
+function CampoTexto(ds: Tpdatasource; campo, Titulo: string): Boolean; overload;
+
+implementation
+
+uses
+  RichEdit, ShellAPI;
+{$R *.dfm}
+
+procedure TFVeditor.CorrectorOrtograficoWord(Componente: TObject);
+var
+  Word, Document, Selection: OleVariant;
+begin
+  try
+    Word := CreateOleObject('Word.Application');
+    Document := Word.Documents.Add;
+    Windows.SetParent(FindWindow(nil, PChar(string(Document.FullName + ' - ' + Word.Caption))), Application.Handle);
+    Selection := Word.Selection;
+    if (Componente is TDBMemo) then
+      Selection.Text := TMemo(Componente).Text
+    else if (Componente is TDBRichedit) then
+      Selection.Text := TDBRichEdit(Componente).Text
+    else
+      Selection.Text := TdbEdit(Componente).Text;
+    Document.CheckGrammar;
+    Selection.WholeStory;
+    if (Componente is TDBMemo) then
+      TDBMemo(Componente).Text := StringReplace(Selection.Text, #13, #13#10, [rfReplaceAll])
+    else if (Componente is TDBRichedit) then
+      TDBRichedit(Componente).Text := StringReplace(Selection.Text, #13, #13#10, [rfReplaceAll])
+    else
+      TDBedit(Componente).Text := StringReplace(Selection.Text, #13, '', [rfReplaceAll]);
+    Word.Quit(False);
+  except
+    sms('No tiene instalado Ms Word', 2);
+  end;
+end;
+
+procedure TFVeditor.SalvaPosicion;
+begin
+
+end;
+
+procedure TFVeditor.PerformFileOpen(const AFileName: string);
+begin
+  Editor.Lines.LoadFromFile(AFileName);
+  SetFileName(AFileName);
+  Editor.SetFocus;
+  SetModified(False);
+end;
+
+procedure TFVeditor.SetEditRect;
+var
+  R: TRect;
+begin
+  with Editor do
+  begin
+    R := Rect(GutterWid, 0, ClientWidth - GutterWid, ClientHeight);
+    SendMessage(Handle, EM_SETRECT, 0, Longint(@R));
+  end;
+end;
+
+function CampoTexto(ds: Tpdatasource; campo, Titulo: string): Boolean; overload;
+begin
+  with TFVeditor.Create(Application) do
+  try
+    s := ds^.DataSet.Name;
+    s := s;
+    TFDQuery(ds^.DataSet).FieldByName(campo).OnGetText := nil;
+    EditorActivo := True;
+    Editor.DataSource := ds^;
+    Editor.DataField := campo;
+    Editor.ReadOnly := False;
+    DBNavigator1.DataSource := ds^;
+    try
+      ds^.DataSet.Edit;
+    except
+    end;
+    Caption := Titulo;
+    ShowModal;
+  finally
+    {if not EsReadOnly then
+    begin
+      TFDQuery(ds^.DataSet).Edit;
+      if (Editor.DataSource.DataSet.State = dsedit) or (Editor.DataSource.DataSet.State = dsinsert) then
+      try
+        Descripcion := Editor.Text;
+        TFDQuery(ds^.DataSet).Edit;
+        if (Editor.DataSource.DataSet.State = dsedit) or (Editor.DataSource.DataSet.State = dsinsert) then
+          TFDQuery(ds^.DataSet).FieldByName(campo).Value := Descripcion;
+        if not EsPropiedadesTopo then
+        begin
+          TFDQuery(ds^.DataSet).Post;
+          if TFDQuery(ds^.DataSet).ChangeCount > 0 then
+            TFDQuery(ds^.DataSet).ApplyUpdates(0);
+        end;
+      except
+        on E: EDatabaseError do
+        begin
+          UDM.sms('Ha ocurrido un error. Motivo: ' + e.Message, 1);
+        end;
+      end;
+      result := salve;
+      EditorActivo := False;
+    end;    }
+    Free;
+  end;
+end;
+
+procedure TFVeditor.SetupRuler;
+var
+  I: Integer;
+  S: string;
+begin
+  SetLength(S, 201);
+  I := 1;
+  while I < 200 do
+  begin
+    S[I] := #9;
+    S[I + 1] := '|';
+    Inc(I, 2);
+  end;
+  Ruler.Caption := S;
+end;
+
+function EnumFontsProc(var LogFont: TLogFont; var TextMetric: TTextMetric; FontType: Integer; Data: Pointer): Integer; stdcall;
+begin
+  TStrings(Data).Add(LogFont.lfFaceName);
+  Result := 1;
+end;
+
+procedure TFVeditor.GetFontNames;
+var
+  DC: HDC;
+begin
+  DC := GetDC(0);
+  EnumFonts(DC, nil, @EnumFontsProc, Pointer(FontName.Items));
+  ReleaseDC(0, DC);
+  FontName.Sorted := True;
+end;
+
+procedure TFVeditor.SetFileName(const FileName: string);
+begin
+  FFileName := FileName;
+  Caption := Format('%s - %s', [ExtractFileName(FileName), Application.Title]);
+end;
+
+procedure TFVeditor.FileSaveAs(Sender: TObject);
+begin
+  if SaveDialog.Execute then
+  begin
+    if FileExists(SaveDialog.FileName) then
+      if UDM.sms(Format(sOverWrite, [SaveDialog.FileName]), 4) <> 6 then
+        Exit;
+    Editor.Lines.SaveToFile(SaveDialog.FileName);
+    SetFileName(SaveDialog.FileName);
+    //Editor.Modified := False;
+    SetModified(False);
+  end;
+end;
+
+procedure TFVeditor.FileSave(Sender: TObject);
+//var
+//  ms:Tmemorystream;
+begin
+  Editor.Lines.SaveToFile(UDM.CarpetaGeodato + 'Editor.rtf');
+  salve := true;
+  //Editor.Modified := False;
+  SetModified(False);
+end;
+
+procedure TFVeditor.CheckFileSave;
+var
+  SaveResp: Integer;
+begin
+  SaveResp := idYes;
+  case SaveResp of
+    idYes:
+      FileSave(Self);
+    idNo: {Nothing}
+      ;
+    idCancel:
+      Abort;
+  end;
+end;
+
+procedure TFVeditor.SetModified(Value: Boolean);
+begin
+  if Value then
+    StatusBar.Panels[1].Text := sModified
+  else
+    StatusBar.Panels[1].Text := '';
+end;
+
+procedure TFVeditor.UpdateCursorPos;
+var
+  CharPos: TPoint;
+begin
+  CharPos.Y := SendMessage(Editor.Handle, EM_EXLINEFROMCHAR, 0, Editor.SelStart);
+  CharPos.X := (Editor.SelStart - SendMessage(Editor.Handle, EM_LINEINDEX, CharPos.Y, 0));
+  Inc(CharPos.Y);
+  Inc(CharPos.X);
+  StatusBar.Panels[0].Text := Format(sColRowInfo, [CharPos.Y, CharPos.X]);
+end;
+
+function TFVeditor.CurrText: TTextAttributes;
+begin
+  //Editor.SelLength:=255;
+  if Editor.SelLength > 0 then
+    Result := Editor.SelAttributes
+  else
+    Result := Editor.DefAttributes;
+end;
+
+procedure TFVeditor.CutButtonClick(Sender: TObject);
+begin
+  Editor.CutToClipboard;
+end;
+
+procedure TFVeditor.CopyButtonClick(Sender: TObject);
+begin
+  Editor.CopyToClipboard;
+end;
+
+procedure TFVeditor.PasteButtonClick(Sender: TObject);
+begin
+  Editor.PasteFromClipboard;
+end;
+
+procedure TFVeditor.UndoButtonClick(Sender: TObject);
+begin
+  with Editor do
+    if HandleAllocated then
+      SendMessage(Handle, EM_UNDO, 0, 0);
+end;
+
+procedure TFVeditor.FontNameChange(Sender: TObject);
+begin
+  if FUpdating then
+    Exit;
+  CurrText.Name := FontName.Items[FontName.ItemIndex];
+end;
+
+procedure TFVeditor.FontSizeChange(Sender: TObject);
+begin
+  if FUpdating then
+    Exit;
+  CurrText.Size := StrToInt(FontSize.Text);
+end;
+
+procedure TFVeditor.BoldButtonClick(Sender: TObject);
+begin
+  if FUpdating then
+    Exit;
+  if BoldButton.Down then
+    CurrText.Style := CurrText.Style + [fsBold]
+  else
+    CurrText.Style := CurrText.Style - [fsBold];
+end;
+
+procedure TFVeditor.ItalicButtonClick(Sender: TObject);
+begin
+  if FUpdating then
+    Exit;
+  if ItalicButton.Down then
+    CurrText.Style := CurrText.Style + [fsItalic]
+  else
+    CurrText.Style := CurrText.Style - [fsItalic];
+end;
+
+procedure TFVeditor.JvTransparentButton11Click(Sender: TObject);
+begin
+  jvcpSSDetail.Visible := false
+end;
+
+procedure TFVeditor.fontClick(Sender: TObject);
+begin
+  jvcpSSDetail.Visible := True;
+end;
+
+procedure TFVeditor.btncloseClick(Sender: TObject);
+begin
+  Close;
+end;
+
+procedure TFVeditor.UnderlineButtonClick(Sender: TObject);
+begin
+  if FUpdating then
+    Exit;
+  if UnderlineButton.Down then
+    CurrText.Style := CurrText.Style + [fsUnderline]
+  else
+    CurrText.Style := CurrText.Style - [fsUnderline];
+end;
+
+procedure TFVeditor.LeftAlignClick(Sender: TObject);
+begin
+  if FUpdating then
+    Exit;
+  Editor.Paragraph.Alignment := TAlignment(TControl(Sender).Tag);
+end;
+
+procedure TFVeditor.CenterAlignClick(Sender: TObject);
+begin
+  if FUpdating then
+    Exit;
+  Editor.Paragraph.Alignment := TAlignment(TControl(Sender).Tag)
+end;
+
+procedure TFVeditor.RightAlignClick(Sender: TObject);
+begin
+  if FUpdating then
+    Exit;
+  Editor.Paragraph.Alignment := TAlignment(TControl(Sender).Tag);
+end;
+
+procedure TFVeditor.miEditFontClick(Sender: TObject);
+begin
+  FontDialog1.Font.Assign(Editor.SelAttributes);
+  if FontDialog1.Execute then
+    CurrText.Assign(FontDialog1.Font);
+ // SelectionChange(Self);
+  Editor.SetFocus;
+end;
+
+procedure TFVeditor.EditorChange(Sender: TObject);
+begin
+  SetModified(Editor.Modified);
+end;
+
+procedure TFVeditor.RulerResize(Sender: TObject);
+begin
+  RulerLine.Width := Ruler.ClientWidth - (RulerLine.Left * 2);
+end;
+
+procedure TFVeditor.FormActivate(Sender: TObject);
+begin
+  Security.SetModSecurity(Self, acceso);
+end;
+
+procedure TFVeditor.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+begin
+  SalvaPosicion;
+  try
+    CheckFileSave;
+  except
+    CanClose := False;
+  end;
+
+end;
+
+procedure TFVeditor.ShowHint(Sender: TObject);
+begin
+  if Length(Application.Hint) > 0 then
+  begin
+    StatusBar.SimplePanel := True;
+    StatusBar.SimpleText := Application.Hint;
+  end
+  else
+    StatusBar.SimplePanel := False;
+end;
+
+function TFVeditor.sms(aText: string; aTipo: Integer): integer;
+begin
+  case aTipo of
+    1:
+      begin
+        result := Application.MessageBox(PChar(aText), PChar('¡Error!'), MB_OK + MB_ICONERROR + MB_DEFBUTTON1 + MB_APPLMODAL);
+      end;
+    2:
+      begin
+        result := MessageBox(Application.Handle, PChar(aText), PChar('¡Alerta!'), MB_OK + MB_ICONEXCLAMATION + MB_DEFBUTTON1 + MB_APPLMODAL);
+      end;
+    3:
+      begin
+        result := MessageBox(Application.Handle, PChar(aText), PChar('¡Información!'), MB_OK + MB_ICONINFORMATION + MB_DEFBUTTON1 + MB_APPLMODAL);
+      end;
+    4:
+      begin
+        result := Application.MessageBox(PChar(aText), PChar('¡Confirmación!'), MB_YESNO + MB_ICONQUESTION + MB_DEFBUTTON1 + MB_APPLMODAL);
+      end;
+  end;
+end;
+
+procedure TFVeditor.FormCreate(Sender: TObject);
+begin
+ // Application.OnHint := ShowHint;
+  OpenDialog.InitialDir := ExtractFilePath(ParamStr(0));
+  SaveDialog.InitialDir := OpenDialog.InitialDir;
+  SetFileName(sUntitled);
+  GetFontNames;
+  SetupRuler;
+  //SelectionChange(Self);
+  CurrText.Name := DefFontData.Name;
+  CurrText.Size := -MulDiv(DefFontData.Height, 72, Screen.PixelsPerInch);
+  //CurrText.Name:= 'Arial';
+  FontName.Text := CurrText.Name;
+  //CurrText.Size := 12;
+  FontSize.Text := inttostr(CurrText.Size);
+end;
+
+procedure TFVeditor.Timer1Timer(Sender: TObject);
+begin
+  btncut.Visible := btncut.Enabled;
+  btncopy.Visible := btncopy.Enabled;
+  btnpaste.Visible := btnpaste.Enabled;
+  btnunder.Visible := btnunder.Enabled;
+end;
+
+procedure TFVeditor.ToolButton3Click(Sender: TObject);
+begin
+  close;
+end;
+
+procedure TFVeditor.ToolButton7Click(Sender: TObject);
+begin
+  if (Editor.DataSource.DataSet.State <> dsInsert) or (Editor.DataSource.DataSet.State <> dsEdit) then
+    Editor.DataSource.DataSet.Edit;
+  Editor.DataSource.DataSet.Edit;
+  Editor.DataSource.DataSet.FieldByName(Editor.Field.FieldName).Value := Null;
+end;
+
+procedure TFVeditor.FormPaint(Sender: TObject);
+begin
+  SetEditRect;
+end;
+
+procedure TFVeditor.FormResize(Sender: TObject);
+begin
+  SetEditRect;
+  //SelectionChange(Sender);
+end;
+
+procedure TFVeditor.FormShow(Sender: TObject);
+var
+  s:string;
+begin
+  UpdateCursorPos;
+  DragAcceptFiles(Editor.Handle, True);
+  EditorChange(nil);
+  { Check if we should load a file from the command line }
+  if (ParamCount > 0) and FileExists(ParamStr(1)) then
+    PerformFileOpen(ParamStr(1));
+
+end;
+
+procedure TFVeditor.PrintButtonClick(Sender: TObject);
+begin
+  Editor.Print(Caption);
+end;
+
+procedure TFVeditor.btn2Click(Sender: TObject);
+begin
+  Application.HelpContext(361);
+end;
+
+procedure TFVeditor.FontNameKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if Key = 112 then
+    Application.HelpContext(361);
+end;
+
+end.
+

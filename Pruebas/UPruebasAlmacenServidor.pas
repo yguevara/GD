@@ -1,4 +1,4 @@
-unit UPruebasAlmacenServidor;
+﻿unit UPruebasAlmacenServidor;
 
 { CrearAlmacen / AlmacenParaFichero sobre cl_ftp_Server. SQL Server:
   ARCHIGENIO_TEST_DB. Access: ARCHIGENIO_TEST_MDB (COPIA). El servidor S3 real
@@ -254,7 +254,7 @@ begin
   except
     on EAlmacen do Lanzo := True;
   end;
-  Assert.IsTrue(Lanzo, 'endpoint vacio debe lanzar EAlmacen');
+  Assert.IsTrue(Lanzo, 'endpoint vacío debe lanzar EAlmacen');
   // Alta sin secreto
   D.Endpoint := 'h';
   D.Secreto := '';

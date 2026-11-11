@@ -1,4 +1,4 @@
-unit UAlmacenS3;
+﻿unit UAlmacenS3;
 
 { Cliente S3/MinIO propio: firma SigV4 y direccionamiento por ruta
   (http(s)://endpoint/bucket/clave), sin DNS especial. Sube por flujo (nunca
@@ -221,7 +221,7 @@ begin
   end;
   if Codigo <> '' then
     Motivo := Motivo + ' [' + Codigo + ']';
-  raise EAlmacen.CreateFmt('No se pudo %s en el servidor S3: %s (codigo %d).',
+  raise EAlmacen.CreateFmt('No se pudo %s en el servidor S3: %s (código %d).',
     [Accion, Motivo, R.StatusCode]);
 end;
 
@@ -436,7 +436,7 @@ begin
   Destino := TPath.GetTempFileName;
   try
     try
-      TFile.WriteAllText(Origen, 'prueba de conexion ArchiGenio');
+      TFile.WriteAllText(Origen, 'prueba de conexión ArchiGenio');
       AsegurarBucket;
       K := '_prueba/' + TGUID.NewGuid.ToString + '.txt';
       Subir(Origen, K, nil);
@@ -444,9 +444,9 @@ begin
         raise EAlmacen.Create('El fichero de prueba no aparece tras subirlo.');
       Descargar(K, Destino, nil);
       Borrar(K);
-      if TFile.ReadAllText(Destino) <> 'prueba de conexion ArchiGenio' then
+      if TFile.ReadAllText(Destino) <> 'prueba de conexión ArchiGenio' then
         raise EAlmacen.Create('El fichero de prueba volvio distinto.');
-      Mensaje := 'Conexion correcta.';
+      Mensaje := 'Conexión correcta.';
       Result := True;
     except
       on E: EAlmacen do
