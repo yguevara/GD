@@ -189,13 +189,13 @@ end;
 procedure TPruebasCargaModelo.ResumenLote_Casos;
 begin
   Assert.AreEqual('Se guardaron 3 documentos.', ResumenLote(3, 0, 0));
-  Assert.AreEqual('Se guardo 1 documento.', ResumenLote(1, 0, 0));
-  Assert.AreEqual('No se guardo ningún documento.', ResumenLote(0, 0, 0));
-  Assert.AreEqual('No se guardo ningún documento y 2 no se pudieron guardar.', ResumenLote(0, 2, 0));
-  Assert.AreEqual('Se guardo 1 documento y 2 no se pudieron guardar.', ResumenLote(1, 2, 0));
+  Assert.AreEqual('Se guardó 1 documento.', ResumenLote(1, 0, 0));
+  Assert.AreEqual('No se guardó ningún documento.', ResumenLote(0, 0, 0));
+  Assert.AreEqual('No se guardó ningún documento y 2 no se pudieron guardar.', ResumenLote(0, 2, 0));
+  Assert.AreEqual('Se guardó 1 documento y 2 no se pudieron guardar.', ResumenLote(1, 2, 0));
   Assert.AreEqual('Se guardaron 3 documentos y 1 no se pudo guardar.', ResumenLote(3, 1, 0));
   Assert.AreEqual('Se guardaron 2 documentos. Se cancelo la carga: 4 quedaron sin procesar.', ResumenLote(2, 0, 4));
-  Assert.AreEqual('Se guardo 1 documento y 1 no se pudo guardar. Se cancelo la carga: 1 quedo sin procesar.', ResumenLote(1, 1, 1));
+  Assert.AreEqual('Se guardó 1 documento y 1 no se pudo guardar. Se cancelo la carga: 1 quedo sin procesar.', ResumenLote(1, 1, 1));
 end;
 
 initialization

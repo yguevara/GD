@@ -2009,16 +2009,16 @@ begin
   VariableName := DataSet.FieldByName('NomVariable').AsString;
   // Validar que el nombre no contenga caracteres inválidos
   if Trim(VariableName) = '' then
-    raise Exception.CreateFmt('Debe especificar un nombre de variable "%s"  valido. ' + 'Por favor, especifique un nombre de variable.', [VariableName]);
+    raise Exception.CreateFmt('Debe especificar un nombre de variable "%s"  válido. ' + 'Por favor, especifique un nombre de variable.', [VariableName]);
   if trim(DataSet.FieldByName('Etiqueta').AsString) = '' then
   begin
     if (DataSet.State <> dsedit) and (DataSet.State <> dsinsert) then
       DataSet.Edit;
-    UDM.sms('No ha especificado una etiqueta valida. Esto no es aconsejable por lo que el sistema utilizará temporalmente el nombre de la variable especificada.', 3);
+    UDM.sms('No ha especificado una etiqueta válida. Esto no es aconsejable por lo que el sistema utilizará temporalmente el nombre de la variable especificada.', 3);
     DataSet.FieldByName('Etiqueta').AsString := DataSet.FieldByName('NomVariable').AsString;
   end;
   if Trim(DataSet.FieldByName('tipo').AsString) = '' then
-    raise Exception.CreateFmt('Debe especificar un tipo datos valido para la variable "%s"  valido. ' + 'Por favor, especifique un tipo de datos valido.', [VariableName])
+    raise Exception.CreateFmt('Debe especificar un tipo datos válido para la variable "%s"  válido. ' + 'Por favor, especifique un tipo de datos válido.', [VariableName])
   else
   begin
     TipoDat := UDM.Conn.ExecSQLScalar('SELECT CL_SubseriesTipoVar.tipo FROM CL_SubseriesTipoVar WHERE CL_SubseriesTipoVar.Idtipo=' + DataSet.FieldByName('tipo').AsString);
@@ -3435,7 +3435,7 @@ end;
 procedure TUDM.ValidateParentNode(Node: TTreeNode);
 begin
   if Node.Parent = nil then
-    raise Exception.Create('No se puede agregar un nodo sin un padre asignado. Debe seleccionar un nodo valido.');
+    raise Exception.Create('No se puede agregar un nodo sin un padre asignado. Debe seleccionar un nodo válido.');
 end;
 
 function TUDM.ValidateTablesForData: Boolean;
@@ -4423,7 +4423,7 @@ begin
   Alcance := CargarAlcanceSeguro(Conn, Usuario, EsAdministrador, ErrorAlcance);
   AplicarFiltrosAlcance;
   if ErrorAlcance <> '' then
-    sms('No se pudo cargar el alcance del usuario; no tendra acceso a datos hasta corregirlo.' +
+    sms('No se pudo cargar el alcance del usuario; no tendrá acceso a datos hasta corregirlo.' +
       sLineBreak + ErrorAlcance, 1);
 end;
 

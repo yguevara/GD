@@ -145,7 +145,7 @@ begin
   for C in P.Condiciones do
   begin
     if not NombreSeguro(C.Campo) then
-      Exit('Filtro no valido: ' + C.Campo);
+      Exit('Filtro no válido: ' + C.Campo);
     if (C.Desde = '') and (C.Hasta = '') then
       Exit('Falta el valor del filtro ' + C.Campo + '.');
     if (C.Hasta <> '') and (C.Desde <> '') then
@@ -208,13 +208,13 @@ var
           if Cd.Desde <> '' then
           begin
             if not TryFecha(Cd.Desde, F) then
-              raise EArgumentException.Create('Fecha no valida: ' + Cd.Desde);
+              raise EArgumentException.Create('Fecha no válida: ' + Cd.Desde);
             Y(Col + ' >= ' + NuevoParam(VarFromDateTime(F)));
           end;
           if Cd.Hasta <> '' then
           begin
             if not TryFecha(Cd.Hasta, F) then
-              raise EArgumentException.Create('Fecha no valida: ' + Cd.Hasta);
+              raise EArgumentException.Create('Fecha no válida: ' + Cd.Hasta);
             Y(Col + ' < ' + NuevoParam(VarFromDateTime(F + 1)));
           end;
         end;
@@ -223,13 +223,13 @@ var
           if Cd.Desde <> '' then
           begin
             if not TryStrToInt64(Cd.Desde, I) then
-              raise EArgumentException.Create('Número no valido: ' + Cd.Desde);
+              raise EArgumentException.Create('Número no válido: ' + Cd.Desde);
             Y(Col + ' >= ' + NuevoParam(I));
           end;
           if Cd.Hasta <> '' then
           begin
             if not TryStrToInt64(Cd.Hasta, I) then
-              raise EArgumentException.Create('Número no valido: ' + Cd.Hasta);
+              raise EArgumentException.Create('Número no válido: ' + Cd.Hasta);
             Y(Col + ' <= ' + NuevoParam(I));
           end;
         end;
@@ -238,13 +238,13 @@ var
           if Cd.Desde <> '' then
           begin
             if not TryStrToFloat(Cd.Desde, N, FS) then
-              raise EArgumentException.Create('Número no valido: ' + Cd.Desde);
+              raise EArgumentException.Create('Número no válido: ' + Cd.Desde);
             Y(Col + ' >= ' + NuevoParam(N));
           end;
           if Cd.Hasta <> '' then
           begin
             if not TryStrToFloat(Cd.Hasta, N, FS) then
-              raise EArgumentException.Create('Número no valido: ' + Cd.Hasta);
+              raise EArgumentException.Create('Número no válido: ' + Cd.Hasta);
             Y(Col + ' <= ' + NuevoParam(N));
           end;
         end;
@@ -256,7 +256,7 @@ var
 
 begin
   if (TablaMd <> '') and not NombreSeguro(TablaMd) then
-    raise EArgumentException.Create('Tabla de metadatos no valida: ' + TablaMd);
+    raise EArgumentException.Create('Tabla de metadatos no válida: ' + TablaMd);
   if ConSqlServer then
     Coll := COLLATE_SQLSERVER
   else

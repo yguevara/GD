@@ -85,7 +85,7 @@ begin
   end;
   if trim(edtNombreEstructura.Text) = '' then
   begin
-    UDM.sms('Debe especificar una etiqueta valida de estructura.', 1);
+    UDM.sms('Debe especificar una etiqueta válida de estructura.', 1);
     edtNombreEstructura.Focused;
     edtNombreEstructura.SetFocus;
     Exit;

@@ -199,7 +199,7 @@ begin
         Result := 'El dato "' + Campo.Etiqueta + '" debe ser un número (decimales con punto).';
     tmFecha:
       if not TryStrToDate(T, D, FS) then
-        Result := 'El dato "' + Campo.Etiqueta + '" debe ser una fecha valida (dd/mm/aaaa).';
+        Result := 'El dato "' + Campo.Etiqueta + '" debe ser una fecha válida (dd/mm/aaaa).';
     tmBooleano:
       if not TextoABooleano(T, B) then
         Result := 'El dato "' + Campo.Etiqueta + '" debe ser Si o No.';
@@ -237,7 +237,7 @@ var
   P: TFDParam;
 begin
   if not NombreSeguro(Tabla) then
-    raise EMetadatos.Create('Nombre de tabla de metadatos no valido.');
+    raise EMetadatos.Create('Nombre de tabla de metadatos no válido.');
   Reales := TStringList.Create;
   Q := TFDQuery.Create(nil);
   try

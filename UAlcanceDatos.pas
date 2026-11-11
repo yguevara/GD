@@ -1,4 +1,4 @@
-unit UAlcanceDatos;
+﻿unit UAlcanceDatos;
 
 { Carga el alcance de un usuario desde la base y lo convierte en un filtro SQL
   parametrizado (valido en SQL Server y en Access). Punto unico de la seguridad
@@ -104,7 +104,7 @@ begin
     C := Alias[I];
     if not (((C >= 'a') and (C <= 'z')) or ((C >= 'A') and (C <= 'Z')) or
       (C = '_') or ((I > 1) and (C >= '0') and (C <= '9'))) then
-      raise EArgumentException.Create('Alias de tabla invalido: ' + Alias);
+      raise EArgumentException.Create('Alias de tabla inválido: ' + Alias);
   end;
   Result := Alias + '.';
 end;

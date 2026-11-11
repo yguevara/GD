@@ -5413,7 +5413,7 @@ procedure TMAIN.edtCarpetaPropertiesButtonClick(Sender: TObject; AButtonIndex: I
 begin
   if (trim(UDM.tb_Serietree.FieldByName('Idservidor').AsString) = '') or (UDM.tb_Serietree.FieldByName('Idservidor').Value = null) then
   begin
-    UDM.sms('Debe especificar un servidor valido antes de continuar.', 3);
+    UDM.sms('Debe especificar un servidor válido antes de continuar.', 3);
     Exit;
   end;
 
@@ -8244,7 +8244,7 @@ begin
     if R.Mensaje <> '' then
       Error := R.Mensaje
     else
-      Error := 'No se guardo ningún documento.';
+      Error := 'No se guardó ningún documento.';
     Exit;
   end;
   Resumen := Format('Se guardaron %d documento(s).', [R.Guardados]);
@@ -8372,7 +8372,7 @@ begin
     if R.Mensaje <> '' then
       UDM.sms(R.Mensaje, 2)
     else
-      UDM.sms('El contenido del documento se guardo.', 3);
+      UDM.sms('El contenido del documento se guardó.', 3);
     if FContenidoCache <> nil then
       FContenidoCache.Clear;
     if UDM.qryAnexosDig.Active then

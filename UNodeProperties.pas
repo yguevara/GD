@@ -1176,7 +1176,7 @@ begin
   end
   else
   begin
-    UDM.sms('Debe existir al menos una serie documental valida.', 2);
+    UDM.sms('Debe existir al menos una serie documental válida.', 2);
   end;
   with UDM.tb_tree do
   begin

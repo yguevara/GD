@@ -76,9 +76,9 @@ uses
 function ResumenLote(Guardados, Fallidos, Omitidos: Integer): string;
 begin
   if Guardados = 0 then
-    Result := 'No se guardo ningún documento'
+    Result := 'No se guardó ningún documento'
   else if Guardados = 1 then
-    Result := 'Se guardo 1 documento'
+    Result := 'Se guardó 1 documento'
   else
     Result := Format('Se guardaron %d documentos', [Guardados]);
   if Fallidos = 1 then

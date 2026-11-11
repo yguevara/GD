@@ -1,4 +1,4 @@
-unit UTema;
+﻿unit UTema;
 
 { Sistema de diseno de ArchiGenio: paleta de colores de los temas claro y
   oscuro (valores de la maqueta aprobada) y utilidades de color.
@@ -46,7 +46,7 @@ var
   C: Char;
 begin
   if (Length(Hex) <> 7) or (Hex[1] <> '#') then
-    raise EArgumentException.CreateFmt('Color hexadecimal no valido: "%s"', [Hex]);
+    raise EArgumentException.CreateFmt('Color hexadecimal no válido: "%s"', [Hex]);
   V := 0;
   for I := 2 to 7 do
   begin
@@ -56,7 +56,7 @@ begin
       'a'..'f': Dig := Ord(C) - Ord('a') + 10;
       'A'..'F': Dig := Ord(C) - Ord('A') + 10;
     else
-      raise EArgumentException.CreateFmt('Color hexadecimal no valido: "%s"', [Hex]);
+      raise EArgumentException.CreateFmt('Color hexadecimal no válido: "%s"', [Hex]);
     end;
     V := (V shl 4) or Dig;
   end;

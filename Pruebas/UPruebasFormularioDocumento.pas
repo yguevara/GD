@@ -232,7 +232,7 @@ begin
     Fm.OnGuardar := R.Guardar;
     Fm.OnCancelar := R.Cancelar;
     Fm.Abrir([Clave('A')], Actuales, True);
-    Fm.EscribirCampo('titulo', 'Título valido');
+    Fm.EscribirCampo('titulo', 'Título válido');
     Fm.Guardar;
     Assert.AreEqual(1, R.Guardados);
     Fm.Cancelar;

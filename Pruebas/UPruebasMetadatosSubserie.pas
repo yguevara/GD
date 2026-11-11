@@ -90,8 +90,8 @@ procedure TPruebasValidarMeta.TextoMasLargoQueLongitud_DaMensaje;
 begin
   Assert.IsTrue(ValidarValorMeta(Campo(tmTexto, 10, False), '12345678901') <> '');
   Assert.AreEqual('', ValidarValorMeta(Campo(tmTexto, 10, False), '1234567890'));
-  Assert.AreEqual('', ValidarValorMeta(Campo(tmTexto, 0, False), StringOfChar('a', 5000)), 'longitud 0 = sin limite');
-  Assert.AreEqual('', ValidarValorMeta(Campo(tmMemo, 10, False), StringOfChar('a', 5000)), 'memo sin limite');
+  Assert.AreEqual('', ValidarValorMeta(Campo(tmTexto, 0, False), StringOfChar('a', 5000)), 'longitud 0 = sin límite');
+  Assert.AreEqual('', ValidarValorMeta(Campo(tmMemo, 10, False), StringOfChar('a', 5000)), 'memo sin límite');
 end;
 
 procedure TPruebasValidarMeta.Entero_Casos;
@@ -275,7 +275,7 @@ begin
   except
     on EMetadatos do Lanzo := True;
   end;
-  Assert.IsTrue(Lanzo, 'tabla invalida debe lanzar EMetadatos');
+  Assert.IsTrue(Lanzo, 'tabla inválida debe lanzar EMetadatos');
 end;
 
 procedure TPruebasMetadatosDatos.SqlServer_Todo;
