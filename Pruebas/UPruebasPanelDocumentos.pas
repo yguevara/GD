@@ -38,6 +38,8 @@ type
     [Test]
     procedure Editar_Cancelar_Cierra;
     [Test]
+    procedure Contenido_ConElPanelOculto_NoDescargaYAlMostrarseSi;
+    [Test]
     procedure Colocar_MueveElBloqueAlDestinoYLaListaOcupaTodo;
     [Test]
     procedure Colocar_ElVisorYLosReceptoresSiguenRegistrados;
@@ -1427,6 +1429,43 @@ begin
     Assert.IsTrue(Esta, 'el documento prestado debe decir Prestado');
   finally
     F.Free;
+  end;
+end;
+
+procedure TPruebasPanelDocumentos.Contenido_ConElPanelOculto_NoDescargaYAlMostrarseSi;
+var
+  F: TForm;
+  P: TPanelDocumentos;
+  D: TPanel;
+  LV: TListView;
+  Prov: TProveedorContenido;
+begin
+  F := TForm.CreateNew(nil);
+  Prov := TProveedorContenido.Create;
+  try
+    F.SetBounds(50, 50, 1100, 500);
+    D := NuevoDestino(F);
+    P := PanelCargado(F);
+    P.ColocarDocumentoEn(D);
+    P.OnPedirContenido := Prov.Pedir;
+    LV := BuscarLista(P);
+    LV.Items[0].Selected := True;
+    P.Documento.Activar(pdContenido);
+    PonerAlDia;
+    Assert.AreEqual(1, Prov.Llamadas, 'visible: se pide al abrir la pestana');
+    D.Visible := False; // el modo Subserie del panel lateral oculta el documento
+    LV.ClearSelection;
+    LV.Items[1].Selected := True;
+    PonerAlDia;
+    EsperarContenido;
+    Assert.AreEqual(1, Prov.Llamadas, 'oculto: nadie ve el contenido, no se descarga');
+    D.Visible := True;
+    P.AlMostrarseDocumento;
+    EsperarContenido;
+    Assert.AreEqual(2, Prov.Llamadas, 'al verse de nuevo se pide el del documento actual');
+  finally
+    F.Free;
+    Prov.Free;
   end;
 end;
 

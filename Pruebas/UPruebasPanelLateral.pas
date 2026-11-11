@@ -21,6 +21,8 @@ type
     [Test]
     procedure Modos_ConTituloVacio_ElTextoGuiaSoloEnSubserie;
     [Test]
+    procedure Modos_ActivarPagina_VuelveAlModoSubserie;
+    [Test]
     procedure Modos_OnCambioModo_DisparaSoloAlCambiar;
     [Test]
     procedure AgregarPagina_SoloLaActivaEsVisible;
@@ -160,6 +162,26 @@ begin
     Assert.IsFalse(P.VacioVisible, 'en modo Documento el texto guia no tapa el panel');
     P.ActivarModo(MODO_SUBSERIE);
     Assert.IsTrue(P.VacioVisible);
+  finally
+    F.Free;
+  end;
+end;
+
+procedure TPruebasPanelLateral.Modos_ActivarPagina_VuelveAlModoSubserie;
+var
+  F: TForm;
+  P: TPanelLateral;
+  Doc, Pag: TPanel;
+begin
+  F := TForm.CreateNew(nil);
+  try
+    P := ConModoDocumento(F, Doc, Pag);
+    P.ActivarModo(MODO_DOCUMENTO);
+    // F10/F11 y los accesos a Detalle o Complementaria piden una pagina de la subserie
+    P.Activar(PAG_COMPLEMENTARIA);
+    Assert.AreEqual(MODO_SUBSERIE, P.ModoActivo);
+    Assert.AreEqual(PAG_COMPLEMENTARIA, P.PaginaActiva);
+    Assert.IsFalse(Doc.Visible);
   finally
     F.Free;
   end;

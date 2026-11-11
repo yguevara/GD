@@ -817,6 +817,7 @@ type
     procedure ListaDocsGuardarEdicion(const Claves: TArray<TClaveDocumento>;
       const Cambios, Anteriores: TCambiosDoc; out Error: string);
     procedure BarraEditar(Sender: TObject);
+    procedure PanelLateralCambioModo(Sender: TObject);
     procedure ListaDocsEliminar(const Clave: TClaveDocumento);
     procedure ListaDocsSoltarEnLote(const Claves: TArray<TClaveDocumento>;
       const Rutas: TArray<string>);
@@ -7321,8 +7322,19 @@ begin
   end;
 end;
 
+// Al pasar al modo Documento el contenido (si su pestana esta abierta) se pide ya
+procedure TMAIN.PanelLateralCambioModo(Sender: TObject);
+begin
+  if (FPanelLateral <> nil) and (FPanelLateral.ModoActivo = MODO_DOCUMENTO) and
+    (FListaDocs <> nil) then
+    FListaDocs.AlMostrarseDocumento;
+end;
+
 procedure TMAIN.ListaDocsSeleccion(const Clave: TClaveDocumento);
 begin
+  // elegir un documento abre el modo Documento del panel lateral
+  if (FPanelLateral <> nil) and FPanelLateral.TieneModoDocumento then
+    FPanelLateral.ActivarModo(MODO_DOCUMENTO);
   // el registro actual de tb_SeriesDatos sigue a la lista: los datasets de
   // ficheros (maestro-detalle) y los botones por rol trabajan sobre el
   if not ListaDocsLocalizar(Clave) then
@@ -7486,6 +7498,21 @@ begin
   // en 380 px las columnas se reparten el ancho en vez de salirse
   cxGrid1DBTableView1.OptionsView.ColumnAutoWidth := True;
   gVariablesDetailDBTableView1.OptionsView.ColumnAutoWidth := True;
+  // El panel del documento pasa a ser el modo Documento del panel lateral: la
+  // lista queda a todo el ancho. Si algo falla se queda a la derecha de la lista.
+  if FListaDocs <> nil then
+  try
+    FListaDocs.ColocarDocumentoEn(FPanelLateral.AgregarModoDocumento);
+    FPanelLateral.OnCambioModo := PanelLateralCambioModo;
+    FPanelLateral.Width := 440;
+    FSepLateral.MinSize := 320;
+  except
+    on E: Exception do
+    begin
+      RegistrarErrorLista('Modo Documento: ' + E.ClassName + ': ' + E.Message);
+      FListaDocs.RestaurarDocumento;
+    end;
+  end;
   FPanelLateral.Activar(PAG_DETALLE);
   // El componente antiguo (tres pestanas verticales) ya no se usa: se saca del
   // formulario para que no vuelva a mostrarse; el panel nuevo siempre se ve.
@@ -7967,6 +7994,8 @@ begin
     UDM.sms('Marque uno o varios documentos de la lista para editarlos.', 2);
     Exit;
   end;
+  if (FPanelLateral <> nil) and FPanelLateral.TieneModoDocumento then
+    FPanelLateral.ActivarModo(MODO_DOCUMENTO);
   FListaDocs.Editar(Claves);
 end;
 

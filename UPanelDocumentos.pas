@@ -165,6 +165,7 @@ type
     procedure FormularioAvanzada(Sender: TObject);
     procedure CerrarEdicionSiYaNoEsta;
     procedure RegistrarReceptores;
+    function DocumentoSeVe: Boolean;
     procedure FormularioEliminar(Sender: TObject);
     procedure FormularioSoltar(const Rutas: TArray<string>);
   protected
@@ -202,6 +203,9 @@ type
       RestaurarDocumento lo devuelve a la derecha de la lista. }
     procedure ColocarDocumentoEn(Destino: TWinControl);
     procedure RestaurarDocumento;
+    { El bloque del documento vuelve a verse (por ejemplo al cambiar al modo
+      Documento): si tiene abierta la pestana Contenido, pide el contenido ahora. }
+    procedure AlMostrarseDocumento;
     function DocumentoSeparado: Boolean;
     property Formulario: TFormularioDocumento read FFormulario;
     property OnGuardarEdicion: TGuardarEdicionEvent read FOnGuardarEdicion
@@ -374,7 +378,10 @@ end;
 procedure TPanelDocumentos.TimerContenidoTimer(Sender: TObject);
 begin
   FTimerContenido.Enabled := False;
-  CargarContenido(FContenidoPendiente);
+  // con el panel del documento oculto nadie veria el contenido: no se descarga;
+  // AlMostrarseDocumento lo pide cuando vuelva a verse
+  if DocumentoSeVe or FVisor.Separado then
+    CargarContenido(FContenidoPendiente);
 end;
 
 // Zona de soltar de la pestana Archivos: recuadro con texto; resalta mientras se
@@ -487,7 +494,7 @@ end;
 procedure TPanelDocumentos.PestanaCambio(Sender: TObject);
 begin
   if (FDoc.Activa = pdContenido) and (FIndiceActual >= 0) and
-    (FIndiceActual < Length(FVisibles)) then
+    (FIndiceActual < Length(FVisibles)) and (DocumentoSeVe or FVisor.Separado) then
     CargarContenido(FVisibles[FIndiceActual]);
 end;
 
@@ -782,6 +789,29 @@ begin
   FDer.Visible := True;
   FDocumentoSeparado := True;
   RegistrarReceptores;
+end;
+
+// Visible de verdad: el propio control y toda su cadena de padres (Showing no se
+// actualiza en cuanto un padre se oculta)
+function TPanelDocumentos.DocumentoSeVe: Boolean;
+var
+  C: TControl;
+begin
+  C := FDoc;
+  while C <> nil do
+  begin
+    if not C.Visible then
+      Exit(False);
+    C := C.Parent;
+  end;
+  Result := True;
+end;
+
+procedure TPanelDocumentos.AlMostrarseDocumento;
+begin
+  if (FDoc.Activa = pdContenido) and (FIndiceActual >= 0) and
+    (FIndiceActual < Length(FVisibles)) then
+    ProgramarContenido(FVisibles[FIndiceActual]);
 end;
 
 procedure TPanelDocumentos.RestaurarDocumento;

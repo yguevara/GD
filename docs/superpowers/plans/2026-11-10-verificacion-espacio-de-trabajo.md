@@ -85,3 +85,10 @@ Estado de la suite automatica al escribir esta lista: 316 pruebas, 0 fallos
 55. Arrastrar archivos sobre la zona del formulario con varios documentos: una confirmacion, los archivos se agregan como anexos a cada documento y el resumen cuenta agregados y fallidos.
 56. "Vista avanzada" abre la rejilla antigua; el boton de la barra pasa a "Ver lista" y vuelve a la lista.
 57. Marcar varios y cambiar de subserie o filtrar: la seleccion que ya no se ve se limpia; las pestanas muestran "N documentos seleccionados" mientras haya mas de uno marcado.
+58. Al abrir la aplicacion solo hay dos bloques: la lista a la izquierda y el panel lateral (440 px) a la derecha, con las pestanas Subserie y Documento arriba. Ya no existe un tercer panel entre ambos.
+59. Marcar un documento abre sola la pestana Documento (cabecera con codigo y estado y las pestanas Datos, Ubicacion, Archivos, Metadatos, Historia, Contenido). Cambiar a Subserie muestra Series, Detalle y Complementaria; F10 y F11 tambien vuelven a Subserie.
+60. Arrastrar el separador de la lista y del panel lateral hasta los extremos: ninguno cierra el panel ni deja zonas en blanco, y la lista conserva un ancho legible.
+61. En el modo Documento: Contenido muestra el PDF, "Mostrar aparte" lo separa, soltar archivos sobre Archivos y sobre Contenido sigue funcionando, y Editar abre el formulario dentro del panel lateral.
+62. Con Subserie activa y la pestana Contenido del documento abierta, recorrer documentos no descarga PDFs; al volver a Documento se carga el del documento actual.
+63. Editar varios documentos y guardar rapido (lote de 5 o mas): todos se guardan y la bitacora registra cada uno (antes la clave de la bitacora podia repetirse y fallar alguno).
+64. Cerrar la aplicacion (pregunta de salir y Si): sin cuadros de error; si aparece alguno, enviar errores_inesperados.log.

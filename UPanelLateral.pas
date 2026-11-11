@@ -476,7 +476,11 @@ end;
 
 procedure TPanelLateral.Activar(Indice: Integer);
 begin
-  if (Indice < 0) or (Indice > High(FPaginas)) or (Indice = FActiva) then
+  if (Indice < 0) or (Indice > High(FPaginas)) then
+    Exit;
+  // pedir una pagina de la subserie (Series, Detalle, Complementaria) la muestra
+  ActivarModo(MODO_SUBSERIE);
+  if Indice = FActiva then
     Exit;
   FActiva := Indice;
   FTira.Activa := Indice;
