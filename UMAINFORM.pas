@@ -504,6 +504,7 @@ type
     procedure L1Click(Sender: TObject);
     procedure AbrirServidoresClasico;
     procedure AbrirArchivosClasico;
+    procedure AbrirSeriesClasico;
     procedure AbrirClasificador(AForm: TFormClasificadorBase; const ATitulo, ANombreLog: string;
       AAlSalir: TProc);
     function CerrarClasificador: Boolean;
@@ -873,7 +874,7 @@ var
 implementation
 
 uses
-  UAparienciaLegacy, UTema, UIconos, UDocumentoVistaDatos, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UAutenticacion, UMensajes, UTiempos, USplash, UCLServidoresForm, UCLArchivosForm, UClasificadoresInterruptor, UCapaDatos, UUserGest, UDocManagement,
+  UAparienciaLegacy, UTema, UIconos, UDocumentoVistaDatos, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UAutenticacion, UMensajes, UTiempos, USplash, UCLServidoresForm, UCLArchivosForm, UCLSeriesForm, UClasificadoresInterruptor, UCapaDatos, UUserGest, UDocManagement,
   UPantallaCarga, UCLSeriesDocumentales, UCLFtpServer, UGestEstruct, UMangementArch,
   UManagementFileSeries, UViewFunciones, UVeditor, UExcelExport, UManagementNode,
   USystemMsg, UNodeProperties, UCL_TiposExp, USysConfig, UTransferencias,
@@ -10936,7 +10937,7 @@ end;
 /// Gestiona transacciones, actualiza múltiples datasets y vistas relacionadas.
 /// </summary>
 /// <param name="Sender">Objeto que generó el evento</param>
-procedure TMAIN.S1Click(Sender: TObject);
+procedure TMAIN.AbrirSeriesClasico;
 var
   frmCLSeries: TfrmCLSeries;
   ModalResult: Integer;
@@ -11089,6 +11090,47 @@ begin
     PContainer.Visible := True;
     UDM.log('Abandonando al clasificador de series y subseries documentales.', LOG_SALIDA_CLASIFICADOR, '', '', '');
     Screen.Cursor := crDefault;
+  end;
+end;
+// Series y subseries: pantalla nueva (UCLSeriesForm) DENTRO de la ventana principal.
+// Con clasificadores_clasico.flag, sin ventana principal nueva o si la pantalla nueva
+// falla al abrirse, se usa la antigua (AbrirSeriesClasico).
+procedure TMAIN.S1Click(Sender: TObject);
+begin
+  if ClasificadoresClasicos(PathSys) or not ShellActivo then
+  begin
+    AbrirSeriesClasico;
+    Exit;
+  end;
+  try
+    AbrirClasificador(CrearClasificadorSeries(UDM.Conn), 'Series y subseries', 'Series y subseries',
+      procedure
+      begin
+        // la pantalla nueva escribe con su propia conexion de datos: se refrescan
+        // los datasets y las vistas que dependen de las series y subseries
+        try
+          if UDM.cl_series.Active then
+            UDM.cl_series.Refresh;
+          if UDM.cl_subseries.Active then
+            UDM.cl_subseries.Refresh;
+          if Assigned(UDM.AllSubSerie) and UDM.AllSubSerie.Active then
+            UDM.AllSubSerie.Refresh;
+          PrepareSSDisp;
+          PrepareSSDetailView;
+          PrepareServerDetailView;
+          ArchivoActual;
+        except
+          on E: Exception do
+            UDM.log('Error al actualizar vistas tras Series y subseries: ' + E.Message,
+              LOG_ERROR_CLASIFICADOR, '', '', '');
+        end;
+      end);
+  except
+    on E: Exception do
+    begin
+      RegistrarErrorClasificador(PathSys, 'Series y subseries: ' + E.ClassName + ': ' + E.Message);
+      AbrirSeriesClasico;
+    end;
   end;
 end;
 {procedure TMAIN.S1Click(Sender: TObject);

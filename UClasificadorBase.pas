@@ -48,12 +48,16 @@ type
     FEstilos: TcxStyleRepository;
     FTextoNuevo: string;
     FEmbebido: Boolean;
+    FIndice: TPanel;
+    FVistaAlterna: TWinControl;
+    FPanelEstabaAbierto: Boolean;
     FOnSalir: TNotifyEvent;
     function NuevoEstilo(AColor, ATexto: TColor; ATam: Integer; ANegrita: Boolean): TcxStyle;
     function NuevoBoton(AParent: TWinControl; const ATexto, AIcono: string;
       APrimario: Boolean; ATextoColor: TColor): TBotonShell;
     procedure ConstruirCabecera(const ATitulo, ASubtitulo: string);
     procedure ConstruirTabla;
+    procedure ConstruirIndice;
     procedure ConstruirPanel;
     procedure ReubicarCabecera;
     procedure CabeceraResize(Sender: TObject);
@@ -99,7 +103,16 @@ type
     function PanelAbierto: Boolean;
     procedure FijarBotones(AGuardar, ACancelar, AEliminar: Boolean);
     { True si no hay cambios o el usuario acepta perderlos. }
-    function ConfirmarAbandonar: Boolean;
+    function ConfirmarAbandonar: Boolean; virtual;
+    { Zona de indice a la izquierda de la tabla (p. ej. las series); oculta por
+      defecto: la pantalla hija la llena y la muestra con MostrarIndice. }
+    function Indice: TPanel;
+    procedure MostrarIndice(AVisible: Boolean);
+    { Sustituye la tabla (y el indice y el panel lateral) por una vista a pantalla
+      completa, p. ej. un editor; VolverALista la restaura. }
+    procedure MostrarVista(AVista: TWinControl);
+    procedure VolverALista;
+    function VistaAlternaActiva: Boolean;
     { Eventos que implementa la pantalla hija. }
     procedure AlNuevo; virtual; abstract;
     procedure AlElegirFila(ATag: Integer); virtual; abstract;
@@ -244,6 +257,7 @@ begin
   FEstilos := TcxStyleRepository.Create(Self);
   ConstruirPanel;       // primero: alRight debe crearse antes que el cliente
   ConstruirCabecera(ATitulo, ASubtitulo);
+  ConstruirIndice;      // alLeft, antes que el cliente
   ConstruirTabla;
   ReubicarCabecera;
 end;
@@ -392,6 +406,81 @@ begin
 
   FVista.OnFocusedRecordChanged := VistaFocoCambiado;
   FVista.OnCustomDrawColumnHeader := VistaDibujarCabecera;
+end;
+
+procedure TFormClasificadorBase.ConstruirIndice;
+var
+  Linea: TPanel;
+begin
+  FIndice := TPanel.Create(Self);
+  FIndice.Parent := Self;
+  FIndice.Align := alLeft;
+  FIndice.Width := Esc(250);
+  FIndice.BevelOuter := bvNone;
+  FIndice.ParentBackground := False;
+  FIndice.StyleElements := [];
+  FIndice.ShowCaption := False;
+  FIndice.Color := FTema.Superficie2;
+  FIndice.Visible := False;
+  Linea := TPanel.Create(Self);
+  Linea.Parent := FIndice;
+  Linea.Align := alRight;
+  Linea.Width := 1;
+  Linea.BevelOuter := bvNone;
+  Linea.ParentBackground := False;
+  Linea.StyleElements := [];
+  Linea.Color := FTema.Linea;
+end;
+
+function TFormClasificadorBase.Indice: TPanel;
+begin
+  Result := FIndice;
+end;
+
+procedure TFormClasificadorBase.MostrarIndice(AVisible: Boolean);
+begin
+  FIndice.Visible := AVisible;
+  if AVisible then
+    FIndice.Tag := 1
+  else
+    FIndice.Tag := 0;
+end;
+
+function TFormClasificadorBase.VistaAlternaActiva: Boolean;
+begin
+  Result := FVistaAlterna <> nil;
+end;
+
+procedure TFormClasificadorBase.MostrarVista(AVista: TWinControl);
+begin
+  if FVistaAlterna <> nil then
+    Exit;
+  FVistaAlterna := AVista;
+  FPanelEstabaAbierto := FPanel.Visible;
+  FPanel.Visible := False;
+  FIndice.Visible := False;
+  FZonaTabla.Visible := False;
+  FBuscar.Visible := False;
+  FBtnNuevo.Visible := False;
+  FBtnExportar.Visible := False;
+  AVista.Parent := Self;
+  AVista.Align := alClient;
+  AVista.Visible := True;
+  AVista.BringToFront;
+end;
+
+procedure TFormClasificadorBase.VolverALista;
+begin
+  if FVistaAlterna = nil then
+    Exit;
+  FVistaAlterna.Visible := False;
+  FVistaAlterna := nil;
+  FZonaTabla.Visible := True;
+  FIndice.Visible := FIndice.Tag = 1;
+  FPanel.Visible := FPanelEstabaAbierto;
+  FBuscar.Visible := True;
+  FBtnNuevo.Visible := True;
+  FBtnExportar.Visible := True;
 end;
 
 procedure TFormClasificadorBase.ConstruirPanel;

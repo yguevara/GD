@@ -71,6 +71,7 @@ uses
   USeriesDatos in 'USeriesDatos.pas',
   UVariablesSesion in 'UVariablesSesion.pas',
   UVariablesEditor in 'UVariablesEditor.pas',
+  UCLSeriesForm in 'UCLSeriesForm.pas',
   UServidoresDatos in 'UServidoresDatos.pas',
   UArchivosDatos in 'UArchivosDatos.pas',
   UImagenes in 'UImagenes.pas',
