@@ -39,6 +39,14 @@ type
     [Test]
     procedure Etapa_Ubicacion_EsSoloInformativa;
     [Test]
+    procedure Paso3_SinPermisoAgregar_HablaDeBuscar;
+    [Test]
+    procedure Paso3_ConPermisoAgregar_HablaDeAgregar;
+    [Test]
+    procedure Ciclo_SinPermiso_Oculto;
+    [Test]
+    procedure Ciclo_ConPermiso_Visible;
+    [Test]
     procedure PrimerosPasos_AlternarOculta_YSePersiste;
     [Test]
     procedure PrimerosPasos_ArchivoCorrupto_QuedaVisible;
@@ -137,6 +145,34 @@ procedure TPruebasPanelInicio.Etapa_Ubicacion_EsSoloInformativa;
 begin
   FPanel.Pulsar('etapa:ubicacion');
   Assert.AreEqual(0, FCuenta);
+end;
+
+procedure TPruebasPanelInicio.Paso3_SinPermisoAgregar_HablaDeBuscar;
+begin
+  FPanel.FijarPermiso('agregar', False);
+  Assert.IsTrue(Pos('Busque', FPanel.TituloPaso(3)) > 0);
+  Assert.IsTrue(Pos('Agregue', FPanel.TituloPaso(3)) = 0);
+  Assert.IsTrue(Pos('Arrastre', FPanel.TextoPaso(3)) = 0);
+end;
+
+procedure TPruebasPanelInicio.Paso3_ConPermisoAgregar_HablaDeAgregar;
+begin
+  FPanel.FijarPermiso('agregar', True);
+  Assert.IsTrue(Pos('Agregue', FPanel.TituloPaso(3)) > 0);
+  Assert.IsTrue(Pos('Arrastre', FPanel.TextoPaso(3)) > 0);
+end;
+
+procedure TPruebasPanelInicio.Ciclo_SinPermiso_Oculto;
+begin
+  // el visor y el invitado no ven el ciclo de vida (lleva a secciones de trabajo)
+  FPanel.FijarPermiso('ciclo', False);
+  Assert.IsFalse(FPanel.CicloVisible);
+end;
+
+procedure TPruebasPanelInicio.Ciclo_ConPermiso_Visible;
+begin
+  FPanel.FijarPermiso('ciclo', True);
+  Assert.IsTrue(FPanel.CicloVisible);
 end;
 
 procedure TPruebasPanelInicio.PrimerosPasos_AlternarOculta_YSePersiste;

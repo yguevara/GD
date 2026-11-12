@@ -8855,6 +8855,10 @@ function TMAIN.ShellSeccionDisponible(const Nombre: string): Boolean;
 begin
   if Nombre = SECCION_AGREGAR then
     Result := ShellPuedeAgregar
+  else if Nombre = SECCION_CICLO then
+    // el ciclo de vida lleva a secciones de trabajo: no lo ven el invitado ni el
+    // visor; si lo ven el administrador, los directores y los EGD (gestores)
+    Result := not (SameText(UDM.UserName, 'Invitado') or SameText(Trim(UDM.Rol), 'Visor'))
   else if Nombre = SECCION_TRASLADOS then
     Result := btnTool.Visible and btnTransfer.Enabled
   else if Nombre = SECCION_PRESTAMOS then

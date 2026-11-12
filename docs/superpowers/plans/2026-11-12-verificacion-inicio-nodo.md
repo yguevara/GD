@@ -19,6 +19,8 @@ Estado: comprobada con una captura de la ventana (solo la de ArchiGenio) con ses
 
 ## Acciones y etapas
 
+- [ ] **Ciclo de vida solo para quien trabaja:** el invitado y el visor **no ven** la tarjeta del ciclo de vida; el administrador, los directores y los EGD (gestores) sí. Para el visor el tercer paso de "Primeros pasos" habla de buscar, no de agregar.
+
 - [ ] Administrador/gestor: aparece "Agregar documento" (abre el alta) y "Ver cuadro de clasificación"; el visor y el invitado solo ven "Buscar un documento".
 - [ ] "Buscar un documento" lleva el foco al buscador de la cabecera.
 - [ ] Las etapas Clasificación, Préstamos, Transferencia y Depuración llevan a su sección si el usuario tiene permiso; sin permiso se ven atenuadas y no responden. Captura lleva al alta de documento.

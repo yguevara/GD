@@ -38,6 +38,7 @@ const
   SECCION_USUARIOS = 'usuarios';
   SECCION_CONFIGURACION = 'configuracion';
   SECCION_ACERCA = 'acerca';
+  SECCION_CICLO = 'ciclo';     // mostrar el ciclo de vida en la pantalla de inicio
   SECCION_AGREGAR = 'agregar'; // el boton Agregar documento (no es una seccion del menu)
 
 type
@@ -1262,6 +1263,7 @@ begin
     Exit;
   with TPanelInicio(FPanelInicio) do
   begin
+    FijarPermiso('ciclo', SeccionDisponible(SECCION_CICLO));
     FijarPermiso('agregar', SeccionDisponible(SECCION_AGREGAR));
     FijarPermiso('cuadro', SeccionDisponible(SECCION_CUADRO));
     FijarPermiso('prestamos', SeccionDisponible(SECCION_PRESTAMOS));

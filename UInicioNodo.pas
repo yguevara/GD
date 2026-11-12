@@ -15,8 +15,8 @@ unit UInicioNodo;
        ArchivoConfig y no vuelve a aparecer abierto.
 
   Claves de OnAccion: 'agregar', 'buscar', 'cuadro', 'prestamos', 'traslados',
-  'depuracion'. Los permisos (FijarPermiso) usan esas mismas claves; 'buscar'
-  siempre esta permitido.
+  'depuracion'. Los permisos (FijarPermiso) usan esas mismas claves, mas 'ciclo'
+  (mostrar el ciclo de vida); 'buscar' siempre esta permitido.
   --------------------------------------------------------------------------- }
 
 interface
@@ -95,6 +95,12 @@ type
     procedure Pulsar(const AClave: string);
     function AccionVisible(const AClave: string): Boolean;
     function TextoCifra(const AClave: string): string;
+    { El ciclo de vida solo se muestra con el permiso 'ciclo' (el visor y el
+      invitado no lo ven: lleva a secciones de trabajo). }
+    function CicloVisible: Boolean;
+    { Titulo y texto del paso N (1 a 3); el tercero depende del permiso 'agregar'. }
+    function TituloPaso(AIndice: Integer): string;
+    function TextoPaso(AIndice: Integer): string;
     function PasosVisibles: Boolean;
     procedure AlternarPasos;
     { Archivo .ini donde se recuerda si "Primeros pasos" esta plegado. }
@@ -430,7 +436,7 @@ begin
   end;
   Inc(Y, Alto + Gap);
 
-  // ciclo de vida
+  // ciclo de vida (solo con el permiso 'ciclo')
   Alto := Esc(172);
   FCiclo.Marco.SetBounds(X0, Y, Ancho, Alto);
   FCicloTitulo.SetBounds(Esc(16), Esc(12), Ancho - Esc(32), Esc(22));
@@ -444,7 +450,8 @@ begin
     FEtapas[I].Cifra.SetBounds(Esc(10), Esc(38), W - Esc(20), Esc(36));
     FEtapas[I].Pie.SetBounds(Esc(10), Esc(76), W - Esc(20), Esc(16));
   end;
-  Inc(Y, Alto + Gap);
+  if FCiclo.Marco.Visible then
+    Inc(Y, Alto + Gap);
 
   // primeros pasos
   FPasosTitulo.SetBounds(Esc(16), Esc(12), Esc(300), Esc(22));
@@ -517,6 +524,18 @@ begin
   end;
   FBtnAgregar.Visible := Permitido('agregar');
   FBtnCuadro.Visible := Permitido('cuadro');
+  FCiclo.Marco.Visible := Permitido('ciclo');
+  // el tercer paso solo habla de agregar a quien puede agregar
+  if Permitido('agregar') then
+  begin
+    FPasosTit[2].Caption := 'Agregue o busque';
+    FPasosTxt[2].Caption := 'Arrastre archivos sobre la lista para adjuntarlos.';
+  end
+  else
+  begin
+    FPasosTit[2].Caption := 'Busque documentos';
+    FPasosTxt[2].Caption := 'Escriba un t'#237'tulo, c'#243'digo o dato en el buscador de arriba.';
+  end;
   Distribuir;
 end;
 
@@ -607,6 +626,21 @@ end;
 procedure TPanelInicio.EtapaClick(Sender: TObject);
 begin
   Pulsar(ETAPAS_CLAVE[TControl(Sender).Tag]);
+end;
+
+function TPanelInicio.CicloVisible: Boolean;
+begin
+  Result := FCiclo.Marco.Visible;
+end;
+
+function TPanelInicio.TituloPaso(AIndice: Integer): string;
+begin
+  Result := FPasosTit[AIndice - 1].Caption;
+end;
+
+function TPanelInicio.TextoPaso(AIndice: Integer): string;
+begin
+  Result := FPasosTxt[AIndice - 1].Caption;
 end;
 
 function TPanelInicio.PasosVisibles: Boolean;
