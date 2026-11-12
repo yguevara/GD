@@ -96,7 +96,9 @@ uses
   UPruebasMetadatosSubserie in 'UPruebasMetadatosSubserie.pas',
   UCargaDocumento in '..\UCargaDocumento.pas',
   UCargaLote in '..\UCargaLote.pas',
-  UPruebasCargaDocumento in 'UPruebasCargaDocumento.pas';
+  UPruebasCargaDocumento in 'UPruebasCargaDocumento.pas',
+  UProceso in '..\UProceso.pas',
+  UPruebasProceso in 'UPruebasProceso.pas';
 
 var
   Corredor: ITestRunner;
