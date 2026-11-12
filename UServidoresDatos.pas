@@ -51,10 +51,31 @@ function ListarServidores(Conn: TFDConnection): TArray<TServidor>;
   error por campo. }
 function ValidarServidor(const S: TServidor): TArray<TErrorCampo>;
 
+{ Alta (Id = 0) o edicion. Valida primero (EServidorInvalido con el primer
+  mensaje; no escribe nada). S3 usa GuardarServidorS3 (secreto cifrado; vacio al
+  editar = conserva el guardado). FTP escribe etiquetaServ, ipserver, path, pass,
+  puerto, usuarioftp y tipo = 'FTP' (clave vacia al editar = conserva la guardada).
+  Devuelve el Idservidor. }
+function GuardarServidor(Conn: TFDConnection; const S: TServidor): Integer;
+
+{ Documentos y ficheros que usan el servidor: tb_SeriesDatos.Idservidor +
+  tb_Serietree.Idservidor + tb_ssArchdigital con urlraiz que empieza por
+  's3://<id>/'. }
+function ContarUsoServidor(Conn: TFDConnection; Id: Integer): Integer;
+
+{ Elimina el servidor. Si esta en uso lanza EServidorEnUso (con Usos) y no borra. }
+procedure EliminarServidor(Conn: TFDConnection; Id: Integer);
+
+{ Prueba la conexion. S3: TAlmacenS3.Probar con el secreto escrito o, si esta
+  vacio, el guardado. FTP: conectar y desconectar. Conn puede ser nil si no hay
+  que leer nada guardado. Nunca lanza: devuelve False y un Mensaje legible. }
+function ProbarServidor(Conn: TFDConnection; const S: TServidor; out Mensaje: string): Boolean;
+
 implementation
 
 uses
-  System.Generics.Collections, Data.DB;
+  System.Generics.Collections, System.Variants, Data.DB, FireDAC.Stan.Param,
+  IdFTP, UAlmacenFicheros, UAlmacenS3, UAlmacenServidor, USecretoServidor;
 
 function ListarServidores(Conn: TFDConnection): TArray<TServidor>;
 var
@@ -146,6 +167,166 @@ begin
     Result := L.ToArray;
   finally
     L.Free;
+  end;
+end;
+
+function SiguienteId(Conn: TFDConnection): Integer;
+var
+  V: Variant;
+begin
+  V := Conn.ExecSQLScalar('SELECT MAX(Idservidor) FROM cl_ftp_Server');
+  if VarIsNull(V) or VarIsEmpty(V) then
+    Result := 1
+  else
+    Result := Integer(V) + 1;
+end;
+
+function GuardarServidor(Conn: TFDConnection; const S: TServidor): Integer;
+var
+  Errores: TArray<TErrorCampo>;
+  D: TDatosServidorS3;
+begin
+  Errores := ValidarServidor(S);
+  if Length(Errores) > 0 then
+    raise EServidorInvalido.Create(Errores[0].Mensaje);
+  if S.Tipo = tsS3 then
+  begin
+    D := Default(TDatosServidorS3);
+    D.Id := S.Id;
+    D.Etiqueta := Trim(S.Etiqueta);
+    D.Endpoint := Trim(S.Direccion);
+    D.Puerto := S.Puerto;
+    D.Bucket := Trim(S.Bucket);
+    D.Region := Trim(S.Region);
+    D.ClaveAcceso := Trim(S.ClaveAcceso);
+    D.Secreto := S.Secreto;
+    D.UsoHttps := S.UsoHttps;
+    Exit(GuardarServidorS3(Conn, D));
+  end;
+  Conn.StartTransaction;
+  try
+    if S.Id = 0 then
+    begin
+      Result := SiguienteId(Conn);
+      Conn.ExecSQL('INSERT INTO cl_ftp_Server (Idservidor, etiquetaServ, ipserver, path, ' +
+        'pass, puerto, usuarioftp, tipo) VALUES (:id, :e, :h, :p, :pw, :pu, :u, :t)',
+        [Result, Trim(S.Etiqueta), Trim(S.Direccion), S.RutaRaiz, S.Clave, S.Puerto,
+        Trim(S.Usuario), 'FTP']);
+    end
+    else
+    begin
+      Result := S.Id;
+      Conn.ExecSQL('UPDATE cl_ftp_Server SET etiquetaServ = :e, ipserver = :h, path = :p, ' +
+        'puerto = :pu, usuarioftp = :u, tipo = :t WHERE Idservidor = :id',
+        [Trim(S.Etiqueta), Trim(S.Direccion), S.RutaRaiz, S.Puerto, Trim(S.Usuario),
+        'FTP', Result]);
+      if S.Clave <> '' then
+        Conn.ExecSQL('UPDATE cl_ftp_Server SET pass = :pw WHERE Idservidor = :id',
+          [S.Clave, Result]);
+    end;
+    Conn.Commit;
+  except
+    Conn.Rollback;
+    raise;
+  end;
+end;
+
+function ContarUsoServidor(Conn: TFDConnection; Id: Integer): Integer;
+var
+  Prefijo: string;
+begin
+  Prefijo := UrlRaizS3(Id);
+  Result := Integer(Conn.ExecSQLScalar(
+    'SELECT COUNT(*) FROM tb_SeriesDatos WHERE Idservidor = :id', [Id]));
+  Result := Result + Integer(Conn.ExecSQLScalar(
+    'SELECT COUNT(*) FROM tb_Serietree WHERE Idservidor = :id', [Id]));
+  Result := Result + Integer(Conn.ExecSQLScalar(
+    'SELECT COUNT(*) FROM tb_ssArchdigital WHERE LEFT(urlraiz, :n) = :p',
+    [Length(Prefijo), Prefijo]));
+end;
+
+procedure EliminarServidor(Conn: TFDConnection; Id: Integer);
+var
+  Usos: Integer;
+  E: EServidorEnUso;
+begin
+  Usos := ContarUsoServidor(Conn, Id);
+  if Usos > 0 then
+  begin
+    E := EServidorEnUso.CreateFmt('El servidor no se puede eliminar: lo usan %d ' +
+      'documento(s) o fichero(s).', [Usos]);
+    E.Usos := Usos;
+    raise E;
+  end;
+  Conn.ExecSQL('DELETE FROM cl_ftp_Server WHERE Idservidor = :id', [Id]);
+end;
+
+function ProbarServidor(Conn: TFDConnection; const S: TServidor; out Mensaje: string): Boolean;
+var
+  Secreto, Clave, Host: string;
+  Alm: TAlmacenS3;
+  Ref: IAlmacenFicheros;
+  Ftp: TIdFTP;
+begin
+  Result := False;
+  Mensaje := '';
+  try
+    if S.Tipo = tsS3 then
+    begin
+      Secreto := S.Secreto;
+      if (Secreto = '') and (S.Id > 0) and (Conn <> nil) then
+        Secreto := DescifrarSecreto(VarToStr(Conn.ExecSQLScalar(
+          'SELECT secreto_cifrado FROM cl_ftp_Server WHERE Idservidor = :i', [S.Id])));
+      if (Trim(S.Direccion) = '') or (Trim(S.Bucket) = '') or
+        (Trim(S.ClaveAcceso) = '') or (S.Puerto <= 0) or (Secreto = '') then
+      begin
+        Mensaje := 'Complete servidor, puerto, bucket, clave de acceso y clave secreta.';
+        Exit;
+      end;
+      Host := Trim(S.Direccion) + ':' + IntToStr(S.Puerto);
+      Alm := TAlmacenS3.Create(Host, Trim(S.Bucket), Trim(S.ClaveAcceso), Secreto,
+        Trim(S.Region), S.UsoHttps);
+      Ref := Alm;
+      Result := Alm.Probar(Mensaje);
+      if Mensaje = '' then
+        if Result then
+          Mensaje := 'Conexi'#243'n correcta.'
+        else
+          Mensaje := 'No se pudo conectar con el servidor.';
+    end
+    else
+    begin
+      Clave := S.Clave;
+      if (Clave = '') and (S.Id > 0) and (Conn <> nil) then
+        Clave := VarToStr(Conn.ExecSQLScalar(
+          'SELECT pass FROM cl_ftp_Server WHERE Idservidor = :i', [S.Id]));
+      if (Trim(S.Direccion) = '') or (S.Puerto <= 0) or (Trim(S.Usuario) = '') then
+      begin
+        Mensaje := 'Complete servidor, puerto y usuario.';
+        Exit;
+      end;
+      Ftp := TIdFTP.Create(nil);
+      try
+        Ftp.Host := Trim(S.Direccion);
+        Ftp.Port := S.Puerto;
+        Ftp.Username := Trim(S.Usuario);
+        Ftp.Password := Clave;
+        Ftp.ConnectTimeout := 5000;
+        Ftp.ReadTimeout := 5000;
+        Ftp.Connect;
+        Result := True;
+        Mensaje := 'Conexi'#243'n correcta.';
+        Ftp.Disconnect;
+      finally
+        Ftp.Free;
+      end;
+    end;
+  except
+    on E: Exception do
+    begin
+      Result := False;
+      Mensaje := 'No se pudo conectar: ' + E.Message;
+    end;
   end;
 end;
 
