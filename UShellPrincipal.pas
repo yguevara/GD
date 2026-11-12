@@ -23,7 +23,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes,
   System.Types, System.Generics.Collections, Vcl.Graphics, Vcl.Controls, Vcl.Forms,
-  Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.Menus, Vcl.ComCtrls, UTema, UBusqueda;
+  Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.Menus, Vcl.ComCtrls, UTema, UBusqueda, UInicioDatos;
 
 const
   ARCHIVO_SHELL_CLASICO = 'shell_clasico.flag';
@@ -45,6 +45,12 @@ type
   TSeccionEvent = procedure(const Nombre: string) of object;
   TSeccionDisponibleEvent = function(const Nombre: string): Boolean of object;
   TTextoUsuarioEvent = function: string of object;
+  { Pide el resumen que muestra la pantalla de inicio (ATitulo: nodo elegido, ''
+    = toda el area). AOk = False si no se pudo calcular: la pantalla no cambia. }
+  TInicioDatosEvent = procedure(out AResumen: TResumenInicio; out ATitulo: string;
+    out AOk: Boolean) of object;
+  { True si el nodo elegido no tiene subseries: el area de trabajo estaria vacia. }
+  TNodoVacioEvent = function: Boolean of object;
 
   TEstiloBoton = (ebColumna, ebPrimario, ebChip);
 
@@ -142,9 +148,11 @@ type
     FChipUsuario: TBotonShell;
     // Pantalla de inicio: se muestra sobre el area de trabajo sin nodo elegido
     FInicio: TPanel;
-    FInicioGrupo: TPanel;
-    FInicioAgregar: TBotonShell;
-    FInicioBuscar: TBotonShell;
+    FPanelInicio: TScrollBox;     // TPanelInicio (UInicioNodo usa este unit: no se puede nombrar aqui)
+    FClaveInicio: string;         // nodo y usuario de los datos mostrados
+    FTicksInicio: Integer;        // ciclos del temporizador desde la ultima carga
+    FOnInicioDatos: TInicioDatosEvent;
+    FOnNodoVacio: TNodoVacioEvent;
     // Contenido externo (p. ej. un clasificador): ocupa el area de trabajo,
     // bajo la cabecera, mientras esta abierto
     FExterno: TPanel;
@@ -182,7 +190,9 @@ type
     procedure CrearCabecera;
     procedure CrearInicio;
     procedure ActualizarInicio;
-    procedure InicioResize(Sender: TObject);
+    procedure InicioAccion(const AClave: string);
+    procedure RefrescarInicioDatos;
+    procedure ActualizarPermisosInicio;
     procedure InicioBuscarClick(Sender: TObject);
     procedure Desenganchar;
     procedure ContenedorWndProc(var Msg: TMessage);
@@ -235,6 +245,8 @@ type
     property OnSeccion: TSeccionEvent read FOnSeccion write FOnSeccion;
     property OnSeccionDisponible: TSeccionDisponibleEvent read FOnSeccionDisponible write FOnSeccionDisponible;
     property OnTextoUsuario: TTextoUsuarioEvent read FOnTextoUsuario write FOnTextoUsuario;
+    property OnInicioDatos: TInicioDatosEvent read FOnInicioDatos write FOnInicioDatos;
+    property OnNodoVacio: TNodoVacioEvent read FOnNodoVacio write FOnNodoVacio;
   end;
 
 { Aplica el shell sobre la pantalla principal. Sin efecto si existe
@@ -250,8 +262,8 @@ function TemaWindowsOscuro: Boolean;
 implementation
 
 uses
-  System.Math, System.TypInfo, System.Win.Registry, Vcl.VirtualImageList,
-  UIconos;
+  System.Math, System.TypInfo, System.Win.Registry, System.IOUtils, Vcl.VirtualImageList,
+  UIconos, UInicioNodo;
 
 type
   TControlAcceso = class(TControl);
@@ -841,9 +853,7 @@ begin
   FSelAmbito := nil;
   FBtnAgregar := nil;
   FChipUsuario := nil;
-  FInicioGrupo := nil;
-  FInicioAgregar := nil;
-  FInicioBuscar := nil;
+  FPanelInicio := nil;
   FreeAndNil(FExterno);
   FExternoActivo := False;
   FreeAndNil(FInicio);
@@ -1082,7 +1092,7 @@ end;
   "recientes" quedan para la Fase 5. }
 procedure TShellPrincipal.CrearInicio;
 var
-  Titulo, Guia: TLabel;
+  Panel: TPanelInicio;
 begin
   FInicio := TPanel.Create(Self);
   FInicio.BevelOuter := bvNone;
@@ -1095,66 +1105,17 @@ begin
   FInicio.Margins.SetBounds(0, FCabecera.Height, 0, 0);
   FInicio.Visible := False;
   FInicio.Parent := FMain;
-  FInicio.OnResize := InicioResize;
 
-  FInicioGrupo := TPanel.Create(Self);
-  FInicioGrupo.Parent := FInicio;
-  FInicioGrupo.BevelOuter := bvNone;
-  FInicioGrupo.ParentBackground := False;
-  FInicioGrupo.StyleElements := [];
-  FInicioGrupo.ShowCaption := False;
-  FInicioGrupo.Color := FTema.Fondo;
-  FInicioGrupo.SetBounds(0, 0, Esc(560), Esc(190));
-
-  Titulo := TLabel.Create(Self);
-  Titulo.Parent := FInicioGrupo;
-  Titulo.AutoSize := False;
-  Titulo.Alignment := taCenter;
-  Titulo.Transparent := True;
-  Titulo.Font.Name := FUENTE;
-  Titulo.Font.Height := -Esc(26);
-  Titulo.Font.Style := [fsBold];
-  Titulo.Font.Color := FTema.Texto;
-  Titulo.Caption := 'Que quiere hacer?';
-  Titulo.SetBounds(0, 0, FInicioGrupo.Width, Esc(40));
-
-  FInicioAgregar := TBotonShell.Create(Self);
-  FInicioAgregar.Estilo := ebPrimario;
-  FInicioAgregar.Texto := 'Agregar un documento';
-  FInicioAgregar.Icono := IconoSobre('agregar', FTema.Acento);
-  FInicioAgregar.Colores(FTema.Fondo, FTema.Acento,
-    Mezcla(FTema.Acento, FTema.TextoSobreAcento, 0.15), FTema.TextoSobreAcento, clNone);
-  FInicioAgregar.Font.Name := FUENTE;
-  FInicioAgregar.Font.Height := -Esc(16);
-  FInicioAgregar.Font.Style := [fsBold];
-  FInicioAgregar.OnClick := AgregarClick;
-  FInicioAgregar.Parent := FInicioGrupo;
-  FInicioAgregar.SetBounds(0, Esc(64), Esc(270), Esc(64));
-
-  FInicioBuscar := TBotonShell.Create(Self);
-  FInicioBuscar.Estilo := ebPrimario;
-  FInicioBuscar.Texto := 'Buscar un documento';
-  FInicioBuscar.Icono := IconoSobre('buscar', FTema.Superficie);
-  FInicioBuscar.Colores(FTema.Fondo, FTema.Superficie, FTema.AcentoSuave,
-    FTema.Texto, FTema.Linea);
-  FInicioBuscar.Font.Name := FUENTE;
-  FInicioBuscar.Font.Height := -Esc(16);
-  FInicioBuscar.Font.Style := [fsBold];
-  FInicioBuscar.OnClick := InicioBuscarClick;
-  FInicioBuscar.Parent := FInicioGrupo;
-  FInicioBuscar.SetBounds(Esc(290), Esc(64), Esc(270), Esc(64));
-
-  Guia := TLabel.Create(Self);
-  Guia.Parent := FInicioGrupo;
-  Guia.AutoSize := False;
-  Guia.Alignment := taCenter;
-  Guia.Transparent := True;
-  Guia.Font.Name := FUENTE;
-  Guia.Font.Height := -Esc(14);
-  Guia.Font.Color := FTema.TextoSuave;
-  Guia.Caption := 'Para trabajar en su área, elijala en el arbol de la izquierda.';
-  Guia.SetBounds(0, Esc(150), FInicioGrupo.Width, Esc(24));
-  InicioResize(nil);
+  Panel := TPanelInicio.Create(Self, FTema);
+  FPanelInicio := Panel;
+  Panel.Parent := FInicio;
+  Panel.Align := alClient;
+  Panel.OnAccion := InicioAccion;
+  try
+    Panel.ArchivoConfig := TPath.Combine(TPath.GetHomePath, 'ArchiGenio\inicio.ini');
+  except
+    // sin archivo de configuracion los primeros pasos quedan visibles
+  end;
 end;
 
 { Contenedor del contenido externo: igual que la pantalla de inicio, cubre el area
@@ -1218,14 +1179,6 @@ begin
   Result := FExternoActivo;
 end;
 
-procedure TShellPrincipal.InicioResize(Sender: TObject);
-begin
-  if (FInicio = nil) or (FInicioGrupo = nil) then
-    Exit;
-  FInicioGrupo.SetBounds(Max(0, (FInicio.ClientWidth - FInicioGrupo.Width) div 2),
-    Max(0, (FInicio.ClientHeight - FInicioGrupo.Height) div 2 - Esc(30)),
-    FInicioGrupo.Width, FInicioGrupo.Height);
-end;
 
 { Visible solo sin nodo elegido y con el arbol a la vista. }
 procedure TShellPrincipal.ActualizarInicio;
@@ -1234,7 +1187,10 @@ var
 begin
   if FInicio = nil then
     Exit;
-  Mostrar := (FArbol <> nil) and (FArbol.Selected = nil) and not FExternoActivo;
+  // Se muestra sin nodo elegido o con un nodo sin subseries (el area de trabajo
+  // quedaria vacia); nunca encima de un clasificador abierto.
+  Mostrar := (FArbol <> nil) and not FExternoActivo and
+    ((FArbol.Selected = nil) or (Assigned(FOnNodoVacio) and FOnNodoVacio()));
   if FInicio.Visible <> Mostrar then
   begin
     FInicio.Visible := Mostrar;
@@ -1242,7 +1198,75 @@ begin
     begin
       FInicio.BringToFront;
       FCabecera.BringToFront;
+      FClaveInicio := '';     // recien mostrada: se recalculan las cifras
     end;
+  end;
+  if Mostrar then
+    RefrescarInicioDatos;
+end;
+
+{ Recalcula las cifras de la pantalla de inicio cuando cambia el nodo o el
+  usuario, y cada ~60 s mientras esta a la vista. }
+procedure TShellPrincipal.RefrescarInicioDatos;
+var
+  Clave, Titulo, Usuario: string;
+  R: TResumenInicio;
+  Ok: Boolean;
+begin
+  if (FPanelInicio = nil) or not Assigned(FOnInicioDatos) then
+    Exit;
+  Inc(FTicksInicio);
+  Usuario := '';
+  if Assigned(FOnTextoUsuario) then
+    Usuario := FOnTextoUsuario();
+  if FArbol.Selected <> nil then
+    Clave := IntToStr(NativeInt(FArbol.Selected)) + '|' + FArbol.Selected.Text + '|' + Usuario
+  else
+    Clave := '|' + Usuario;
+  if (Clave = FClaveInicio) and (FTicksInicio < 200) then
+    Exit;
+  FClaveInicio := Clave;
+  FTicksInicio := 0;
+  Ok := False;
+  R := Default(TResumenInicio);
+  Titulo := '';
+  FOnInicioDatos(R, Titulo, Ok);
+  if Ok then
+    TPanelInicio(FPanelInicio).Mostrar(R, Titulo);
+end;
+
+{ Cada boton o etapa de la pantalla de inicio lleva a algo que el shell ya sabe hacer. }
+procedure TShellPrincipal.InicioAccion(const AClave: string);
+begin
+  if AClave = 'agregar' then
+    AgregarClick(Self)
+  else if AClave = 'buscar' then
+    BusquedaBuscar(Self)
+  else if Assigned(FOnSeccion) then
+  begin
+    if AClave = 'cuadro' then
+      FOnSeccion(SECCION_CUADRO)
+    else if AClave = 'prestamos' then
+      FOnSeccion(SECCION_PRESTAMOS)
+    else if AClave = 'traslados' then
+      FOnSeccion(SECCION_TRASLADOS)
+    else if AClave = 'depuracion' then
+      FOnSeccion(SECCION_DEPURACION);
+  end;
+end;
+
+{ Quien no puede hacer algo no lo ve como boton ni como etapa activa. }
+procedure TShellPrincipal.ActualizarPermisosInicio;
+begin
+  if FPanelInicio = nil then
+    Exit;
+  with TPanelInicio(FPanelInicio) do
+  begin
+    FijarPermiso('agregar', SeccionDisponible(SECCION_AGREGAR));
+    FijarPermiso('cuadro', SeccionDisponible(SECCION_CUADRO));
+    FijarPermiso('prestamos', SeccionDisponible(SECCION_PRESTAMOS));
+    FijarPermiso('traslados', SeccionDisponible(SECCION_TRASLADOS));
+    FijarPermiso('depuracion', SeccionDisponible(SECCION_DEPURACION));
   end;
 end;
 
@@ -1501,16 +1525,8 @@ begin
     if Cambio then
       Reacomodar;
   end;
-  // El boton grande de la pantalla de inicio sigue la misma regla: el invitado y
-  // el visor no lo ven, y "Buscar un documento" queda centrado.
-  if (FInicioAgregar <> nil) and (FInicioBuscar <> nil) and (FInicioGrupo <> nil) then
-  begin
-    FInicioAgregar.Visible := SeccionDisponible(SECCION_AGREGAR);
-    if FInicioAgregar.Visible then
-      FInicioBuscar.Left := Esc(290)
-    else
-      FInicioBuscar.Left := (FInicioGrupo.Width - FInicioBuscar.Width) div 2;
-  end;
+  // La pantalla de inicio sigue las mismas reglas de permiso
+  ActualizarPermisosInicio;
 end;
 
 procedure TShellPrincipal.SeccionClick(Sender: TObject);

@@ -306,7 +306,7 @@ begin
   FEtapas[0].Nombre.Caption := 'Captura';
   FEtapas[1].Nombre.Caption := 'Clasificaci'#243'n';
   FEtapas[2].Nombre.Caption := 'Ubicaci'#243'n';
-  FEtapas[3].Nombre.Caption := 'Consulta y pr'#233'stamo';
+  FEtapas[3].Nombre.Caption := 'Pr'#233'stamos';
   FEtapas[4].Nombre.Caption := 'Transferencia';
   FEtapas[5].Nombre.Caption := 'Depuraci'#243'n';
   FEtapas[0].Pie.Caption := 'documentos';
@@ -404,12 +404,12 @@ begin
 
   // cifras
   W := (Ancho - Gap * 4) div 5;
-  Alto := Esc(84);
+  Alto := Esc(96);
   for I := 0 to High(FKpis) do
   begin
     FKpis[I].Marco.SetBounds(X0 + I * (W + Gap), Y, W, Alto);
-    FKpiValor[I].SetBounds(Esc(14), Esc(10), W - Esc(24), Esc(34));
-    FKpiTexto[I].SetBounds(Esc(14), Esc(48), W - Esc(24), Esc(18));
+    FKpiValor[I].SetBounds(Esc(14), Esc(8), W - Esc(24), Esc(48));
+    FKpiTexto[I].SetBounds(Esc(14), Esc(60), W - Esc(24), Esc(20));
   end;
   Inc(Y, Alto + Gap);
 
@@ -418,31 +418,31 @@ begin
   FAcciones.Marco.SetBounds(X0, Y, Ancho, Alto);
   FAccionesTitulo.SetBounds(Esc(16), Esc(12), Ancho - Esc(32), Esc(22));
   Tam := Esc(16);
-  FBtnAgregar.SetBounds(Tam, Esc(42), Esc(190), Esc(40));
-  Tam := Tam + Esc(190) + Esc(10);
-  FBtnBuscar.SetBounds(Tam, Esc(42), Esc(200), Esc(40));
-  Tam := Tam + Esc(200) + Esc(10);
-  FBtnCuadro.SetBounds(Tam, Esc(42), Esc(240), Esc(40));
+  FBtnAgregar.SetBounds(Tam, Esc(42), Esc(220), Esc(40));
+  Tam := Tam + Esc(220) + Esc(10);
+  FBtnBuscar.SetBounds(Tam, Esc(42), Esc(240), Esc(40));
+  Tam := Tam + Esc(240) + Esc(10);
+  FBtnCuadro.SetBounds(Tam, Esc(42), Esc(280), Esc(40));
   if not FBtnAgregar.Visible then
   begin
     FBtnBuscar.Left := Esc(16);
-    FBtnCuadro.Left := Esc(16) + Esc(200) + Esc(10);
+    FBtnCuadro.Left := Esc(16) + Esc(240) + Esc(10);
   end;
   Inc(Y, Alto + Gap);
 
   // ciclo de vida
-  Alto := Esc(158);
+  Alto := Esc(172);
   FCiclo.Marco.SetBounds(X0, Y, Ancho, Alto);
   FCicloTitulo.SetBounds(Esc(16), Esc(12), Ancho - Esc(32), Esc(22));
   FCicloAyuda.SetBounds(Esc(16), Esc(34), Ancho - Esc(32), Esc(18));
   W := (Ancho - Esc(32) - Gap * 5) div 6;
   for I := 0 to High(FEtapas) do
   begin
-    FEtapas[I].Tarjeta.Marco.SetBounds(Esc(16) + I * (W + Gap), Esc(62), W, Esc(86));
+    FEtapas[I].Tarjeta.Marco.SetBounds(Esc(16) + I * (W + Gap), Esc(62), W, Esc(98));
     FEtapas[I].Icono.SetBounds(Esc(10), Esc(8), 24, 24);
     FEtapas[I].Nombre.SetBounds(Esc(40), Esc(11), W - Esc(46), Esc(18));
-    FEtapas[I].Cifra.SetBounds(Esc(10), Esc(36), W - Esc(20), Esc(26));
-    FEtapas[I].Pie.SetBounds(Esc(10), Esc(62), W - Esc(20), Esc(16));
+    FEtapas[I].Cifra.SetBounds(Esc(10), Esc(38), W - Esc(20), Esc(36));
+    FEtapas[I].Pie.SetBounds(Esc(10), Esc(76), W - Esc(20), Esc(16));
   end;
   Inc(Y, Alto + Gap);
 
@@ -540,8 +540,8 @@ begin
   FEtapas[1].Cifra.Caption := Miles(AResumen.Subseries);
   FEtapas[2].Cifra.Caption := Miles(AResumen.SinUbicacion);
   FEtapas[3].Cifra.Caption := Miles(AResumen.Prestados);
-  FEtapas[4].Cifra.Caption := #8212;
-  FEtapas[5].Cifra.Caption := #8212;
+  FEtapas[4].Cifra.Caption := '';
+  FEtapas[5].Cifra.Caption := '';
 end;
 
 procedure TPanelInicio.FijarPermiso(const AClave: string; APermitido: Boolean);

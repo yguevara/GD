@@ -33,7 +33,7 @@ uses
   cxDBRichEdit, System.Generics.Collections, cxSplitter, AdvListV, DBAdvLst,
   IniFiles, cxSpinEdit, Vcl.Grids, Vcl.DBGrids, JvDBControls, cxMaskEdit,
   dxScreenTip, dxCustomHint, cxHint, cxEditRepositoryItems, cxGroupBox,
-  UBusqueda, UAlcance, UPanelDocumentos, UBarraTrabajo, UBloqueAccion, UPanelLateral,
+  UBusqueda, UAlcance, UInicioDatos, UPanelDocumentos, UBarraTrabajo, UBloqueAccion, UPanelLateral,
   UCargaDocumento, UAgregarFicheros, UEdicionDocumento, UFormularioDocumento, UDocumentoVista, UMigracionPantalla, UExpedienteCompleto, UProgresoTransferencia, UTrazabilidad, UTrazabilidadDatos,
   UAlmacenFicheros, UAlmacenServidor;
 
@@ -857,6 +857,8 @@ type
     procedure ShellMenuConfiguracionClick(Sender: TObject);
     procedure ShellMigrarFicheros(Sender: TObject);
     procedure ShellSeccion(const Nombre: string);
+    procedure ShellInicioDatos(out AResumen: TResumenInicio; out ATitulo: string; out AOk: Boolean);
+    function ShellNodoVacio: Boolean;
     function ShellSeccionDisponible(const Nombre: string): Boolean;
     function ShellTextoUsuario: string;
   end;
@@ -8006,6 +8008,8 @@ begin
   ShellPrincipal.OnSeccion := ShellSeccion;
   ShellPrincipal.OnSeccionDisponible := ShellSeccionDisponible;
   ShellPrincipal.OnTextoUsuario := ShellTextoUsuario;
+  ShellPrincipal.OnInicioDatos := ShellInicioDatos;
+  ShellPrincipal.OnNodoVacio := ShellNodoVacio;
   ShellPrincipal.Refrescar;
 end;
 
@@ -8651,6 +8655,64 @@ end;
 
 // Secciones de la columna del shell. Inicio y Archivo muestran el arbol;
 // Traslados y Prestamos abren lo mismo que sus items de PMTool.
+// Resumen de la pantalla de inicio: el nodo elegido y todo lo que contiene (los
+// nodos salen del arbol que ve el usuario, ya filtrado por su alcance); sin nodo
+// elegido, toda su area. Los documentos pasan ademas por el filtro del alcance.
+procedure TMAIN.ShellInicioDatos(out AResumen: TResumenInicio; out ATitulo: string; out AOk: Boolean);
+var
+  Nodos: TList<TClaveNodo>;
+
+  procedure Recoger(ANodo: TTreeNode);
+  var
+    Hijo: TTreeNode;
+    K: TClaveNodo;
+  begin
+    if ANodo.Data <> nil then
+    begin
+      K.IdEstructura := PDataRec(ANodo.Data).estruct;
+      K.Id := PDataRec(ANodo.Data).Id;
+      Nodos.Add(K);
+    end;
+    Hijo := ANodo.GetFirstChild;
+    while Hijo <> nil do
+    begin
+      Recoger(Hijo);
+      Hijo := Hijo.GetNextSibling;
+    end;
+  end;
+
+begin
+  AOk := False;
+  ATitulo := '';
+  AResumen := Default(TResumenInicio);
+  Nodos := TList<TClaveNodo>.Create;
+  try
+    try
+      if tvTree.Selected = nil then
+        AResumen := CargarResumenInicio(UDM.Conn, UDM.Alcance, nil, True)
+      else
+      begin
+        ATitulo := tvTree.Selected.Text;
+        Recoger(tvTree.Selected);
+        AResumen := CargarResumenInicio(UDM.Conn, UDM.Alcance, Nodos.ToArray, False);
+      end;
+      AOk := True;
+    except
+      on E: Exception do
+        RegistrarErrorLista('Inicio: ' + E.ClassName + ': ' + E.Message);
+    end;
+  finally
+    Nodos.Free;
+  end;
+end;
+
+// El nodo elegido no tiene subseries: el area de trabajo estaria vacia y se
+// muestra la pantalla de inicio.
+function TMAIN.ShellNodoVacio: Boolean;
+begin
+  Result := UDM.tb_Serietree.Active and UDM.tb_Serietree.IsEmpty;
+end;
+
 procedure TMAIN.ShellSeccion(const Nombre: string);
 begin
   // Cambiar de seccion cierra el clasificador abierto (pregunta si hay cambios)
