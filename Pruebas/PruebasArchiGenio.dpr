@@ -27,6 +27,8 @@ uses
   UPruebasClasificadorEstado in 'UPruebasClasificadorEstado.pas',
   UServidoresDatos in '..\UServidoresDatos.pas',
   UPruebasServidoresDatos in 'UPruebasServidoresDatos.pas',
+  UArchivosDatos in '..\UArchivosDatos.pas',
+  UPruebasArchivosDatos in 'UPruebasArchivosDatos.pas',
   UBusqueda in '..\UBusqueda.pas',
   UBusquedaDatos in '..\UBusquedaDatos.pas',
   UPruebasBusqueda in 'UPruebasBusqueda.pas',

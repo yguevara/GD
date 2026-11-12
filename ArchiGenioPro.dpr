@@ -66,6 +66,7 @@ uses
   UClasificadoresInterruptor in 'UClasificadoresInterruptor.pas',
   UClasificadorEstado in 'UClasificadorEstado.pas',
   UServidoresDatos in 'UServidoresDatos.pas',
+  UArchivosDatos in 'UArchivosDatos.pas',
   UClasificadorBase in 'UClasificadorBase.pas',
   UCLServidoresForm in 'UCLServidoresForm.pas',
   UTiempos in 'UTiempos.pas',
