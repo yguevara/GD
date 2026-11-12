@@ -106,12 +106,13 @@ begin
     'IdProceso INT NOT NULL, ' +
     'IdEstructura VARCHAR(50) NOT NULL, ' +
     'id INT NOT NULL, ' +
+    'codsubs VARCHAR(50) NOT NULL, ' +
     'Codigodoc VARCHAR(20) NOT NULL, ' +
     'fecha DATETIME NOT NULL, ' +
     'version VARCHAR(12) NOT NULL, ' +
     'Caja INT NULL, ' +
     'Activa ' + TBit + ', ' +
-    'CONSTRAINT PK_prc_unidad PRIMARY KEY (IdProceso, IdEstructura, id, Codigodoc, fecha, version), ' +
+    'CONSTRAINT PK_prc_unidad PRIMARY KEY (IdProceso, IdEstructura, id, codsubs, Codigodoc, fecha, version), ' +
     'CONSTRAINT FK_prc_unidad_proceso FOREIGN KEY (IdProceso) ' +
     'REFERENCES prc_proceso(IdProceso) ON DELETE CASCADE');
 
@@ -143,11 +144,12 @@ begin
   Tabla('prc_bloqueo',
     'IdEstructura VARCHAR(50) NOT NULL, ' +
     'id INT NOT NULL, ' +
+    'codsubs VARCHAR(50) NOT NULL, ' +
     'Codigodoc VARCHAR(20) NOT NULL, ' +
     'fecha DATETIME NOT NULL, ' +
     'version VARCHAR(12) NOT NULL, ' +
     'IdProceso INT NOT NULL, ' +
-    'CONSTRAINT PK_prc_bloqueo PRIMARY KEY (IdEstructura, id, Codigodoc, fecha, version), ' +
+    'CONSTRAINT PK_prc_bloqueo PRIMARY KEY (IdEstructura, id, codsubs, Codigodoc, fecha, version), ' +
     'CONSTRAINT FK_prc_bloqueo_proceso FOREIGN KEY (IdProceso) ' +
     'REFERENCES prc_proceso(IdProceso) ON DELETE CASCADE');
 

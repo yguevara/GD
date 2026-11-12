@@ -211,10 +211,11 @@ begin
     Q.Connection := Conn;
     Q.SQL.Text := 'SELECT p.Tipo, p.Numero FROM prc_bloqueo b ' +
       'INNER JOIN prc_proceso p ON p.IdProceso = b.IdProceso ' +
-      'WHERE b.IdEstructura = :e AND b.id = :i AND b.Codigodoc = :c ' +
+      'WHERE b.IdEstructura = :e AND b.id = :i AND b.codsubs = :s AND b.Codigodoc = :c ' +
       'AND b.fecha = :f AND b.version = :v';
     Q.ParamByName('e').AsString := U.IdEstructura;
     Q.ParamByName('i').AsInteger := U.Id;
+    Q.ParamByName('s').AsString := U.CodSubs;
     Q.ParamByName('c').AsString := U.CodigoDoc;
     Q.ParamByName('f').AsDateTime := U.Fecha;
     Q.ParamByName('v').AsString := U.Version;
@@ -433,12 +434,13 @@ begin
   end;
   Propia := IniciarTx(Conn);
   try
-    Conn.ExecSQL('INSERT INTO prc_bloqueo (IdEstructura, id, Codigodoc, fecha, ' +
-      'version, IdProceso) VALUES (:e, :i, :c, :f, :v, :p)',
-      [U.IdEstructura, U.Id, U.CodigoDoc, U.Fecha, U.Version, IdProceso]);
-    Conn.ExecSQL('INSERT INTO prc_unidad (IdProceso, IdEstructura, id, Codigodoc, ' +
-      'fecha, version, Activa) VALUES (:p, :e, :i, :c, :f, :v, :a)',
-      [IdProceso, U.IdEstructura, U.Id, U.CodigoDoc, U.Fecha, U.Version, True]);
+    Conn.ExecSQL('INSERT INTO prc_bloqueo (IdEstructura, id, codsubs, Codigodoc, ' +
+      'fecha, version, IdProceso) VALUES (:e, :i, :s, :c, :f, :v, :p)',
+      [U.IdEstructura, U.Id, U.CodSubs, U.CodigoDoc, U.Fecha, U.Version, IdProceso]);
+    Conn.ExecSQL('INSERT INTO prc_unidad (IdProceso, IdEstructura, id, codsubs, ' +
+      'Codigodoc, fecha, version, Activa) VALUES (:p, :e, :i, :s, :c, :f, :v, :a)',
+      [IdProceso, U.IdEstructura, U.Id, U.CodSubs, U.CodigoDoc, U.Fecha, U.Version,
+       True]);
     ConfirmarTx(Conn, Propia);
     Result := True;
   except
@@ -473,7 +475,7 @@ begin
     Q := TFDQuery.Create(nil);
     try
       Q.Connection := Conn;
-      Q.SQL.Text := 'SELECT b.IdEstructura, b.id, b.Codigodoc, b.fecha, b.version, ' +
+      Q.SQL.Text := 'SELECT b.IdEstructura, b.id, b.codsubs, b.Codigodoc, b.fecha, b.version, ' +
         'p.Tipo, p.Numero FROM prc_bloqueo b ' +
         'INNER JOIN prc_proceso p ON p.IdProceso = b.IdProceso ' +
         'WHERE b.IdEstructura = :e AND b.id = :i';
@@ -484,6 +486,7 @@ begin
       begin
         U.IdEstructura := Q.FieldByName('IdEstructura').AsString;
         U.Id := Q.FieldByName('id').AsInteger;
+        U.CodSubs := Q.FieldByName('codsubs').AsString;
         U.CodigoDoc := Q.FieldByName('Codigodoc').AsString;
         U.Fecha := Q.FieldByName('fecha').AsDateTime;
         U.Version := Q.FieldByName('version').AsString;

@@ -59,6 +59,8 @@ type
     [Test]
     procedure MismoIdEnOtroNodoNoSeBloquea;
     [Test]
+    procedure MismoCodigoEnOtraSubserieNoSeBloquea;
+    [Test]
     procedure BloqueosDelNodoSeBuscaPorClaveNormalizada;
     [Test]
     procedure ContarPorEstadoSumaBien;
@@ -162,6 +164,7 @@ function UnidadPrueba(const IdEstr: string; Id: Integer; const Cod: string): TUn
 begin
   Result.IdEstructura := IdEstr;
   Result.Id := Id;
+  Result.CodSubs := 'S1';
   Result.CodigoDoc := Cod;
   Result.Fecha := EncodeDate(2020, 5, 17);
   Result.Version := '1';
@@ -376,6 +379,25 @@ begin
   // El id 160 existe en varios nodos reales: solo el par (nodo, id) identifica.
   Assert.IsTrue(AgregarUnidad(FConn, P1.IdProceso, UnidadPrueba('ZZ.3.7', 160, 'D1'), Motivo));
   Assert.IsTrue(AgregarUnidad(FConn, P2.IdProceso, UnidadPrueba('ZZ.3.3', 160, 'D1'), Motivo));
+end;
+
+procedure TPruebasProcesosDatosBD.MismoCodigoEnOtraSubserieNoSeBloquea;
+var
+  N: TClaveNodo;
+  P1, P2: TProcesoRef;
+  Motivo: string;
+  U1, U2: TUnidadDoc;
+begin
+  if not Conectar then Exit;
+  N := NodoDePrueba(FConn);
+  P1 := CrearProceso(FConn, tpPrestamo, N, USUARIO, 1990);
+  P2 := CrearProceso(FConn, tpPrestamo, N, USUARIO, 1990);
+  U1 := UnidadPrueba('ZZ.5', 163, 'D1');
+  U2 := U1;
+  U2.CodSubs := 'S2';
+  Assert.IsTrue(AgregarUnidad(FConn, P1.IdProceso, U1, Motivo));
+  Assert.IsTrue(AgregarUnidad(FConn, P2.IdProceso, U2, Motivo),
+    'Otra subserie del mismo nodo con igual codigo, fecha y version es otro documento');
 end;
 
 procedure TPruebasProcesosDatosBD.BloqueosDelNodoSeBuscaPorClaveNormalizada;

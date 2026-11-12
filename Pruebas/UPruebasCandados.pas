@@ -18,6 +18,8 @@ type
     [Test]
     procedure ClaveConDobleCeroSoloNormaliza;
     [Test]
+    procedure MismoCodigoEnOtraSubserieEsOtraClave;
+    [Test]
     procedure DistingueVersionYFecha;
     [Test]
     procedure EntraSinBloqueo;
@@ -34,6 +36,7 @@ function Unidad(const IdEstr: string; Id: Integer): TUnidadDoc;
 begin
   Result.IdEstructura := IdEstr;
   Result.Id := Id;
+  Result.CodSubs := 'S1';
   Result.CodigoDoc := 'D-1';
   Result.Fecha := EncodeDate(2020, 5, 17);
   Result.Version := '1';
@@ -53,6 +56,20 @@ procedure TPruebasCandados.ClaveConDobleCeroSoloNormaliza;
 begin
   Assert.AreEqual(ClaveUnidad(Unidad('A.6..3.3', 5)), ClaveUnidad(Unidad(' a.6..3.3', 5)));
   Assert.AreNotEqual(ClaveUnidad(Unidad('A.6..3.3', 5)), ClaveUnidad(Unidad('A.6.3.3', 5)));
+end;
+
+procedure TPruebasCandados.MismoCodigoEnOtraSubserieEsOtraClave;
+var
+  A, B: TUnidadDoc;
+begin
+  // tb_SeriesDatos incluye codsubs en su clave: el mismo codigo, fecha y version
+  // en dos subseries del mismo nodo son documentos distintos
+  A := Unidad('A.1', 1);
+  B := A;
+  B.CodSubs := 'S2';
+  Assert.AreNotEqual(ClaveUnidad(A), ClaveUnidad(B));
+  B.CodSubs := ' s1 ';
+  Assert.AreEqual(ClaveUnidad(A), ClaveUnidad(B), 'el codsubs se compara sin espacios');
 end;
 
 procedure TPruebasCandados.DistingueVersionYFecha;

@@ -18,10 +18,11 @@ uses
   UProceso;
 
 type
-  { Misma clave que TB_PrestamosDocumentos y prc_unidad. }
+  { Misma clave que tb_SeriesDatos, TB_PrestamosDocumentos y prc_unidad. }
   TUnidadDoc = record
     IdEstructura: string;
     Id: Integer;
+    CodSubs: string;      // tb_SeriesDatos lo incluye en su clave primaria
     CodigoDoc: string;
     Fecha: TDateTime;
     Version: string;
@@ -34,7 +35,7 @@ type
   end;
 
 { Clave textual unica del documento, tolerante a mayusculas y espacios en
-  IdEstructura, CodigoDoc y Version. }
+  IdEstructura y sin espacios en CodSubs, CodigoDoc y Version. }
 function ClaveUnidad(const U: TUnidadDoc): string;
 
 { True si el documento puede entrar a otro proceso (no hay bloqueo). Si no puede,
@@ -50,7 +51,7 @@ uses
 function ClaveUnidad(const U: TUnidadDoc): string;
 begin
   Result := NormalizaClave(U.IdEstructura) + '|' + IntToStr(U.Id) + '|' +
-    Trim(U.CodigoDoc) + '|' + FormatDateTime('yyyymmddhhnnss', U.Fecha) + '|' +
+    Trim(U.CodSubs) + '|' + Trim(U.CodigoDoc) + '|' + FormatDateTime('yyyymmddhhnnss', U.Fecha) + '|' +
     Trim(U.Version);
 end;
 

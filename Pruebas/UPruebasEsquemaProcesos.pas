@@ -139,9 +139,9 @@ end;
 procedure TPruebasEsquemaProcesosSql.Bloqueo_ClavePrimariaEsElDocumento;
 begin
   // Un documento solo puede tener una fila de bloqueo: lo hace cumplir la base.
-  Assert.IsTrue(Pos('CONSTRAINT PK_prc_bloqueo PRIMARY KEY (IdEstructura, id, Codigodoc, fecha, version)',
+  Assert.IsTrue(Pos('CONSTRAINT PK_prc_bloqueo PRIMARY KEY (IdEstructura, id, codsubs, Codigodoc, fecha, version)',
     Todo(True)) > 0);
-  Assert.IsTrue(Pos('CONSTRAINT PK_prc_bloqueo PRIMARY KEY (IdEstructura, id, Codigodoc, fecha, version)',
+  Assert.IsTrue(Pos('CONSTRAINT PK_prc_bloqueo PRIMARY KEY (IdEstructura, id, codsubs, Codigodoc, fecha, version)',
     Todo(False)) > 0);
 end;
 
