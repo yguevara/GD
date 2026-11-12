@@ -1,13 +1,27 @@
 unit UAutentica;
 
+{ ---------------------------------------------------------------------------
+  Ventana de inicio de sesion.
+
+  Esta unidad SOLO captura usuario y clave y muestra el resultado; la logica de
+  verificacion vive en UAutenticacion (sin VCL, con pruebas). La ventana nunca
+  modifica la sesion (UDM.Rol / UDM.UserName): devuelve un TResultadoAutenticacion
+  y quien la llama (TMAIN.btnautenticaClick) decide que hacer con el.
+
+  Uso:
+    if Autenticar(Resultado) then
+      // Resultado.Usuario y Resultado.Rol son validos
+    else
+      // el usuario cancelo (o cerro la ventana): la sesion no cambia
+  --------------------------------------------------------------------------- }
+
 interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, jpeg, DB, Data.Win.ADODB, dxGDIPlusClasses,
   cxGraphics, cxControls, cxLookAndFeels, cxLookAndFeelPainters, cxContainer,
-  cxEdit, dxSkinsCore, dxSkinsDefaultPainters, cxTextEdit, IdGlobal, IdHash,
-  IdHashMessageDigest;
+  cxEdit, dxSkinsCore, dxSkinsDefaultPainters, cxTextEdit, UAutenticacion;
 
 type
   TfrmAutentica = class(TForm)
@@ -21,167 +35,121 @@ type
     edtpass: TEdit;
     lblMensaje: TLabel;
     chkMostrarClave: TCheckBox;
-    procedure FormActivate(Sender: TObject);
     procedure btnaceptClick(Sender: TObject);
-    procedure btncancelClick(Sender: TObject);
     procedure edtuserKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     function FormHelp(Command: Word; Data: NativeInt; var CallHelp: Boolean): Boolean;
     procedure btnHelpClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure chkMostrarClaveClick(Sender: TObject);
+    procedure CampoCambio(Sender: TObject);
   private
-    { Private declarations }
-    Arol: string;
-    LogeUser, userrol: string;
+    FResultado: TResultadoAutenticacion;
+    procedure MostrarMensaje(const ATexto: string);
+    procedure RegistrarFallo(const AMotivo: string);
   public
-    { Public declarations }
-    EsCargado: boolean;
-    function getFileMd5HashString(const vFileName: string): string;
-    function getMd5HashString(const vValue: string): string;
+    { Resultado del intento aceptado; solo es valido si ShowModal devolvio mrOk. }
+    property Resultado: TResultadoAutenticacion read FResultado;
   end;
 
-function autenticar: string;
+{ Muestra la ventana de inicio de sesion. Devuelve True solo si el usuario se
+  autentico correctamente; en ese caso AResultado trae usuario y rol. Si
+  devuelve False (cancelo o cerro la ventana) AResultado.Rol queda vacio y no
+  se toca ningun dato de la sesion. }
+function Autenticar(out AResultado: TResultadoAutenticacion): Boolean;
 
 implementation
 
 uses
-  md5, DBClient, USecurityClasss, UCapaDatos, USystemMsg;
-
+  UCapaDatos;
 
 {$R *.dfm}
 
-function autenticar: string;
+const
+  ARCHIVO_ULTIMO_USUARIO = 'lastuseraut.ini';
+  TEMA_AYUDA_LOGIN = 11;
+
+function Autenticar(out AResultado: TResultadoAutenticacion): Boolean;
+var
+  Ventana: TfrmAutentica;
 begin
-  with TfrmAutentica.create(nil) do
+  AResultado.Estado := eaCredencialesInvalidas;
+  AResultado.Usuario := '';
+  AResultado.Rol := '';
+  AResultado.Mensaje := '';
+  AResultado.Detalle := '';
+  Ventana := TfrmAutentica.Create(nil);
   try
-    result := 'Visor';
-    showmodal;
+    Result := (Ventana.ShowModal = mrOk) and (Ventana.Resultado.Estado = eaAceptado);
+    if Result then
+      AResultado := Ventana.Resultado;
   finally
-    result := UDM.Rol;
-    free;
+    Ventana.Free;
   end;
 end;
 
-procedure TfrmAutentica.FormActivate(Sender: TObject);
+{ Muestra un mensaje de error bajo los campos. }
+procedure TfrmAutentica.MostrarMensaje(const ATexto: string);
 begin
-  if trim(edtuser.Text) = '' then
-  begin
-    edtuser.SetFocus;
-    edtuser.Focused;
-  end
-  else
-  begin
-    edtpass.SetFocus;
-    edtpass.Focused;
-  end;
-  Arol := 'Visor';
+  lblMensaje.Caption := ATexto;
+  lblMensaje.Visible := ATexto <> '';
 end;
 
-function TfrmAutentica.FormHelp(Command: Word; Data: NativeInt; var CallHelp: Boolean): Boolean;
+{ Deja constancia en el registro del sistema de un intento fallido. Nunca
+  incluye la clave escrita. }
+procedure TfrmAutentica.RegistrarFallo(const AMotivo: string);
 begin
-  HelpFile := ExtractFilePath(Application.ExeName) + 'ArchiGenio.chm';
+  UDM.log('Intento de autenticacion fallido en la PC "' + DatosPC.Nombre +
+    '" (usuario del sistema operativo "' + DatosPC.Usuario + '") con el nombre de usuario "' +
+    NormalizarUsuario(edtuser.Text) + '". ' + AMotivo, 11, '', '', '');
 end;
 
 procedure TfrmAutentica.btnaceptClick(Sender: TObject);
-
-  function nombreuser(NU: string): Boolean;
-  begin
-    Result := False;
-    UDM.cl_Resp_Gest_Arch.First;
-    while not UDM.cl_Resp_Gest_Arch.Eof do
-    begin
-      if AnsiLowerCase(UDM.cl_Resp_Gest_Arch.FieldByName('usuario').AsString) = AnsiLowerCase(NU) then
-      begin
-        if (UDM.Tb_Rol.Locate('idrol', UDM.cl_Resp_Gest_Arch.FieldByName('rol').AsString, [])) then
-        begin
-          UDM.ROL := UDM.Tb_Rol.FieldByName('rol').AsString;
-          Result := True;
-          Exit;
-        end;
-      end;
-      udm.cl_Resp_Gest_Arch.Next;
-    end;
-  end;
-
-  function buscaUser(IdUser, IdPass: string): boolean;
-  begin
-    nombreuser(IdUser);
-    UDM.cl_Resp_Gest_Arch.First;
-    result := False;
-    if UDM.cl_Resp_Gest_Arch.Locate('usuario;password', VarArrayOf([ansilowercase(IdUser), IdPass]), []) then
-      Result := IdPass = UDM.cl_Resp_Gest_Arch.FieldByName('password').AsString;
-  end;
-
 var
-  List: TStringList;
-  cadpass:string;
+  Intento: TResultadoAutenticacion;
+  Mensaje: string;
 begin
-  if trim(edtuser.Text) = '' then
+  if not ValidarCampos(edtuser.Text, edtpass.Text, Mensaje) then
   begin
-    UDM.sms('Debe especificar un nombre de usuario válido.', 2);
-    edtuser.Focused;
-    edtuser.SetFocus;
-    UDM.log('Se ha producido un intento de autenticación en la PC "' + DatosPC.Nombre + '" con el nombre de usuario "' + DatosPC.Usuario + '". Debe especificar un nombre de usuario válido.', 11, '', '', '');
-    Exit;
-  end;
-  if (Trim(edtpass.Text) = '') or (length(edtpass.Text) < 4) then
-  begin
-    UDM.sms('Debe especificar una contraseña válida la cual no puede ser un caracter en blanco ni tener menos de cuatro caracteres de longitud.', 2);
-    edtpass.Focused;
-    edtpass.SetFocus;
-    UDM.log('Se ha producido un intento de autenticación en la PC "' + DatosPC.Nombre + '" con el nombre de usuario ". ' + DatosPC.Usuario + '".Debe especificar un nombre de usuario válido.', 11, '', '', '');
-    Exit;
-  end;
-  if UDM.cl_Resp_Gest_Arch.Locate('usuario', trim(edtuser.Text), []) then
-  begin
-    cadpass:=UDM.getMd5HashString(trim(edtpass.Text));
-    UDM.Rol := Security.GetRol(UDM.Conn, AnsiLowerCase(trim(edtuser.Text)), trim(edtpass.Text), cadpass);
-    if trim(UDM.Rol) = '' then
-    begin
-      UDM.sms('El usuario y/o la contraseña son incorrectos. Por favor contacte con un administrador del sistema.', 2);
-      if not EsCargado then
-      begin
-        edtuser.Text := '';
-        edtpass.Text := '';
-        edtuser.SetFocus;
-        edtuser.Focused;
-      end
-      else
-      begin
-        edtpass.Text := '';
-        edtpass.SetFocus;
-        edtpass.Focused;
-      end;
-      Exit
-    end
+    MostrarMensaje(Mensaje);
+    if Trim(edtuser.Text) = '' then
+      edtuser.SetFocus
     else
-    begin
-      UDM.EstablecerAlcance(trim(edtuser.Text), SameText(UDM.Rol, 'Administrador'));
-      UDM.UserName := trim(edtuser.Text);
-      List := TStringList.Create;
-      List.Add(trim(edtuser.Text));
-      List.SaveToFile(PathTemp + 'lastuseraut.ini');
-      List.Free;
-      Close;
-    end;
-  end
-  else
-  begin
-    UDM.sms('El usuario "' + edtuser.Text + '" no se encuentra en la base de datos.', 1);
-    edtuser.SetFocus;
-    edtuser.Focused;
+      edtpass.SetFocus;
     Exit;
+  end;
+
+  Intento := VerificarCredenciales(UDM.Conn, edtuser.Text, edtpass.Text);
+  case Intento.Estado of
+    eaAceptado:
+      begin
+        FResultado := Intento;
+        GuardarUltimoUsuario(PathTemp + ARCHIVO_ULTIMO_USUARIO, Intento.Usuario);
+        ModalResult := mrOk;
+      end;
+    eaErrorBD:
+      begin
+        MostrarMensaje(Intento.Mensaje);
+        RegistrarFallo('Error de base de datos: ' + Intento.Detalle);
+      end;
+  else
+    // Credenciales invalidas o usuario deshabilitado: se limpia solo la clave.
+    edtpass.Text := '';
+    MostrarMensaje(Intento.Mensaje);
+    edtpass.SetFocus;
+    if Intento.Estado = eaDeshabilitado then
+      RegistrarFallo('Usuario deshabilitado.')
+    else
+      RegistrarFallo('Usuario o clave incorrectos.');
   end;
 end;
 
-procedure TfrmAutentica.btncancelClick(Sender: TObject);
+{ Al escribir en cualquier campo desaparece el mensaje de error anterior. }
+procedure TfrmAutentica.CampoCambio(Sender: TObject);
 begin
-  UserROL := 'Visor';
-  UDM.Username := 'Invitado';
-  Close;
+  MostrarMensaje('');
 end;
 
-// Alterna entre mostrar y ocultar la contrasena mientras se escribe.
+{ Alterna entre mostrar y ocultar la clave mientras se escribe. }
 procedure TfrmAutentica.chkMostrarClaveClick(Sender: TObject);
 begin
   if chkMostrarClave.Checked then
@@ -190,72 +158,31 @@ begin
     edtpass.PasswordChar := '*';
 end;
 
-procedure TfrmAutentica.btnHelpClick(Sender: TObject);
-var
-  TopicID: integer;
-begin
-  TopicID := 11;
-  Application.HelpContext(11);
-end;
-
 procedure TfrmAutentica.FormShow(Sender: TObject);
-var
-  List: TStringList;
 begin
-  EsCargado := False;
-  if FileExists(PathTemp + 'lastuseraut.ini') then
-  begin
-    List := TStringList.Create;
-    List.LoadFromFile(PathTemp + 'lastuseraut.ini');
-    if trim(List[0]) <> '' then
-    begin
-      edtuser.Text := List[0];
-      edtpass.Focused;
-      edtpass.SetFocus;
-      EsCargado := True;
-    end;
-    List.Free;
-  end;
+  MostrarMensaje('');
+  edtuser.Text := LeerUltimoUsuario(PathTemp + ARCHIVO_ULTIMO_USUARIO);
+  if edtuser.Text = '' then
+    ActiveControl := edtuser
+  else
+    ActiveControl := edtpass;
 end;
 
-function TfrmAutentica.getFileMd5HashString(const vFileName: string): string;
-var
-  vHashMD5: TIdHashMessageDigest5;
-  vFile: TFileStream;
+function TfrmAutentica.FormHelp(Command: Word; Data: NativeInt; var CallHelp: Boolean): Boolean;
 begin
-  vFile := TFileStream.Create(vFileName, fmOpenRead OR fmShareDenyWrite);
-  vHashMD5 := nil;
-  try
-    vHashMD5 := TIdHashMessageDigest5.Create;
-    Result := IdGlobal.IndyLowerCase(vHashMD5.HashStreamAsHex(vFile));
-  finally
-    vHashMD5.Free;
-  end;
+  HelpFile := ExtractFilePath(Application.ExeName) + 'ArchiGenio.chm';
+  Result := False;
 end;
 
-function TfrmAutentica.getMd5HashString(const vValue: string): string;
-var
-  vHashMD5: TIdHashMessageDigest5;
+procedure TfrmAutentica.btnHelpClick(Sender: TObject);
 begin
-  vHashMD5 := nil;
-  try
-    vHashMD5 := TIdHashMessageDigest5.Create;
-    Result := IdGlobal.IndyLowerCase(vHashMD5.HashStringAsHex(vValue));
-  finally
-    vHashMD5.Free;
-  end;
+  Application.HelpContext(TEMA_AYUDA_LOGIN);
 end;
 
 procedure TfrmAutentica.edtuserKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-var
-  TopicID: integer;
 begin
-  if Key = 112 then
-  begin
-    TopicID := 11;
-    Application.HelpContext(TopicID);
-  end;
+  if Key = VK_F1 then
+    Application.HelpContext(TEMA_AYUDA_LOGIN);
 end;
 
 end.
-

@@ -81,7 +81,7 @@ procedure GuardarUltimoUsuario(const ARuta, AUsuario: string);
 implementation
 
 uses
-  System.SysUtils, System.Classes, IdGlobal, IdHashMessageDigest;
+  System.SysUtils, System.Classes, FireDAC.Stan.Param, IdGlobal, IdHashMessageDigest;
 
 function CalcularMd5(const AValor: string): string;
 var

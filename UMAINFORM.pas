@@ -695,6 +695,9 @@ type
 //    FComboBoxAssociations: TArray<TComboBoxFieldAssociation>;
 //    FComboBoxAssociations: TDictionary<TcxComboBoxProperties, string>;
     procedure UpdateButtonImage;
+    function ObtenerRolActualID: Integer;
+    procedure AplicarSesion(const AUsuario, ARol: string);
+    procedure CerrarSesion;
     procedure PrepareSSDisp;
     procedure PrepareSSDetailView;
     procedure PrepareServerDetailView;
@@ -857,7 +860,7 @@ var
 implementation
 
 uses
-  UAparienciaLegacy, UTema, UIconos, UDocumentoVistaDatos, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UCapaDatos, UUserGest, UDocManagement,
+  UAparienciaLegacy, UTema, UIconos, UDocumentoVistaDatos, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UAutenticacion, UCapaDatos, UUserGest, UDocManagement,
   UPantallaCarga, UCLSeriesDocumentales, UCLFtpServer, UGestEstruct, UMangementArch,
   UManagementFileSeries, UViewFunciones, UVeditor, UExcelExport, UManagementNode,
   USystemMsg, UNodeProperties, UCL_TiposExp, USysConfig, UTransferencias,
@@ -2290,300 +2293,144 @@ begin
   end;
 end;  }
 
-// Procedimiento: TMAIN.btnautenticaClick
-// Propósito: Maneja el evento OnClick del botón btnautentica. Si el usuario no está autenticado,
-//            realiza la autenticación. Si ya está autenticado, cierra la sesión y restablece el rol a "visor".
-// Autor: [Refactorizado por Grok 3, xAI]
-// Fecha: 09 de abril de 2025
-// Parámetros:
-//   Sender: TObject - El objeto que dispara el evento (btnautentica).
-// Resultado: No devuelve valor (procedimiento). Autentica al usuario o cierra la sesión.
-// Excepciones: Maneja errores relacionados con la autenticación y el acceso a la base de datos.
-// Dependencias externas:
-//   - UDM.Conn: Conexión a la base de datos para consultas SQL.
-//   - UDM.Rol: Rol actual del usuario.
-//   - UDM.UserName: Nombre del usuario actual.
-//   - Security: Objeto para manejar la seguridad y roles del usuario.
-//   - autenticar: Función que realiza la autenticación y devuelve el rol activo.
-// Variables globales:
-//   - TBD: Tipo de base de datos ('A' para Access, 'S' para SQL Server, etc.).
-//   - Rolactivo: Variable global que almacena el rol activo.
-//   - acceso: Variable global que almacena el nivel de acceso.
-
-procedure TMAIN.btnautenticaClick(Sender: TObject);
+// -----------------------------------------------------------------------------
+// Función: TMAIN.ObtenerRolActualID
+// Propósito: devuelve el identificador (tb_rol.idrol) del rol de la sesión actual
+//            (UDM.Rol). La comparación no distingue mayúsculas y la consulta es
+//            válida en Access y SQL Server.
+// Resultado: Integer. 0 si el rol no existe en tb_rol.
+// Excepciones: lanza Exception si el tipo de base de datos (TBD) no está soportado.
+// -----------------------------------------------------------------------------
+function TMAIN.ObtenerRolActualID: Integer;
 var
-  RolID: Integer;
-  QueryFunction: string;  // Para determinar la función SQL a usar
-  PreviousUserName, PreviousRol: string; // Para registrar el usuario y rol antes de cerrar sesión
+  FuncMinusculas: string;
+  Valor: Variant;
+begin
+  case TBD[1] of
+    'A':
+      FuncMinusculas := 'lcase';  // MS Access
+    'S', 'M', 'P':
+      FuncMinusculas := 'lower';  // SQL Server, MySQL y PostgreSQL
+  else
+    raise Exception.CreateFmt('Tipo de base de datos no soportado: %s', [TBD]);
+  end;
+  Valor := UDM.Conn.ExecSQLScalar('SELECT idrol FROM tb_rol WHERE ' + FuncMinusculas + '(rol) = :rol',
+    [AnsiLowerCase(UDM.Rol)]);
+  if VarIsNull(Valor) or VarIsEmpty(Valor) then
+    Result := 0
+  else
+    Result := Valor;
+end;
 
-  function GetRolID: Integer;
-  var
-    QueryFunction: string;
-  begin
-    // Determinar la función SQL según el tipo de base de datos
-    case TBD[1] of
-      'A':
-        QueryFunction := 'lcase';  // MS Access
-      'S':
-        QueryFunction := 'lower';  // SQL Server
-      'M':
-        QueryFunction := 'lower';  // MySQL (también usa LOWER)
-      'P':
-        QueryFunction := 'lower';  // PostgreSQL (también usa LOWER)
-    else
-      raise Exception.CreateFmt('Tipo de base de datos no soportado: %s', [TBD]);
-    end;
+// -----------------------------------------------------------------------------
+// Procedimiento: TMAIN.AplicarSesion
+// Propósito: establece la sesión de un usuario en todo el sistema: datos globales
+//            (UDM.Rol y UDM.UserName), alcance sobre el árbol, paneles de estado,
+//            opciones de menú según el rol, nivel de acceso de las pantallas y
+//            recarga del árbol filtrado. Es el ÚNICO lugar donde se cambia la sesión.
+// Parámetros:
+//   AUsuario: nombre del usuario ('Invitado' si no hay sesión).
+//   ARol: nombre del rol, tal como figura en tb_rol ('Visor' si no hay sesión).
+// Excepciones: propaga las de la base de datos; quien llama decide cómo tratarlas.
+// -----------------------------------------------------------------------------
+procedure TMAIN.AplicarSesion(const AUsuario, ARol: string);
+begin
+  UDM.Rol := ARol;
+  UDM.UserName := AUsuario;
+  UDM.EstablecerAlcance(AUsuario, SameText(ARol, 'Administrador'));
 
-    // Ejecutar la consulta
-    Result := UDM.Conn.ExecSQLScalar(Format('SELECT idrol FROM tb_rol WHERE %s(rol) = %s', [QueryFunction, QuotedStr(AnsiLowerCase(UDM.Rol))]));
+  MB.Panels[1].Text := UDM.UserName;
+  MB.Panels[3].Text := UDM.Rol;
+
+  case ObtenerRolActualID of
+    1:
+      adminOptions;
+    2, 3:
+      GestorOptions;  // los roles 2 y 3 comparten opciones
+    4:
+      VisorOptions;
+    5:
+      ArchiveroOpts;
   end;
 
+  Acomoda;
+  Acomoda2;
+
+  // El alcance ya está cargado: recargar el árbol filtrado.
+  UDM.CargarArbol(tvTree, UDM.tb_arbol, False);
+
+  if SameText(ARol, 'administrador') or SameText(ARol, 'gestor') then
+    acceso := 'acceso total'
+  else
+    acceso := 'solo lectura';
+  Security.SetModSecurity(Self, acceso);
+end;
+
+// -----------------------------------------------------------------------------
+// Procedimiento: TMAIN.CerrarSesion
+// Propósito: devuelve el sistema al estado sin sesión (usuario "Invitado", rol
+//            "Visor", solo contenido público).
+// -----------------------------------------------------------------------------
+procedure TMAIN.CerrarSesion;
+begin
+  AplicarSesion('Invitado', 'Visor');
+end;
+
+// -----------------------------------------------------------------------------
+// Procedimiento: TMAIN.btnautenticaClick
+// Propósito: botón de inicio/cierre de sesión. Si no hay sesión, abre la ventana
+//            de autenticación (UAutentica.Autenticar) y, solo si el usuario se
+//            autentica, aplica la sesión. Si ya hay sesión, pide confirmación y la
+//            cierra. Cancelar nunca cambia la sesión.
+// Parámetros:
+//   Sender: el botón btnautentica.
+// Efectos: FIsAuthenticated indica si hay sesión; se registran en el log los
+//          inicios (tipo 11) y cierres (tipo 13) de sesión.
+// -----------------------------------------------------------------------------
+procedure TMAIN.btnautenticaClick(Sender: TObject);
+var
+  Resultado: TResultadoAutenticacion;
+  UsuarioAnterior, RolAnterior: string;
 begin
   try
-    // Si el usuario ya está autenticado, cerrar sesión
     if FIsAuthenticated then
     begin
       if UDM.sms('¿Desea cerrar la sesión actual?', 4) = 6 then
       begin
-        // Registrar el cierre de sesión
-        PreviousUserName := UDM.UserName;
-        PreviousRol := UDM.Rol;
-        UDM.log(Format('El usuario "%s" con el rol de "%s" ha cerrado sesión', [PreviousUserName, PreviousRol]), 13, '', '', '');
-
-        // Restablecer el estado a "visor"
-        UDM.Rol := 'visor';
-        UDM.UserName := 'Invitado';
+        UsuarioAnterior := UDM.UserName;
+        RolAnterior := UDM.Rol;
+        UDM.log(Format('El usuario "%s" con el rol de "%s" ha cerrado sesión', [UsuarioAnterior, RolAnterior]), 13, '', '', '');
+        CerrarSesion;
         FIsAuthenticated := False;
-
-        // Actualizar paneles
-        MB.Panels[1].Text := UDM.UserName;
-        MB.Panels[3].Text := UDM.Rol;
-
-        // Configurar opciones para el rol "visor"
-        RolID := GetRolID;
-        case RolID of
-          1:
-            adminOptions;
-          2, 3:
-            GestorOptions;
-          4:
-            VisorOptions;
-          5:
-            ArchiveroOpts;
-        end;
-
-        // Acomodar interfaz
-        Acomoda;
-        Acomoda2;
-
-        // Sin sesion: vuelve el alcance de Visor (solo publico)
-        UDM.EstablecerAlcance('Invitado', False);
-        UDM.CargarArbol(tvTree, UDM.tb_arbol, False);
-
-        // Actualizar nivel de acceso
-        acceso := 'solo lectura';
-        Security.SetModSecurity(Self, acceso);
-
-        // Actualizar la imagen del botón
-//        UpdateButtonImage;
-
         UDM.sms('Sesión cerrada. Ahora está como "Invitado" con rol "visor".', 3);
       end;
       Exit;
     end;
 
-    // Si no está autenticado, proceder con la autenticación
-    Rolactivo := autenticar;
-
-    // Si el usuario cancela, salir de la función antes de continuar
-    if AnsiLowerCase(Rolactivo) = 'visor' then
+    if not Autenticar(Resultado) then
     begin
       UDM.sms('Autenticación cancelada.', 3);
       Exit;
     end;
 
-    // Actualizar paneles solo si la autenticación es exitosa
-    MB.Panels[1].Text := UDM.UserName;
-    MB.Panels[3].Text := UDM.Rol;
-
-    // Obtener RolID actualizado
-    RolID := GetRolID;
-
-    // Configurar opciones según rol usando case mejorado
-    case RolID of
-      1:
-        adminOptions;
-      2, 3:
-        GestorOptions;  // Combinar roles 2 y 3 ya que usan la misma función
-      4:
-        VisorOptions;
-      5:
-        ArchiveroOpts;
-    end;
-
-    // Acomodar interfaz
-
-    Acomoda;
-    Acomoda2;
-
-    // El alcance del usuario ya esta cargado: recargar el arbol filtrado
-    UDM.CargarArbol(tvTree, UDM.tb_arbol, False);
-
-    // Notificar autenticación
+    AplicarSesion(Resultado.Usuario, Resultado.Rol);
+    FIsAuthenticated := True;
     UDM.sms(Format('Ud se ha autenticado al sistema con el Rol de %s', [AnsiQuotedStr(UDM.Rol, '"')]), 3);
     UDM.log(Format('El usuario "%s" con el rol de "%s" se ha autenticado en el sistema', [UDM.UserName, UDM.Rol]), 11, '', '', '');
-
-    // Determinar nivel de acceso usando operador ternario
-    acceso := IfThen((AnsiLowerCase(UDM.Rol) = 'administrador') or (AnsiLowerCase(UDM.Rol) = 'gestor'), 'acceso total', 'solo lectura');
-    Security.SetModSecurity(Self, acceso);
-
-    // Actualizar el estado de autenticación y la imagen del botón
-    FIsAuthenticated := True;
-    //UpdateButtonImage;
   except
     on E: Exception do
     begin
       UDM.sms('Error durante la autenticación: ' + E.Message, 3);
+      // Si falló a medias, volver al estado sin sesión para no dejar el sistema inconsistente.
       FIsAuthenticated := False;
-      //UpdateButtonImage;
+      try
+        CerrarSesion;
+      except
+        // Sin más recurso: el mensaje anterior ya informó del error.
+      end;
     end;
   end;
 end;
-
-
-
-{
-procedure TMAIN.btnautenticaClick(Sender: TObject);
-var
-  RolID: Integer;
-  QueryFunction: string;  // Para determinar la función SQL a usar
-
-  function GetRolID: Integer;
-  var
-    QueryFunction: string;
-    p: char;
-  begin
-  // Determinar la función SQL según el tipo de base de datos
-    case TBD[1] of
-      'A':
-        QueryFunction := 'lcase';  // MS Access
-      'S':
-        QueryFunction := 'lower';  // SQL Server
-      'M':
-        QueryFunction := 'lower';  // MySQL (también usa LOWER)
-      'P':
-        QueryFunction := 'lower';  // PostgreSQL (también usa LOWER)
-    else
-      raise Exception.CreateFmt('Tipo de base de datos no soportado: %s', [TBD]);
-    end;
-
-  // Ejecutar la consulta
-    Result := UDM.Conn.ExecSQLScalar(Format('SELECT idrol FROM tb_rol WHERE %s(rol) = %s', [QueryFunction, QuotedStr(AnsiLowerCase(UDM.Rol))]));
-  end;
-
-begin
-// Autenticar y actualizar paneles
-  Rolactivo := autenticar;
-
-// Si el usuario cancela, salir de la función antes de continuar
-  if ansilowercase(Rolactivo) = 'visor' then
-  begin
-    UDM.sms('Autenticación cancelada.', 3);
-    Exit;
-  end;
-
-// Actualizar paneles solo si la autenticación es exitosa
-  MB.Panels[1].Text := UDM.UserName;
-  MB.Panels[3].Text := UDM.Rol;
-
-// Obtener RolID actualizado
-  RolID := GetRolID;
-
-// Configurar opciones según rol usando case mejorado
-  case RolID of
-    1:
-      adminOptions;
-    2, 3:
-      GestorOptions;  // Combinar roles 2 y 3 ya que usan la misma función
-    4:
-      VisorOptions;
-    5:
-      ArchiveroOpts;
-  end;
-
-// Acomodar interfaz
-  Acomoda;
-  Acomoda2;
-
-// Notificar autenticación
-  UDM.sms(Format('Ud se ha autenticado al sistema con el Rol de %s', [AnsiQuotedStr(UDM.Rol, '"')]), 3);
-  UDM.log(Format('El usuario "%s" con el rol de "%s" se ha autenticado en el sistema', [UDM.UserName, UDM.Rol]), 11, '', '', '');
-
-// Determinar nivel de acceso usando operador ternario
-  acceso := IfThen((AnsiLowerCase(UDM.Rol) = 'administrador') or (AnsiLowerCase(UDM.Rol) = 'gestor'), 'acceso total', 'solo lectura');
-  Security.SetModSecurity(Self, acceso);
-end; }
-{var
-  RolID: Integer;
-  acceso: string;
-
-  function ObtenerRolID: Integer;
-  begin
-    if TBD = 'A' then
-      Result := UDM.Conn.ExecSQLScalar('SELECT idrol FROM tb_rol WHERE lcase(rol) = ' + QuotedStr(AnsiLowerCase(UDM.Rol)))
-    else
-      Result := UDM.Conn.ExecSQLScalar('SELECT idrol FROM tb_rol WHERE lower(rol) = ' + QuotedStr(AnsiLowerCase(UDM.Rol)));
-  end;
-
-begin
-  RolID := ObtenerRolID;
-
-  if RolID <> 4 then
-  begin
-    if UDM.sms('¿Desea cerrar la sesión actual primero?', 4) = 6 then
-    begin
-      UDM.log(Format('El usuario "%s" con el rol de "%s" ha cerrado sesión', [UDM.UserName, UDM.Rol]), 13, '', '', '');
-      UDM.Rol := 'visor';
-      UDM.UserName := 'Invitado';
-      ArchiveroOpts;
-    end
-    else
-      Exit;
-  end;
-
-  Rolactivo := autenticar;
-  MB.Panels[1].Text := UDM.UserName;
-  MB.Panels[3].Text := UDM.Rol;
-
-  RolID := ObtenerRolID;
-
-  case RolID of
-    1:
-      adminOptions;
-    2, 3:
-      GestorOptions;
-    4:
-      VisorOptions;
-    5:
-      ArchiveroOpts;
-  end;
-
-  Acomoda;
-  Acomoda2;
-
-  UDM.sms(Format('Ud se ha autenticado al sistema con el Rol de "%s"', [UDM.Rol]), 3);
-  UDM.log(Format('El usuario "%s" con el rol de "%s" se ha autenticado en el sistema', [UDM.UserName, UDM.Rol]), 11, '', '', '');
-
-  if (AnsiLowerCase(UDM.Rol) = 'administrador') or (AnsiLowerCase(UDM.Rol) = 'gestor') then
-    acceso := 'acceso total'
-  else
-    acceso := 'solo lectura';
-
-  if Trim(acceso) = '' then
-    acceso := 'solo lectura';
-
-  // Security.SetModSecurity(Self, acceso);
-end;  }
 
 procedure TMAIN.btnClearExpClick(Sender: TObject);
 begin

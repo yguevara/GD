@@ -109,7 +109,6 @@ object frmAutentica: TfrmAutentica
   OldCreateOrder = False
   Position = poScreenCenter
   Scaled = True
-  OnActivate = FormActivate
   OnHelp = FormHelp
   OnKeyDown = edtuserKeyDown
   OnShow = FormShow
@@ -323,6 +322,7 @@ object frmAutentica: TfrmAutentica
     Width = 330
     Height = 23
     TabOrder = 0
+    OnChange = CampoCambio
     OnKeyDown = edtuserKeyDown
   end
   object edtpass: TEdit
@@ -332,6 +332,7 @@ object frmAutentica: TfrmAutentica
     Height = 23
     PasswordChar = '*'
     TabOrder = 1
+    OnChange = CampoCambio
     OnKeyDown = edtuserKeyDown
   end
   object chkMostrarClave: TCheckBox
@@ -386,8 +387,8 @@ object frmAutentica: TfrmAutentica
     Height = 27
     Cancel = True
     Caption = '&Cancelar'
+    ModalResult = 2
     TabOrder = 5
-    OnClick = btncancelClick
     OnKeyDown = edtuserKeyDown
   end
 end
