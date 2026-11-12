@@ -65,6 +65,19 @@ CREATE TABLE prc_autorizacion (
     REFERENCES prc_proceso(IdProceso) ON DELETE CASCADE
 );
 
+IF OBJECT_ID('dbo.prc_bloqueo', 'U') IS NULL
+CREATE TABLE prc_bloqueo (
+  IdEstructura VARCHAR(50) NOT NULL,
+  id INT NOT NULL,
+  Codigodoc VARCHAR(20) NOT NULL,
+  fecha DATETIME NOT NULL,
+  version VARCHAR(12) NOT NULL,
+  IdProceso INT NOT NULL,
+  CONSTRAINT PK_prc_bloqueo PRIMARY KEY (IdEstructura, id, Codigodoc, fecha, version),
+  CONSTRAINT FK_prc_bloqueo_proceso FOREIGN KEY (IdProceso)
+    REFERENCES prc_proceso(IdProceso) ON DELETE CASCADE
+);
+
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_prc_unidad_nodo' AND object_id = OBJECT_ID('dbo.prc_unidad'))
 CREATE INDEX IX_prc_unidad_nodo ON prc_unidad (IdEstructura, id);
 
