@@ -98,7 +98,13 @@ uses
   UCargaLote in '..\UCargaLote.pas',
   UPruebasCargaDocumento in 'UPruebasCargaDocumento.pas',
   UProceso in '..\UProceso.pas',
-  UPruebasProceso in 'UPruebasProceso.pas';
+  UPruebasProceso in 'UPruebasProceso.pas',
+  UNumeracion in '..\UNumeracion.pas',
+  UPruebasNumeracion in 'UPruebasNumeracion.pas',
+  UCandados in '..\UCandados.pas',
+  UPruebasCandados in 'UPruebasCandados.pas',
+  UAutorizacion in '..\UAutorizacion.pas',
+  UPruebasAutorizacion in 'UPruebasAutorizacion.pas';
 
 var
   Corredor: ITestRunner;
