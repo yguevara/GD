@@ -2,18 +2,15 @@ object frmAutentica: TfrmAutentica
   Left = 405
   Top = 320
   BorderIcons = []
-  Caption = 'Autenticarse '
-  ClientHeight = 218
+  BorderStyle = bsDialog
+  Caption = 'Iniciar sesi'#243'n'
+  ClientHeight = 293
   ClientWidth = 362
   Color = clBtnFace
-  Constraints.MaxHeight = 257
-  Constraints.MaxWidth = 378
-  Constraints.MinHeight = 257
-  Constraints.MinWidth = 378
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  Font.Height = -12
+  Font.Name = 'Segoe UI'
   Font.Style = []
   HelpFile = 'ArchiGenioPro.chm'
   Icon.Data = {
@@ -111,27 +108,28 @@ object frmAutentica: TfrmAutentica
     000000000000000000000000000000000000000000000000000000000000}
   OldCreateOrder = False
   Position = poScreenCenter
-  Scaled = False
+  Scaled = True
   OnActivate = FormActivate
   OnHelp = FormHelp
   OnKeyDown = edtuserKeyDown
-  OnKeyPress = FormKeyPress
   OnShow = FormShow
   PixelsPerInch = 96
-  TextHeight = 13
+  TextHeight = 15
   object lbluser: TLabel
-    Left = 12
-    Top = 97
-    Width = 52
-    Height = 26
-    Caption = 'Nombre de'#13#10'Usuario'
+    Left = 16
+    Top = 84
+    Width = 40
+    Height = 15
+    Caption = '&Usuario'
+    FocusControl = edtuser
   end
   object lblpass: TLabel
-    Left = 10
-    Top = 138
-    Width = 54
-    Height = 13
-    Caption = 'Contrase'#241'a'
+    Left = 16
+    Top = 134
+    Width = 63
+    Height = 15
+    Caption = 'Contrase'#241'&a'
+    FocusControl = edtpass
   end
   object Image1: TImage
     Left = 0
@@ -320,66 +318,76 @@ object frmAutentica: TfrmAutentica
     ExplicitWidth = 352
   end
   object edtuser: TEdit
-    Left = 71
-    Top = 97
-    Width = 282
-    Height = 21
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
-    Font.Style = []
-    ParentFont = False
+    Left = 16
+    Top = 102
+    Width = 330
+    Height = 23
     TabOrder = 0
     OnKeyDown = edtuserKeyDown
   end
-  object btnAcept: TButton
-    Left = 165
-    Top = 171
-    Width = 91
-    Height = 25
-    Caption = '&Aceptar'
-    TabOrder = 3
-    OnClick = btnaceptClick
-    OnKeyDown = edtuserKeyDown
-    OnKeyPress = btnAceptKeyPress
-  end
-  object btnCancel: TButton
-    Left = 262
-    Top = 171
-    Width = 91
-    Height = 25
-    Caption = '&Cancelar'
-    TabOrder = 4
-    OnClick = btncancelClick
-    OnKeyDown = edtuserKeyDown
-    OnKeyPress = btnCancelKeyPress
-  end
-  object btnHelp: TButton
-    Left = 10
-    Top = 171
-    Width = 91
-    Height = 25
-    Caption = '&Ayuda'
-    TabOrder = 2
-    OnClick = btnHelpClick
-    OnKeyDown = edtuserKeyDown
-    OnKeyPress = btnAceptKeyPress
-  end
   object edtpass: TEdit
-    Left = 71
-    Top = 129
-    Width = 282
-    Height = 21
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
-    Font.Style = []
-    ParentFont = False
+    Left = 16
+    Top = 152
+    Width = 330
+    Height = 23
     PasswordChar = '*'
     TabOrder = 1
     OnKeyDown = edtuserKeyDown
-    OnKeyPress = edtpassKeyPress
+  end
+  object chkMostrarClave: TCheckBox
+    Left = 16
+    Top = 182
+    Width = 200
+    Height = 17
+    Caption = 'Mostrar contrase'#241'a'
+    TabOrder = 2
+    OnClick = chkMostrarClaveClick
+  end
+  object lblMensaje: TLabel
+    Left = 16
+    Top = 206
+    Width = 330
+    Height = 34
+    AutoSize = False
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clMaroon
+    Font.Height = -12
+    Font.Name = 'Segoe UI'
+    Font.Style = []
+    ParentFont = False
+    Visible = False
+    WordWrap = True
+  end
+  object btnHelp: TButton
+    Left = 16
+    Top = 254
+    Width = 80
+    Height = 27
+    Caption = 'A&yuda'
+    TabOrder = 3
+    OnClick = btnHelpClick
+    OnKeyDown = edtuserKeyDown
+  end
+  object btnAcept: TButton
+    Left = 168
+    Top = 254
+    Width = 88
+    Height = 27
+    Caption = '&Entrar'
+    Default = True
+    TabOrder = 4
+    OnClick = btnaceptClick
+    OnKeyDown = edtuserKeyDown
+  end
+  object btnCancel: TButton
+    Left = 262
+    Top = 254
+    Width = 84
+    Height = 27
+    Cancel = True
+    Caption = '&Cancelar'
+    TabOrder = 5
+    OnClick = btncancelClick
+    OnKeyDown = edtuserKeyDown
   end
 end

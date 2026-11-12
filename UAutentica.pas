@@ -19,17 +19,16 @@ type
     Image1: TImage;
     btnHelp: TButton;
     edtpass: TEdit;
+    lblMensaje: TLabel;
+    chkMostrarClave: TCheckBox;
     procedure FormActivate(Sender: TObject);
     procedure btnaceptClick(Sender: TObject);
     procedure btncancelClick(Sender: TObject);
-    procedure edtpassKeyPress(Sender: TObject; var Key: Char);
-    procedure btnAceptKeyPress(Sender: TObject; var Key: Char);
-    procedure btnCancelKeyPress(Sender: TObject; var Key: Char);
-    procedure FormKeyPress(Sender: TObject; var Key: Char);
     procedure edtuserKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     function FormHelp(Command: Word; Data: NativeInt; var CallHelp: Boolean): Boolean;
     procedure btnHelpClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure chkMostrarClaveClick(Sender: TObject);
   private
     { Private declarations }
     Arol: string;
@@ -182,24 +181,13 @@ begin
   Close;
 end;
 
-procedure TfrmAutentica.edtpassKeyPress(Sender: TObject; var Key: Char);
+// Alterna entre mostrar y ocultar la contrasena mientras se escribe.
+procedure TfrmAutentica.chkMostrarClaveClick(Sender: TObject);
 begin
-  if Key = #13 then { BackSpace Key }
-    btnaceptClick(Sender);
-  if Key = #27 then
-    btncancelClick(Sender);
-end;
-
-procedure TfrmAutentica.btnAceptKeyPress(Sender: TObject; var Key: Char);
-begin
-  if Key = #27 then
-    btncancelClick(Sender);
-end;
-
-procedure TfrmAutentica.btnCancelKeyPress(Sender: TObject; var Key: Char);
-begin
-  if Key = #27 then
-    btncancelClick(Sender);
+  if chkMostrarClave.Checked then
+    edtpass.PasswordChar := #0
+  else
+    edtpass.PasswordChar := '*';
 end;
 
 procedure TfrmAutentica.btnHelpClick(Sender: TObject);
@@ -208,12 +196,6 @@ var
 begin
   TopicID := 11;
   Application.HelpContext(11);
-end;
-
-procedure TfrmAutentica.FormKeyPress(Sender: TObject; var Key: Char);
-begin
-  if Key = #27 then
-    btncancelClick(Sender);
 end;
 
 procedure TfrmAutentica.FormShow(Sender: TObject);
