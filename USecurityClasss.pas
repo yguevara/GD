@@ -53,7 +53,6 @@ type
     { Private declarations }
   public
     { Public declarations }
-    function GetRol(conn: TFDConnection; UserName, Pass, schname: string): string;
     function GetAccess(conn: TFDConnection; aIdRol, NombreMod: string): string;
     procedure SetModSecurity(aFrm: TForm; Acceso: string);
     procedure CreaMMenu(cadconn: widestring; aMM: TMainMenu; aIdRol, aUser: string);
@@ -661,31 +660,6 @@ begin
       Result := 'Solo Lectura';
 
   end;
-end;
-
-function TSecurityClass.GetRol(conn: TFDConnection; UserName, Pass, schname: string): string;
-var
-  CAD, CAD1: widestring;
-  cmd: TFDQuery;
-begin
-  Result := '';
-  CAD1 := schname;
-  cmd := TFDQuery.Create(nil);
-  CAD := 'SELECT tb_rol.rol FROM cl_Resp_Gest_Arch INNER JOIN tb_rol ON cl_Resp_Gest_Arch.rol = ';
-  CAD := CAD + 'tb_rol.idrol WHERE cl_Resp_Gest_Arch.usuario =' + QuotedStr(ansilowercase(UserName)) + ' AND cl_Resp_Gest_Arch.password =' + QuotedStr(CAD1);
-  CAD := CAD + ' AND cl_Resp_Gest_Arch.habilitado =' + quotedstr('S');
-  cmd.Active := False;
-  cmd.Connection := conn;
-  {cmd.SQL.Clear;
-  cmd.SQL.Add(CAD);}
-  try
-    cmd.Open(CAD);
-    result := cmd.FieldByName('rol').AsString;
-  except
-    Result := '';
-  end;
-
-//  result := conn.ExecSQLScalar(CAD, [, ]);
 end;
 
 procedure TSecurityClass.SetModSecurity(aFrm: TForm; Acceso: string);
