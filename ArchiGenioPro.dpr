@@ -63,6 +63,7 @@ uses
   UAparienciaLegacy in 'UAparienciaLegacy.pas',
   UAutenticacion in 'UAutenticacion.pas',
   UMensajes in 'UMensajes.pas',
+  UClasificadoresInterruptor in 'UClasificadoresInterruptor.pas',
   UTiempos in 'UTiempos.pas',
   UAutentica in 'UAutentica.pas' {frmAutentica},
   md5 in 'md5.pas',
