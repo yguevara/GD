@@ -501,6 +501,7 @@ type
     procedure T3Click(Sender: TObject);
     procedure F1Click(Sender: TObject);
     procedure L1Click(Sender: TObject);
+    procedure AbrirServidoresClasico;
     procedure pmtvResetClick(Sender: TObject);
     procedure S1Click(Sender: TObject);
     procedure S2Click(Sender: TObject);
@@ -860,7 +861,7 @@ var
 implementation
 
 uses
-  UAparienciaLegacy, UTema, UIconos, UDocumentoVistaDatos, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UAutenticacion, UMensajes, UTiempos, USplash, UCapaDatos, UUserGest, UDocManagement,
+  UAparienciaLegacy, UTema, UIconos, UDocumentoVistaDatos, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UAutenticacion, UMensajes, UTiempos, USplash, UCLServidoresForm, UClasificadoresInterruptor, UCapaDatos, UUserGest, UDocManagement,
   UPantallaCarga, UCLSeriesDocumentales, UCLFtpServer, UGestEstruct, UMangementArch,
   UManagementFileSeries, UViewFunciones, UVeditor, UExcelExport, UManagementNode,
   USystemMsg, UNodeProperties, UCL_TiposExp, USysConfig, UTransferencias,
@@ -9691,7 +9692,9 @@ begin
     ExcelExport(nil, cxGrid2);
 end;
 
-procedure TMAIN.L1Click(Sender: TObject);
+// Pantalla clasica de Servidores FTP (UCLFtpServer): se usa con
+// clasificadores_clasico.flag y como respaldo si la pantalla nueva falla.
+procedure TMAIN.AbrirServidoresClasico;
 var
   frmListFTP: TfrmListFTPServer;
 begin
@@ -9742,6 +9745,47 @@ begin
     end;
   end;
 end;
+// Servidores de ficheros: pantalla nueva (UCLServidoresForm). Con
+// clasificadores_clasico.flag junto al ejecutable se abre la clasica; si la nueva
+// falla, el motivo queda en clasificadores_error.log y se abre la clasica.
+procedure TMAIN.L1Click(Sender: TObject);
+begin
+  if ClasificadoresClasicos(PathSys) then
+  begin
+    AbrirServidoresClasico;
+    Exit;
+  end;
+  PContainer.Visible := False;
+  try
+    try
+      if Assigned(UDM) then
+        UDM.log('Accediendo al clasificador de Servidores FTP.', 14, '', '', '');
+      MostrarClasificadorServidores(UDM.Conn);
+      if Assigned(UDM) then
+      begin
+        try
+          UDM.cl_ftp_Server.Refresh;
+          UDM.cmdServer.Refresh;
+        except
+          on E: Exception do
+            TMensajes.Error('Error al actualizar datos de servidores: ' + E.Message, 'Servidores');
+        end;
+        UDM.log('Abandonando al clasificador de Servidores FTP.', 15, '', '', '');
+      end;
+    except
+      on E: Exception do
+      begin
+        RegistrarErrorClasificador(PathSys, 'Servidores: ' + E.ClassName + ': ' + E.Message);
+        PContainer.Visible := True;
+        AbrirServidoresClasico;
+      end;
+    end;
+  finally
+    PContainer.Visible := True;
+    Screen.Cursor := crDefault;
+  end;
+end;
+
 {procedure TMAIN.L1Click(Sender: TObject);
 begin
   PContainer.Visible := False;

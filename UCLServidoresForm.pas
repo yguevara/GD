@@ -7,6 +7,10 @@ unit UCLServidoresForm;
   editar. Las reglas (validar, guardar, eliminar protegido, probar conexion)
   estan en UServidoresDatos; aqui solo se presentan.
 
+  Los campos de la ficha se reparten en Distribuir segun el ancho REAL del
+  panel (no hay posiciones fijas), y se vuelve a repartir al cambiar el tipo o
+  el tamano.
+
   Entrada: MostrarClasificadorServidores(Conn). La pantalla clasica sigue en
   UCLFtpServer (se abre con clasificadores_clasico.flag o si esta falla).
   --------------------------------------------------------------------------- }
@@ -46,35 +50,39 @@ type
   { Da acceso a la fuente (protegida) de TBotonShell. }
   TBotonAbierto = class(TBotonShell);
 
+  { Un campo de la ficha: rotulo, caja de texto y mensaje de error. }
+  TCampoUI = record
+    Lbl: TLabel;
+    Ed: TEdit;
+    Err: TLabel;
+  end;
+
   TfrmServidores = class(TFormClasificadorBase)
   private
     FConn: TFDConnection;
     FServidores: TArray<TServidor>;
     FActual: TServidor;
     FEstadoPorId: TDictionary<Integer, string>;
-    FErrores: TDictionary<string, TLabel>;
+    FCampos: TDictionary<string, TCampoUI>;
     FCargando: Boolean;
     FGuardia: IGuardia;
     FBtnFtp, FBtnS3: TBotonShell;
-    FEdEtiqueta, FEdDireccion, FEdPuerto, FEdRuta, FEdUsuario, FEdClave: TEdit;
-    FEdBucket, FEdRegion, FEdClaveAcceso, FEdSecreto: TEdit;
     FChkHttps: TCheckBox;
-    FGrupoFtp, FGrupoS3, FBloqueProbar: TPanel;
     FAyudaClave, FAyudaSecreto, FResultado: TLabel;
     FBtnProbar: TBotonShell;
-    function NuevaEtiqueta(AParent: TWinControl; const ATexto: string; X, Y: Integer;
-      ASuave: Boolean): TLabel;
-    function NuevoCampo(AParent: TWinControl; const AClave, AEtiqueta: string;
-      X, Y, AAncho: Integer; ASecreto: Boolean): TEdit;
-    function NuevoGrupo(AAlto: Integer): TPanel;
+    function NuevaEtiqueta(const ATexto: string; ASuave: Boolean): TLabel;
+    procedure NuevoCampo(const AClave, AEtiqueta: string; ASecreto: Boolean);
+    function Campo(const AClave: string): TEdit;
+    function NuevoSegmento(const ATexto: string; AClick: TNotifyEvent): TBotonShell;
     procedure ConstruirCampos;
+    procedure Distribuir;
+    procedure CuerpoResize(Sender: TObject);
     procedure Recargar(ASeleccionarId: Integer);
     function BuscarServidor(AId: Integer; out S: TServidor): Boolean;
     function Destino(const S: TServidor): string;
     procedure MostrarFicha(const S: TServidor; AEsNuevo: Boolean);
     function LeerFicha: TServidor;
     procedure PonerTipo(ATipo: TTipoServidor);
-    procedure Reacomodar;
     procedure ActualizarBotones;
     procedure LimpiarErrores;
     procedure MostrarErrores(const AErrores: TArray<TErrorCampo>);
@@ -126,7 +134,7 @@ begin
   FConn := AConn;
   FGuardia := TGuardia.Create;
   FEstadoPorId := TDictionary<Integer, string>.Create;
-  FErrores := TDictionary<string, TLabel>.Create;
+  FCampos := TDictionary<string, TCampoUI>.Create;
   ConstruirBase('Servidores de ficheros', 'D'#243'nde se guardan los documentos digitales',
     'Nuevo servidor');
   AgregarColumna('Estado', 110);
@@ -144,16 +152,15 @@ begin
   if FGuardia <> nil then
     FGuardia.SetCerrado(True);
   FreeAndNil(FEstadoPorId);
-  FreeAndNil(FErrores);
+  FreeAndNil(FCampos);
   inherited Destroy;
 end;
 
-function TfrmServidores.NuevaEtiqueta(AParent: TWinControl; const ATexto: string; X, Y: Integer;
-  ASuave: Boolean): TLabel;
+function TfrmServidores.NuevaEtiqueta(const ATexto: string; ASuave: Boolean): TLabel;
 begin
   Result := TLabel.Create(Self);
-  Result.Parent := AParent;
-  Result.AutoSize := True;
+  Result.Parent := FCuerpo;
+  Result.AutoSize := False;
   Result.Transparent := True;
   Result.StyleElements := [];
   Result.Font.Name := 'Segoe UI';
@@ -162,150 +169,186 @@ begin
     Result.Font.Color := FTema.TextoSuave
   else
     Result.Font.Color := FTema.Texto;
+  Result.SetBounds(0, 0, Esc(200), Esc(16));
   Result.Caption := ATexto;
-  Result.SetBounds(X, Y, 10, 16);
 end;
 
-function TfrmServidores.NuevoCampo(AParent: TWinControl; const AClave, AEtiqueta: string;
-  X, Y, AAncho: Integer; ASecreto: Boolean): TEdit;
+procedure TfrmServidores.NuevoCampo(const AClave, AEtiqueta: string; ASecreto: Boolean);
 var
-  Err: TLabel;
+  C: TCampoUI;
 begin
-  NuevaEtiqueta(AParent, AEtiqueta, X, Y, True);
-  Result := TEdit.Create(Self);
-  Result.Parent := AParent;
-  Result.StyleElements := [];
-  Result.Font.Name := 'Segoe UI';
-  Result.Font.Size := 10;
-  Result.Color := clWhite;
-  Result.Font.Color := FTema.Texto;
-  Result.SetBounds(X, Y + Esc(18), AAncho, Esc(28));
+  C.Lbl := NuevaEtiqueta(AEtiqueta, True);
+  C.Ed := TEdit.Create(Self);
+  C.Ed.Parent := FCuerpo;
+  C.Ed.StyleElements := [];
+  C.Ed.AutoSize := False;
+  C.Ed.Font.Name := 'Segoe UI';
+  C.Ed.Font.Size := 10;
+  C.Ed.Color := clWhite;
+  C.Ed.Font.Color := FTema.Texto;
+  C.Ed.Height := Esc(28);
   if ASecreto then
-    Result.PasswordChar := '*';
-  Result.OnChange := CampoCambio;
-  Err := NuevaEtiqueta(AParent, '', X, Y + Esc(18) + Esc(30), False);
-  Err.Font.Size := 8;
+    C.Ed.PasswordChar := '*';
+  C.Ed.OnChange := CampoCambio;
+  C.Err := NuevaEtiqueta('', False);
   if FTema.Fondo = TemaOscuro.Fondo then
-    Err.Font.Color := RGB($FF, $8A, $80)
+    C.Err.Font.Color := RGB($FF, $8A, $80)
   else
-    Err.Font.Color := RGB($B3, $26, $1E);
-  FErrores.AddOrSetValue(AClave, Err);
+    C.Err.Font.Color := RGB($B3, $26, $1E);
+  FCampos.AddOrSetValue(AClave, C);
 end;
 
-function TfrmServidores.NuevoGrupo(AAlto: Integer): TPanel;
+function TfrmServidores.Campo(const AClave: string): TEdit;
 begin
-  Result := TPanel.Create(Self);
+  Result := FCampos[AClave].Ed;
+end;
+
+function TfrmServidores.NuevoSegmento(const ATexto: string; AClick: TNotifyEvent): TBotonShell;
+begin
+  Result := TBotonShell.Create(Self);
   Result.Parent := FCuerpo;
-  Result.BevelOuter := bvNone;
-  Result.ParentBackground := False;
-  Result.StyleElements := [];
-  Result.ShowCaption := False;
-  Result.Color := FTema.Superficie;
-  Result.SetBounds(0, 0, FCuerpo.ClientWidth, AAlto);
-  Result.Anchors := [akLeft, akTop, akRight];
+  Result.Estilo := ebPrimario;
+  Result.Texto := ATexto;
+  TBotonAbierto(Result).Font.Name := 'Segoe UI';
+  TBotonAbierto(Result).Font.Size := 9;
+  TBotonAbierto(Result).Font.Style := [fsBold];
+  Result.OnClick := AClick;
 end;
 
 procedure TfrmServidores.ConstruirCampos;
-var
-  Ancho, Fila, Y: Integer;
 begin
-  Ancho := Esc(390) - Esc(32) - Esc(8);   // ancho util del cuerpo
-  Fila := Esc(66);                        // alto de un campo con su error
+  FBtnFtp := NuevoSegmento('FTP', TipoFtpClick);
+  FBtnS3 := NuevoSegmento('S3 / MinIO', TipoS3Click);
 
-  // Selector de tipo (dos botones tipo segmento)
-  FBtnFtp := TBotonShell.Create(Self);
-  FBtnFtp.Parent := FCuerpo;
-  FBtnFtp.Estilo := ebPrimario;
-  FBtnFtp.Texto := 'FTP';
-  TBotonAbierto(FBtnFtp).Font.Name := 'Segoe UI';
-  TBotonAbierto(FBtnFtp).Font.Size := 9;
-  TBotonAbierto(FBtnFtp).Font.Style := [fsBold];
-  FBtnFtp.SetBounds(0, Esc(8), Ancho div 2 - Esc(3), Esc(34));
-  FBtnFtp.OnClick := TipoFtpClick;
-  FBtnS3 := TBotonShell.Create(Self);
-  FBtnS3.Parent := FCuerpo;
-  FBtnS3.Estilo := ebPrimario;
-  FBtnS3.Texto := 'S3 / MinIO';
-  TBotonAbierto(FBtnS3).Font.Name := 'Segoe UI';
-  TBotonAbierto(FBtnS3).Font.Size := 9;
-  TBotonAbierto(FBtnS3).Font.Style := [fsBold];
-  FBtnS3.SetBounds(Ancho div 2 + Esc(3), Esc(8), Ancho div 2 - Esc(3), Esc(34));
-  FBtnS3.OnClick := TipoS3Click;
-
-  Y := Esc(54);
-  FEdEtiqueta := NuevoCampo(FCuerpo, 'etiqueta', 'Nombre para mostrar', 0, Y, Ancho, False);
-  Y := Y + Fila;
-  FEdDireccion := NuevoCampo(FCuerpo, 'direccion', 'Direcci'#243'n del servidor', 0, Y,
-    Ancho - Esc(96), False);
-  FEdPuerto := NuevoCampo(FCuerpo, 'puerto', 'Puerto', Ancho - Esc(84), Y, Esc(84), False);
-  Y := Y + Fila;
-
-  // Campos de FTP
-  FGrupoFtp := NuevoGrupo(Fila * 3 + Esc(24));
-  FGrupoFtp.Top := Y;
-  FEdRuta := NuevoCampo(FGrupoFtp, 'ruta', 'Ruta ra'#237'z (opcional)', 0, 0, Ancho, False);
-  FEdUsuario := NuevoCampo(FGrupoFtp, 'usuario', 'Usuario', 0, Fila, Ancho, False);
-  FEdClave := NuevoCampo(FGrupoFtp, 'clave', 'Contrase'#241'a', 0, Fila * 2, Ancho, True);
-  FAyudaClave := NuevaEtiqueta(FGrupoFtp, 'D'#233'jela vac'#237'a al editar para conservar la actual.',
-    0, Fila * 3 - Esc(2), True);
-
-  // Campos de S3 / MinIO
-  FGrupoS3 := NuevoGrupo(Fila * 3 + Esc(64));
-  FGrupoS3.Top := Y;
+  NuevoCampo('etiqueta', 'Nombre para mostrar', False);
+  NuevoCampo('direccion', 'Direcci'#243'n del servidor', False);
+  NuevoCampo('puerto', 'Puerto', False);
+  // FTP
+  NuevoCampo('ruta', 'Ruta ra'#237'z (opcional)', False);
+  NuevoCampo('usuario', 'Usuario', False);
+  NuevoCampo('clave', 'Contrase'#241'a', True);
+  FAyudaClave := NuevaEtiqueta('D'#233'jela vac'#237'a al editar para conservar la actual.', True);
+  // S3 / MinIO
   FChkHttps := TCheckBox.Create(Self);
-  FChkHttps.Parent := FGrupoS3;
+  FChkHttps.Parent := FCuerpo;
   FChkHttps.StyleElements := [];
   FChkHttps.Font.Name := 'Segoe UI';
   FChkHttps.Font.Size := 9;
   FChkHttps.Font.Color := FTema.Texto;
   FChkHttps.Caption := 'Usar conexi'#243'n segura (HTTPS)';
-  FChkHttps.SetBounds(0, 0, Ancho, Esc(22));
   FChkHttps.OnClick := CampoCambio;
-  FEdBucket := NuevoCampo(FGrupoS3, 'bucket', 'Bucket', 0, Esc(28), Ancho div 2 - Esc(6), False);
-  FEdRegion := NuevoCampo(FGrupoS3, 'region', 'Regi'#243'n', Ancho div 2 + Esc(6), Esc(28),
-    Ancho div 2 - Esc(6), False);
-  FEdClaveAcceso := NuevoCampo(FGrupoS3, 'claveacceso', 'Clave de acceso (Access Key)', 0,
-    Esc(28) + Fila, Ancho, False);
-  FEdSecreto := NuevoCampo(FGrupoS3, 'secreto', 'Clave secreta (Secret Key)', 0,
-    Esc(28) + Fila * 2, Ancho, True);
-  FAyudaSecreto := NuevaEtiqueta(FGrupoS3,
-    'Se guarda cifrada. D'#233'jela vac'#237'a al editar para conservar la actual.', 0,
-    Esc(28) + Fila * 3 - Esc(2), True);
+  NuevoCampo('bucket', 'Bucket', False);
+  NuevoCampo('region', 'Regi'#243'n', False);
+  NuevoCampo('claveacceso', 'Clave de acceso (Access Key)', False);
+  NuevoCampo('secreto', 'Clave secreta (Secret Key)', True);
+  FAyudaSecreto := NuevaEtiqueta(
+    'Se guarda cifrada. D'#233'jela vac'#237'a al editar para conservar la actual.', True);
 
   // Resultado de la prueba y boton
-  FBloqueProbar := NuevoGrupo(Esc(96));
-  FResultado := NuevaEtiqueta(FBloqueProbar, '', 0, 0, False);
-  FResultado.AutoSize := False;
+  FResultado := NuevaEtiqueta('', False);
   FResultado.WordWrap := True;
-  FResultado.SetBounds(0, 0, Ancho, Esc(40));
   FBtnProbar := TBotonShell.Create(Self);
-  FBtnProbar.Parent := FBloqueProbar;
+  FBtnProbar.Parent := FCuerpo;
   FBtnProbar.Estilo := ebPrimario;
   FBtnProbar.Texto := 'Probar conexi'#243'n';
   TBotonAbierto(FBtnProbar).Font.Name := 'Segoe UI';
   TBotonAbierto(FBtnProbar).Font.Size := 9;
   TBotonAbierto(FBtnProbar).Font.Style := [fsBold];
-  FBtnProbar.Colores(FBloqueProbar.Color, FTema.Superficie, FTema.AcentoSuave, FTema.Texto,
+  FBtnProbar.Colores(FCuerpo.Color, FTema.Superficie, FTema.AcentoSuave, FTema.Texto,
     FTema.Linea);
-  FBtnProbar.SetBounds(0, Esc(48), Esc(170), Esc(36));
   FBtnProbar.OnClick := ProbarClick;
-  Reacomodar;
+
+  FCuerpo.OnResize := CuerpoResize;
+  Distribuir;
 end;
 
-procedure TfrmServidores.Reacomodar;
-var
-  Fondo: TPanel;
+procedure TfrmServidores.CuerpoResize(Sender: TObject);
 begin
-  FGrupoFtp.Visible := FActual.Tipo = tsFtp;
-  FGrupoS3.Visible := FActual.Tipo = tsS3;
+  Distribuir;
+end;
+
+{ Reparte los campos segun el tipo del servidor y el ancho real del panel. }
+procedure TfrmServidores.Distribuir;
+var
+  Ancho, Y: Integer;
+  C: TCampoUI;
+
+  procedure Fila(const Claves: array of string; const Pesos: array of Integer);
+  var
+    I, X, Total, Libre, W: Integer;
+  begin
+    Total := 0;
+    for I := 0 to High(Pesos) do
+      Inc(Total, Pesos[I]);
+    Libre := Ancho - Esc(12) * High(Claves);
+    X := 0;
+    for I := 0 to High(Claves) do
+    begin
+      C := FCampos[Claves[I]];
+      W := Libre * Pesos[I] div Total;
+      C.Lbl.SetBounds(X, Y, W, Esc(16));
+      C.Ed.SetBounds(X, Y + Esc(18), W, Esc(28));
+      C.Err.SetBounds(X, Y + Esc(48), W, Esc(16));
+      C.Lbl.Visible := True;
+      C.Ed.Visible := True;
+      C.Err.Visible := True;
+      X := X + W + Esc(12);
+    end;
+    Inc(Y, Esc(68));
+  end;
+
+begin
+  if (FCuerpo = nil) or (FBtnProbar = nil) then
+    Exit;
+  Ancho := FCuerpo.ClientWidth - Esc(6);
+  if Ancho < Esc(220) then
+    Ancho := Esc(220);
+  for C in FCampos.Values do
+  begin
+    C.Lbl.Visible := False;
+    C.Ed.Visible := False;
+    C.Err.Visible := False;
+  end;
+  FAyudaClave.Visible := False;
+  FAyudaSecreto.Visible := False;
+  FChkHttps.Visible := False;
+
+  Y := Esc(8);
+  FBtnFtp.SetBounds(0, Y, Ancho div 2 - Esc(3), Esc(34));
+  FBtnS3.SetBounds(Ancho div 2 + Esc(3), Y, Ancho - (Ancho div 2 + Esc(3)), Esc(34));
+  Inc(Y, Esc(48));
+  Fila(['etiqueta'], [1]);
+  Fila(['direccion', 'puerto'], [3, 1]);
   if FActual.Tipo = tsFtp then
-    Fondo := FGrupoFtp
+  begin
+    Fila(['ruta'], [1]);
+    Fila(['usuario'], [1]);
+    Fila(['clave'], [1]);
+    FAyudaClave.SetBounds(0, Y - Esc(10), Ancho, Esc(16));
+    FAyudaClave.Visible := FActual.Id <> 0;
+    if FActual.Id <> 0 then
+      Inc(Y, Esc(14));
+  end
   else
-    Fondo := FGrupoS3;
-  FBloqueProbar.Top := Fondo.Top + Fondo.Height + Esc(4);
+  begin
+    FChkHttps.SetBounds(0, Y, Ancho, Esc(22));
+    FChkHttps.Visible := True;
+    Inc(Y, Esc(30));
+    Fila(['bucket', 'region'], [1, 1]);
+    Fila(['claveacceso'], [1]);
+    Fila(['secreto'], [1]);
+    FAyudaSecreto.SetBounds(0, Y - Esc(10), Ancho, Esc(16));
+    FAyudaSecreto.Visible := FActual.Id <> 0;
+    if FActual.Id <> 0 then
+      Inc(Y, Esc(14));
+  end;
+  FResultado.SetBounds(0, Y, Ancho, Esc(40));
+  Inc(Y, Esc(46));
+  FBtnProbar.SetBounds(0, Y, Esc(170), Esc(36));
+
+  // El tipo elegido va resaltado
   FBtnFtp.Seleccionado := FActual.Tipo = tsFtp;
   FBtnS3.Seleccionado := FActual.Tipo = tsS3;
-  // colores de los segmentos: el elegido con el acento suave
   if FActual.Tipo = tsFtp then
   begin
     FBtnFtp.Colores(FCuerpo.Color, FTema.AcentoSuave, FTema.AcentoSuave, FTema.Acento, FTema.Acento);
@@ -376,26 +419,24 @@ begin
   FCargando := True;
   try
     FActual := S;
-    FEdEtiqueta.Text := S.Etiqueta;
-    FEdDireccion.Text := S.Direccion;
+    Campo('etiqueta').Text := S.Etiqueta;
+    Campo('direccion').Text := S.Direccion;
     if S.Puerto > 0 then
-      FEdPuerto.Text := IntToStr(S.Puerto)
+      Campo('puerto').Text := IntToStr(S.Puerto)
     else
-      FEdPuerto.Text := '';
-    FEdRuta.Text := S.RutaRaiz;
-    FEdUsuario.Text := S.Usuario;
-    FEdClave.Text := '';
-    FEdBucket.Text := S.Bucket;
-    FEdRegion.Text := S.Region;
+      Campo('puerto').Text := '';
+    Campo('ruta').Text := S.RutaRaiz;
+    Campo('usuario').Text := S.Usuario;
+    Campo('clave').Text := '';
+    Campo('bucket').Text := S.Bucket;
+    Campo('region').Text := S.Region;
     FChkHttps.Checked := S.UsoHttps;
-    FEdClaveAcceso.Text := S.ClaveAcceso;
-    FEdSecreto.Text := '';
-    // al editar, la clave se puede dejar vacia (se conserva); al crear es obligatoria
-    FAyudaClave.Visible := not AEsNuevo;
-    FAyudaSecreto.Visible := not AEsNuevo;
+    Campo('claveacceso').Text := S.ClaveAcceso;
+    Campo('secreto').Text := '';
+    // el tipo de un servidor existente no se cambia
     FBtnFtp.Enabled := AEsNuevo;
     FBtnS3.Enabled := AEsNuevo;
-    Reacomodar;
+    Distribuir;
     LimpiarErrores;
     Resultado('', True);
   finally
@@ -406,25 +447,25 @@ end;
 function TfrmServidores.LeerFicha: TServidor;
 begin
   Result := FActual;
-  Result.Etiqueta := Trim(FEdEtiqueta.Text);
-  Result.Direccion := Trim(FEdDireccion.Text);
-  Result.Puerto := StrToIntDef(Trim(FEdPuerto.Text), 0);
-  Result.RutaRaiz := Trim(FEdRuta.Text);
-  Result.Usuario := Trim(FEdUsuario.Text);
-  Result.Clave := FEdClave.Text;
-  Result.Bucket := Trim(FEdBucket.Text);
-  Result.Region := Trim(FEdRegion.Text);
+  Result.Etiqueta := Trim(Campo('etiqueta').Text);
+  Result.Direccion := Trim(Campo('direccion').Text);
+  Result.Puerto := StrToIntDef(Trim(Campo('puerto').Text), 0);
+  Result.RutaRaiz := Trim(Campo('ruta').Text);
+  Result.Usuario := Trim(Campo('usuario').Text);
+  Result.Clave := Campo('clave').Text;
+  Result.Bucket := Trim(Campo('bucket').Text);
+  Result.Region := Trim(Campo('region').Text);
   Result.UsoHttps := FChkHttps.Checked;
-  Result.ClaveAcceso := Trim(FEdClaveAcceso.Text);
-  Result.Secreto := FEdSecreto.Text;
+  Result.ClaveAcceso := Trim(Campo('claveacceso').Text);
+  Result.Secreto := Campo('secreto').Text;
 end;
 
 procedure TfrmServidores.PonerTipo(ATipo: TTipoServidor);
 begin
   if FActual.Id <> 0 then
-    Exit;          // el tipo de un servidor existente no cambia
+    Exit;
   FActual.Tipo := ATipo;
-  Reacomodar;
+  Distribuir;
   if not FCargando then
   begin
     FEstado.MarcarCambio;
@@ -449,21 +490,21 @@ end;
 
 procedure TfrmServidores.LimpiarErrores;
 var
-  L: TLabel;
+  C: TCampoUI;
 begin
-  for L in FErrores.Values do
-    L.Caption := '';
+  for C in FCampos.Values do
+    C.Err.Caption := '';
 end;
 
 procedure TfrmServidores.MostrarErrores(const AErrores: TArray<TErrorCampo>);
 var
   I: Integer;
-  L: TLabel;
+  C: TCampoUI;
 begin
   LimpiarErrores;
   for I := 0 to High(AErrores) do
-    if FErrores.TryGetValue(AErrores[I].Campo, L) then
-      L.Caption := AErrores[I].Mensaje;
+    if FCampos.TryGetValue(AErrores[I].Campo, C) then
+      C.Err.Caption := AErrores[I].Mensaje;
 end;
 
 procedure TfrmServidores.Resultado(const ATexto: string; AOk: Boolean);
@@ -492,11 +533,10 @@ begin
   S := Default(TServidor);
   S.Tipo := tsS3;          // los ficheros nuevos van a S3 / MinIO
   S.Puerto := 9000;
-  S.UsoHttps := False;
   MostrarFicha(S, True);
   AbrirPanel('Nuevo servidor', False);
   ActualizarBotones;
-  FEdEtiqueta.SetFocus;
+  Campo('etiqueta').SetFocus;
 end;
 
 procedure TfrmServidores.AlElegirFila(ATag: Integer);

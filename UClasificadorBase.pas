@@ -27,7 +27,7 @@ uses
   Winapi.Windows, Winapi.Messages, Vcl.Controls, Vcl.Forms, Vcl.StdCtrls,
   Vcl.ExtCtrls, Vcl.Graphics,
   cxGraphics, cxControls, cxLookAndFeels, cxLookAndFeelPainters, cxStyles,
-  cxClasses, cxCustomData, cxFilter, cxData, cxDataStorage, cxEdit,
+  dxCore, cxClasses, cxCustomData, cxFilter, cxData, cxDataStorage, cxEdit,
   cxGridLevel, cxGridCustomView, cxGridCustomTableView, cxGridTableView, cxGrid,
   UTema, UShellPrincipal, UClasificadorEstado;
 
@@ -65,6 +65,8 @@ type
     procedure VistaFocoCambiado(Sender: TcxCustomGridTableView;
       APrevFocusedRecord, AFocusedRecord: TcxCustomGridRecord;
       ANewItemRecordFocusingChanged: Boolean);
+    procedure VistaDibujarCabecera(Sender: TcxGridTableView; ACanvas: TcxCanvas;
+      AViewInfo: TcxGridColumnHeaderViewInfo; var ADone: Boolean);
     procedure FormCerrando(Sender: TObject; var CanClose: Boolean);
     procedure FormTecla(Sender: TObject; var Key: Word; Shift: TShiftState);
     function TagDeRegistro(ARegistro: TcxCustomGridRecord): Integer;
@@ -336,7 +338,8 @@ begin
   FGrid.Align := alClient;
   FGrid.BorderStyle := cxcbsNone;
   FGrid.LookAndFeel.NativeStyle := False;
-  FGrid.LookAndFeel.Kind := lfFlat;
+  FGrid.LookAndFeel.SkinName := '';   // sin piel de DevExpress: aspecto plano propio
+  FGrid.LookAndFeel.Kind := lfUltraFlat;
 
   FVista := FGrid.CreateView(TcxGridTableView) as TcxGridTableView;
   Nivel := FGrid.Levels.Add;
@@ -375,6 +378,7 @@ begin
   FColTag.Visible := False;
 
   FVista.OnFocusedRecordChanged := VistaFocoCambiado;
+  FVista.OnCustomDrawColumnHeader := VistaDibujarCabecera;
 end;
 
 procedure TFormClasificadorBase.ConstruirPanel;
@@ -385,7 +389,7 @@ begin
   FPanel := TPanel.Create(Self);
   FPanel.Parent := Self;
   FPanel.Align := alRight;
-  FPanel.Width := Esc(390);
+  FPanel.Width := Esc(430);
   FPanel.BevelOuter := bvNone;
   FPanel.ParentBackground := False;
   FPanel.StyleElements := [];
@@ -421,7 +425,9 @@ begin
   FTituloPanel.Font.Size := 11;
   FTituloPanel.Font.Color := FTema.Texto;
   FTituloPanel.Layout := tlCenter;
-  FTituloPanel.SetBounds(Esc(18), 0, Esc(300), Barra.Height);
+  FTituloPanel.Align := alClient;
+  FTituloPanel.AlignWithMargins := True;
+  FTituloPanel.Margins.SetBounds(Esc(18), 0, 0, 0);
 
   FCerrarPanel := TLabel.Create(Self);
   FCerrarPanel.Parent := Barra;
@@ -437,8 +443,8 @@ begin
   FCerrarPanel.Cursor := crHandPoint;
   FCerrarPanel.Hint := 'Cerrar';
   FCerrarPanel.ShowHint := True;
-  FCerrarPanel.SetBounds(Esc(390) - Esc(44), 0, Esc(36), Barra.Height);
-  FCerrarPanel.Anchors := [akTop, akRight];
+  FCerrarPanel.Align := alRight;
+  FCerrarPanel.Width := Esc(44);
   FCerrarPanel.OnClick := CerrarPanelClick;
 
   FBarraAcciones := TPanel.Create(Self);
@@ -451,16 +457,25 @@ begin
   FBarraAcciones.ShowCaption := False;
   FBarraAcciones.Color := FTema.Superficie2;
 
+  // Los botones se alinean (no se posicionan a mano) para que sigan al ancho real
   FBtnGuardar := NuevoBoton(FBarraAcciones, 'Guardar', 'guardar', True, FTema.Texto);
-  FBtnGuardar.SetBounds(Esc(16), Esc(13), Esc(112), Esc(36));
+  FBtnGuardar.Align := alLeft;
+  FBtnGuardar.Width := Esc(116);
+  FBtnGuardar.AlignWithMargins := True;
+  FBtnGuardar.Margins.SetBounds(Esc(16), Esc(13), 0, Esc(13));
   FBtnGuardar.OnClick := GuardarClick;
   FBtnCancelar := NuevoBoton(FBarraAcciones, 'Cancelar', 'cancelar', False, FTema.Texto);
-  FBtnCancelar.SetBounds(Esc(136), Esc(13), Esc(112), Esc(36));
+  FBtnCancelar.Align := alLeft;
+  FBtnCancelar.Width := Esc(124);
+  FBtnCancelar.AlignWithMargins := True;
+  FBtnCancelar.Margins.SetBounds(Esc(8), Esc(13), 0, Esc(13));
   FBtnCancelar.OnClick := CancelarClick;
   FBtnEliminar := NuevoBoton(FBarraAcciones, 'Eliminar', 'eliminar', False,
     Mezclar(clRed, FTema.Texto, 0.35));
-  FBtnEliminar.SetBounds(Esc(390) - Esc(16) - Esc(112), Esc(13), Esc(112), Esc(36));
-  FBtnEliminar.Anchors := [akTop, akRight];
+  FBtnEliminar.Align := alRight;
+  FBtnEliminar.Width := Esc(116);
+  FBtnEliminar.AlignWithMargins := True;
+  FBtnEliminar.Margins.SetBounds(0, Esc(13), Esc(16), Esc(13));
   FBtnEliminar.OnClick := EliminarClick;
 
   FCuerpo := TScrollBox.Create(Self);
@@ -710,6 +725,34 @@ begin
   end;
   FEstado.Elegir;
   AlElegirFila(Tag);
+end;
+
+{ Cabecera de columna sin bordes de rejilla: fondo suave, texto pequeno y una
+  linea inferior; la flecha del orden se dibuja como texto. }
+procedure TFormClasificadorBase.VistaDibujarCabecera(Sender: TcxGridTableView; ACanvas: TcxCanvas;
+  AViewInfo: TcxGridColumnHeaderViewInfo; var ADone: Boolean);
+var
+  R: TRect;
+  Texto: string;
+begin
+  R := AViewInfo.Bounds;
+  ACanvas.Brush.Color := FTema.Superficie2;
+  ACanvas.FillRect(R);
+  ACanvas.Brush.Color := FTema.Linea;
+  ACanvas.FillRect(Rect(R.Left, R.Bottom - 1, R.Right, R.Bottom));
+  Texto := AViewInfo.Text;
+  if AViewInfo.Column.SortOrder = soAscending then
+    Texto := Texto + '  '#9650
+  else if AViewInfo.Column.SortOrder = soDescending then
+    Texto := Texto + '  '#9660;
+  ACanvas.Font.Name := 'Segoe UI';
+  ACanvas.Font.Size := 8;
+  ACanvas.Font.Style := [fsBold];
+  ACanvas.Font.Color := FTema.TextoSuave;
+  ACanvas.Brush.Style := bsClear;
+  ACanvas.DrawText(Texto, Rect(R.Left + Esc(12), R.Top, R.Right - Esc(6), R.Bottom),
+    cxAlignVCenter or cxAlignLeft or cxSingleLine);
+  ADone := True;
 end;
 
 procedure TFormClasificadorBase.FormCerrando(Sender: TObject; var CanClose: Boolean);
