@@ -29,6 +29,8 @@ uses
   UPalabrasReservadas in '..\UPalabrasReservadas.pas',
   UPruebasPalabrasReservadas in 'UPruebasPalabrasReservadas.pas',
   UVariablesDatos in '..\UVariablesDatos.pas',
+  USeriesDatos in '..\USeriesDatos.pas',
+  UPruebasSeriesDatos in 'UPruebasSeriesDatos.pas',
   UPruebasVariablesDatos in 'UPruebasVariablesDatos.pas',
   UServidoresDatos in '..\UServidoresDatos.pas',
   UPruebasServidoresDatos in 'UPruebasServidoresDatos.pas',

@@ -68,6 +68,7 @@ uses
   UErroresCampo in 'UErroresCampo.pas',
   UPalabrasReservadas in 'UPalabrasReservadas.pas',
   UVariablesDatos in 'UVariablesDatos.pas',
+  USeriesDatos in 'USeriesDatos.pas',
   UServidoresDatos in 'UServidoresDatos.pas',
   UArchivosDatos in 'UArchivosDatos.pas',
   UImagenes in 'UImagenes.pas',
