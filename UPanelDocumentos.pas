@@ -1258,6 +1258,7 @@ var
   Props, Meta: TArray<TPropiedad>;
   I, Digitales: Integer;
   ErrorMeta: Boolean;
+  UbSub, UbDoc: TUbicacion;
 begin
   if (Indice < 0) or (Indice > High(FVisibles)) then
     Exit;
@@ -1301,7 +1302,12 @@ begin
   FDoc.FijarCabecera(D.Clave.Codigodoc, D.Titulo, D.Estado);
   FPropDatos.Mostrar(PropiedadesDePestana(Props, pdDatos), nil, False, '', False);
   if Assigned(FOnPedirUbicacionSubserie) then
-    FVistaUbicacion.Mostrar([FOnPedirUbicacionSubserie(), UbicacionDeDocumento(D)])
+  begin
+    UbSub := FOnPedirUbicacionSubserie();
+    UbDoc := UbicacionDeDocumento(D);
+    MarcarDiferencias(UbDoc, UbSub); // el documento debe estar donde esta su subserie
+    FVistaUbicacion.Mostrar([UbSub, UbDoc]);
+  end
   else
     FVistaUbicacion.Mostrar([UbicacionDeDocumento(D)]);
   if FErrorFicheros then

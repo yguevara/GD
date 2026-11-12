@@ -53,6 +53,12 @@ type
     [Test]
     procedure OtroUsuarioCambioElCampo_NoSePisaEnSilencio;
     [Test]
+    procedure Topografia_FueraDeLaSubserie_NoSeGuardaYLoDice;
+    [Test]
+    procedure Topografia_ConLaDeLaSubserie_SeGuarda;
+    [Test]
+    procedure Topografia_DocumentoYaDesalineado_EditarElTitulo_NoSeBloquea;
+    [Test]
     procedure SinPermisoDeEditar_SeOmiteElDocumento;
     [Test]
     procedure Topografia_SinPermiso_SeOmiteElCampoYSeAvisa;
@@ -272,13 +278,13 @@ begin
       Sembrar(3);
       C := Default(TCambiosDoc);
       C.TieneGaveta := True;
-      C.Gaveta := 'G9';
+      C.Gaveta := '14';
       C.TieneIdExpediente := True;
       C.IdExpediente := 'P-006';
       R := ActualizarDocumentos(FConn, nil, FOrigen, [Clave(1), Clave(2), Clave(3)], C,
         Default(TCambiosDoc));
       Assert.AreEqual(3, R.Guardados, R.Mensaje);
-      Assert.AreEqual('G9', Texto(2, 'gaveta'));
+      Assert.AreEqual('14', Texto(2, 'gaveta'));
       Assert.AreEqual('P-006', Texto(3, 'IDExpediente'));
       Assert.AreEqual('Título original 2', Texto(2, 'titulodoc'));
     end);
@@ -295,14 +301,14 @@ begin
       Sembrar(3);
       C := Default(TCambiosDoc);
       C.TieneGaveta := True;
-      C.Gaveta := 'G7';
+      C.Gaveta := '14';
       // el 2 no existe: no se puede actualizar
       R := ActualizarDocumentos(FConn, nil, FOrigen, [Clave(1), Clave(2), Clave(3)], C,
         Default(TCambiosDoc));
       Assert.AreEqual(2, R.Guardados);
       Assert.AreEqual(1, R.Fallidos);
-      Assert.AreEqual('G7', Texto(1, 'gaveta'));
-      Assert.AreEqual('G7', Texto(3, 'gaveta'), 'el siguiente se guarda igual');
+      Assert.AreEqual('14', Texto(1, 'gaveta'));
+      Assert.AreEqual('14', Texto(3, 'gaveta'), 'el siguiente se guarda igual');
       Assert.IsTrue(R.Mensaje <> '');
     end);
 end;
@@ -423,6 +429,76 @@ begin
   S[0].CodSubs := '074';
   GArbol := Arbol;
   Result := TAlcanceUsuario.Create(False, Arbol, A, S, nil);
+end;
+
+// La subserie A.4.3 / 074 (la de las pruebas) queda en deposito 01 y gaveta 14
+procedure PonerUbicacionDeLaSubserie(Conn: TFDConnection);
+begin
+  // la subserie A.4.3 / 104 / 074 de las bases de prueba ya esta en el deposito 01,
+  // gaveta 14: no se modifica ningun dato
+  Assert.IsTrue(Integer(Conn.ExecSQLScalar('SELECT COUNT(*) FROM tb_Serietree WHERE ' +
+    'IdEstructura = ''A.4.3'' AND id = 104 AND codsubs = ''074'' AND gaveta = ''14''')) = 1,
+    'la subserie de prueba debe estar en la gaveta 14');
+end;
+
+procedure TPruebasEdicionDocumento.Topografia_FueraDeLaSubserie_NoSeGuardaYLoDice;
+begin
+  EnCadaMotor(procedure(EsSql: Boolean)
+    var
+      C: TCambiosDoc;
+      R: TResultadoEdicion;
+    begin
+      PonerUbicacionDeLaSubserie(FConn);
+      Sembrar(1);
+      C := Default(TCambiosDoc);
+      C.TieneGaveta := True;
+      C.Gaveta := '02'; // la subserie esta en la gaveta 14
+      R := ActualizarDocumentos(FConn, nil, FOrigen, [Clave(1)], C, Default(TCambiosDoc));
+      Assert.AreEqual(0, R.Guardados);
+      Assert.AreEqual(1, R.Fallidos);
+      Assert.IsTrue(Pos('gaveta', LowerCase(R.Mensaje)) > 0, R.Mensaje);
+      Assert.IsTrue(Pos('14', R.Mensaje) > 0, 'dice donde esta la subserie');
+      Assert.AreEqual('G1', Texto(1, 'gaveta'), 'no se cambio');
+    end);
+end;
+
+procedure TPruebasEdicionDocumento.Topografia_ConLaDeLaSubserie_SeGuarda;
+begin
+  EnCadaMotor(procedure(EsSql: Boolean)
+    var
+      C: TCambiosDoc;
+      R: TResultadoEdicion;
+    begin
+      PonerUbicacionDeLaSubserie(FConn);
+      Sembrar(1);
+      C := Default(TCambiosDoc);
+      C.TieneGaveta := True;
+      C.Gaveta := '14';
+      C.TieneDeposito := True;
+      C.Deposito := '01';
+      C.TienePosicion := True;
+      C.Posicion := '3'; // la posicion es del documento: libre
+      R := ActualizarDocumentos(FConn, nil, FOrigen, [Clave(1)], C, Default(TCambiosDoc));
+      Assert.AreEqual(1, R.Guardados, R.Mensaje);
+      Assert.AreEqual('14', Texto(1, 'gaveta'));
+    end);
+end;
+
+procedure TPruebasEdicionDocumento.Topografia_DocumentoYaDesalineado_EditarElTitulo_NoSeBloquea;
+begin
+  EnCadaMotor(procedure(EsSql: Boolean)
+    var
+      C: TCambiosDoc;
+      R: TResultadoEdicion;
+    begin
+      PonerUbicacionDeLaSubserie(FConn);
+      Sembrar(1); // gaveta G1, distinta de la 14: dato heredado
+      C := Default(TCambiosDoc);
+      C.TieneTitulo := True;
+      C.Titulo := 'Solo el titulo';
+      R := ActualizarDocumentos(FConn, nil, FOrigen, [Clave(1)], C, Default(TCambiosDoc));
+      Assert.AreEqual(1, R.Guardados, 'solo se valida lo que se cambia');
+    end);
 end;
 
 procedure TPruebasEdicionDocumento.SinPermisoDeEditar_SeOmiteElDocumento;

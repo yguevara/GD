@@ -30,7 +30,9 @@ type
     [Test]
     procedure LasClavesNoSeEditan;
     [Test]
-    procedure Numero_NoNumerico_MuestraElErrorBajoElCampo;
+    procedure Archivo_ElegidoPorNombre_GuardaSuCodigo;
+    [Test]
+    procedure ServidorYArchivo_SinOpciones_NoSeMuestran;
     [Test]
     procedure VisibleDesconocido_NoSeVaciaSiNoSeToca;
     [Test]
@@ -103,6 +105,19 @@ begin
   Result.Archivo := 2;
 end;
 
+procedure ConOpciones(Fm: TFormularioDocumento);
+var
+  A, S: TArray<TOpcionLista>;
+begin
+  SetLength(A, 2);
+  A[0].Id := 1; A[0].Texto := 'Contabilidad';
+  A[1].Id := 2; A[1].Texto := 'Finanzas';
+  SetLength(S, 1);
+  S[0].Id := 1; S[0].Texto := 'Servidor principal';
+  Fm.FijarOpciones('archivo', A);
+  Fm.FijarOpciones('servidor', S);
+end;
+
 function Nuevo(F: TForm): TFormularioDocumento;
 begin
   F.SetBounds(50, 50, 500, 700);
@@ -121,11 +136,13 @@ begin
   F := TForm.CreateNew(nil);
   try
     Fm := Nuevo(F);
+    ConOpciones(Fm);
     Fm.Abrir([Clave('A 03.01.02.0003')], Actuales, True);
     Assert.IsFalse(Fm.EsLote);
     Assert.AreEqual('Alcantarillado Palma Soriano', Fm.TextoCampo('titulo'));
     Assert.AreEqual('G2', Fm.TextoCampo('gaveta'));
-    Assert.AreEqual('2', Fm.TextoCampo('archivo'));
+    Assert.AreEqual('2', Fm.TextoCampo('archivo'), 'el codigo guardado');
+    Assert.AreEqual('Finanzas', Fm.TextoElegido('archivo'), 'se ve el nombre, no el codigo');
     Assert.IsTrue(Pos('A 03.01.02.0003', Fm.TituloFormulario) > 0);
     Assert.AreEqual('Guardar', Fm.TextoBotonGuardar);
   finally
@@ -301,25 +318,45 @@ begin
   end;
 end;
 
-procedure TPruebasFormularioDocumento.Numero_NoNumerico_MuestraElErrorBajoElCampo;
+procedure TPruebasFormularioDocumento.Archivo_ElegidoPorNombre_GuardaSuCodigo;
 var
   F: TForm;
   Fm: TFormularioDocumento;
-  R: TReceptor;
+  C: TCambiosDoc;
 begin
   F := TForm.CreateNew(nil);
-  R := TReceptor.Create;
   try
     Fm := Nuevo(F);
-    Fm.OnGuardar := R.Guardar;
+    ConOpciones(Fm);
     Fm.Abrir([Clave('A')], Actuales, True);
-    Fm.EscribirCampo('archivo', 'abc');
-    Fm.Guardar;
-    Assert.AreEqual(0, R.Guardados);
-    Assert.IsTrue(Fm.ErrorDe('archivo') <> '');
+    Fm.EscribirCampo('archivo', '1');
+    C := Fm.Cambios;
+    Assert.IsTrue(C.TieneArchivo);
+    Assert.AreEqual(1, C.Archivo, 'se elige "Contabilidad" y se guarda su codigo');
+    Assert.AreEqual('Contabilidad', Fm.TextoElegido('archivo'));
   finally
     F.Free;
-    R.Free;
+  end;
+end;
+
+procedure TPruebasFormularioDocumento.ServidorYArchivo_SinOpciones_NoSeMuestran;
+var
+  F: TForm;
+  Fm: TFormularioDocumento;
+begin
+  F := TForm.CreateNew(nil);
+  try
+    Fm := Nuevo(F);
+    Fm.Abrir([Clave('A')], Actuales, True);
+    Assert.IsFalse(Fm.CampoVisible('archivo'), 'sin lista de archivos no se ofrece el codigo');
+    Assert.IsFalse(Fm.CampoVisible('servidor'));
+    Assert.IsFalse(HayCambios(Fm.Cambios), 'un campo oculto no genera cambios');
+    ConOpciones(Fm);
+    Fm.Abrir([Clave('A')], Actuales, True);
+    Assert.IsTrue(Fm.CampoVisible('archivo'));
+    Assert.IsTrue(Fm.CampoVisible('servidor'));
+  finally
+    F.Free;
   end;
 end;
 

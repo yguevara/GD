@@ -26,6 +26,8 @@ type
     [Test]
     procedure Ubicacion_DosBloques_MuestraTitulosYSinAsignar;
     [Test]
+    procedure Ubicacion_DocumentoEnOtraGaveta_LoDiceYMarcaElTramo;
+    [Test]
     procedure Ubicacion_Mensaje_ReemplazaLosBloques;
     [Test]
     procedure Ubicacion_TramosAnchos_PasanALaSiguienteLinea;
@@ -220,6 +222,34 @@ begin
     Assert.IsTrue(Pos('Depósito: Sin asignar', V.Contenido) > 0);
     Assert.IsTrue(Pos('Ubicación completa', V.Contenido) > 0, 'la subserie esta completa');
     Assert.IsTrue(Pos('Faltan datos de ubicación', V.Contenido) > 0, 'el documento no');
+  finally
+    F.Free;
+  end;
+end;
+
+procedure TPruebasPanelDocumento.Ubicacion_DocumentoEnOtraGaveta_LoDiceYMarcaElTramo;
+var
+  F: TForm;
+  V: TVistaUbicacion;
+  D: TDatosDocumento;
+  S, U: TUbicacion;
+begin
+  F := TForm.CreateNew(nil);
+  try
+    V := VistaNueva(F, 380);
+    D := Default(TDatosDocumento);
+    D.Servidor := 'Servidor A';
+    D.Archivo := 'Contabilidad';
+    D.Deposito := '01';
+    D.Gaveta := '02';
+    D.Posicion := '3';
+    S := UbicacionDeSubserie('Servidor A', 'Contabilidad', '01', '14');
+    U := UbicacionDeDocumento(D);
+    MarcarDiferencias(U, S);
+    V.Mostrar([S, U]);
+    Assert.IsTrue(Pos('No coincide con la subserie: Gaveta', V.Contenido) > 0,
+      'el documento esta en otra gaveta y se avisa');
+    Assert.IsTrue(Pos('Ubicación completa', V.Contenido) > 0, 'la de la subserie');
   finally
     F.Free;
   end;

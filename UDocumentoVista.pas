@@ -108,6 +108,8 @@ type
   TTramoUbicacion = record
     Rotulo: string;
     Valor: string;
+    { El documento esta en un lugar distinto del que tiene su subserie en este tramo. }
+    Difiere: Boolean;
   end;
 
   { Ubicacion fisica de una subserie o de un documento: tramos de mayor a menor.
@@ -116,11 +118,17 @@ type
     Titulo: string;
     Tramos: TArray<TTramoUbicacion>;
     Completa: Boolean;
+    { Cuantos tramos no coinciden con los de la subserie (ver MarcarDiferencias). }
+    Diferencias: Integer;
   end;
 
 { Servidor, Archivo, Deposito, Gaveta y Posicion del documento; un tramo vacio
   o "0" dice "Sin asignar". }
 function UbicacionDeDocumento(const D: TDatosDocumento): TUbicacion;
+{ Marca en Doc los tramos (servidor, archivo, deposito, gaveta) que tienen valor y son
+  distintos de los de la subserie: un documento debe estar donde esta su subserie.
+  No compara la posicion (la subserie no la define) ni tramos sin dato. }
+procedure MarcarDiferencias(var Doc: TUbicacion; const Sub: TUbicacion);
 { Como la del documento pero de la subserie: sin posicion. }
 function UbicacionDeSubserie(const Servidor, Archivo, Deposito,
   Gaveta: string): TUbicacion;
@@ -269,6 +277,31 @@ begin
   AgregaTramo(Result, 'Depósito', D.Deposito);
   AgregaTramo(Result, 'Gaveta', D.Gaveta);
   AgregaTramo(Result, 'Posición', D.Posicion);
+end;
+
+procedure MarcarDiferencias(var Doc: TUbicacion; const Sub: TUbicacion);
+var
+  I, J: Integer;
+  A, B: string;
+begin
+  Doc.Diferencias := 0;
+  for I := 0 to High(Doc.Tramos) do
+  begin
+    Doc.Tramos[I].Difiere := False;
+    for J := 0 to High(Sub.Tramos) do
+      if SameText(Doc.Tramos[I].Rotulo, Sub.Tramos[J].Rotulo) then
+      begin
+        A := Trim(Doc.Tramos[I].Valor);
+        B := Trim(Sub.Tramos[J].Valor);
+        if (A <> '') and (B <> '') and (A <> 'Sin asignar') and (B <> 'Sin asignar') and
+          not SameText(A, B) then
+        begin
+          Doc.Tramos[I].Difiere := True;
+          Inc(Doc.Diferencias);
+        end;
+        Break;
+      end;
+  end;
 end;
 
 function UbicacionDeSubserie(const Servidor, Archivo, Deposito,

@@ -55,7 +55,8 @@ type
     FCampos: TArray<TCampoForm>;
     FClaves: TArray<TClaveDocumento>;
     FOriginal: TCambiosDoc;
-    FGestores: TArray<TOpcionLista>;
+    FOpcCampos: TArray<string>;
+    FOpcListas: TArray<TArray<TOpcionLista>>;
     FOnGuardar: TNotifyEvent;
     FOnCancelar: TNotifyEvent;
     FOnVistaAvanzada: TNotifyEvent;
@@ -77,7 +78,8 @@ type
     function TextoDe(I: Integer): string;
     function OriginalDe(I: Integer): string;
     procedure PonTexto(I: Integer; const Texto: string);
-    procedure LlenarGestores;
+    procedure LlenarOpciones(I: Integer);
+    function OpcionesDe(const Campo: string): TArray<TOpcionLista>;
     procedure GuardarClick(Sender: TObject);
     procedure CancelarClick(Sender: TObject);
     procedure VaciarClick(Sender: TObject);
@@ -105,6 +107,9 @@ type
     procedure VaciarCampo(const Campo: string);
     { Gestores para el campo Gestor (si no se dan, se escribe el numero). }
     procedure FijarGestores(const Lista: TArray<TOpcionLista>);
+    { Opciones de un campo que se elige por nombre y se guarda por codigo: "gestor",
+      "servidor" y "archivo". Sin opciones el campo no se muestra. Llamar antes de Abrir. }
+    procedure FijarOpciones(const Campo: string; const Lista: TArray<TOpcionLista>);
     property OnGuardar: TNotifyEvent read FOnGuardar write FOnGuardar;
     property OnCancelar: TNotifyEvent read FOnCancelar write FOnCancelar;
     { Abre la rejilla antigua de documentos (para lo que este formulario no cubre). }
@@ -126,6 +131,9 @@ type
     function PistaCampo(const Campo: string): string;
     function ErrorDe(const Campo: string): string;
     function CampoHabilitado(const Campo: string): Boolean;
+    function CampoVisible(const Campo: string): Boolean;
+    { Texto que ve el usuario en una lista (el nombre), no el codigo guardado. }
+    function TextoElegido(const Campo: string): string;
     function NombresCampos: string;
     function TituloFormulario: string;
     function TextoBotonGuardar: string;
@@ -334,12 +342,15 @@ begin
   AgregaCampo('expediente', 'Expediente', tcTexto, False);
   AgregaCampo('subexp', 'Subexpediente', tcTexto, False);
   AgregaCampo('visible', 'Visible', tcVisible, False);
-  AgregaCampo('archivo', 'Archivo (número)', tcNumero, True);
+  AgregaCampo('archivo', 'Archivo', tcGestor, True);
   AgregaCampo('deposito', 'Depósito', tcTexto, True);
   AgregaCampo('gaveta', 'Gaveta', tcTexto, True);
-  AgregaCampo('servidor', 'Servidor (número)', tcNumero, True);
+  AgregaCampo('servidor', 'Servidor', tcGestor, True);
   AgregaCampo('posicion', 'Posición', tcTexto, True);
-  OcultaCampo('gestor'); // hereda de la subserie; no hay lista de gestores que ofrecer
+  // gestor, servidor y archivo se ven solo si se dan sus opciones (FijarOpciones)
+  OcultaCampo('gestor');
+  OcultaCampo('servidor');
+  OcultaCampo('archivo');
   Distribuir;
   FReceptor := TRecepcionArchivos.Crear(Self, FZona);
   FReceptor.Activo := True;
@@ -463,24 +474,55 @@ end;
 
 procedure TFormularioDocumento.FijarGestores(const Lista: TArray<TOpcionLista>);
 begin
-  FGestores := Copy(Lista);
-  LlenarGestores;
+  FijarOpciones('gestor', Lista);
 end;
 
-procedure TFormularioDocumento.LlenarGestores;
+procedure TFormularioDocumento.FijarOpciones(const Campo: string;
+  const Lista: TArray<TOpcionLista>);
 var
-  I, G: Integer;
-  Cmb: TComboBox;
+  I: Integer;
 begin
-  G := Indice('gestor');
-  if (G < 0) or not (FCampos[G].Control is TComboBox) then
+  for I := 0 to High(FOpcCampos) do
+    if SameText(FOpcCampos[I], Campo) then
+    begin
+      FOpcListas[I] := Copy(Lista);
+      Exit;
+    end;
+  SetLength(FOpcCampos, Length(FOpcCampos) + 1);
+  SetLength(FOpcListas, Length(FOpcListas) + 1);
+  FOpcCampos[High(FOpcCampos)] := Campo;
+  FOpcListas[High(FOpcListas)] := Copy(Lista);
+end;
+
+function TFormularioDocumento.OpcionesDe(const Campo: string): TArray<TOpcionLista>;
+var
+  I: Integer;
+begin
+  Result := nil;
+  for I := 0 to High(FOpcCampos) do
+    if SameText(FOpcCampos[I], Campo) then
+      Exit(FOpcListas[I]);
+end;
+
+procedure TFormularioDocumento.LlenarOpciones(I: Integer);
+var
+  K: Integer;
+  Cmb: TComboBox;
+  Op: TArray<TOpcionLista>;
+begin
+  if not (FCampos[I].Control is TComboBox) then
     Exit;
-  Cmb := TComboBox(FCampos[G].Control);
+  Op := OpcionesDe(FCampos[I].Nombre);
+  Cmb := TComboBox(FCampos[I].Control);
   Cmb.Items.Clear;
   Cmb.Items.Add(IfThen(EsLote, SIN_CAMBIOS, SIN_DEFINIR));
-  for I := 0 to High(FGestores) do
-    Cmb.Items.AddObject(FGestores[I].Texto, TObject(NativeInt(FGestores[I].Id)));
+  for K := 0 to High(Op) do
+    Cmb.Items.AddObject(Op[K].Texto, TObject(NativeInt(Op[K].Id)));
   Cmb.ItemIndex := 0;
+  // sin opciones que ofrecer el campo no se muestra
+  FCampos[I].Control.Visible := Length(Op) > 0;
+  FCampos[I].Rotulo.Visible := Length(Op) > 0;
+  FCampos[I].Error.Visible := Length(Op) > 0;
 end;
 
 function TFormularioDocumento.OriginalDe(I: Integer): string;
@@ -589,11 +631,12 @@ begin
   begin
     FTitulo.Caption := 'Editar documento ' + IfThen(Length(FClaves) = 1,
       Trim(FClaves[0].Codigodoc), '');
-    FAviso.Caption := 'El código, la fecha y la version no se pueden cambiar.';
+    FAviso.Caption := 'El código, la fecha y la versión no se pueden cambiar.';
     FBtnGuardar.Caption := 'Guardar';
   end;
-  if (Indice('gestor') >= 0) then
-    LlenarGestores;
+  for I := 0 to High(FCampos) do
+    if FCampos[I].Tipo = tcGestor then
+      LlenarOpciones(I);
   for I := 0 to High(FCampos) do
   begin
     FCampos[I].Vaciado := False;
@@ -847,6 +890,25 @@ var
 begin
   I := Indice(Campo);
   Result := (I >= 0) and FCampos[I].Control.Enabled;
+end;
+
+function TFormularioDocumento.CampoVisible(const Campo: string): Boolean;
+var
+  I: Integer;
+begin
+  I := Indice(Campo);
+  Result := (I >= 0) and FCampos[I].Control.Visible;
+end;
+
+function TFormularioDocumento.TextoElegido(const Campo: string): string;
+var
+  I: Integer;
+begin
+  I := Indice(Campo);
+  if (I >= 0) and (FCampos[I].Control is TComboBox) then
+    Result := TComboBox(FCampos[I].Control).Text
+  else
+    Result := '';
 end;
 
 function TFormularioDocumento.NombresCampos: string;

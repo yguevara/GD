@@ -30,6 +30,12 @@ type
     [Test]
     procedure PropiedadesDeArchivos_SinFicheros_DiceSinFicheros;
     [Test]
+    procedure MarcarDiferencias_GavetaDistinta_MarcaSoloEsaYAvisa;
+    [Test]
+    procedure MarcarDiferencias_IgualesOSinDato_NoMarca;
+    [Test]
+    procedure MarcarDiferencias_IgnoraLaPosicion;
+    [Test]
     procedure UbicacionDeDocumento_Completa;
     [Test]
     procedure UbicacionDeDocumento_ConCeroOVacio_DiceSinAsignar;
@@ -457,6 +463,51 @@ begin
   P := PropiedadesDeArchivos(nil);
   Assert.AreEqual(1, Integer(Length(P)));
   Assert.AreEqual('Sin ficheros', P[0].Valor);
+end;
+
+procedure TPruebasDocumentoVista.MarcarDiferencias_GavetaDistinta_MarcaSoloEsaYAvisa;
+var
+  S, D: TUbicacion;
+begin
+  S := UbicacionDeSubserie('Servidor A', 'Contabilidad', '01', '14');
+  D := UbicacionDeDocumento(Nuevo('D1'));
+  D.Tramos[0].Valor := 'Servidor A';
+  D.Tramos[1].Valor := 'Contabilidad';
+  D.Tramos[2].Valor := '01';
+  D.Tramos[3].Valor := '02';
+  D.Tramos[4].Valor := '3';
+  MarcarDiferencias(D, S);
+  Assert.AreEqual(1, D.Diferencias);
+  Assert.IsTrue(D.Tramos[3].Difiere, 'la gaveta 02 no es la 14 de la subserie');
+  Assert.IsFalse(D.Tramos[2].Difiere);
+  Assert.IsFalse(D.Tramos[0].Difiere);
+end;
+
+procedure TPruebasDocumentoVista.MarcarDiferencias_IgualesOSinDato_NoMarca;
+var
+  S, D: TUbicacion;
+begin
+  // iguales sin importar mayusculas ni espacios; un tramo sin dato en cualquiera
+  // de los dos lados no se compara (eso ya dice "Sin asignar")
+  S := UbicacionDeSubserie('Servidor A', 'Contabilidad', '01', '');
+  D := UbicacionDeDocumento(Nuevo('D1'));
+  D.Tramos[0].Valor := ' servidor a ';
+  D.Tramos[1].Valor := 'CONTABILIDAD';
+  D.Tramos[2].Valor := '01';
+  D.Tramos[3].Valor := '99';
+  MarcarDiferencias(D, S);
+  Assert.AreEqual(0, D.Diferencias);
+end;
+
+procedure TPruebasDocumentoVista.MarcarDiferencias_IgnoraLaPosicion;
+var
+  S, D: TUbicacion;
+begin
+  S := UbicacionDeSubserie('A', 'B', 'C', 'D');
+  D := UbicacionDeDocumento(Nuevo('D1'));
+  D.Tramos[4].Valor := '7'; // la posicion es del documento: la subserie no la define
+  MarcarDiferencias(D, S);
+  Assert.IsFalse(D.Tramos[4].Difiere);
 end;
 
 procedure TPruebasDocumentoVista.UbicacionDeDocumento_Completa;

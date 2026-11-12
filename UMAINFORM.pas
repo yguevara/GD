@@ -33,7 +33,7 @@ uses
   IniFiles, cxSpinEdit, Vcl.Grids, Vcl.DBGrids, JvDBControls, cxMaskEdit,
   dxScreenTip, dxCustomHint, cxHint, cxEditRepositoryItems, cxGroupBox,
   UBusqueda, UAlcance, UPanelDocumentos, UBarraTrabajo, UBloqueAccion, UPanelLateral,
-  UCargaDocumento, UAgregarFicheros, UEdicionDocumento, UDocumentoVista, UMigracionPantalla, UExpedienteCompleto, UProgresoTransferencia, UTrazabilidad, UTrazabilidadDatos,
+  UCargaDocumento, UAgregarFicheros, UEdicionDocumento, UFormularioDocumento, UDocumentoVista, UMigracionPantalla, UExpedienteCompleto, UProgresoTransferencia, UTrazabilidad, UTrazabilidadDatos,
   UAlmacenFicheros, UAlmacenServidor;
 
 type
@@ -820,6 +820,9 @@ type
       const Cambios, Anteriores: TCambiosDoc; out Error: string);
     procedure BarraEditar(Sender: TObject);
     procedure ActualizarBotonAsignarSerie;
+    function NombreServidor(const Id: string): string;
+    function NombreArchivoGestion(const Cod: string): string;
+    procedure CargarOpcionesFormulario;
     procedure PanelLateralCambioModo(Sender: TObject);
     procedure ListaDocsEliminar(const Clave: TClaveDocumento);
     procedure ListaDocsSoltarEnLote(const Claves: TArray<TClaveDocumento>;
@@ -7183,8 +7186,9 @@ begin
         D.Titulo := DS.FieldByName('titulodoc').AsString;
         D.IdExpediente := Trim(DS.FieldByName('IDExpediente').AsString);
         D.SubExp := Trim(DS.FieldByName('subexp').AsString);
-        D.Servidor := Texto0('Idservidor');
-        D.Archivo := Texto0('Archivo');
+        // el nombre (no el codigo del clasificador) es lo que ve el usuario
+        D.Servidor := NombreServidor(Texto0('Idservidor'));
+        D.Archivo := NombreArchivoGestion(Texto0('Archivo'));
         D.Deposito := Texto0('deposito');
         D.Gaveta := Texto0('gaveta');
         D.Posicion := Texto0('posicion');
@@ -7564,7 +7568,8 @@ end;
 procedure TMAIN.ActualizarBotonAsignarSerie;
 begin
   if FBtnAsignarSerie <> nil then
-    FBtnAsignarSerie.Visible := btnAsignSS.Visible;
+    FBtnAsignarSerie.Visible := btnAsignSS.Visible and
+      not (SameText(UDM.UserName, 'Invitado') or SameText(Trim(UDM.Rol), 'Visor'));
 end;
 
 procedure TMAIN.AjustarPanelLateral;
@@ -7776,12 +7781,89 @@ end;
 
 // Ubicacion fisica de la subserie actual (servidor, archivo, deposito, gaveta),
 // de la fila actual de tb_Serietree. Sin subserie, todos los tramos "Sin asignar".
+// Nombre del servidor de ficheros (etiqueta del clasificador) a partir de su codigo;
+// sin codigo, vacio; si no se encuentra, el propio codigo.
+function TMAIN.NombreServidor(const Id: string): string;
+var
+  N: Integer;
+begin
+  Result := Trim(Id);
+  if not TryStrToInt(Result, N) or (N <= 0) then
+    Exit;
+  try
+    Result := Trim(EscalarCache('SELECT etiquetaServ FROM cl_ftp_Server WHERE Idservidor = ' +
+      IntToStr(N)));
+  except
+    Result := IntToStr(N);
+  end;
+  if Result = '' then
+    Result := IntToStr(N);
+end;
+
+// Nombre del archivo (clasificador de archivos de gestion) a partir de su codigo.
+function TMAIN.NombreArchivoGestion(const Cod: string): string;
+var
+  N: Integer;
+begin
+  Result := Trim(Cod);
+  if not TryStrToInt(Result, N) or (N <= 0) then
+    Exit;
+  try
+    Result := Trim(EscalarCache('SELECT nombreArchivo FROM cl_ArchivosGestion WHERE Cod = ' +
+      IntToStr(N)));
+  except
+    Result := IntToStr(N);
+  end;
+  if Result = '' then
+    Result := IntToStr(N);
+end;
+
+// Servidores y archivos que ofrece el formulario de edicion (se eligen por nombre).
+procedure TMAIN.CargarOpcionesFormulario;
+
+  function Leer(const Sql: string): TArray<TOpcionLista>;
+  var
+    Q: TFDQuery;
+    N: Integer;
+  begin
+    Result := nil;
+    Q := TFDQuery.Create(nil);
+    try
+      Q.Connection := UDM.Conn;
+      try
+        Q.SQL.Text := Sql;
+        Q.Open;
+        while not Q.Eof do
+        begin
+          N := Length(Result);
+          SetLength(Result, N + 1);
+          Result[N].Id := Q.Fields[0].AsInteger;
+          Result[N].Texto := Trim(Q.Fields[1].AsString);
+          Q.Next;
+        end;
+      except
+        Result := nil;
+      end;
+    finally
+      Q.Free;
+    end;
+  end;
+
+begin
+  if FListaDocs = nil then
+    Exit;
+  FListaDocs.Formulario.FijarOpciones('servidor',
+    Leer('SELECT Idservidor, etiquetaServ FROM cl_ftp_Server ORDER BY etiquetaServ'));
+  FListaDocs.Formulario.FijarOpciones('archivo',
+    Leer('SELECT Cod, nombreArchivo FROM cl_ArchivosGestion ORDER BY nombreArchivo'));
+end;
+
 function TMAIN.ListaDocsUbicacionSubserie: TUbicacion;
 begin
   if UDM.tb_Serietree.Active and not UDM.tb_Serietree.IsEmpty then
     Result := UbicacionDeSubserie(
-      UDM.tb_Serietree.FieldByName('idservidor').AsString,
-      UDM.tb_Serietree.FieldByName('Archivo').AsString,
+      NombreServidor(UDM.tb_Serietree.FieldByName('idservidor').AsString),
+      NombreArchivoGestion(UDM.tb_Serietree.FieldByName('Archivo').AsString),
       UDM.tb_Serietree.FieldByName('deposito').AsString,
       UDM.tb_Serietree.FieldByName('gaveta').AsString)
   else
@@ -8038,6 +8120,7 @@ begin
     UDM.sms('Marque uno o varios documentos de la lista para editarlos.', 2);
     Exit;
   end;
+  CargarOpcionesFormulario;
   if FListaDocs.Editar(Claves) and (FPanelLateral <> nil) and
     FPanelLateral.TieneModoDocumento and FListaDocs.DocumentoSeparado then
     FPanelLateral.ActivarModo(MODO_DOCUMENTO);
@@ -8730,8 +8813,10 @@ function TMAIN.ShellPuedeAgregar: Boolean;
 var
   Nodo: TClaveNodo;
 begin
-  if SameText(UDM.UserName, 'Invitado') or SameText(UDM.Rol, 'Visor') then
+  // el invitado y el visor nunca agregan
+  if SameText(UDM.UserName, 'Invitado') or SameText(Trim(UDM.Rol), 'Visor') then
     Exit(False);
+  try
   if (UDM.Alcance <> nil) and UDM.tb_Serietree.Active and not UDM.tb_Serietree.IsEmpty then
   begin
     Nodo.IdEstructura := UDM.tb_Serietree.FieldByName('IdEstructura').AsString;
@@ -8743,6 +8828,10 @@ begin
     Result := True // sin subserie elegida: el propio alta avisa que falta elegirla
   else
     Result := nbInsert in dbnSeriesDatos.VisibleButtons;
+  except
+    // una falla puntual al consultar no debe dejar el boton visible
+    Result := False;
+  end;
 end;
 
 function TMAIN.ShellSeccionDisponible(const Nombre: string): Boolean;

@@ -236,6 +236,70 @@ begin
   end;
 end;
 
+{ '' si los campos de ubicacion que se quieren cambiar coinciden con los de la
+  subserie del documento (servidor, archivo, deposito y gaveta); si no, el
+  motivo. Un documento debe estar donde esta su subserie. Solo se comparan los
+  campos que se cambian (un dato heredado que ya no coincide no bloquea editar
+  el titulo) y los que la subserie define. Vaciar un campo no se bloquea. }
+function UbicacionFueraDeLaSubserie(Conn: TFDConnection; const K: TClaveDocumento;
+  const Campos: TArray<TCampoEdicion>): string;
+var
+  Q: TFDQuery;
+  I: Integer;
+  Sub, Nuevo: string;
+begin
+  Result := '';
+  Q := nil;
+  for I := 0 to High(Campos) do
+  begin
+    if not Campos[I].EsUbicacion or SameText(Campos[I].Columna, 'posicion') then
+      Continue;
+    if Q = nil then
+    begin
+      Q := TFDQuery.Create(nil);
+      Q.Connection := Conn;
+      Q.SQL.Text := 'SELECT deposito, gaveta, Archivo, idservidor FROM tb_Serietree ' +
+        'WHERE IdEstructura = :e AND id = :i AND codsubs = :c';
+      Q.ParamByName('e').AsString := K.IdEstructura;
+      Q.ParamByName('i').AsInteger := K.Id;
+      Q.ParamByName('c').AsString := K.CodSubs;
+      Q.Open;
+    end;
+    if Q.IsEmpty then
+      Break;
+    if SameText(Campos[I].Columna, 'deposito') then
+      Sub := Trim(Q.FieldByName('deposito').AsString)
+    else if SameText(Campos[I].Columna, 'gaveta') then
+      Sub := Trim(Q.FieldByName('gaveta').AsString)
+    else if SameText(Campos[I].Columna, 'Archivo') then
+      Sub := Trim(Q.FieldByName('Archivo').AsString)
+    else
+      Sub := Trim(Q.FieldByName('idservidor').AsString);
+    if (Sub = '') or (Sub = '0') then
+      Continue; // la subserie no define este tramo
+    if Campos[I].EsEntero then
+    begin
+      if Campos[I].Entero < 0 then
+        Continue;
+      Nuevo := IntToStr(Campos[I].Entero);
+    end
+    else
+    begin
+      Nuevo := Trim(Campos[I].Texto);
+      if Nuevo = '' then
+        Continue;
+    end;
+    if not SameText(Nuevo, Sub) then
+    begin
+      Result := Format('Ubicación fuera de la subserie: %s "%s", pero la subserie tiene %s "%s". ' +
+        'El documento debe estar donde está su subserie.',
+        [Campos[I].Etiqueta, Nuevo, Campos[I].Etiqueta, Sub]);
+      Break;
+    end;
+  end;
+  Q.Free;
+end;
+
 function ActualizarDocumentos(Conn: TFDConnection; Alcance: TAlcanceUsuario;
   const Origen: TOrigenDocumento; const Claves: TArray<TClaveDocumento>;
   const Cambios, Anteriores: TCambiosDoc): TResultadoEdicion;
@@ -292,6 +356,9 @@ begin
       Continue;
     end;
     try
+      Otro := UbicacionFueraDeLaSubserie(Conn, K, Aplicar);
+      if Otro <> '' then
+        raise Exception.Create(Otro);
       // otro usuario pudo cambiar el documento desde que se abrio el formulario
       if Length(Previos) > 0 then
       begin

@@ -32,6 +32,7 @@ type
     procedure MostrarMensaje(const Texto: string);
     { Todo el texto mostrado, una fila por linea (pruebas y diagnostico). }
     function Contenido: string;
+    function TextoDiferencias(const U: TUbicacion): string;
     function AlturaContenido: Integer;
   end;
 
@@ -105,7 +106,25 @@ begin
       Result := Result + 'Ubicación completa' + #10
     else
       Result := Result + 'Faltan datos de ubicación' + #10;
+    if FBloques[I].Diferencias > 0 then
+      Result := Result + TextoDiferencias(FBloques[I]) + #10;
   end;
+end;
+
+{ "No coincide con la subserie: Gaveta, Depósito". }
+function TVistaUbicacion.TextoDiferencias(const U: TUbicacion): string;
+var
+  J: Integer;
+begin
+  Result := '';
+  for J := 0 to High(U.Tramos) do
+    if U.Tramos[J].Difiere then
+    begin
+      if Result <> '' then
+        Result := Result + ', ';
+      Result := Result + U.Tramos[J].Rotulo;
+    end;
+  Result := 'No coincide con la subserie: ' + Result;
 end;
 
 function TVistaUbicacion.AlturaContenido: Integer;
@@ -126,7 +145,7 @@ var
   Y, X, I, J, Ancho, AnchoMax, FaltanN: Integer;
   R: TRect;
   Rot, Val: string;
-  Sin: Boolean;
+  Sin, Dif: Boolean;
 begin
   if Pintar then
   begin
@@ -169,6 +188,7 @@ begin
       Rot := FBloques[I].Tramos[J].Rotulo;
       Val := FBloques[I].Tramos[J].Valor;
       Sin := Val = 'Sin asignar';
+      Dif := FBloques[I].Tramos[J].Difiere;
       if Sin then
         Inc(FaltanN);
       Canvas.Font.Size := 10;
@@ -182,7 +202,7 @@ begin
       if Pintar then
       begin
         R := Rect(X, Y, X + Ancho, Y + ALTO_TRAMO);
-        if Sin then
+        if Sin or Dif then
         begin
           Canvas.Brush.Style := bsSolid;
           Canvas.Brush.Color := FTema.Superficie;
@@ -206,7 +226,7 @@ begin
         TextOut(Canvas.Handle, R.Left + 12, R.Top + 5, PChar(Rot), Length(Rot));
         Canvas.Font.Size := 10;
         Canvas.Font.Style := [fsBold];
-        if Sin then
+        if Sin or Dif then
           Canvas.Font.Color := FTema.Acento
         else
           Canvas.Font.Color := FTema.Texto;
@@ -242,6 +262,17 @@ begin
           Rot := 'Faltan ' + IntToStr(FaltanN) + ' datos de ubicación';
       end;
       TextOut(Canvas.Handle, MARGEN, Y, PChar(Rot), Length(Rot));
+    end;
+    if FBloques[I].Diferencias > 0 then
+    begin
+      Inc(Y, 18);
+      if Pintar then
+      begin
+        Canvas.Font.Color := FTema.Acento;
+        Canvas.Font.Style := [fsBold];
+        Rot := TextoDiferencias(FBloques[I]);
+        TextOut(Canvas.Handle, MARGEN, Y, PChar(Rot), Length(Rot));
+      end;
     end;
     Inc(Y, 36);
   end;
