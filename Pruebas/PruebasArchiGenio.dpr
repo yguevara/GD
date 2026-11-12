@@ -29,6 +29,8 @@ uses
   UPruebasServidoresDatos in 'UPruebasServidoresDatos.pas',
   UArchivosDatos in '..\UArchivosDatos.pas',
   UPruebasArchivosDatos in 'UPruebasArchivosDatos.pas',
+  UImagenes in '..\UImagenes.pas',
+  UPruebasImagenes in 'UPruebasImagenes.pas',
   UBusqueda in '..\UBusqueda.pas',
   UBusquedaDatos in '..\UBusquedaDatos.pas',
   UPruebasBusqueda in 'UPruebasBusqueda.pas',
