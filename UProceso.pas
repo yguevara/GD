@@ -38,6 +38,9 @@ type
 
   TTipoArchivo = (taGestion, taCentral, taHistorico, taOtro);
 
+  { Como se dibuja un paso en la tira de pasos de la pantalla. }
+  TEstadoPaso = (psHecho, psActual, psPendiente);
+
 { Cantidad de pasos del proceso. }
 function NumeroPasos(Tipo: TTipoProceso): Integer;
 
@@ -60,6 +63,13 @@ function PuedeCancelar(Tipo: TTipoProceso; PasoActual: Integer): Boolean;
   la transferencia sale de un archivo de gestion; la depuracion solo la inicia
   el archivo central o el historico (nunca uno de gestion). }
 function PuedeIniciar(Tipo: TTipoProceso; Rol: TRolNodo; Archivo: TTipoArchivo): Boolean;
+
+{ Estado visual del paso Paso (1..N) de un proceso que esta en PasoActual con el
+  estado Estado: los anteriores estan hechos y el actual esta en curso. Un
+  proceso finalizado tiene todos los pasos hechos; en uno cancelado el paso en
+  que se detuvo queda pendiente. }
+function EstadoDelPaso(Tipo: TTipoProceso; PasoActual: Integer;
+  Estado: TEstadoProceso; Paso: Integer): TEstadoPaso;
 
 { Interpreta el nombre del tipo de archivo (cl_ttipoarch.tipoarch) sin depender
   del codigo numerico ni de las tildes. }
@@ -141,6 +151,19 @@ begin
   else
     Result := False;
   end;
+end;
+
+function EstadoDelPaso(Tipo: TTipoProceso; PasoActual: Integer;
+  Estado: TEstadoProceso; Paso: Integer): TEstadoPaso;
+begin
+  if Estado = epFinalizado then
+    Exit(psHecho);
+  if Paso < PasoActual then
+    Result := psHecho
+  else if (Paso = PasoActual) and (Estado = epEnCurso) then
+    Result := psActual
+  else
+    Result := psPendiente;
 end;
 
 function TipoArchivoDesdeTexto(const Texto: string): TTipoArchivo;

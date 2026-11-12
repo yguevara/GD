@@ -48,6 +48,10 @@ type
     procedure AdministradorNoPresta;
     [Test]
     procedure TipoArchivoDesdeTextoReconoceNombres;
+    [Test]
+    procedure EstadoDelPasoSegunElActual;
+    [Test]
+    procedure ProcesoFinalizadoMarcaTodosLosPasosComoHechos;
   end;
 
 implementation
@@ -198,6 +202,25 @@ begin
   Assert.IsTrue(TipoArchivoDesdeTexto('Hist'#243'rico') = taHistorico);
   Assert.IsTrue(TipoArchivoDesdeTexto('otro') = taOtro);
   Assert.IsTrue(TipoArchivoDesdeTexto('') = taOtro);
+end;
+
+procedure TPruebasProceso.EstadoDelPasoSegunElActual;
+begin
+  Assert.IsTrue(EstadoDelPaso(tpTransferencia, 3, epEnCurso, 1) = psHecho);
+  Assert.IsTrue(EstadoDelPaso(tpTransferencia, 3, epEnCurso, 3) = psActual);
+  Assert.IsTrue(EstadoDelPaso(tpTransferencia, 3, epEnCurso, 4) = psPendiente);
+  Assert.IsTrue(EstadoDelPaso(tpTransferencia, 3, epEnCurso, 6) = psPendiente);
+end;
+
+procedure TPruebasProceso.ProcesoFinalizadoMarcaTodosLosPasosComoHechos;
+var
+  P: Integer;
+begin
+  for P := 1 to NumeroPasos(tpDepuracion) do
+    Assert.IsTrue(EstadoDelPaso(tpDepuracion, 5, epFinalizado, P) = psHecho);
+  // Un proceso cancelado deja el paso en el que se detuvo como pendiente
+  Assert.IsTrue(EstadoDelPaso(tpDepuracion, 2, epCancelado, 1) = psHecho);
+  Assert.IsTrue(EstadoDelPaso(tpDepuracion, 2, epCancelado, 2) = psPendiente);
 end;
 
 end.
