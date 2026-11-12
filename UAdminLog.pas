@@ -101,6 +101,11 @@ end;
 
 procedure TfrmAdminSysLogs.FormShow(Sender: TObject);
 begin
+  // El log ya no se carga completo al arrancar la aplicacion: se carga aqui.
+  try
+    UDM.tb_log.FetchAll;
+  except
+  end;
   if not FileExists(PathTemp + 'adminLOGs.tbl') then
   begin
     try

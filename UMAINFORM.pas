@@ -860,7 +860,7 @@ var
 implementation
 
 uses
-  UAparienciaLegacy, UTema, UIconos, UDocumentoVistaDatos, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UAutenticacion, UMensajes, UCapaDatos, UUserGest, UDocManagement,
+  UAparienciaLegacy, UTema, UIconos, UDocumentoVistaDatos, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UAutenticacion, UMensajes, UTiempos, USplash, UCapaDatos, UUserGest, UDocManagement,
   UPantallaCarga, UCLSeriesDocumentales, UCLFtpServer, UGestEstruct, UMangementArch,
   UManagementFileSeries, UViewFunciones, UVeditor, UExcelExport, UManagementNode,
   USystemMsg, UNodeProperties, UCL_TiposExp, USysConfig, UTransferencias,
@@ -6540,6 +6540,7 @@ var
   end;
 
 begin
+  TiemposMarca('MAIN.FormCreate: inicio');
 //  if FileExists(PathTemp + '\NavBarEstado.ini') then
 //  PContainer.Visible := False;
   RestaurarEstadoNavBar(nbMain, PathTemp + '\NavBarEstado.ini');
@@ -6596,6 +6597,7 @@ begin
   ArchivoActual;
   if Assigned(TStyleManager.ActiveStyle) then
     fdefaultStyleName := TStyleManager.ActiveStyle.Name; }
+  TiemposMarca('MAIN.FormCreate: fin');
 end;
 
 procedure TMAIN.FormDestroy(Sender: TObject);
@@ -6715,27 +6717,49 @@ const
   end;
 
 begin
-  // Ejecuta la carga de configuraciones y ajustes finales
+  TiemposMarca('MAIN.FormShow: inicio');
+  // La ventana principal aun no se ve: el splash sigue visible (con su estado)
+  // hasta que termina la carga, para que no haya un hueco sin respuesta.
+  try
+  SplashEstado('Cargando el cuadro de clasificación...');
   LoadTreeViewSettings;
+  TiemposMarca('MAIN.FormShow: LoadTreeViewSettings');
   // Shell de la variante A (sin efecto con shell_clasico.flag). Con el shell
   // activo, el buscador de la cabecera sustituye a "Buscar documentos".
+  SplashEstado('Aplicando la apariencia...');
   AplicarShell(Self);
+  TiemposMarca('MAIN.FormShow: AplicarShell');
   // Paleta de UTema en las pantallas viejas (rejillas, iconos, paneles)
   InstalarAparienciaLegacy;
+  TiemposMarca('MAIN.FormShow: InstalarAparienciaLegacy');
   // Iconos del arbol del cuadro de clasificacion (mismos indices, nuevas imagenes)
   try
     ReemplazarIconosArbol(UDM.ImageList3);
+    TiemposMarca('MAIN.FormShow: ReemplazarIconosArbol');
   except
     // Solo apariencia: si falla quedan los iconos anteriores
   end;
+  SplashEstado('Preparando la lista de documentos...');
   if ShellActivo then
   begin
-    ConectarShell;
-    ConectarListaDocumentos;
+    // Construir y mover paneles realinea el formulario en cada paso: se agrupa
+    // en un solo realineado al terminar.
+    DisableAlign;
+    try
+      ConectarShell;
+      ConectarListaDocumentos;
+    finally
+      EnableAlign;
+    end;
   end
   else
     AgregarMenuBusqueda;
+  TiemposMarca('MAIN.FormShow: ConectarShell');
   FinalizeUI;
+  TiemposMarca('MAIN.FormShow: fin');
+  finally
+    SplashCerrar;
+  end;
 end;
 
 procedure TMAIN.BuscarDocumentosClick(Sender: TObject);
@@ -6835,7 +6859,10 @@ begin
   if FListaDocs <> nil then
     Exit;
   try
+    // Los controles se construyen ocultos (sin handles ni repintados) y se
+    // muestran al terminar: arrancar mucho mas rapido.
     FBarraTrabajo := TBarraTrabajo.Create(Self);
+    FBarraTrabajo.Visible := False;
     FBarraTrabajo.Parent := PSeriesDatos;
     FBarraTrabajo.Align := alTop;
     FBarraTrabajo.OnFiltroCambio := BarraFiltroCambio;
@@ -6843,6 +6870,7 @@ begin
     FBarraTrabajo.OnElegirSerie := BarraElegirSerie;
 
     FListaDocs := TPanelDocumentos.Create(Self);
+    FListaDocs.Visible := False;
     FListaDocs.Parent := PSeriesDatos;
     FListaDocs.Align := alClient;
     FListaDocs.OnSeleccion := ListaDocsSeleccion;
@@ -6871,6 +6899,7 @@ begin
     FTimerDocs.OnTimer := ListaDocsRefrescar;
 
     FBloqueAccion := TBloqueAccion.Create(Self);
+    FBloqueAccion.Visible := False;
     FBloqueAccion.Parent := bgBDControl;
     FBloqueAccion.Align := alBottom;
     FBloqueAccion.OnElegir := BloqueAccionElegir;
@@ -6887,6 +6916,8 @@ begin
     TEnlaceDocumentos(FEnlaceDocs).DataSource := UDM.dstb_SeriesDatos;
     TEnlaceDocumentos(FEnlaceDocs).AlCambiar := ListaDocsCambio;
 
+    FBarraTrabajo.Visible := True;
+    FBloqueAccion.Visible := True;
     FModoLista := True;
     cxPageControl2.Visible := False;
     FListaDocs.Visible := True;
@@ -7535,6 +7566,34 @@ var
   Bm: TBookmark;
   Actual, Cod, Nombre: string;
   N: Integer;
+
+  // Llena la cache de nombres con UNA consulta (antes era una por cada serie
+  // distinta del arbol: en bases grandes retrasaba el arranque).
+  procedure PrecargarNombres;
+  var
+    Q: TFDQuery;
+  begin
+    Q := TFDQuery.Create(nil);
+    try
+      try
+        Q.Connection := UDM.Conn;
+        Q.Open('SELECT codsubs, subserie FROM cl_subseries');
+        while not Q.Eof do
+        begin
+          Nombre := Trim(Q.Fields[1].AsString);
+          if Nombre = '' then
+            Nombre := Q.Fields[0].AsString;
+          FNombresSerie.AddOrSetValue(Q.Fields[0].AsString, Nombre);
+          Q.Next;
+        end;
+      except
+        // si falla, cada serie se consulta por separado como antes
+      end;
+    finally
+      Q.Free;
+    end;
+  end;
+
 begin
   if (FBarraTrabajo = nil) or FCargandoSeries then
     Exit;
@@ -7572,7 +7631,10 @@ begin
       begin
         Cod := DS.FieldByName('codsubs').AsString;
         if FNombresSerie = nil then
+        begin
           FNombresSerie := TDictionary<string, string>.Create;
+          PrecargarNombres;
+        end;
         if not FNombresSerie.TryGetValue(Cod, Nombre) then
         begin
           Nombre := Cod;

@@ -102,6 +102,12 @@ var
   PathApp: string;
   VersionAprobada: boolean;
 
+{ Cambia el texto de estado del splash (no hace nada si ya se cerro). }
+procedure SplashEstado(const Texto: string);
+
+{ Oculta y libera el splash. Se puede llamar varias veces. }
+procedure SplashCerrar;
+
 implementation
 
 {$R *.dfm}
@@ -304,6 +310,29 @@ begin
     Result := IdGlobal.IndyLowerCase(vHashMD5.HashStringAsHex(vValue));
   finally
     vHashMD5.Free;
+  end;
+end;
+
+procedure SplashEstado(const Texto: string);
+begin
+  if frmSplash = nil then
+    Exit;
+  try
+    frmSplash.Label1.Caption := Texto;
+    frmSplash.Label1.Update;
+  except
+    // el texto del splash es solo informativo
+  end;
+end;
+
+procedure SplashCerrar;
+begin
+  if frmSplash = nil then
+    Exit;
+  try
+    frmSplash.Hide;
+  finally
+    FreeAndNil(frmSplash);
   end;
 end;
 

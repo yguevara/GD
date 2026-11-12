@@ -63,6 +63,7 @@ uses
   UAparienciaLegacy in 'UAparienciaLegacy.pas',
   UAutenticacion in 'UAutenticacion.pas',
   UMensajes in 'UMensajes.pas',
+  UTiempos in 'UTiempos.pas',
   UAutentica in 'UAutentica.pas' {frmAutentica},
   md5 in 'md5.pas',
   UUserGest in 'UUserGest.pas' {frmGestUser},
@@ -164,7 +165,9 @@ begin
   FormatSettings.ShortDateFormat := 'dd/mm/yyyy';
   FormatSettings.LongDateFormat := 'dddd, dd mmmm yyyy';
 //  Application.BringToFront;
+  TiemposIniciar;
   Application.Initialize;
+  TiemposMarca('Application.Initialize');
   InstalarDiagnosticoErrores;
   VERSION := 'PROFESIONAL';
 //  VERSION := 'BÁSICA';
@@ -214,6 +217,7 @@ begin
       buildprogram := build;
       if not CAPP then
         Application.CreateForm(TMAIN, MAIN);
+      TiemposMarca('dpr: MAIN creado');
         frmSplash.Paso('Listo', 2);
     end
     else
@@ -233,10 +237,11 @@ begin
     end;
     if not CAPP then
     begin
-      Sleep(2000);
-      frmSplash.Hide;
-      frmSplash.Free;
+      // El splash NO se cierra aqui: sigue visible mientras TMAIN termina de cargar
+      // en FormShow (que llama a SplashCerrar), sin hueco entre splash y ventana.
+      SplashEstado('Preparando la pantalla principal...');
       TrimAppMemorySize;
+      TiemposMarca('dpr: antes de Application.Run');
       Application.Run;
     end
     else

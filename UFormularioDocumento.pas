@@ -153,6 +153,10 @@ const
 constructor TFormularioDocumento.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  // Nace oculto: construir ~50 controles con el formulario visible crea un
+  // handle y un repintado por cada uno (cientos de ms al arrancar). Quien lo
+  // usa lo muestra cuando hace falta.
+  Visible := False;
   FOscuro := TemaWindowsOscuro;
   if FOscuro then
     FTema := TemaOscuro

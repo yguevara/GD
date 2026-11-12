@@ -1126,6 +1126,7 @@ var
 implementation
 
 uses
+  UTiempos,
   UEsquemaAlcance, UEsquemaAlmacen, UEsquemaCarga, UEsquemaTrazabilidad, UTrazabilidadDatos, UAlcanceDatos, UTopografia,
   UAlmacenFicheros, UAlmacenServidor, UProgresoTransferencia;
 
@@ -2147,10 +2148,13 @@ begin
 //    ResourceOptions.WaitCursor := crDefault; // Fuerza crDefault si se muestra un cursor
     try
 
+      TiemposMarca('UDM: antes de Conn.Connected');
       Connected := True;
+      TiemposMarca('UDM: Conn.Connected');
 
   // Ejecutar los cambios
       UpDateDB;
+      TiemposMarca('UDM: UpDateDB');
     except
       on E: EFDexception do
       begin
@@ -2165,7 +2169,9 @@ begin
     end;
   end;
 
+  TiemposMarca('UDM: antes de ActivaDataLayer');
   ActivaDataLayer(true);
+  TiemposMarca('UDM: ActivaDataLayer completo');
 end;
 
 procedure TUDM.DeleteDir(aPath: string);
@@ -4128,21 +4134,26 @@ end;
 
 procedure TUDM.LoadTreeViewState(TreeView: TTreeView; const FileName: string);
 var
-  IniFile: TIniFile;
+  IniFile: TMemIniFile; // se lee una sola vez; TIniFile reabre el archivo en cada lectura
   Node: TTreeNode;
   i, SelectedIndex: Integer;
   Expanded: Boolean;
   MousePos: TPoint;
 begin
   CargandoEstado := True;
-  IniFile := TIniFile.Create(FileName);
+  IniFile := TMemIniFile.Create(FileName);
   try
-    // Restaura el estado de expansión de cada nodo
-    for i := 0 to TreeView.Items.Count - 1 do
-    begin
-      Node := TreeView.Items[i];
-      Expanded := IniFile.ReadBool('TreeViewState', 'Node' + IntToStr(Node.AbsoluteIndex), False);
-      Node.Expanded := Expanded;
+    // Restaura el estado de expansión de cada nodo (sin repintar entre nodo y nodo)
+    TreeView.Items.BeginUpdate;
+    try
+      for i := 0 to TreeView.Items.Count - 1 do
+      begin
+        Node := TreeView.Items[i];
+        Expanded := IniFile.ReadBool('TreeViewState', 'Node' + IntToStr(Node.AbsoluteIndex), False);
+        Node.Expanded := Expanded;
+      end;
+    finally
+      TreeView.Items.EndUpdate;
     end;
 
     // Restaura el nodo seleccionado (si existe)
@@ -4994,8 +5005,9 @@ begin
   //usuarios y Rol
   Tb_Rol.Active := aValue;
   tb_accionlog.Active := aValue;
+  // tb_log crece sin limite: solo se abre (la bitacora escribe con Append/Post).
+  // El visor de logs (UAdminLog) pide FetchAll al mostrarse.
   tb_log.Open();
-  tb_log.FetchAll();
   qryAnexosDig.Active := aValue;
   qryAnexosDig.FetchAll;
   qryFuentesDig.Active := aValue;

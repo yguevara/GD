@@ -1350,7 +1350,7 @@ object frmSplash: TfrmSplash
   end
   object DiskDriveInfo1: TDiskDriveInfo
     Host = '.'
-    Active = True
+    Active = False
     AllProperties.Strings = (
       
         #10'instance of Win32_DiskDrive'#10'{'#10#9'BytesPerSector = 512;'#10#9'Capabilit' +
@@ -1394,7 +1394,7 @@ object frmSplash: TfrmSplash
   end
   object ProcessorInfo1: TProcessorInfo
     Host = '.'
-    Active = True
+    Active = False
     AllProperties.Strings = (
       
         #10'instance of Win32_Processor'#10'{'#10#9'AddressWidth = 64;'#10#9'Architecture' +
