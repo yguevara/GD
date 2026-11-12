@@ -1412,6 +1412,16 @@ begin
     if Cambio then
       Reacomodar;
   end;
+  // El boton grande de la pantalla de inicio sigue la misma regla: el invitado y
+  // el visor no lo ven, y "Buscar un documento" queda centrado.
+  if (FInicioAgregar <> nil) and (FInicioBuscar <> nil) and (FInicioGrupo <> nil) then
+  begin
+    FInicioAgregar.Visible := SeccionDisponible(SECCION_AGREGAR);
+    if FInicioAgregar.Visible then
+      FInicioBuscar.Left := Esc(290)
+    else
+      FInicioBuscar.Left := (FInicioGrupo.Width - FInicioBuscar.Width) div 2;
+  end;
 end;
 
 procedure TShellPrincipal.SeccionClick(Sender: TObject);
