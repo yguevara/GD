@@ -28,6 +28,8 @@ uses
   UErroresCampo in '..\UErroresCampo.pas',
   UPalabrasReservadas in '..\UPalabrasReservadas.pas',
   UPruebasPalabrasReservadas in 'UPruebasPalabrasReservadas.pas',
+  UVariablesDatos in '..\UVariablesDatos.pas',
+  UPruebasVariablesDatos in 'UPruebasVariablesDatos.pas',
   UServidoresDatos in '..\UServidoresDatos.pas',
   UPruebasServidoresDatos in 'UPruebasServidoresDatos.pas',
   UArchivosDatos in '..\UArchivosDatos.pas',

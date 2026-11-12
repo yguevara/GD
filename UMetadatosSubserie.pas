@@ -22,6 +22,7 @@ type
     Longitud: Integer;
     Orden: Integer;
     Obligatorio: Boolean;
+    Descripcion: string;     // ayuda opcional (cl_VarSubserie.descripcion)
   end;
 
   TControlMeta = (cmEdit, cmMemo, cmFecha, cmNumero, cmSiNo);
@@ -102,7 +103,7 @@ var
   Q: TFDQuery;
   N: Integer;
   C: TCampoMeta;
-  Obl: TField;
+  Obl, Des: TField;
 begin
   Result := nil;
   Q := TFDQuery.Create(nil);
@@ -112,6 +113,7 @@ begin
     Q.ParamByName('c').AsString := CodSubs;
     Q.Open;
     Obl := Q.FindField('obligatorio');
+    Des := Q.FindField('descripcion');
     N := 0;
     while not Q.Eof do
     begin
@@ -124,6 +126,8 @@ begin
       C.Longitud := Q.FieldByName('longitud').AsInteger;
       C.Orden := Q.FieldByName('Orden').AsInteger;
       C.Obligatorio := (Obl <> nil) and (not Obl.IsNull) and Obl.AsBoolean;
+      if (Des <> nil) and (not Des.IsNull) then
+        C.Descripcion := Trim(Des.AsString);
       if C.Nombre <> '' then
       begin
         SetLength(Result, N + 1);
