@@ -31,6 +31,8 @@ uses
   UVariablesDatos in '..\UVariablesDatos.pas',
   USeriesDatos in '..\USeriesDatos.pas',
   UVariablesSesion in '..\UVariablesSesion.pas',
+  UVariablesEditor in '..\UVariablesEditor.pas',
+  UPruebasVariablesEditor in 'UPruebasVariablesEditor.pas',
   UPruebasVariablesSesion in 'UPruebasVariablesSesion.pas',
   UPruebasSeriesDatos in 'UPruebasSeriesDatos.pas',
   UPruebasVariablesDatos in 'UPruebasVariablesDatos.pas',

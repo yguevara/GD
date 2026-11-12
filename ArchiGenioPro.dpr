@@ -70,6 +70,7 @@ uses
   UVariablesDatos in 'UVariablesDatos.pas',
   USeriesDatos in 'USeriesDatos.pas',
   UVariablesSesion in 'UVariablesSesion.pas',
+  UVariablesEditor in 'UVariablesEditor.pas',
   UServidoresDatos in 'UServidoresDatos.pas',
   UArchivosDatos in 'UArchivosDatos.pas',
   UImagenes in 'UImagenes.pas',
