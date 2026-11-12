@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Procesos archivísticos: maquetas</title>
+<style>
+  body{margin:0;padding:24px;background:#ece6da;font-family:"Segoe UI",system-ui,sans-serif;color:#2b2118}
+  h1{font-size:22px;margin:0 0 4px}h2{font-size:18px;margin:34px 0 4px}h3.t{margin:20px 0 6px;font-size:14px}
+  .subtitle,.nota{color:#75675a;font-size:13px;margin:0 0 10px}
+  .win{--fondo:#f7f3ec;--sup:#fffdf9;--sup2:#f2ece1;--txt:#2b2118;--suave:#75675a;--linea:#e0d6c6;--acento:#c2410c;--suave-a:#fde6d8;--col:#efe7d9;--ok:#2f7d4f;--ok-f:#dcf0e3;--av:#8a5a00;--av-f:#fbecc8;--er:#b3261e;--er-f:#f9dcd9;--az:#245a8d;--az-f:#dce9f6;
+    font-family:"Segoe UI",system-ui,sans-serif;font-size:13px;color:var(--txt);background:var(--fondo);border:1px solid var(--linea);border-radius:8px;overflow:hidden;display:flex;min-height:520px;max-width:1280px;margin-bottom:8px}
+  .win *{box-sizing:border-box}
+  .col{width:78px;background:var(--col);padding:10px 6px;display:flex;flex-direction:column;gap:6px;border-right:1px solid var(--linea);flex:none}
+  .col div{text-align:center;font-size:11px;color:#4a3b2d;padding:8px 2px;border-radius:8px}
+  .col div.on{background:#f4d9c6}.col .gap{flex:1}
+  .main{flex:1;display:flex;flex-direction:column;min-width:0}
+  .shell{height:58px;background:var(--sup);border-bottom:1px solid var(--linea);padding:8px 18px;display:flex;align-items:center;flex:none}
+  .shell .r{font-size:11.5px;color:var(--suave)}.shell .t{font-size:17px;font-weight:700}
+  .shell .u{margin-left:auto;border:1px solid var(--linea);border-radius:8px;padding:6px 12px;background:var(--sup2);font-size:12px}
+  .tabs{display:flex;gap:4px;padding:8px 18px 0;background:var(--sup);border-bottom:1px solid var(--linea)}
+  .tabs span{padding:8px 14px;border-radius:6px 6px 0 0;color:var(--suave)}
+  .tabs span.on{background:var(--fondo);color:var(--acento);font-weight:700;border:1px solid var(--linea);border-bottom:0}
+  .tabs i{font-style:normal;background:var(--er-f);color:var(--er);border-radius:9px;padding:1px 7px;font-size:11px;margin-left:5px;font-weight:700}
+  .bar{display:flex;align-items:center;gap:10px;padding:10px 18px;background:var(--sup);border-bottom:1px solid var(--linea);flex:none}
+  .bar .n{font-size:13px;color:var(--suave);flex:1}
+  .search{background:var(--sup2);border:1px solid var(--linea);border-radius:6px;padding:7px 12px;color:var(--suave);width:210px}
+  .btn{background:var(--acento);color:#fff;border:0;border-radius:6px;padding:7px 14px;font-weight:600;font-family:inherit;font-size:13px}
+  .btn.sec{background:var(--sup);color:var(--txt);border:1px solid var(--linea);font-weight:500}
+  .btn.sm{padding:4px 10px;font-size:12px}.btn.peligro{color:var(--er)}.btn.ok{background:var(--ok)}
+  .body{flex:1;display:flex;min-height:0}
+  .tbl{flex:1;background:var(--sup);padding:0 16px 16px;min-width:0;overflow:hidden}
+  .tbl table{width:100%;border-collapse:collapse}
+  .tbl th{text-align:left;font-size:10.5px;color:var(--suave);padding:10px 12px;background:var(--sup2);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--linea)}
+  .tbl td{padding:10px 12px;border-bottom:1px solid var(--linea)}
+  .tbl tr.sel td{background:var(--suave-a)}.tbl tr.sel td:first-child{box-shadow:inset 3px 0 0 var(--acento)}
+  .chip{display:inline-block;border-radius:10px;padding:2px 9px;font-size:11px;font-weight:600;background:#e7e2d6;color:#4a3b2d;white-space:nowrap}
+  .chip.a{background:var(--suave-a);color:var(--acento)}.chip.ok{background:var(--ok-f);color:var(--ok)}.chip.av{background:var(--av-f);color:var(--av)}.chip.er{background:var(--er-f);color:var(--er)}.chip.az{background:var(--az-f);color:var(--az)}
+  .panel{width:440px;background:var(--sup);border-left:1px solid var(--linea);display:flex;flex-direction:column;flex:none}
+  .ph{display:flex;align-items:center;padding:14px 18px 6px}.ph b{font-size:15px;flex:1}.ph span{color:var(--suave)}
+  .pc{flex:1;padding:6px 18px 10px;overflow:hidden}
+  .sec-t{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--suave);margin:12px 0 6px;font-weight:700}
+  .f{margin-bottom:9px}.f label{display:block;color:var(--suave);font-size:11px;margin-bottom:3px}
+  .in{background:#fff;border:1px solid var(--linea);border-radius:6px;padding:6px 10px;min-height:30px}
+  .in.err{border-color:var(--er)}.em{color:var(--er);font-size:11px;margin-top:2px}
+  .row{display:flex;gap:10px}.row .f{flex:1}
+  .pb{display:flex;gap:8px;padding:12px 18px;background:var(--sup2);border-top:1px solid var(--linea);flex:none}.pb .sp{flex:1}
+  .aviso{border-radius:8px;padding:9px 12px;margin:8px 0;font-size:12.5px;line-height:1.4}
+  .aviso.av{background:var(--av-f);color:var(--av)}.aviso.er{background:var(--er-f);color:var(--er)}.aviso.ok{background:var(--ok-f);color:var(--ok)}.aviso.az{background:var(--az-f);color:var(--az)}
+  /* pasos */
+  .pasos{display:flex;padding:14px 18px;background:var(--sup);border-bottom:1px solid var(--linea);gap:0;flex:none}
+  .paso{flex:1;text-align:center;font-size:11.5px;color:var(--suave);position:relative}
+  .paso:before{content:"";position:absolute;top:13px;left:-50%;right:50%;height:2px;background:var(--linea)}
+  .paso:first-child:before{display:none}
+  .paso b{display:flex;width:28px;height:28px;border-radius:50%;margin:0 auto 5px;align-items:center;justify-content:center;background:var(--sup2);border:2px solid var(--linea);position:relative;z-index:1;font-size:12px}
+  .paso.hecho{color:var(--ok)}.paso.hecho b{background:var(--ok);border-color:var(--ok);color:#fff}.paso.hecho:before{background:var(--ok)}
+  .paso.act{color:var(--acento);font-weight:700}.paso.act b{background:var(--acento);border-color:var(--acento);color:#fff}.paso.act:before{background:var(--ok)}
+  .card{background:var(--sup);border:1px solid var(--linea);border-radius:8px;padding:12px 14px;margin:12px 16px 0}
+  .card h4{margin:0 0 8px;font-size:13px}
+  .kpis{display:flex;gap:10px;padding:12px 16px 0}.kpi{flex:1;background:var(--sup);border:1px solid var(--linea);border-radius:8px;padding:10px 12px}
+  .kpi b{display:block;font-size:22px}.kpi span{color:var(--suave);font-size:11.5px}
+  .chk{display:flex;gap:8px;align-items:flex-start;padding:5px 0;border-bottom:1px dashed var(--linea)}.chk:last-child{border:0}
+  .chk .c{width:16px;height:16px;border-radius:4px;border:2px solid var(--linea);flex:none;margin-top:1px;background:#fff;font-size:11px;line-height:12px;text-align:center;color:#fff}
+  .chk .c.v{background:var(--ok);border-color:var(--ok)}.chk .c.x{background:var(--er);border-color:var(--er)}
+  .chk small{color:var(--suave);display:block}
+  .firma{border-top:1px solid var(--txt);width:100%;margin-top:26px;padding-top:3px;font-size:11px;color:var(--suave);text-align:center}
+  .papel{background:#fff;border:1px solid var(--linea);box-shadow:0 1px 6px #0002;margin:14px auto;padding:20px 26px;width:760px;font-family:"Segoe UI",sans-serif;font-size:12px}
+  .papel h5{text-align:center;margin:0 0 10px;font-size:13px}.papel table{width:100%;border-collapse:collapse}.papel td,.papel th{border:1px solid #999;padding:4px 6px;font-size:11.5px;text-align:left}
+  .num{font-variant-numeric:tabular-nums}
+  .atom{width:100%;max-width:1280px;border-collapse:collapse;background:#fffdf9;border:1px solid #e0d6c6;font-size:13px}
+  .atom th{background:#f2ece1;text-align:left;padding:8px 12px;font-size:11px;text-transform:uppercase;color:#75675a}.atom td{padding:8px 12px;border-top:1px solid #e0d6c6;vertical-align:top}
+</style></head><body>
+
+<h1>Préstamos, Transferencias y Depuración: maquetas para aprobar</h1>
+<p class="subtitle">Propuesta de pantallas dentro del shell principal (embebidas, como los clasificadores nuevos). Datos de ejemplo. Basadas en el Manual de procedimientos GD, el Manual Marco 2020 y el REG.CITMA 53‑2022. Nada de esto está implementado todavía.</p>
+<p class="nota"><b>Convenciones:</b> verde = hecho/devuelto, ámbar = pendiente/por vencer, rojo = vencido/bloqueado, azul = en trámite. Cada proceso es un <i>expediente de proceso</i> con estados y pasos; ningún paso se puede saltar. Todo queda en el registro de auditoría.</p>
+
+<!-- ===================================================== PRÉSTAMOS -->
+<h2>A. Préstamos</h2>
+<p class="subtitle">Salida temporal de documentos para usuarios internos o externos. Reemplaza <code>UPrestamos</code>. Produce la <b>Solicitud de consulta o préstamo</b> (Anexo 8.2) y el <b>Registro de préstamos</b> (Anexo 8.3).</p>
+
+<h3 class="t">A1. Lista de préstamos (lo primero que se ve)</h3>
+<div class="win">
+  <div class="col"><div>Inicio</div><div>Archivo</div><div class="on">Procesos</div><div>Gestión</div><div class="gap"></div><div>Acerca de</div></div>
+  <div class="main">
+    <div class="shell"><div><div class="r">Procesos</div><div class="t">Préstamos</div></div><div class="u">Marta Gómez — Especialista de GD</div></div>
+    <div class="kpis">
+      <div class="kpi"><b>7</b><span>En préstamo ahora</span></div>
+      <div class="kpi"><b style="color:var(--er)">2</b><span>Vencidos</span></div>
+      <div class="kpi"><b style="color:var(--av)">3</b><span>Vencen en 3 días</span></div>
+      <div class="kpi"><b>41</b><span>Devueltos este año</span></div>
+    </div>
+    <div class="tabs"><span class="on">Todos</span><span>En préstamo</span><span>Vencidos<i>2</i></span><span>Devueltos</span><span>Solicitudes<i>1</i></span></div>
+    <div class="bar"><div class="n">12 préstamos</div><div class="search">🔍 Solicitante, documento…</div><button class="btn sec">Registro de préstamos (imprimir)</button><button class="btn">＋ Nuevo préstamo</button></div>
+    <div class="body"><div class="tbl"><table>
+      <tr><th style="width:90px">N.º</th><th>Solicitante</th><th>Entidad</th><th>Unidades</th><th>Fecha</th><th>Devolver antes de</th><th>Estado</th></tr>
+      <tr><td class="num">2026‑0047</td><td><b>Luis Fernández</b></td><td>Finanzas (interno)</td><td>3 expedientes</td><td>05/11/2026</td><td style="color:var(--er)"><b>10/11/2026</b></td><td><span class="chip er">Vencido · 2 días</span></td></tr>
+      <tr class="sel"><td class="num">2026‑0048</td><td><b>Ernesto Pardo</b></td><td>Oficina Nacional (externo)</td><td>1 expediente</td><td>09/11/2026</td><td>16/11/2026</td><td><span class="chip az">Entregado</span></td></tr>
+      <tr><td class="num">2026‑0049</td><td><b>Ana Rodríguez</b></td><td>Administración (interno)</td><td>2 cajas</td><td>10/11/2026</td><td>13/11/2026</td><td><span class="chip av">Vence en 1 día</span></td></tr>
+      <tr><td class="num">2026‑0050</td><td><b>Carlos Vega</b></td><td>Recursos Humanos (interno)</td><td>1 documento</td><td>12/11/2026</td><td>—</td><td><span class="chip">Solicitado</span></td></tr>
+      <tr><td class="num">2026‑0046</td><td><b>Marta Gómez</b></td><td>Desarrollo (interno)</td><td>4 documentos</td><td>28/10/2026</td><td>04/11/2026</td><td><span class="chip ok">Devuelto 03/11</span></td></tr>
+    </table></div>
+    <div class="panel">
+      <div class="ph"><b>Préstamo 2026‑0048</b><span>✕</span></div>
+      <div class="pc">
+        <div><span class="chip az">Entregado</span> &nbsp;<span class="chip">Externo</span></div>
+        <div class="sec-t">Solicitante</div>
+        <div class="row"><div class="f"><label>Nombre y apellidos</label><div class="in">Ernesto Pardo Díaz</div></div><div class="f"><label>Carnet de identidad</label><div class="in">82031412345</div></div></div>
+        <div class="f"><label>Entidad a que pertenece</label><div class="in">Oficina Nacional de Auditoría</div></div>
+        <div class="sec-t">Lo que se presta</div>
+        <div class="f"><div class="in" style="padding:8px 10px">📁 <b>Exp. 014‑2019</b> · Contratos de suministro<br><small style="color:var(--suave)">Caja 12 · Depósito 2 · Gaveta C‑4</small></div></div>
+        <div class="row"><div class="f"><label>Entregado el</label><div class="in">09/11/2026</div></div><div class="f"><label>Devolver antes del</label><div class="in">16/11/2026</div></div></div>
+        <div class="f"><label>Atendido por</label><div class="in">Marta Gómez</div></div>
+        <div class="aviso az">Al devolver, se revisa que el expediente llegue completo. Mientras esté prestado, <b>no puede incluirse en una transferencia ni en una depuración</b>.</div>
+      </div>
+      <div class="pb"><button class="btn ok">Registrar devolución</button><button class="btn sec">Imprimir solicitud</button><div class="sp"></div><button class="btn sec">Renovar plazo</button></div>
+    </div></div>
+  </div>
+</div>
+
+<h3 class="t">A2. Nuevo préstamo (se abre en el panel; busca y agrega unidades)</h3>
+<div class="win">
+  <div class="col"><div>Inicio</div><div>Archivo</div><div class="on">Procesos</div><div>Gestión</div><div class="gap"></div><div>Acerca de</div></div>
+  <div class="main">
+    <div class="shell"><div><div class="r">Procesos › Préstamos</div><div class="t">Nuevo préstamo</div></div><div class="u">Marta Gómez — Especialista de GD</div></div>
+    <div class="body">
+      <div class="tbl" style="padding-top:12px">
+        <div class="search" style="width:100%;margin-bottom:8px">🔍 Buscar el documento o expediente a prestar (código, título, serie)…</div>
+        <table>
+          <tr><th>Código</th><th>Título</th><th>Serie</th><th>Ubicación</th><th></th></tr>
+          <tr><td class="num">014‑2019</td><td><b>Contratos de suministro</b></td><td>Contratos</td><td>Dep. 2 · C‑4 · Caja 12</td><td><button class="btn sec sm">Agregar</button></td></tr>
+          <tr><td class="num">015‑2019</td><td><b>Contratos de servicio</b></td><td>Contratos</td><td>Dep. 2 · C‑4 · Caja 12</td><td><button class="btn sec sm">Agregar</button></td></tr>
+          <tr><td class="num">021‑2018</td><td><b>Informes de auditoría</b></td><td>Auditoría</td><td>Dep. 1 · B‑2</td><td><span class="chip er">Ya prestado a L. Fernández</span></td></tr>
+          <tr><td class="num">033‑2015</td><td><b>Nóminas 2015</b></td><td>Nóminas</td><td>—</td><td><span class="chip av">Sin ubicación</span></td></tr>
+        </table>
+      </div>
+      <div class="panel">
+        <div class="ph"><b>Datos del préstamo</b><span>✕</span></div>
+        <div class="pc">
+          <div class="f"><label>Tipo de usuario</label><div class="in">Interno ▾</div></div>
+          <div class="f"><label>Solicitante</label><div class="in">Elegir de usuarios o escribir ▾</div></div>
+          <div class="row"><div class="f"><label>Devolver antes del</label><div class="in">13/11/2026</div></div><div class="f"><label>Plazo por defecto</label><div class="in">3 días ▾</div></div></div>
+          <div class="sec-t">Unidades a prestar (2)</div>
+          <div class="in" style="padding:8px 10px">📁 Exp. 014‑2019 <span style="float:right;color:var(--suave)">✕</span></div>
+          <div class="in" style="padding:8px 10px;margin-top:6px">📁 Exp. 015‑2019 <span style="float:right;color:var(--suave)">✕</span></div>
+          <div class="aviso av">Un documento ya prestado no se puede agregar. Aparece en rojo con quién lo tiene.</div>
+        </div>
+        <div class="pb"><button class="btn">Registrar entrega</button><button class="btn sec">Guardar solicitud</button><div class="sp"></div><button class="btn sec">Cancelar</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 class="t">A3. Impresos oficiales que genera (FastReport)</h3>
+<div class="papel">
+  <h5>REGISTRO INTERNO DE PRÉSTAMO DE DOCUMENTOS · Año 2026</h5>
+  <table><tr><th>N.º</th><th>Nombre y apellidos del solicitante</th><th>Serie documental</th><th>Fecha de solicitud</th><th>Fecha de devolución</th><th>Entidad</th><th>Observaciones</th></tr>
+  <tr><td>2026‑0047</td><td>Luis Fernández</td><td>Informes de auditoría</td><td>05/11/2026</td><td></td><td>Finanzas</td><td></td></tr>
+  <tr><td>2026‑0046</td><td>Marta Gómez</td><td>Nóminas</td><td>28/10/2026</td><td>03/11/2026</td><td>Desarrollo</td><td>Completo</td></tr></table>
+</div>
+
+<!-- ===================================================== TRANSFERENCIAS -->
+<h2>B. Transferencias documentales</h2>
+<p class="subtitle">Traslado de archivo de gestión a archivo central (y de este al histórico). Un <b>proceso con 6 pasos</b>. Reemplaza <code>UTransferencias</code> y <code>UProgresoTransferencia</code>. Produce la <b>Relación de entrega</b> (Anexo 16), el <b>Registro general de entrada</b> (17) y el <b>Registro topográfico</b> (18).</p>
+
+<h3 class="t">B1. Lista y cronograma anual</h3>
+<div class="win">
+  <div class="col"><div>Inicio</div><div>Archivo</div><div class="on">Procesos</div><div>Gestión</div><div class="gap"></div><div>Acerca de</div></div>
+  <div class="main">
+    <div class="shell"><div><div class="r">Procesos</div><div class="t">Transferencias</div></div><div class="u">Marta Gómez — Especialista de GD</div></div>
+    <div class="card" style="margin-bottom:0"><h4>Cronograma 2026 — una transferencia anual por unidad</h4>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="chip ok">Administración · realizada 14/03</span><span class="chip az">Finanzas · en trámite (paso 3)</span><span class="chip av">Recursos Humanos · programada 20/11</span><span class="chip er">Desarrollo · atrasada (era 30/09)</span></div></div>
+    <div class="bar"><div class="n">4 transferencias · 2026</div><div class="search">🔍 Buscar…</div><button class="btn sec">Cronograma (imprimir)</button><button class="btn">＋ Nueva transferencia</button></div>
+    <div class="body"><div class="tbl"><table>
+      <tr><th style="width:90px">N.º</th><th>Archivo remitente</th><th>Series</th><th>Cajas</th><th>Fecha prevista</th><th>Paso</th><th>Estado</th></tr>
+      <tr><td class="num">T‑2026‑01</td><td><b>Administración</b></td><td>Contratos, Nóminas</td><td>18</td><td>14/03/2026</td><td>6 de 6</td><td><span class="chip ok">Completada</span></td></tr>
+      <tr class="sel"><td class="num">T‑2026‑02</td><td><b>Finanzas</b></td><td>Informes de auditoría</td><td>9</td><td>25/11/2026</td><td>3 de 6</td><td><span class="chip az">Esperando comisión</span></td></tr>
+      <tr><td class="num">T‑2026‑03</td><td><b>Recursos Humanos</b></td><td>Expedientes laborales</td><td>—</td><td>20/11/2026</td><td>1 de 6</td><td><span class="chip">Propuesta</span></td></tr>
+      <tr><td class="num">T‑2026‑04</td><td><b>Desarrollo</b></td><td>Proyectos</td><td>—</td><td style="color:var(--er)">30/09/2026</td><td>—</td><td><span class="chip er">Atrasada</span></td></tr>
+    </table></div></div>
+  </div>
+</div>
+
+<h3 class="t">B2. Paso 1 — Propuesta: el sistema sugiere lo que ya venció</h3>
+<div class="win">
+  <div class="col"><div>Inicio</div><div>Archivo</div><div class="on">Procesos</div><div>Gestión</div><div class="gap"></div><div>Acerca de</div></div>
+  <div class="main">
+    <div class="shell"><div><div class="r">Procesos › Transferencias › T‑2026‑02 · Finanzas</div><div class="t">Propuesta de transferencia</div></div><div class="u">Marta Gómez — Especialista de GD</div></div>
+    <div class="pasos">
+      <div class="paso act"><b>1</b>Propuesta</div><div class="paso"><b>2</b>Comisión</div><div class="paso"><b>3</b>Preparación</div><div class="paso"><b>4</b>Entrega</div><div class="paso"><b>5</b>Recepción</div><div class="paso"><b>6</b>Ubicación</div>
+    </div>
+    <div class="bar"><div class="n">Documentos con plazo de retención en archivo de gestión cumplido (tabla de retención)</div><button class="btn sec">Quitar selección</button><button class="btn">Enviar a la comisión (14 seleccionados)</button></div>
+    <div class="body"><div class="tbl"><table>
+      <tr><th style="width:30px"></th><th>Serie / subserie</th><th>Años</th><th>Unidades</th><th>Plazo AG</th><th>Venció</th><th>Observación</th></tr>
+      <tr><td>☑</td><td><b>Informes de auditoría</b></td><td>2018–2020</td><td>14</td><td>5 años</td><td>12/2025</td><td></td></tr>
+      <tr><td>☐</td><td><b>Conciliaciones bancarias</b></td><td>2019</td><td>6</td><td>5 años</td><td>12/2024</td><td><span class="chip er">1 en préstamo (L. Fernández)</span></td></tr>
+      <tr><td>☐</td><td>Facturas 2021</td><td>2021</td><td>40</td><td>5 años</td><td>12/2026</td><td><span class="chip">Aún no vence</span></td></tr>
+    </table></div></div>
+  </div>
+</div>
+
+<h3 class="t">B3. Paso 3 — Preparación: cajas, relación de entrega y verificaciones</h3>
+<div class="win">
+  <div class="col"><div>Inicio</div><div>Archivo</div><div class="on">Procesos</div><div>Gestión</div><div class="gap"></div><div>Acerca de</div></div>
+  <div class="main">
+    <div class="shell"><div><div class="r">Procesos › Transferencias › T‑2026‑02 · Finanzas</div><div class="t">Preparación de la entrega</div></div><div class="u">Marta Gómez — Especialista de GD</div></div>
+    <div class="pasos">
+      <div class="paso hecho"><b>✓</b>Propuesta</div><div class="paso hecho"><b>✓</b>Comisión<br><small>Acta 7 · 18/11</small></div><div class="paso act"><b>3</b>Preparación</div><div class="paso"><b>4</b>Entrega</div><div class="paso"><b>5</b>Recepción</div><div class="paso"><b>6</b>Ubicación</div>
+    </div>
+    <div class="bar"><div class="n">Cajas del archivo remitente (numeración consecutiva)</div><button class="btn sec">Numerar cajas automáticamente</button><button class="btn sec">Imprimir relación de entrega</button></div>
+    <div class="body"><div class="tbl"><table>
+      <tr><th style="width:60px">Caja</th><th>Tipo documental</th><th>Título y descripción</th><th>Fechas extremas</th><th>Unid.</th><th>Rev.</th></tr>
+      <tr class="sel"><td class="num">1</td><td>Informe</td><td><b>Informes de auditoría interna</b> · trimestrales</td><td>01/2018 – 12/2018</td><td>4</td><td class="si" style="color:var(--ok)">✔</td></tr>
+      <tr><td class="num">2</td><td>Informe</td><td><b>Informes de auditoría interna</b> · trimestrales</td><td>01/2019 – 12/2019</td><td>4</td><td style="color:var(--ok)">✔</td></tr>
+      <tr><td class="num">3</td><td>Informe</td><td><b>Informes de auditoría interna</b> · trimestrales</td><td>01/2020 – 12/2020</td><td>6</td><td style="color:var(--av)">pendiente</td></tr>
+    </table></div>
+    <div class="panel">
+      <div class="ph"><b>Antes de entregar</b><span></span></div>
+      <div class="pc">
+        <div class="chk"><div class="c v">✓</div><div>Aprobado por la Comisión de Valoración<small>Acta 7, acuerdo 3 · 18/11/2026</small></div></div>
+        <div class="chk"><div class="c v">✓</div><div>Ningún documento en préstamo<small>Verificado hoy 09:40</small></div></div>
+        <div class="chk"><div class="c v">✓</div><div>Son ejemplares únicos, no copias</div></div>
+        <div class="chk"><div class="c"></div><div>Expedientes completos y en buen estado, sin presillas ni clips</div></div>
+        <div class="chk"><div class="c"></div><div>Ningún expediente dividido en cajas distintas<small>El sistema avisa si una serie queda partida</small></div></div>
+        <div class="chk"><div class="c"></div><div>Listado pegado en el exterior de cada caja<small>Imprime las etiquetas de caja</small></div></div>
+        <div class="aviso az">Cuando todo esté marcado se habilita <b>Pasar a entrega</b>.</div>
+      </div>
+      <div class="pb"><button class="btn" style="opacity:.45">Pasar a entrega</button><button class="btn sec">Etiquetas de caja</button></div>
+    </div></div>
+  </div>
+</div>
+
+<h3 class="t">B4. Pasos 5 y 6 — Recepción en el archivo central y ubicación</h3>
+<div class="win">
+  <div class="col"><div>Inicio</div><div>Archivo</div><div class="on">Procesos</div><div>Gestión</div><div class="gap"></div><div>Acerca de</div></div>
+  <div class="main">
+    <div class="shell"><div><div class="r">Procesos › Transferencias › T‑2026‑02 · Finanzas</div><div class="t">Recepción en el archivo central</div></div><div class="u">Ana Rodríguez — Archivo central</div></div>
+    <div class="pasos">
+      <div class="paso hecho"><b>✓</b>Propuesta</div><div class="paso hecho"><b>✓</b>Comisión</div><div class="paso hecho"><b>✓</b>Preparación</div><div class="paso hecho"><b>✓</b>Entrega</div><div class="paso act"><b>5</b>Recepción</div><div class="paso"><b>6</b>Ubicación</div>
+    </div>
+    <div class="bar"><div class="n">Entrada N.º <b>2026‑031</b> (Registro general de entrada) · 9 cajas</div><button class="btn sec">Cuarentena</button><button class="btn">Confirmar recepción</button></div>
+    <div class="body"><div class="tbl"><table>
+      <tr><th style="width:60px">Caja</th><th>Contenido según la relación</th><th>Recibido</th><th>Estado de conservación</th><th>Ubicación (paso 6)</th></tr>
+      <tr><td class="num">1</td><td>Informes 2018 · 4 unid.</td><td style="color:var(--ok)">✔ coincide</td><td><span class="chip ok">Bueno</span></td><td>Dep. 1 · Est. A · Bandeja 3</td></tr>
+      <tr><td class="num">2</td><td>Informes 2019 · 4 unid.</td><td style="color:var(--ok)">✔ coincide</td><td><span class="chip ok">Bueno</span></td><td>Dep. 1 · Est. A · Bandeja 3</td></tr>
+      <tr class="sel"><td class="num">3</td><td>Informes 2020 · 6 unid.</td><td style="color:var(--er)">✖ llegaron 5</td><td><span class="chip er">Humedad / hongo</span></td><td><span class="chip av">En cuarentena</span></td></tr>
+    </table></div>
+    <div class="panel">
+      <div class="ph"><b>Caja 3 · incidencia</b><span>✕</span></div>
+      <div class="pc">
+        <div class="aviso er">La relación dice 6 unidades y llegaron 5. La caja con humedad se aísla en cuarentena antes de entrar al depósito.</div>
+        <div class="f"><label>Unidad que falta</label><div class="in">Informe 4.º trimestre 2020</div></div>
+        <div class="f"><label>Observación</label><div class="in" style="min-height:60px">Se informa a Finanzas; se reclama en 5 días.</div></div>
+        <div class="row"><div class="f"><label>Entrega (firma)</label><div class="firma">R. Pérez · Finanzas</div></div><div class="f"><label>Recibe (firma)</label><div class="firma">A. Rodríguez · Archivo central</div></div></div>
+      </div>
+      <div class="pb"><button class="btn">Guardar incidencia</button><button class="btn sec">Marcar como resuelta</button></div>
+    </div></div>
+  </div>
+</div>
+
+<div class="papel">
+  <h5>RELACIÓN DE ENTREGA PARA LAS TRANSFERENCIAS DOCUMENTALES</h5>
+  <div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:6px"><span>Archivo remitente: <b>Finanzas</b></span><span>Fecha de la transferencia: <b>25/11/2026</b></span><span>Entrada N.º <b>2026‑031</b> · 25/11/2026</span></div>
+  <table><tr><th>N.º</th><th>Fechas extremas</th><th>Tipo documental</th><th>Título y descripción</th><th>N.º caja</th></tr>
+  <tr><td>1</td><td>01/2018 – 12/2018</td><td>Informe</td><td>Informes de auditoría interna</td><td>1</td></tr>
+  <tr><td>2</td><td>01/2019 – 12/2019</td><td>Informe</td><td>Informes de auditoría interna</td><td>2</td></tr></table>
+  <div style="display:flex;gap:40px"><div style="flex:1"><div class="firma">Entrega: nombre, cargo y firma</div></div><div style="flex:1"><div class="firma">Recibe: nombre, cargo y firma</div></div></div>
+</div>
+
+<!-- ===================================================== DEPURACIÓN -->
+<h2>C. Depuración (eliminación de documentos)</h2>
+<p class="subtitle">Solo la ejecuta el archivo central. Un <b>proceso con 5 pasos</b> y una regla de seguridad: <b>nada se elimina sin autorización de la Comisión y sin dejar muestra</b>. Reemplaza <code>UDepuracion</code>. Produce el <b>Acta de eliminación física</b> (Anexo 19).</p>
+
+<h3 class="t">C1. Lista de depuraciones</h3>
+<div class="win">
+  <div class="col"><div>Inicio</div><div>Archivo</div><div class="on">Procesos</div><div>Gestión</div><div class="gap"></div><div>Acerca de</div></div>
+  <div class="main">
+    <div class="shell"><div><div class="r">Procesos</div><div class="t">Depuración</div></div><div class="u">Ana Rodríguez — Archivo central</div></div>
+    <div class="bar"><div class="n">3 depuraciones · 2026</div><div class="search">🔍 Buscar…</div><button class="btn">＋ Nueva depuración</button></div>
+    <div class="body"><div class="tbl"><table>
+      <tr><th style="width:90px">N.º</th><th>Series</th><th>Unidades</th><th>Fechas extremas</th><th>Autorización</th><th>Paso</th><th>Estado</th></tr>
+      <tr><td class="num">D‑2026‑01</td><td><b>Circulares internas</b></td><td>320</td><td>2005–2010</td><td>Comisión Prov. · Ac. 5/2026</td><td>5 de 5</td><td><span class="chip ok">Ejecutada 02/06</span></td></tr>
+      <tr class="sel"><td class="num">D‑2026‑02</td><td><b>Facturas de proveedores</b></td><td>1 240</td><td>2008–2012</td><td>Comisión Prov. · Ac. 9/2026</td><td>3 de 5</td><td><span class="chip az">Acta por firmar</span></td></tr>
+      <tr><td class="num">D‑2026‑03</td><td><b>Control de asistencia</b></td><td>85</td><td>2010–2013</td><td>—</td><td>1 de 5</td><td><span class="chip">Propuesta</span></td></tr>
+    </table></div></div>
+  </div>
+</div>
+
+<h3 class="t">C2. Paso 3 — Acta de eliminación física (formulario por secciones, no una hoja de cálculo)</h3>
+<div class="win">
+  <div class="col"><div>Inicio</div><div>Archivo</div><div class="on">Procesos</div><div>Gestión</div><div class="gap"></div><div>Acerca de</div></div>
+  <div class="main">
+    <div class="shell"><div><div class="r">Procesos › Depuración › D‑2026‑02</div><div class="t">Acta de eliminación física</div></div><div class="u">Ana Rodríguez — Archivo central</div></div>
+    <div class="pasos">
+      <div class="paso hecho"><b>✓</b>Propuesta</div><div class="paso hecho"><b>✓</b>Autorización<br><small>Acuerdo 9/2026</small></div><div class="paso act"><b>3</b>Acta</div><div class="paso"><b>4</b>Ejecución</div><div class="paso"><b>5</b>Cierre</div>
+    </div>
+    <div class="body">
+      <div class="tbl" style="padding-top:6px">
+        <div class="sec-t">Autorización</div>
+        <div class="row"><div class="f"><label>Comisión</label><div class="in">Provincial de Valoración Documental</div></div><div class="f"><label>N.º de acta</label><div class="in">14</div></div><div class="f"><label>N.º de acuerdo</label><div class="in">9</div></div><div class="f"><label>Fecha de autorización</label><div class="in">03/09/2026</div></div></div>
+        <div class="sec-t">Qué se elimina</div>
+        <div class="row"><div class="f"><label>Serie documental</label><div class="in">Facturas de proveedores</div></div><div class="f"><label>Unidades (en números y letras)</label><div class="in">1 240 — mil doscientas cuarenta</div></div><div class="f"><label>Fechas extremas</label><div class="in">01/2008 – 12/2012</div></div></div>
+        <table style="width:60%"><tr><th>Año</th><th>Unidades</th></tr><tr><td>2008</td><td>260</td></tr><tr><td>2009</td><td>248</td></tr><tr><td>2010</td><td>251</td></tr><tr><td>2011</td><td>240</td></tr><tr><td>2012</td><td>241</td></tr></table>
+        <div class="sec-t">Muestra que se conserva (obligatoria)</div>
+        <div class="row"><div class="f"><label>Descripción de la muestra</label><div class="in">Facturas de enero de cada año (5 unidades)</div></div><div class="f"><label>Dónde queda</label><div class="in">Dep. 1 · Est. B · Caja M‑2</div></div></div>
+        <div class="sec-t">Ejecución</div>
+        <div class="row"><div class="f"><label>Lugar</label><div class="in">Planta de reciclaje municipal</div></div><div class="f"><label>Vía</label><div class="in">Trituración ▾</div></div><div class="f"><label>Fecha prevista</label><div class="in">20/11/2026</div></div></div>
+      </div>
+      <div class="panel">
+        <div class="ph"><b>Testigos y firmas</b><span></span></div>
+        <div class="pc">
+          <div class="f"><div class="in">Dra. Elena Ruiz · Presidenta de la Comisión</div></div>
+          <div class="f"><div class="in">Ing. Pedro Sosa · Miembro de la Comisión</div></div>
+          <div class="f"><div class="in">R. Pérez · Responsable del archivo de gestión</div></div>
+          <button class="btn sec sm">＋ Agregar testigo</button>
+          <div class="aviso av" style="margin-top:12px">Para pasar a <b>Ejecución</b> hace falta: autorización cargada, muestra definida y al menos 2 testigos, uno de la Comisión y uno de un archivo de gestión.</div>
+          <div class="aviso er">Los documentos <b>no se borran</b>: quedan marcados «eliminado» con la referencia del acta. El detalle se conserva como evidencia.</div>
+        </div>
+        <div class="pb"><button class="btn">Pasar a ejecución</button><button class="btn sec">Imprimir acta</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 class="t">C3. Paso 4 — Ejecución (confirmación reforzada, sin atajos)</h3>
+<div class="win" style="min-height:300px">
+  <div class="col"><div>Inicio</div><div>Archivo</div><div class="on">Procesos</div><div>Gestión</div><div class="gap"></div><div>Acerca de</div></div>
+  <div class="main">
+    <div class="shell"><div><div class="r">Procesos › Depuración › D‑2026‑02</div><div class="t">Ejecutar la eliminación</div></div><div class="u">Ana Rodríguez — Archivo central</div></div>
+    <div class="card" style="max-width:640px">
+      <h4>Se marcarán como eliminados 1 240 documentos (Facturas de proveedores, 2008–2012)</h4>
+      <div class="chk"><div class="c v">✓</div><div>Acuerdo 9/2026 de la Comisión Provincial<small>Acta 14 · 03/09/2026</small></div></div>
+      <div class="chk"><div class="c v">✓</div><div>Muestra definida (5 unidades, Caja M‑2)</div></div>
+      <div class="chk"><div class="c v">✓</div><div>3 testigos presentes y firmados</div></div>
+      <div class="chk"><div class="c v">✓</div><div>Ningún documento en préstamo ni en transferencia</div></div>
+      <div class="aviso er">Esta acción no se puede deshacer. Escribe <b>ELIMINAR</b> para confirmar.</div>
+      <div class="in" style="width:200px">ELIMINAR</div>
+      <div style="margin-top:12px;display:flex;gap:8px"><button class="btn" style="background:var(--er)">Ejecutar eliminación</button><button class="btn sec">Volver</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="papel">
+  <h5>ACTA DE ELIMINACIÓN FÍSICA DE LOS DOCUMENTOS</h5>
+  <div style="font-size:11.5px;margin-bottom:6px">Comisión Provincial de Valoración Documental · Acta <b>14</b> · Acuerdo <b>9</b> · Autorización <b>03/09/2026</b> · Eliminación <b>20/11/2026</b> · Lugar: Planta de reciclaje municipal</div>
+  <table><tr><th>Descripción</th><th>Unidades (letras y números)</th><th>Fechas extremas</th><th>Muestra: descripción</th><th>Muestra: localización</th></tr>
+  <tr><td>Facturas de proveedores</td><td>1 240 (mil doscientas cuarenta)</td><td>01/2008 – 12/2012</td><td>Enero de cada año</td><td>Dep. 1 · Est. B · Caja M‑2</td></tr></table>
+  <div style="display:flex;gap:30px"><div style="flex:1"><div class="firma">Dra. Elena Ruiz</div></div><div style="flex:1"><div class="firma">Ing. Pedro Sosa</div></div><div style="flex:1"><div class="firma">R. Pérez</div></div></div>
+</div>
+
+<!-- ===================================================== AtoM -->
+<h2>D. Comparación con AtoM (Access to Memory)</h2>
+<p class="subtitle">Según el manual 2.x de AtoM. AtoM es un sistema de descripción y acceso para archivos históricos; no gestiona el ciclo de archivo de gestión → central.</p>
+<table class="atom">
+  <tr><th style="width:18%">Necesidad</th><th style="width:27%">AtoM</th><th style="width:30%">ArchiGenio (propuesta)</th><th>Qué tomamos / qué superamos</th></tr>
+  <tr><td><b>Préstamo</b></td><td>No existe. Solo muestra la ubicación física de lo descrito.</td><td>Solicitud y registro oficial, estados, vencimientos, bloqueo con transferencia y depuración.</td><td>Aquí superamos a AtoM: es un requisito de la norma cubana.</td></tr>
+  <tr><td><b>Transferencia / ingreso</b></td><td><i>Accession</i>: registra el primer ingreso de material (con <i>accruals</i> para ingresos posteriores). Sin cronograma, sin comisión, sin relación de entrega.</td><td>Proceso de 6 pasos con cronograma anual, aprobación de la comisión, cajas, relación de entrega, registro de entrada y topográfico.</td><td>Tomamos la idea de <i>número de ingreso</i> y de ingreso posterior. Añadimos todo el flujo normativo.</td></tr>
+  <tr><td><b>Depuración / baja</b></td><td><i>Deaccession</i>: ficha colgada de un ingreso con alcance, fecha, descripción y motivo (opcionalmente extensión y destino).</td><td>Proceso de 5 pasos, autorización de comisión, acta con testigos, muestra obligatoria; los documentos quedan marcados, no borrados.</td><td>Tomamos alcance + motivo + destino. Añadimos autorización, testigos y evidencia.</td></tr>
+  <tr><td><b>Ubicación física</b></td><td><i>Physical storage</i>: contenedores y ubicaciones vinculables a descripciones e ingresos.</td><td>Ya existe la topografía (depósito, gaveta, archivo). La recepción la completa con el registro topográfico por caja.</td><td>Equivalente. Reutilizamos <code>UTopografia</code>.</td></tr>
+  <tr><td><b>Valoración / retención</b></td><td>No hay tabla de retención ni comisión.</td><td>Usa las retenciones y destinos ya existentes de cada subserie.</td><td>Ventaja de ArchiGenio.</td></tr>
+  <tr><td><b>Permisos</b></td><td>Roles genéricos (administrador, editor…).</td><td>Alcance por nodo y rol EGD (ya implementado): solo el EGD presta, transfiere y depura en su nodo; la depuración solo el archivo central.</td><td>Ventaja de ArchiGenio.</td></tr>
+</table>
+<p class="nota" style="margin-top:14px">Fuentes: manual de usuario de AtoM 2.7–2.9 (accessions, deaccessions, physical storage).</p>
+</body></html>
