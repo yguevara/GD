@@ -67,6 +67,7 @@ uses
   UClasificadorEstado in 'UClasificadorEstado.pas',
   UServidoresDatos in 'UServidoresDatos.pas',
   UClasificadorBase in 'UClasificadorBase.pas',
+  UCLServidoresForm in 'UCLServidoresForm.pas',
   UTiempos in 'UTiempos.pas',
   UAutentica in 'UAutentica.pas' {frmAutentica},
   md5 in 'md5.pas',

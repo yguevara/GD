@@ -47,7 +47,6 @@ type
     FColTag: TcxGridColumn;
     FEstilos: TcxStyleRepository;
     FTextoNuevo: string;
-    function Esc(Valor: Integer): Integer;
     function NuevoEstilo(AColor, ATexto: TColor; ATam: Integer; ANegrita: Boolean): TcxStyle;
     function NuevoBoton(AParent: TWinControl; const ATexto, AIcono: string;
       APrimario: Boolean; ATextoColor: TColor): TBotonShell;
@@ -74,6 +73,8 @@ type
     FEstado: TEstadoFicha;
     { Contenedor (con desplazamiento) donde la pantalla hija arma sus campos. }
     FCuerpo: TScrollBox;
+    { Escala un tamano en pixeles segun el DPI actual. }
+    function Esc(Valor: Integer): Integer;
     function Vista: TcxGridTableView;
     { Crea cabecera, tabla y panel. Llamar una vez desde el constructor hijo. }
     procedure ConstruirBase(const ATitulo, ASubtitulo, ATextoNuevo: string);

@@ -63,6 +63,13 @@ function GuardarServidor(Conn: TFDConnection; const S: TServidor): Integer;
   's3://<id>/'. }
 function ContarUsoServidor(Conn: TFDConnection; Id: Integer): Integer;
 
+{ Secreto S3 guardado, ya descifrado ('' si no hay). Sirve para "Probar conexion"
+  al editar sin volver a escribirlo; se lee en el hilo principal. }
+function LeerSecretoGuardado(Conn: TFDConnection; Id: Integer): string;
+
+{ Contrasena FTP guardada ('' si no hay). }
+function LeerClaveFtpGuardada(Conn: TFDConnection; Id: Integer): string;
+
 { Elimina el servidor. Si esta en uso lanza EServidorEnUso (con Usos) y no borra. }
 procedure EliminarServidor(Conn: TFDConnection; Id: Integer);
 
@@ -231,6 +238,18 @@ begin
   end;
 end;
 
+function LeerSecretoGuardado(Conn: TFDConnection; Id: Integer): string;
+begin
+  Result := DescifrarSecreto(VarToStr(Conn.ExecSQLScalar(
+    'SELECT secreto_cifrado FROM cl_ftp_Server WHERE Idservidor = :i', [Id])));
+end;
+
+function LeerClaveFtpGuardada(Conn: TFDConnection; Id: Integer): string;
+begin
+  Result := VarToStr(Conn.ExecSQLScalar(
+    'SELECT pass FROM cl_ftp_Server WHERE Idservidor = :i', [Id]));
+end;
+
 function ContarUsoServidor(Conn: TFDConnection; Id: Integer): Integer;
 var
   Prefijo: string;
@@ -275,8 +294,7 @@ begin
     begin
       Secreto := S.Secreto;
       if (Secreto = '') and (S.Id > 0) and (Conn <> nil) then
-        Secreto := DescifrarSecreto(VarToStr(Conn.ExecSQLScalar(
-          'SELECT secreto_cifrado FROM cl_ftp_Server WHERE Idservidor = :i', [S.Id])));
+        Secreto := LeerSecretoGuardado(Conn, S.Id);
       if (Trim(S.Direccion) = '') or (Trim(S.Bucket) = '') or
         (Trim(S.ClaveAcceso) = '') or (S.Puerto <= 0) or (Secreto = '') then
       begin
@@ -298,8 +316,7 @@ begin
     begin
       Clave := S.Clave;
       if (Clave = '') and (S.Id > 0) and (Conn <> nil) then
-        Clave := VarToStr(Conn.ExecSQLScalar(
-          'SELECT pass FROM cl_ftp_Server WHERE Idservidor = :i', [S.Id]));
+        Clave := LeerClaveFtpGuardada(Conn, S.Id);
       if (Trim(S.Direccion) = '') or (S.Puerto <= 0) or (Trim(S.Usuario) = '') then
       begin
         Mensaje := 'Complete servidor, puerto y usuario.';

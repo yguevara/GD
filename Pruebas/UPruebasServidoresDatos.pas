@@ -77,6 +77,8 @@ type
     [Test]
     procedure Guardar_Invalido_LanzaYNoEscribe;
     [Test]
+    procedure Leer_SecretoYClaveGuardados;
+    [Test]
     procedure Eliminar_SinUso_Borra;
     [Test]
     procedure Eliminar_EnUsoPorSerieTree_Bloquea;
@@ -428,6 +430,18 @@ begin
       GuardarServidor(FConn, S);
     end, EServidorInvalido);
   Assert.AreEqual(Antes, ContarServidores);
+end;
+
+procedure TPruebasGuardarServidores.Leer_SecretoYClaveGuardados;
+var
+  IdS3, IdFtp: Integer;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB'); Exit; end;
+  IdS3 := GuardarServidor(FConn, S3Nuevo('zz_srv minio'));
+  IdFtp := GuardarServidor(FConn, FtpNuevo('zz_srv ftp'));
+  Assert.AreEqual('clave-secreta', LeerSecretoGuardado(FConn, IdS3));
+  Assert.AreEqual('secreta', LeerClaveFtpGuardada(FConn, IdFtp));
+  Assert.AreEqual('', LeerSecretoGuardado(FConn, 99999));
 end;
 
 procedure TPruebasGuardarServidores.Eliminar_SinUso_Borra;
