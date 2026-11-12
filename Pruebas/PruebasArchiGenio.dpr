@@ -23,6 +23,8 @@ uses
   UPruebasAutenticacion in 'UPruebasAutenticacion.pas',
   UClasificadoresInterruptor in '..\UClasificadoresInterruptor.pas',
   UPruebasClasificadoresInterruptor in 'UPruebasClasificadoresInterruptor.pas',
+  UClasificadorEstado in '..\UClasificadorEstado.pas',
+  UPruebasClasificadorEstado in 'UPruebasClasificadorEstado.pas',
   UBusqueda in '..\UBusqueda.pas',
   UBusquedaDatos in '..\UBusquedaDatos.pas',
   UPruebasBusqueda in 'UPruebasBusqueda.pas',
