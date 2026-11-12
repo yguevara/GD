@@ -69,7 +69,7 @@ implementation
 {$R *.dfm}
 
 uses
-  md5, UCapaDatos;
+  md5, UCapaDatos, UAutenticacion;
 
 procedure TfrmNewUser.btnCloseClick(Sender: TObject);
 begin
@@ -88,6 +88,8 @@ procedure TfrmNewUser.btnCreateUserClick(Sender: TObject);
     result := StrToInt(VarToStr(V)) + 1;
   end;
 
+var
+  MensajeClave: string;
 begin
   if (LowerCase(edtUser.Text) = 'administrador') or (LowerCase(edtUser.Text) = 'administrator') then
   begin
@@ -95,11 +97,18 @@ begin
     UDM.sms('El nombre de usuario ' + AnsiQuotedStr('administrador/administrator', '"') + ' está restringido por el sistema.', 3);
     Exit;
   end;
-  if (edtUser.Text = '') or (Length(edtUser.Text) <= 3) or (edtUser.Text = ' ') or (Length(edtpass.Text) <= 6) then
+  if (edtUser.Text = '') or (Length(edtUser.Text) <= 3) or (edtUser.Text = ' ') then
   begin
-    UDM.sms('Por favor debe verificar lo siguiente:' + #13 + '1- No se especificó el "Usuario".' + #13 + '2- La longitud del nombre especificado debe ser de al menos tres caracteres.' + #13 + '3- El nombre de usuario está formado por caracteres no admitidos.' + #13 + '4- La longitud de la contraseña debe ser mayor de seis caracteres.' + #13, 1);
+    UDM.sms('Por favor debe verificar lo siguiente:' + #13 + '1- No se especificó el "Usuario".' + #13 + '2- La longitud del nombre especificado debe ser de al menos tres caracteres.' + #13 + '3- El nombre de usuario está formado por caracteres no admitidos.' + #13, 1);
     edtUser.SetFocus;
     edtUser.Focused;
+    Exit;
+  end;
+  // Regla unica de clave nueva (longitud minima y confirmacion): ver UAutenticacion.
+  if not ValidarClaveNueva(Trim(edtpass.Text), Trim(edtconfirmpass.Text), MensajeClave) then
+  begin
+    UDM.sms(MensajeClave, 1);
+    edtpass.SetFocus;
     Exit;
   end;
   if edtpass.Text = edtconfirmpass.Text then
@@ -111,7 +120,7 @@ begin
       FieldByName('Idresp').AsInteger := GetLastId;
       FieldByName('usuario').AsString := AnsiLowerCase(trim(edtUser.Text));
       FieldByName('NombreResponsable').AsString := edtCompleteName.Text;
-      FieldByName('password').AsString := UDM.getMd5HashString(edtpass.Text);//MD5Print(MD5String(edtpass.Text));
+      FieldByName('password').AsString := CalcularMd5(Trim(edtpass.Text));
       FieldByName('Telefono').AsString := edtEmpresa.Text;
       FieldByName('CorreoElect').AsString := edtMinisterio.Text;
       FieldByName('Habilitado').AsString := cbEnable.Text;

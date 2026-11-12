@@ -1008,7 +1008,6 @@ type
     procedure ActualizaConfig(aVER: string);
     procedure EjecutaFichero(aPath: string);
     function getFileMd5HashString(const vFileName: string): string;
-    function getMd5HashString(const vValue: string): string;
     procedure InitializeConnection;
     procedure LoadAndRunReport(const ReportFileName: string);
     procedure CreateTableFromDefinitions(ATableName, ASubserieId: string);
@@ -2910,19 +2909,6 @@ begin
     if conn.ExecSQLScalar(cad) <> null then
       Result := conn.ExecSQLScalar(cad);
   except
-  end;
-end;
-
-function TUDM.getMd5HashString(const vValue: string): string;
-var
-  vHashMD5: TIdHashMessageDigest5;
-begin
-  vHashMD5 := nil;
-  try
-    vHashMD5 := TIdHashMessageDigest5.Create;
-    Result := IdGlobal.IndyLowerCase(vHashMD5.HashStringAsHex(vValue));
-  finally
-    vHashMD5.Free;
   end;
 end;
 

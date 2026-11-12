@@ -31,7 +31,7 @@ implementation
 {$R *.dfm}
 
 uses
-  md5, UCapaDatos;
+  md5, UCapaDatos, UAutenticacion;
 
 procedure TfrmChangePass.btnCloseClick(Sender: TObject);
 begin
@@ -39,18 +39,21 @@ begin
 end;
 
 procedure TfrmChangePass.btnCreateUserClick(Sender: TObject);
+var
+  MensajeClave: string;
 begin
-  if Length(edtpass.Text) <= 4 then
+  // Regla unica de clave nueva (longitud minima y confirmacion): ver UAutenticacion.
+  if not ValidarClaveNueva(Trim(edtpass.Text), Trim(edtconfirmpass.Text), MensajeClave) then
   begin
     UDM.sms('No se pudo cambiar la contraseña.', 1);
-    UDM.sms('La longitud de la contraseña debe ser mayor de cuatro carácteres.', 3);
+    UDM.sms(MensajeClave, 3);
     Exit;
   end;
   if (edtpass.Text = edtconfirmpass.Text) and (edtpass.text <> '') then
   begin
 
       UDM.cl_Resp_Gest_Arch.Edit;
-      UDM.cl_Resp_Gest_Arch.FieldByName('password').AsString := UDM.getMd5HashString(edtpass.Text) ;//MD5Print(MD5String(edtpass.Text));
+      UDM.cl_Resp_Gest_Arch.FieldByName('password').AsString := CalcularMd5(Trim(edtpass.Text));
       try
         UDM.cl_Resp_Gest_Arch.Post;
         UDM.sms('¡La contraseña se ha cambiado satisfactoriamente!', 3);
