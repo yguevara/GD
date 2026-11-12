@@ -21,7 +21,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, jpeg, DB, Data.Win.ADODB, dxGDIPlusClasses,
   cxGraphics, cxControls, cxLookAndFeels, cxLookAndFeelPainters, cxContainer,
-  cxEdit, dxSkinsCore, dxSkinsDefaultPainters, cxTextEdit, UAutenticacion;
+  cxEdit, dxSkinsCore, dxSkinsDefaultPainters, cxTextEdit, UAutenticacion, UTema;
 
 type
   TfrmAutentica = class(TForm)
@@ -30,7 +30,10 @@ type
     edtuser: TEdit;
     btnAcept: TButton;
     btnCancel: TButton;
-    Image1: TImage;
+    pnlCabecera: TPanel;
+    lblTitulo: TLabel;
+    lblSubtitulo: TLabel;
+    pbMarca: TPaintBox;
     btnHelp: TButton;
     edtpass: TEdit;
     lblMensaje: TLabel;
@@ -42,8 +45,12 @@ type
     procedure FormShow(Sender: TObject);
     procedure chkMostrarClaveClick(Sender: TObject);
     procedure CampoCambio(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure pbMarcaPaint(Sender: TObject);
   private
     FResultado: TResultadoAutenticacion;
+    FTema: TTemaColores;
+    procedure AplicarTema;
     procedure MostrarMensaje(const ATexto: string);
     procedure RegistrarFallo(const AMotivo: string);
   public
@@ -60,7 +67,7 @@ function Autenticar(out AResultado: TResultadoAutenticacion): Boolean;
 implementation
 
 uses
-  UCapaDatos;
+  UCapaDatos, UAparienciaLegacy;
 
 {$R *.dfm}
 
@@ -85,6 +92,62 @@ begin
   finally
     Ventana.Free;
   end;
+end;
+
+{ Pinta la cabecera con la paleta del tema en uso (la misma de la pantalla
+  principal y de "Acerca de"): banda de acento, titulo y subtitulo. Los colores
+  se fijan por codigo porque dependen del tema claro/oscuro de Windows. }
+procedure TfrmAutentica.AplicarTema;
+var
+  Oscuro: Boolean;
+begin
+  FTema := TemaLegacyActual;
+  Oscuro := FTema.Fondo = TemaOscuro.Fondo;
+
+  StyleElements := [seBorder];
+  Color := FTema.Superficie;
+  pnlCabecera.Color := FTema.Acento;
+  lblTitulo.Font.Color := FTema.TextoSobreAcento;
+  lblSubtitulo.Font.Color := FTema.TextoSobreAcento;
+  lbluser.Font.Color := FTema.Texto;
+  lblpass.Font.Color := FTema.Texto;
+  chkMostrarClave.StyleElements := [];
+  chkMostrarClave.ParentColor := True;
+  chkMostrarClave.Font.Color := FTema.TextoSuave;
+  if Oscuro then
+    lblMensaje.Font.Color := ColorDeHex('#ff8a80')
+  else
+    lblMensaje.Font.Color := ColorDeHex('#b3261e');
+end;
+
+procedure TfrmAutentica.FormCreate(Sender: TObject);
+begin
+  AplicarTema;
+end;
+
+{ Dibuja la marca de la cabecera: un archivador (tapa, cuerpo y asa) con trazo
+  del color del texto sobre acento. Se dibuja por codigo, sin imagen, para que
+  se vea nitido con cualquier escala de pantalla y tema. }
+procedure TfrmAutentica.pbMarcaPaint(Sender: TObject);
+var
+  Lienzo: TCanvas;
+  Ancho, Alto, Radio: Integer;
+begin
+  Lienzo := pbMarca.Canvas;
+  Ancho := pbMarca.Width;
+  Alto := pbMarca.Height;
+  Radio := Alto div 6;
+  Lienzo.Brush.Style := bsClear;
+  Lienzo.Pen.Style := psSolid;
+  Lienzo.Pen.Color := FTema.TextoSobreAcento;
+  Lienzo.Pen.Width := Alto div 16 + 1;
+  // tapa
+  Lienzo.RoundRect(1, 1, Ancho - 1, Alto * 11 div 32, Radio, Radio);
+  // cuerpo
+  Lienzo.RoundRect(Ancho div 10, Alto * 11 div 32, Ancho - Ancho div 10, Alto - 1, Radio, Radio);
+  // asa
+  Lienzo.MoveTo(Ancho * 3 div 8, Alto * 19 div 32);
+  Lienzo.LineTo(Ancho * 5 div 8, Alto * 19 div 32);
 end;
 
 { Muestra un mensaje de error bajo los campos. }
