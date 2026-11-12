@@ -25,6 +25,8 @@ uses
   UPruebasClasificadoresInterruptor in 'UPruebasClasificadoresInterruptor.pas',
   UClasificadorEstado in '..\UClasificadorEstado.pas',
   UPruebasClasificadorEstado in 'UPruebasClasificadorEstado.pas',
+  UServidoresDatos in '..\UServidoresDatos.pas',
+  UPruebasServidoresDatos in 'UPruebasServidoresDatos.pas',
   UBusqueda in '..\UBusqueda.pas',
   UBusquedaDatos in '..\UBusquedaDatos.pas',
   UPruebasBusqueda in 'UPruebasBusqueda.pas',
