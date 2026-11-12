@@ -108,7 +108,9 @@ uses
   UEsquemaProcesos in '..\UEsquemaProcesos.pas',
   UPruebasEsquemaProcesos in 'UPruebasEsquemaProcesos.pas',
   UProcesosDatos in '..\UProcesosDatos.pas',
-  UPruebasProcesosDatos in 'UPruebasProcesosDatos.pas';
+  UPruebasProcesosDatos in 'UPruebasProcesosDatos.pas',
+  UProcesosInterruptor in '..\UProcesosInterruptor.pas',
+  UPruebasProcesosInterruptor in 'UPruebasProcesosInterruptor.pas';
 
 var
   Corredor: ITestRunner;
