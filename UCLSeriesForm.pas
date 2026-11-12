@@ -34,7 +34,7 @@ uses
 type
   { Una fila de la ficha: etiqueta, control y espacio para el mensaje de error. }
   TFila = record
-    Hoja: TTabSheet;
+    Hoja: TWinControl;   // caja con desplazamiento de la pestana
     Lbl: TLabel;
     Ctl: TControl;
     Err: TLabel;
@@ -67,6 +67,7 @@ type
     // ficha
     FPaginas: TPageControl;
     FHojaDatos, FHojaUbic: TTabSheet;
+    FCajaDatos, FCajaUbic: TScrollBox;
     FEdCodSubs, FEdNombre, FEdGestion, FEdCentral, FEdDeposito, FEdGaveta, FEdCarpeta: TEdit;
     FCmbSerie, FCmbTipoSerie, FCmbTipoDoc, FCmbSoporte, FCmbAcceso, FCmbDestino,
       FCmbFrecuencia, FCmbArchivo: TComboBox;
@@ -87,7 +88,7 @@ type
     function NuevoEdit(AMax: Integer): TEdit;
     function NuevoCombo: TComboBox;
     function NuevoBotonSimple(AParent: TWinControl; const ATexto: string; AClick: TNotifyEvent): TButton;
-    function AgregarFilaFicha(AHoja: TTabSheet; const ATitulo, AClave: string; ACtl: TControl;
+    function AgregarFilaFicha(AHoja: TWinControl; const ATitulo, AClave: string; ACtl: TControl;
       AMitad, AAlto: Integer): Integer;
     procedure ConstruirIndiceSeries;
     procedure CargarCombosSerie;
@@ -158,12 +159,12 @@ begin
   FEsSql := SameText(AConn.DriverName, 'MSSQL');
   FFilas := TList<TFila>.Create;
   ConstruirBase('Series y subseries', '', 'Nueva subserie');
-  AgregarColumna('C'#243'digo', 90);
-  AgregarColumna('Subserie', 280);
-  AgregarColumna('Tipo de documento', 140);
-  AgregarColumna('Soporte', 120);
-  AgregarColumna('Formulario', 170);
-  AgregarColumna('Estado', 80);
+  AgregarColumna('C'#243'digo', 80);
+  AgregarColumna('Subserie', 240);
+  AgregarColumna('Tipo de doc.', 120);
+  AgregarColumna('Soporte', 110);
+  AgregarColumna('Formulario', 210);
+  AgregarColumna('Estado', 70);
   ConstruirIndiceSeries;
   ConstruirFicha;
   ConstruirVariables;
@@ -230,7 +231,7 @@ begin
   Result.OnClick := AClick;
 end;
 
-function TfrmSeries.AgregarFilaFicha(AHoja: TTabSheet; const ATitulo, AClave: string;
+function TfrmSeries.AgregarFilaFicha(AHoja: TWinControl; const ATitulo, AClave: string;
   ACtl: TControl; AMitad, AAlto: Integer): Integer;
 var
   F: TFila;
@@ -577,44 +578,58 @@ begin
   FHojaUbic := TTabSheet.Create(Self);
   FHojaUbic.PageControl := FPaginas;
   FHojaUbic.Caption := 'Ubicaci'#243'n y almacenamiento';
+  FCajaDatos := TScrollBox.Create(Self);
+  FCajaDatos.Parent := FHojaDatos;
+  FCajaUbic := TScrollBox.Create(Self);
+  FCajaUbic.Parent := FHojaUbic;
+  FCajaDatos.Align := alClient;
+  FCajaUbic.Align := alClient;
+  FCajaDatos.BorderStyle := bsNone;
+  FCajaUbic.BorderStyle := bsNone;
+  FCajaDatos.HorzScrollBar.Visible := False;
+  FCajaUbic.HorzScrollBar.Visible := False;
+  FCajaDatos.OnResize := PaginasResize;
+  FCajaUbic.OnResize := PaginasResize;
 
   FEdCodSubs := NuevoEdit(50);
-  AgregarFilaFicha(FHojaDatos, 'C'#243'digo de la subserie', 'codsubs', FEdCodSubs, 1, Esc(28));
+  AgregarFilaFicha(FCajaDatos, 'C'#243'digo de la subserie', 'codsubs', FEdCodSubs, 1, Esc(28));
   FCmbSerie := NuevoCombo;
-  AgregarFilaFicha(FHojaDatos, 'Serie', 'codserie', FCmbSerie, 2, Esc(28));
+  AgregarFilaFicha(FCajaDatos, 'Serie', 'codserie', FCmbSerie, 2, Esc(28));
   FEdNombre := NuevoEdit(255);
-  AgregarFilaFicha(FHojaDatos, 'Nombre de la subserie', 'subserie', FEdNombre, 0, Esc(28));
+  AgregarFilaFicha(FCajaDatos, 'Nombre de la subserie', 'subserie', FEdNombre, 0, Esc(28));
   FCmbTipoSerie := NuevoCombo;
-  AgregarFilaFicha(FHojaDatos, 'Tipo de serie', 'tiposerie', FCmbTipoSerie, 1, Esc(28));
+  AgregarFilaFicha(FCajaDatos, 'Tipo de serie', 'tiposerie', FCmbTipoSerie, 1, Esc(28));
   FCmbTipoDoc := NuevoCombo;
-  AgregarFilaFicha(FHojaDatos, 'Tipo de documento', 'tipodoc', FCmbTipoDoc, 2, Esc(28));
+  AgregarFilaFicha(FCajaDatos, 'Tipo de documento', 'tipodoc', FCmbTipoDoc, 2, Esc(28));
   FCmbSoporte := NuevoCombo;
-  AgregarFilaFicha(FHojaDatos, 'Soporte', 'soporte', FCmbSoporte, 1, Esc(28));
+  AgregarFilaFicha(FCajaDatos, 'Soporte', 'soporte', FCmbSoporte, 1, Esc(28));
   FCmbAcceso := NuevoCombo;
-  AgregarFilaFicha(FHojaDatos, 'Acceso', 'acceso', FCmbAcceso, 2, Esc(28));
+  AgregarFilaFicha(FCajaDatos, 'Acceso', 'acceso', FCmbAcceso, 2, Esc(28));
   FEdGestion := NuevoEdit(5);
   FEdGestion.OnKeyPress := NumeroKeyPress;
-  AgregarFilaFicha(FHojaDatos, 'A'#241'os en archivo de gesti'#243'n', 'tgestion', FEdGestion, 1, Esc(28));
+  AgregarFilaFicha(FCajaDatos, 'A'#241'os en archivo de gesti'#243'n', 'tgestion', FEdGestion, 1, Esc(28));
   FEdCentral := NuevoEdit(5);
   FEdCentral.OnKeyPress := NumeroKeyPress;
-  AgregarFilaFicha(FHojaDatos, 'A'#241'os en archivo central', 'tcentral', FEdCentral, 2, Esc(28));
+  AgregarFilaFicha(FCajaDatos, 'A'#241'os en archivo central', 'tcentral', FEdCentral, 2, Esc(28));
   FCmbDestino := NuevoCombo;
-  AgregarFilaFicha(FHojaDatos, 'Destino final', 'destino', FCmbDestino, 1, Esc(28));
+  AgregarFilaFicha(FCajaDatos, 'Destino final', 'destino', FCmbDestino, 1, Esc(28));
   FCmbFrecuencia := NuevoCombo;
-  AgregarFilaFicha(FHojaDatos, 'Frecuencia de consulta', 'frecuencia', FCmbFrecuencia, 2, Esc(28));
+  AgregarFilaFicha(FCajaDatos, 'Frecuencia de consulta', 'frecuencia', FCmbFrecuencia, 2, Esc(28));
   FFecha := TDateTimePicker.Create(Self);
+  AgregarFilaFicha(FCajaDatos, 'Fecha de aprobaci'#243'n', 'fecha', FFecha, 1, Esc(28));
+  // se configura despues de tener padre: necesita ventana
   FFecha.Kind := dtkDate;
   FFecha.ShowCheckbox := True;
   FFecha.Checked := False;
   FFecha.Font.Name := 'Segoe UI';
   FFecha.Font.Size := 10;
   FFecha.OnChange := CampoCambio;
-  AgregarFilaFicha(FHojaDatos, 'Fecha de aprobaci'#243'n', 'fecha', FFecha, 1, Esc(28));
   FChkActiva := TCheckBox.Create(Self);
   FChkActiva.Caption := 'Subserie activa';
   FChkActiva.OnClick := CampoCambio;
-  AgregarFilaFicha(FHojaDatos, ' ', 'activa', FChkActiva, 2, Esc(28));
+  AgregarFilaFicha(FCajaDatos, ' ', 'activa', FChkActiva, 2, Esc(28));
   FObs := TRichEdit.Create(Self);
+  AgregarFilaFicha(FCajaDatos, 'Observaci'#243'n', 'observacion', FObs, 0, Esc(90));
   FObs.StyleElements := [];
   FObs.PlainText := False;
   FObs.ScrollBars := ssVertical;
@@ -622,16 +637,15 @@ begin
   FObs.Font.Size := 10;
   FObs.Color := clWhite;
   FObs.OnChange := ObsCambio;
-  AgregarFilaFicha(FHojaDatos, 'Observaci'#243'n', 'observacion', FObs, 0, Esc(90));
 
   FCmbArchivo := NuevoCombo;
-  AgregarFilaFicha(FHojaUbic, 'Archivo', 'archivo', FCmbArchivo, 0, Esc(28));
+  AgregarFilaFicha(FCajaUbic, 'Archivo', 'archivo', FCmbArchivo, 0, Esc(28));
   FEdDeposito := NuevoEdit(255);
-  AgregarFilaFicha(FHojaUbic, 'Dep'#243'sito', 'deposito', FEdDeposito, 1, Esc(28));
+  AgregarFilaFicha(FCajaUbic, 'Dep'#243'sito', 'deposito', FEdDeposito, 1, Esc(28));
   FEdGaveta := NuevoEdit(20);
-  AgregarFilaFicha(FHojaUbic, 'Gaveta', 'gaveta', FEdGaveta, 2, Esc(28));
+  AgregarFilaFicha(FCajaUbic, 'Gaveta', 'gaveta', FEdGaveta, 2, Esc(28));
   FEdCarpeta := NuevoEdit(255);
-  AgregarFilaFicha(FHojaUbic, 'Carpeta', 'carpeta', FEdCarpeta, 0, Esc(28));
+  AgregarFilaFicha(FCajaUbic, 'Carpeta', 'carpeta', FEdCarpeta, 0, Esc(28));
 
   FResultado := NuevaEtiqueta(FCuerpo, '', False);
   FResultado.Align := alBottom;
@@ -651,9 +665,16 @@ begin
   FFilaVars.Color := FTema.Superficie2;
   FLblVars := NuevaEtiqueta(FFilaVars, '', False);
   FLblVars.Font.Size := 9;
-  FLblVars.SetBounds(Esc(18), Esc(14), Esc(240), Esc(18));
+  FLblVars.Align := alClient;
+  FLblVars.WordWrap := True;
+  FLblVars.Layout := tlCenter;
+  FLblVars.AlignWithMargins := True;
+  FLblVars.Margins.SetBounds(Esc(18), 0, 0, 0);
   FBtnVars := NuevoBotonSimple(FFilaVars, 'Editar variables...', VariablesClick);
-  FBtnVars.SetBounds(Esc(268), Esc(8), Esc(140), Esc(30));
+  FBtnVars.Align := alRight;
+  FBtnVars.Width := Esc(140);
+  FBtnVars.AlignWithMargins := True;
+  FBtnVars.Margins.SetBounds(0, Esc(8), Esc(16), Esc(8));
   FFilaVars.Visible := False;
 end;
 
@@ -666,11 +687,11 @@ procedure TfrmSeries.Distribuir;
 var
   I, Y, W, Medio, Fin: Integer;
   F: TFila;
-  Hoja: TTabSheet;
+  Hoja: TWinControl;
   H: Integer;
 begin
   // indice: cabecera, botones y lista
-  if (Indice <> nil) and (FListaSeries <> nil) then
+  if (Indice <> nil) and (FListaSeries <> nil) and (FPanelSerie <> nil) and (FBtnSerieEditar <> nil) then
   begin
     FCabIndice.SetBounds(Esc(14), Esc(14), Esc(70), Esc(18));
     FBtnSerieNueva.SetBounds(Indice.ClientWidth - Esc(150), Esc(8), Esc(68), Esc(28));
@@ -678,14 +699,14 @@ begin
     FListaSeries.SetBounds(0, Esc(44), Indice.ClientWidth - 1,
       Indice.ClientHeight - Esc(44) - IfThen(FPanelSerie.Visible, FPanelSerie.Height, 0));
   end;
-  if (FPaginas = nil) or (FFilas = nil) then
+  if (FPaginas = nil) or (FFilas = nil) or (FCajaDatos = nil) or (FCajaUbic = nil) then
     Exit;
   for H := 0 to 1 do
   begin
     if H = 0 then
-      Hoja := FHojaDatos
+      Hoja := FCajaDatos
     else
-      Hoja := FHojaUbic;
+      Hoja := FCajaUbic;
     W := Hoja.ClientWidth - Esc(12);
     if W < Esc(240) then
       W := Esc(240);
@@ -1103,12 +1124,13 @@ begin
   FBtnVarDescartar.Align := alRight;
   FBtnVarDescartar.Width := Esc(120);
   FBtnVarDescartar.AlignWithMargins := True;
-  FBtnVarDescartar.Margins.SetBounds(Esc(8), Esc(12), Esc(16), Esc(12));
+  FBtnVarDescartar.Margins.SetBounds(Esc(8), Esc(12), 0, Esc(12));
+
   FBtnVarGuardar := NuevoBotonSimple(Barra, 'Guardar cambios', VariablesGuardarClick);
   FBtnVarGuardar.Align := alRight;
   FBtnVarGuardar.Width := Esc(150);
   FBtnVarGuardar.AlignWithMargins := True;
-  FBtnVarGuardar.Margins.SetBounds(Esc(8), Esc(12), 0, Esc(12));
+  FBtnVarGuardar.Margins.SetBounds(Esc(8), Esc(12), Esc(16), Esc(12));
 
   FVarEditor := TEditorVariables.Create(Self, FTema, FEsSql);
   FVarEditor.Parent := FVarVista;
