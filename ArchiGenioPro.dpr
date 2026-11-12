@@ -70,6 +70,7 @@ uses
   UImagenes in 'UImagenes.pas',
   UClasificadorBase in 'UClasificadorBase.pas',
   UCLServidoresForm in 'UCLServidoresForm.pas',
+  UCLArchivosForm in 'UCLArchivosForm.pas',
   UTiempos in 'UTiempos.pas',
   UAutentica in 'UAutentica.pas' {frmAutentica},
   md5 in 'md5.pas',
