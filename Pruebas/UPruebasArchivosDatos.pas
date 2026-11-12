@@ -50,6 +50,44 @@ type
     procedure Responsables_NoVacio;
   end;
 
+  [TestFixture]
+  TPruebasGuardarArchivos = class
+  private
+    FConn: TFDConnection;
+    function ArchivoNuevo(const ANombre: string): TArchivo;
+    function Contar: Integer;
+    procedure Restaurar;
+  public
+    [Setup]
+    procedure Preparar;
+    [TearDown]
+    procedure Limpiar;
+    [Test]
+    procedure Guardar_Nuevo_AsignaCodYSePuedeLeer;
+    [Test]
+    procedure Guardar_Editar_CambiaNombreTipoYResp;
+    [Test]
+    procedure Guardar_Editar_NoTocaImagenesNiDescripcion;
+    [Test]
+    procedure Guardar_SinResponsable_GuardaNull;
+    [Test]
+    procedure Guardar_Invalido_LanzaYNoEscribe;
+    [Test]
+    procedure Descripcion_RoundTrip;
+    [Test]
+    procedure Descripcion_Vacia_GuardaNull;
+    [Test]
+    procedure Imagen_RoundTrip;
+    [Test]
+    procedure Imagen_Quitar_DejaVacio;
+    [Test]
+    procedure Eliminar_SinUso_Borra;
+    [Test]
+    procedure Eliminar_EnUsoPorSubserie_Bloquea;
+    [Test]
+    procedure Eliminar_EnUsoPorSerieTree_Bloquea;
+  end;
+
 implementation
 
 uses
@@ -250,6 +288,262 @@ procedure TPruebasListarArchivos.Responsables_NoVacio;
 begin
   if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB'); Exit; end;
   Assert.IsTrue(Length(ListarResponsables(FConn)) > 0);
+end;
+
+{ TPruebasGuardarArchivos }
+
+procedure TPruebasGuardarArchivos.Preparar;
+var
+  NombreBD: string;
+begin
+  FConn := nil;
+  NombreBD := GetEnvironmentVariable(VAR_BD);
+  if NombreBD = '' then
+    Exit;
+  if SameText(NombreBD, 'SGDDRHMAIN') then
+    raise Exception.Create('Las pruebas no deben correr contra SGDDRHMAIN');
+  FConn := TFDConnection.Create(nil);
+  FConn.LoginPrompt := False;
+  FConn.DriverName := 'MSSQL';
+  FConn.Params.Values['Server'] := 'localhost';
+  FConn.Params.Values['Database'] := NombreBD;
+  FConn.Params.Values['User_Name'] := 'geoconn';
+  FConn.Params.Values['Password'] := 'geoconn';
+  FConn.Params.Values['OSAuthent'] := 'No';
+  FConn.Connected := True;
+  Restaurar;
+end;
+
+procedure TPruebasGuardarArchivos.Restaurar;
+begin
+  FConn.ExecSQL('DELETE FROM cl_ArchivosGestion WHERE nombreArchivo LIKE ''zz_arch%''');
+end;
+
+procedure TPruebasGuardarArchivos.Limpiar;
+begin
+  if FConn <> nil then
+  begin
+    if FConn.InTransaction then
+      FConn.Rollback;
+    Restaurar;
+    FreeAndNil(FConn);
+  end;
+end;
+
+function TPruebasGuardarArchivos.ArchivoNuevo(const ANombre: string): TArchivo;
+begin
+  Result := Default(TArchivo);
+  Result.Nombre := ANombre;
+  Result.Tipo := 1;
+  Result.Idresp := 0;
+end;
+
+function TPruebasGuardarArchivos.Contar: Integer;
+begin
+  Result := Integer(FConn.ExecSQLScalar(
+    'SELECT COUNT(*) FROM cl_ArchivosGestion WHERE nombreArchivo LIKE ''zz_arch%'''));
+end;
+
+procedure TPruebasGuardarArchivos.Guardar_Nuevo_AsignaCodYSePuedeLeer;
+var
+  Cod, I: Integer;
+  L: TArray<TArchivo>;
+  Hallado: Boolean;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB'); Exit; end;
+  Cod := GuardarArchivo(FConn, ArchivoNuevo('zz_arch nuevo'));
+  Assert.IsTrue(Cod > 0);
+  L := ListarArchivos(FConn);
+  Hallado := False;
+  for I := 0 to High(L) do
+    if L[I].Cod = Cod then
+    begin
+      Hallado := True;
+      Assert.AreEqual('zz_arch nuevo', L[I].Nombre);
+      Assert.AreEqual(1, L[I].Tipo);
+    end;
+  Assert.IsTrue(Hallado);
+end;
+
+procedure TPruebasGuardarArchivos.Guardar_Editar_CambiaNombreTipoYResp;
+var
+  A: TArchivo;
+  Cod, I: Integer;
+  L: TArray<TArchivo>;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB'); Exit; end;
+  Cod := GuardarArchivo(FConn, ArchivoNuevo('zz_arch uno'));
+  A := ArchivoNuevo('zz_arch editado');
+  A.Cod := Cod;
+  A.Tipo := 2;
+  A.Idresp := 1;
+  Assert.AreEqual(Cod, GuardarArchivo(FConn, A));
+  L := ListarArchivos(FConn);
+  for I := 0 to High(L) do
+    if L[I].Cod = Cod then
+    begin
+      Assert.AreEqual('zz_arch editado', L[I].Nombre);
+      Assert.AreEqual(2, L[I].Tipo);
+      Assert.AreEqual(1, L[I].Idresp);
+    end;
+end;
+
+procedure TPruebasGuardarArchivos.Guardar_Editar_NoTocaImagenesNiDescripcion;
+var
+  A: TArchivo;
+  Cod: Integer;
+  Croq, Foto: TBytes;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB'); Exit; end;
+  Cod := GuardarArchivo(FConn, ArchivoNuevo('zz_arch con datos'));
+  GuardarImagen(FConn, Cod, ciCroquis, TBytes.Create(1, 2, 3));
+  GuardarImagen(FConn, Cod, ciFoto, TBytes.Create(4, 5));
+  GuardarDescripcion(FConn, Cod, '{\rtf1 hola}');
+  A := ArchivoNuevo('zz_arch renombrado');
+  A.Cod := Cod;
+  GuardarArchivo(FConn, A);
+  Croq := LeerImagen(FConn, Cod, ciCroquis);
+  Foto := LeerImagen(FConn, Cod, ciFoto);
+  Assert.AreEqual(3, Length(Croq));
+  Assert.AreEqual(2, Length(Foto));
+  Assert.AreEqual('{\rtf1 hola}', LeerDescripcion(FConn, Cod));
+end;
+
+procedure TPruebasGuardarArchivos.Guardar_SinResponsable_GuardaNull;
+var
+  Cod: Integer;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB'); Exit; end;
+  Cod := GuardarArchivo(FConn, ArchivoNuevo('zz_arch sin resp'));
+  Assert.AreEqual(1, Integer(FConn.ExecSQLScalar(
+    'SELECT COUNT(*) FROM cl_ArchivosGestion WHERE Cod = :c AND Idresp IS NULL', [Cod])));
+end;
+
+procedure TPruebasGuardarArchivos.Guardar_Invalido_LanzaYNoEscribe;
+var
+  A: TArchivo;
+  Antes: Integer;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB'); Exit; end;
+  Antes := Contar;
+  A := ArchivoNuevo('zz_arch malo');
+  A.Tipo := 0;
+  Assert.WillRaise(
+    procedure
+    begin
+      GuardarArchivo(FConn, A);
+    end, EArchivoInvalido);
+  Assert.AreEqual(Antes, Contar);
+end;
+
+procedure TPruebasGuardarArchivos.Descripcion_RoundTrip;
+var
+  Cod: Integer;
+  Rtf: string;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB'); Exit; end;
+  Cod := GuardarArchivo(FConn, ArchivoNuevo('zz_arch rtf'));
+  Rtf := '{\rtf1\ansi\deff0 {\fonttbl{\f0 Arial;}}caf\''e9 \b negrita\b0 }';
+  GuardarDescripcion(FConn, Cod, Rtf);
+  Assert.AreEqual(Rtf, LeerDescripcion(FConn, Cod));
+end;
+
+procedure TPruebasGuardarArchivos.Descripcion_Vacia_GuardaNull;
+var
+  Cod: Integer;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB'); Exit; end;
+  Cod := GuardarArchivo(FConn, ArchivoNuevo('zz_arch sin desc'));
+  GuardarDescripcion(FConn, Cod, 'algo');
+  GuardarDescripcion(FConn, Cod, '');
+  Assert.AreEqual(1, Integer(FConn.ExecSQLScalar(
+    'SELECT COUNT(*) FROM cl_ArchivosGestion WHERE Cod = :c AND Descripcion IS NULL', [Cod])));
+  Assert.AreEqual('', LeerDescripcion(FConn, Cod));
+end;
+
+procedure TPruebasGuardarArchivos.Imagen_RoundTrip;
+var
+  Cod, I: Integer;
+  B, R: TBytes;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB'); Exit; end;
+  Cod := GuardarArchivo(FConn, ArchivoNuevo('zz_arch img'));
+  SetLength(B, 100000);
+  for I := 0 to High(B) do
+    B[I] := Byte(I mod 256);
+  GuardarImagen(FConn, Cod, ciFoto, B);
+  R := LeerImagen(FConn, Cod, ciFoto);
+  Assert.AreEqual(Length(B), Length(R));
+  Assert.IsTrue(CompareMem(@B[0], @R[0], Length(B)), 'los bytes deben ser identicos');
+end;
+
+procedure TPruebasGuardarArchivos.Imagen_Quitar_DejaVacio;
+var
+  Cod: Integer;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB'); Exit; end;
+  Cod := GuardarArchivo(FConn, ArchivoNuevo('zz_arch quitar'));
+  GuardarImagen(FConn, Cod, ciCroquis, TBytes.Create(9, 9));
+  QuitarImagen(FConn, Cod, ciCroquis);
+  Assert.AreEqual(0, Length(LeerImagen(FConn, Cod, ciCroquis)));
+end;
+
+procedure TPruebasGuardarArchivos.Eliminar_SinUso_Borra;
+var
+  Cod: Integer;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB'); Exit; end;
+  Cod := GuardarArchivo(FConn, ArchivoNuevo('zz_arch borrar'));
+  EliminarArchivo(FConn, Cod);
+  Assert.AreEqual(0, Contar);
+end;
+
+procedure TPruebasGuardarArchivos.Eliminar_EnUsoPorSubserie_Bloquea;
+var
+  Cod, Usos: Integer;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB'); Exit; end;
+  Cod := GuardarArchivo(FConn, ArchivoNuevo('zz_arch usado'));
+  Usos := 0;
+  FConn.StartTransaction;
+  try
+    FConn.ExecSQL('UPDATE cl_subseries SET archivo = :c', [Cod]);
+    try
+      EliminarArchivo(FConn, Cod);
+      Assert.Fail('debio lanzar EArchivoEnUso');
+    except
+      on E: EArchivoEnUso do
+        Usos := E.Usos;
+    end;
+    Assert.IsTrue(Usos >= 1);
+    Assert.AreEqual(1, Contar);
+  finally
+    FConn.Rollback;
+  end;
+end;
+
+procedure TPruebasGuardarArchivos.Eliminar_EnUsoPorSerieTree_Bloquea;
+var
+  Cod, Usos: Integer;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB'); Exit; end;
+  Cod := GuardarArchivo(FConn, ArchivoNuevo('zz_arch usado2'));
+  Usos := 0;
+  FConn.StartTransaction;
+  try
+    FConn.ExecSQL('UPDATE tb_Serietree SET Archivo = :c', [Cod]);
+    try
+      EliminarArchivo(FConn, Cod);
+      Assert.Fail('debio lanzar EArchivoEnUso');
+    except
+      on E: EArchivoEnUso do
+        Usos := E.Usos;
+    end;
+    Assert.IsTrue(Usos >= 1);
+    Assert.AreEqual(1, Contar);
+  finally
+    FConn.Rollback;
+  end;
 end;
 
 end.
