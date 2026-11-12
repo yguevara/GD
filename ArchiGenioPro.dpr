@@ -61,6 +61,7 @@ uses
   UIconos in 'UIconos.pas',
   UShellPrincipal in 'UShellPrincipal.pas',
   UAparienciaLegacy in 'UAparienciaLegacy.pas',
+  UAutenticacion in 'UAutenticacion.pas',
   UAutentica in 'UAutentica.pas' {frmAutentica},
   md5 in 'md5.pas',
   UUserGest in 'UUserGest.pas' {frmGestUser},

@@ -19,6 +19,8 @@ uses
   UPruebasTopografia in 'UPruebasTopografia.pas',
   UAsignacionDatos in '..\UAsignacionDatos.pas',
   UPruebasAsignacion in 'UPruebasAsignacion.pas',
+  UAutenticacion in '..\UAutenticacion.pas',
+  UPruebasAutenticacion in 'UPruebasAutenticacion.pas',
   UBusqueda in '..\UBusqueda.pas',
   UBusquedaDatos in '..\UBusquedaDatos.pas',
   UPruebasBusqueda in 'UPruebasBusqueda.pas',
