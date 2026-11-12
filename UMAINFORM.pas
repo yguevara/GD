@@ -503,6 +503,7 @@ type
     procedure F1Click(Sender: TObject);
     procedure L1Click(Sender: TObject);
     procedure AbrirServidoresClasico;
+    procedure AbrirArchivosClasico;
     procedure AbrirClasificador(AForm: TFormClasificadorBase; const ATitulo, ANombreLog: string;
       AAlSalir: TProc);
     function CerrarClasificador: Boolean;
@@ -870,7 +871,7 @@ var
 implementation
 
 uses
-  UAparienciaLegacy, UTema, UIconos, UDocumentoVistaDatos, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UAutenticacion, UMensajes, UTiempos, USplash, UCLServidoresForm, UClasificadoresInterruptor, UCapaDatos, UUserGest, UDocManagement,
+  UAparienciaLegacy, UTema, UIconos, UDocumentoVistaDatos, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UAutenticacion, UMensajes, UTiempos, USplash, UCLServidoresForm, UCLArchivosForm, UClasificadoresInterruptor, UCapaDatos, UUserGest, UDocManagement,
   UPantallaCarga, UCLSeriesDocumentales, UCLFtpServer, UGestEstruct, UMangementArch,
   UManagementFileSeries, UViewFunciones, UVeditor, UExcelExport, UManagementNode,
   USystemMsg, UNodeProperties, UCL_TiposExp, USysConfig, UTransferencias,
@@ -912,7 +913,9 @@ const
 /// y actualiza los datos al cerrar el formulario.
 /// </summary>
 /// <param name="Sender">Objeto que generó el evento</param>
-procedure TMAIN.A1Click(Sender: TObject);
+// Pantalla clasica de Archivos (UMangementArch): se usa con
+// clasificadores_clasico.flag, sin el shell y como respaldo si la nueva falla.
+procedure TMAIN.AbrirArchivosClasico;
 var
   frmManagementArch: TfrmManagemetArch;
   ModalResult: Integer;
@@ -979,6 +982,31 @@ begin
     PContainer.Visible := True;
     UDM.log('Abandonando el clasificador de Archivos.', LOG_SALIDA_CLASIFICADOR, '', '', '');
     Screen.Cursor := crDefault;
+  end;
+end;
+
+// Archivos: pantalla nueva (UCLArchivosForm) DENTRO de la ventana principal. Se
+// usa la clasica con clasificadores_clasico.flag, sin el shell y como respaldo
+// si la nueva falla: el motivo queda en clasificadores_error.log.
+procedure TMAIN.A1Click(Sender: TObject);
+begin
+  if ClasificadoresClasicos(PathSys) or not ShellActivo then
+  begin
+    AbrirArchivosClasico;
+    Exit;
+  end;
+  try
+    AbrirClasificador(CrearClasificadorArchivos(UDM.Conn), 'Archivos', 'Archivos',
+      procedure
+      begin
+        UDM.cl_ArchivosGestion.Refresh;
+      end);
+  except
+    on E: Exception do
+    begin
+      RegistrarErrorClasificador(PathSys, 'Archivos: ' + E.ClassName + ': ' + E.Message);
+      AbrirArchivosClasico;
+    end;
   end;
 end;
 {procedure TMAIN.A1Click(Sender: TObject);

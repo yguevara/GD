@@ -42,6 +42,7 @@ type
   TBloqueImg = record
     Panel: TPanel;
     Img: TImage;
+    Vacio: TLabel;       // texto cuando no hay imagen
     Titulo: TLabel;
     BtnCambiar, BtnVer, BtnQuitar: TBotonShell;
     Bytes: TBytes;        // lo que se muestra (guardado o recien elegido)
@@ -200,6 +201,17 @@ begin
   B.Img.Center := True;
   B.Img.Proportional := True;
   B.Img.Stretch := True;
+  B.Vacio := TLabel.Create(Self);
+  B.Vacio.Parent := B.Panel;
+  B.Vacio.AutoSize := False;
+  B.Vacio.Alignment := taCenter;
+  B.Vacio.Layout := tlCenter;
+  B.Vacio.Transparent := True;
+  B.Vacio.StyleElements := [];
+  B.Vacio.Font.Name := 'Segoe UI';
+  B.Vacio.Font.Size := 8;
+  B.Vacio.Font.Color := FTema.TextoSuave;
+  B.Vacio.Caption := 'Sin ' + LowerCase(ATitulo);
   B.Titulo := TLabel.Create(Self);
   B.Titulo.Parent := B.Panel;
   B.Titulo.AutoSize := True;
@@ -209,7 +221,7 @@ begin
   B.Titulo.Font.Size := 9;
   B.Titulo.Font.Color := FTema.Texto;
   B.Titulo.Caption := ATitulo;
-  B.BtnCambiar := NuevoBotonImg(B.Panel, 'Cambiar...', 'cargar', ACampo, CambiarClick, FTema.Texto);
+  B.BtnCambiar := NuevoBotonImg(B.Panel, 'Cambiar', 'cargar', ACampo, CambiarClick, FTema.Texto);
   B.BtnVer := NuevoBotonImg(B.Panel, 'Ver', 'ver', ACampo, VerClick, FTema.Texto);
   B.BtnQuitar := NuevoBotonImg(B.Panel, 'Quitar', 'eliminar', ACampo, QuitarClick,
     RGB($B3, $26, $1E));
@@ -313,14 +325,15 @@ begin
   for C := Low(TCampoImagen) to High(TCampoImagen) do
   begin
     FBloque[C].Panel.SetBounds(0, Y, Ancho, AltoBloque);
-    FBloque[C].Img.SetBounds(Esc(10), Esc(10), Esc(120), Esc(80));
-    FBloque[C].Titulo.SetBounds(Esc(144), Esc(12), Esc(120), Esc(18));
-    X := Esc(144);
-    FBloque[C].BtnCambiar.SetBounds(X, Esc(42), Esc(100), Esc(30));
-    Inc(X, Esc(106));
-    FBloque[C].BtnVer.SetBounds(X, Esc(42), Esc(62), Esc(30));
-    Inc(X, Esc(68));
-    FBloque[C].BtnQuitar.SetBounds(X, Esc(42), Esc(84), Esc(30));
+    FBloque[C].Img.SetBounds(Esc(10), Esc(10), Esc(90), Esc(80));
+    FBloque[C].Vacio.SetBounds(Esc(10), Esc(10), Esc(90), Esc(80));
+    FBloque[C].Titulo.SetBounds(Esc(112), Esc(12), Esc(120), Esc(18));
+    X := Esc(112);
+    FBloque[C].BtnCambiar.SetBounds(X, Esc(44), Esc(92), Esc(30));
+    Inc(X, Esc(96));
+    FBloque[C].BtnVer.SetBounds(X, Esc(44), Esc(54), Esc(30));
+    Inc(X, Esc(58));
+    FBloque[C].BtnQuitar.SetBounds(X, Esc(44), Esc(76), Esc(30));
     Inc(Y, AltoBloque + Esc(10));
   end;
   FLblDesc.SetBounds(0, Y, Ancho, Esc(16));
@@ -405,6 +418,7 @@ begin
     FBloque[ACampo].Bytes := nil;
     FBloque[ACampo].Img.Picture.Assign(nil);
   end;
+  FBloque[ACampo].Vacio.Visible := Length(FBloque[ACampo].Bytes) = 0;
   FBloque[ACampo].BtnVer.Enabled := Length(FBloque[ACampo].Bytes) > 0;
   FBloque[ACampo].BtnQuitar.Enabled := Length(FBloque[ACampo].Bytes) > 0;
   FBloque[ACampo].BtnVer.Invalidate;
