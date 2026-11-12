@@ -1115,7 +1115,7 @@ implementation
 
 uses
   UTiempos,
-  UEsquemaAlcance, UEsquemaAlmacen, UEsquemaCarga, UEsquemaTrazabilidad, UTrazabilidadDatos, UAlcanceDatos, UTopografia,
+  UEsquemaAlcance, UEsquemaAlmacen, UEsquemaCarga, UEsquemaTrazabilidad, UEsquemaProcesos, UTrazabilidadDatos, UAlcanceDatos, UTopografia,
   UAlmacenFicheros, UAlmacenServidor, UProgresoTransferencia;
 
 
@@ -5695,6 +5695,8 @@ begin              //
   CrearEsquemaCarga(Conn, TBD = 'S');
   // Trazabilidad: columnas de documento en tb_log (ver UEsquemaTrazabilidad.pas)
   CrearEsquemaTrazabilidad(Conn, TBD = 'S');
+  // Procesos archivisticos: prestamo, transferencia, depuracion (ver UEsquemaProcesos.pas)
+  CrearEsquemaProcesos(Conn, TBD = 'S');
   if not EsquemaAlmacenCompleto(Conn) then
   begin
     // Sin permiso para alterar cl_ftp_Server: la aplicacion arranca igual con la

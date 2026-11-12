@@ -104,7 +104,9 @@ uses
   UCandados in '..\UCandados.pas',
   UPruebasCandados in 'UPruebasCandados.pas',
   UAutorizacion in '..\UAutorizacion.pas',
-  UPruebasAutorizacion in 'UPruebasAutorizacion.pas';
+  UPruebasAutorizacion in 'UPruebasAutorizacion.pas',
+  UEsquemaProcesos in '..\UEsquemaProcesos.pas',
+  UPruebasEsquemaProcesos in 'UPruebasEsquemaProcesos.pas';
 
 var
   Corredor: ITestRunner;
