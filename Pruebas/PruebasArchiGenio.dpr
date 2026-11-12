@@ -33,6 +33,8 @@ uses
   UPruebasImagenes in 'UPruebasImagenes.pas',
   UInicioDatos in '..\UInicioDatos.pas',
   UPruebasInicioDatos in 'UPruebasInicioDatos.pas',
+  UInicioNodo in '..\UInicioNodo.pas',
+  UPruebasPanelInicio in 'UPruebasPanelInicio.pas',
   UBusqueda in '..\UBusqueda.pas',
   UBusquedaDatos in '..\UBusquedaDatos.pas',
   UPruebasBusqueda in 'UPruebasBusqueda.pas',

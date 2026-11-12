@@ -69,6 +69,7 @@ uses
   UArchivosDatos in 'UArchivosDatos.pas',
   UImagenes in 'UImagenes.pas',
   UInicioDatos in 'UInicioDatos.pas',
+  UInicioNodo in 'UInicioNodo.pas',
   UClasificadorBase in 'UClasificadorBase.pas',
   UCLServidoresForm in 'UCLServidoresForm.pas',
   UCLArchivosForm in 'UCLArchivosForm.pas',
