@@ -13,6 +13,7 @@ unit UEsquemaProcesos;
     prc_unidad       : documentos incluidos en el proceso (y su caja, si la hay).
     prc_evento       : bitacora de cambios de estado.
     prc_autorizacion : acta y acuerdo de la Comision (una por proceso).
+    prc_bloqueo      : candado por documento (un proceso abierto a la vez).
   Las tablas propias de cada modulo (cajas, incidencias, testigos, muestras,
   datos del prestamo) las agrega cada fase en este mismo archivo.
   Tipo: 'P' prestamo, 'T' transferencia, 'D' depuracion.
@@ -134,6 +135,20 @@ begin
     'RegistradoPor VARCHAR(100) NULL, ' +
     'CONSTRAINT PK_prc_autorizacion PRIMARY KEY (IdProceso), ' +
     'CONSTRAINT FK_prc_autorizacion_proceso FOREIGN KEY (IdProceso) ' +
+    'REFERENCES prc_proceso(IdProceso) ON DELETE CASCADE');
+
+  // Candado: una fila por documento retenido por un proceso abierto. La clave
+  // primaria es el documento, asi que la base impide que dos procesos lo retengan
+  // a la vez aunque dos usuarios lo intenten en el mismo instante.
+  Tabla('prc_bloqueo',
+    'IdEstructura VARCHAR(50) NOT NULL, ' +
+    'id INT NOT NULL, ' +
+    'Codigodoc VARCHAR(20) NOT NULL, ' +
+    'fecha DATETIME NOT NULL, ' +
+    'version VARCHAR(12) NOT NULL, ' +
+    'IdProceso INT NOT NULL, ' +
+    'CONSTRAINT PK_prc_bloqueo PRIMARY KEY (IdEstructura, id, Codigodoc, fecha, version), ' +
+    'CONSTRAINT FK_prc_bloqueo_proceso FOREIGN KEY (IdProceso) ' +
     'REFERENCES prc_proceso(IdProceso) ON DELETE CASCADE');
 
   // Para saber rapido que documentos de un nodo estan bloqueados.

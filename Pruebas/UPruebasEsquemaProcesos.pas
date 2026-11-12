@@ -29,6 +29,8 @@ type
     procedure TieneTresIndices;
     [Test]
     procedure SqlServer_IndicesConGuarda;
+    [Test]
+    procedure Bloqueo_ClavePrimariaEsElDocumento;
   end;
 
   [TestFixture]
@@ -63,8 +65,8 @@ uses
 
 const
   VAR_BD = 'ARCHIGENIO_TEST_DB';
-  TABLAS: array[0..3] of string = ('prc_proceso', 'prc_unidad', 'prc_evento',
-    'prc_autorizacion');
+  TABLAS: array[0..4] of string = ('prc_proceso', 'prc_unidad', 'prc_evento',
+    'prc_autorizacion', 'prc_bloqueo');
 
 { TPruebasEsquemaProcesosSql }
 
@@ -132,6 +134,15 @@ end;
 procedure TPruebasEsquemaProcesosSql.SqlServer_IndicesConGuarda;
 begin
   Assert.AreEqual(3, Contar(Todo(True), 'IF NOT EXISTS (SELECT 1 FROM sys.indexes'));
+end;
+
+procedure TPruebasEsquemaProcesosSql.Bloqueo_ClavePrimariaEsElDocumento;
+begin
+  // Un documento solo puede tener una fila de bloqueo: lo hace cumplir la base.
+  Assert.IsTrue(Pos('CONSTRAINT PK_prc_bloqueo PRIMARY KEY (IdEstructura, id, Codigodoc, fecha, version)',
+    Todo(True)) > 0);
+  Assert.IsTrue(Pos('CONSTRAINT PK_prc_bloqueo PRIMARY KEY (IdEstructura, id, Codigodoc, fecha, version)',
+    Todo(False)) > 0);
 end;
 
 { TPruebasEsquemaProcesosBD }
