@@ -509,6 +509,11 @@ type
       AAlSalir: TProc);
     function CerrarClasificador: Boolean;
     procedure ClasificadorSalir(Sender: TObject);
+    procedure AbrirPantallaExterna(const ARuta: string; AForm: TFormClasificadorBase;
+      const ATitulo, ANombreLog: string; AAlSalir: TProc);
+    procedure AbrirProceso(AForm: TFormClasificadorBase; const ATitulo, ANombreLog: string;
+      AAlSalir: TProc);
+    procedure AbrirProcesoDemo;
     procedure pmtvResetClick(Sender: TObject);
     procedure S1Click(Sender: TObject);
     procedure S2Click(Sender: TObject);
@@ -664,6 +669,8 @@ type
     FClasificador: TFormClasificadorBase;
     FClasificadorAlSalir: TProc;
     FClasificadorLog: string;
+    // Ruta de la pantalla externa abierta: 'Clasificadores' o 'Procesos'
+    FPantallaRuta: string;
     // Lista de documentos de la subserie (F2)
     FListaDocs: TPanelDocumentos;
     FBarraTrabajo: TBarraTrabajo;
@@ -874,7 +881,7 @@ var
 implementation
 
 uses
-  UAparienciaLegacy, UTema, UIconos, UDocumentoVistaDatos, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UAutenticacion, UMensajes, UTiempos, USplash, UCLServidoresForm, UCLArchivosForm, UCLSeriesForm, UClasificadoresInterruptor, UCapaDatos, UUserGest, UDocManagement,
+  UAparienciaLegacy, UTema, UIconos, UDocumentoVistaDatos, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UAutenticacion, UMensajes, UTiempos, USplash, UCLServidoresForm, UCLArchivosForm, UCLSeriesForm, UClasificadoresInterruptor, UProcesosInterruptor, UProcesoDemo, UCapaDatos, UUserGest, UDocManagement,
   UPantallaCarga, UCLSeriesDocumentales, UCLFtpServer, UGestEstruct, UMangementArch,
   UManagementFileSeries, UViewFunciones, UVeditor, UExcelExport, UManagementNode,
   USystemMsg, UNodeProperties, UCL_TiposExp, USysConfig, UTransferencias,
@@ -8735,7 +8742,13 @@ begin
   if Nombre = SECCION_TRASLADOS then
     btnTransfer.Click
   else if Nombre = SECCION_PRESTAMOS then
-    P3.Click
+  begin
+    // TEMPORAL (F0): con ARCHIGENIO_PROCESOS_DEMO=1 se ve la pantalla base nueva
+    if GetEnvironmentVariable('ARCHIGENIO_PROCESOS_DEMO') = '1' then
+      AbrirProcesoDemo
+    else
+      P3.Click;
+  end
   else if Nombre = SECCION_DEPURACION then
     D3.Click
   else if Nombre = SECCION_INDICES then
@@ -9890,6 +9903,42 @@ end;
 // de AForm. AAlSalir se ejecuta al cerrarlo (p. ej. refrescar datasets).
 procedure TMAIN.AbrirClasificador(AForm: TFormClasificadorBase; const ATitulo, ANombreLog: string;
   AAlSalir: TProc);
+begin
+  AbrirPantallaExterna('Clasificadores', AForm, ATitulo, ANombreLog, AAlSalir);
+end;
+
+// Muestra una pantalla de procesos archivisticos (prestamos, transferencias,
+// depuracion) DENTRO de la ventana principal, con "Procesos > ATitulo" en la
+// cabecera. Mismo ciclo de vida que un clasificador (ver CerrarClasificador).
+procedure TMAIN.AbrirProceso(AForm: TFormClasificadorBase; const ATitulo, ANombreLog: string;
+  AAlSalir: TProc);
+begin
+  AbrirPantallaExterna('Procesos', AForm, ATitulo, ANombreLog, AAlSalir);
+end;
+
+// TEMPORAL (fase F0): abre la pantalla de demostracion de UProcesoBase. Se elimina
+// en la primera tarea de la fase F1. Con procesos_clasico.flag o sin la ventana
+// principal nueva se usa la pantalla vieja de prestamos.
+procedure TMAIN.AbrirProcesoDemo;
+begin
+  if ProcesosClasicos(PathSys) or not ShellActivo then
+  begin
+    P3.Click;
+    Exit;
+  end;
+  try
+    AbrirProceso(CrearProcesoDemo, 'Pr' + #233 + 'stamos', 'Prestamos (demo)', nil);
+  except
+    on E: Exception do
+    begin
+      RegistrarErrorProceso(PathSys, 'Procesos (demo): ' + E.ClassName + ': ' + E.Message);
+      P3.Click;
+    end;
+  end;
+end;
+
+procedure TMAIN.AbrirPantallaExterna(const ARuta: string; AForm: TFormClasificadorBase;
+  const ATitulo, ANombreLog: string; AAlSalir: TProc);
 var
   Host: TWinControl;
 begin
@@ -9899,7 +9948,7 @@ begin
     Exit;
   end;
   try
-    Host := ShellPrincipal.AbrirExterno('Clasificadores', ATitulo);
+    Host := ShellPrincipal.AbrirExterno(ARuta, ATitulo);
     if Host = nil then
       raise Exception.Create('El area de trabajo no esta disponible para la pantalla.');
     AForm.OnSalir := ClasificadorSalir;
@@ -9912,9 +9961,13 @@ begin
   end;
   FClasificador := AForm;
   FClasificadorLog := ANombreLog;
+  FPantallaRuta := ARuta;
   FClasificadorAlSalir := AAlSalir;
   if Assigned(UDM) then
-    UDM.log('Accediendo al clasificador de ' + ANombreLog + '.', 14, '', '', '');
+    if ARuta = 'Clasificadores' then
+      UDM.log('Accediendo al clasificador de ' + ANombreLog + '.', 14, '', '', '')
+    else
+      UDM.log('Accediendo a procesos: ' + ANombreLog + '.', 14, '', '', '');
 end;
 
 // Cierra el clasificador abierto. Devuelve False si el usuario decide quedarse
@@ -9952,7 +10005,10 @@ begin
       TMensajes.Error('Error al actualizar los datos: ' + E.Message, 'Clasificadores');
   end;
   if Assigned(UDM) then
-    UDM.log('Abandonando al clasificador de ' + Nombre + '.', 15, '', '', '');
+    if FPantallaRuta = 'Clasificadores' then
+      UDM.log('Abandonando al clasificador de ' + Nombre + '.', 15, '', '', '')
+    else
+      UDM.log('Abandonando procesos: ' + Nombre + '.', 15, '', '', '');
 end;
 
 procedure TMAIN.ClasificadorSalir(Sender: TObject);
