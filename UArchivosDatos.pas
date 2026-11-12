@@ -14,7 +14,7 @@ unit UArchivosDatos;
 interface
 
 uses
-  System.SysUtils, FireDAC.Comp.Client, UServidoresDatos;
+  System.SysUtils, FireDAC.Comp.Client, UServidoresDatos, UErroresCampo;
 
 type
   { Opcion de una lista desplegable (tipo de archivo, responsable). }

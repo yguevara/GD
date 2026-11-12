@@ -32,7 +32,7 @@ uses
   System.IOUtils, System.StrUtils, Winapi.Windows, Winapi.ShellAPI, Vcl.Controls, Vcl.Forms,
   Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.Graphics, Vcl.ComCtrls, Vcl.Dialogs,
   UTema, UShellPrincipal, UClasificadorEstado, UServidoresDatos, UArchivosDatos,
-  UImagenes, UIconos, UMensajes;
+  UErroresCampo, UImagenes, UIconos, UMensajes;
 
 type
   { Da acceso a la fuente (protegida) de TBotonShell. }

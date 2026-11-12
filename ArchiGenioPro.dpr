@@ -65,6 +65,8 @@ uses
   UMensajes in 'UMensajes.pas',
   UClasificadoresInterruptor in 'UClasificadoresInterruptor.pas',
   UClasificadorEstado in 'UClasificadorEstado.pas',
+  UErroresCampo in 'UErroresCampo.pas',
+  UPalabrasReservadas in 'UPalabrasReservadas.pas',
   UServidoresDatos in 'UServidoresDatos.pas',
   UArchivosDatos in 'UArchivosDatos.pas',
   UImagenes in 'UImagenes.pas',

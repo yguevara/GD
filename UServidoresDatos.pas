@@ -13,7 +13,7 @@ unit UServidoresDatos;
 interface
 
 uses
-  System.SysUtils, FireDAC.Comp.Client;
+  System.SysUtils, FireDAC.Comp.Client, UErroresCampo;
 
 type
   TTipoServidor = (tsFtp, tsS3);
@@ -30,11 +30,6 @@ type
     UsoHttps: Boolean;       // solo S3
     ClaveAcceso: string;     // solo S3
     Secreto: string;         // solo entrada; vacio al editar = conservar el guardado
-  end;
-
-  TErrorCampo = record
-    Campo: string;           // etiqueta, direccion, puerto, usuario, clave, bucket, claveacceso, secreto
-    Mensaje: string;
   end;
 
   EServidorInvalido = class(Exception);

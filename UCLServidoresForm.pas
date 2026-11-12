@@ -33,7 +33,7 @@ uses
   System.SysUtils, System.Classes, System.Variants, System.Generics.Collections,
   Winapi.Windows, Vcl.Controls, Vcl.Forms, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.Graphics,
   UTema, UShellPrincipal, UClasificadorEstado, UServidoresDatos,
-  UMensajes;
+  UErroresCampo, UMensajes;
 
 type
   { Guardia compartida con el hilo de la prueba: avisa si la ventana ya se cerro. }

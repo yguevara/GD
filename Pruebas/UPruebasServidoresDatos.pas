@@ -7,7 +7,7 @@ unit UPruebasServidoresDatos;
 interface
 
 uses
-  DUnitX.TestFramework, FireDAC.Comp.Client, UServidoresDatos;
+  DUnitX.TestFramework, FireDAC.Comp.Client, UServidoresDatos, UErroresCampo;
 
 type
   [TestFixture]
