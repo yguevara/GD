@@ -69,6 +69,7 @@ uses
   UPalabrasReservadas in 'UPalabrasReservadas.pas',
   UVariablesDatos in 'UVariablesDatos.pas',
   USeriesDatos in 'USeriesDatos.pas',
+  UVariablesSesion in 'UVariablesSesion.pas',
   UServidoresDatos in 'UServidoresDatos.pas',
   UArchivosDatos in 'UArchivosDatos.pas',
   UImagenes in 'UImagenes.pas',

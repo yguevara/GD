@@ -30,6 +30,8 @@ uses
   UPruebasPalabrasReservadas in 'UPruebasPalabrasReservadas.pas',
   UVariablesDatos in '..\UVariablesDatos.pas',
   USeriesDatos in '..\USeriesDatos.pas',
+  UVariablesSesion in '..\UVariablesSesion.pas',
+  UPruebasVariablesSesion in 'UPruebasVariablesSesion.pas',
   UPruebasSeriesDatos in 'UPruebasSeriesDatos.pas',
   UPruebasVariablesDatos in 'UPruebasVariablesDatos.pas',
   UServidoresDatos in '..\UServidoresDatos.pas',
