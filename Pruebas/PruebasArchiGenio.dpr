@@ -106,7 +106,9 @@ uses
   UAutorizacion in '..\UAutorizacion.pas',
   UPruebasAutorizacion in 'UPruebasAutorizacion.pas',
   UEsquemaProcesos in '..\UEsquemaProcesos.pas',
-  UPruebasEsquemaProcesos in 'UPruebasEsquemaProcesos.pas';
+  UPruebasEsquemaProcesos in 'UPruebasEsquemaProcesos.pas',
+  UProcesosDatos in '..\UProcesosDatos.pas',
+  UPruebasProcesosDatos in 'UPruebasProcesosDatos.pas';
 
 var
   Corredor: ITestRunner;
