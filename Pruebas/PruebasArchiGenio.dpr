@@ -31,6 +31,8 @@ uses
   UPruebasArchivosDatos in 'UPruebasArchivosDatos.pas',
   UImagenes in '..\UImagenes.pas',
   UPruebasImagenes in 'UPruebasImagenes.pas',
+  UInicioDatos in '..\UInicioDatos.pas',
+  UPruebasInicioDatos in 'UPruebasInicioDatos.pas',
   UBusqueda in '..\UBusqueda.pas',
   UBusquedaDatos in '..\UBusquedaDatos.pas',
   UPruebasBusqueda in 'UPruebasBusqueda.pas',
