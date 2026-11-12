@@ -69,7 +69,7 @@ implementation
 {$R *.dfm}
 
 uses
-  md5, UCapaDatos, UAutenticacion;
+  md5, UCapaDatos, UAutenticacion, UMensajes;
 
 procedure TfrmNewUser.btnCloseClick(Sender: TObject);
 begin
@@ -107,7 +107,7 @@ begin
   // Regla unica de clave nueva (longitud minima y confirmacion): ver UAutenticacion.
   if not ValidarClaveNueva(Trim(edtpass.Text), Trim(edtconfirmpass.Text), MensajeClave) then
   begin
-    UDM.sms(MensajeClave, 1);
+    TMensajes.Advertencia(MensajeClave, 'Contraseña no válida');
     edtpass.SetFocus;
     Exit;
   end;

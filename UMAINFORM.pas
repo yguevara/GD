@@ -860,7 +860,7 @@ var
 implementation
 
 uses
-  UAparienciaLegacy, UTema, UIconos, UDocumentoVistaDatos, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UAutenticacion, UCapaDatos, UUserGest, UDocManagement,
+  UAparienciaLegacy, UTema, UIconos, UDocumentoVistaDatos, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UAutenticacion, UMensajes, UCapaDatos, UUserGest, UDocManagement,
   UPantallaCarga, UCLSeriesDocumentales, UCLFtpServer, UGestEstruct, UMangementArch,
   UManagementFileSeries, UViewFunciones, UVeditor, UExcelExport, UManagementNode,
   USystemMsg, UNodeProperties, UCL_TiposExp, USysConfig, UTransferencias,
@@ -2395,32 +2395,32 @@ begin
   try
     if FIsAuthenticated then
     begin
-      if UDM.sms('¿Desea cerrar la sesión actual?', 4) = 6 then
+      if TMensajes.Confirmar('¿Desea cerrar la sesión actual?', 'Cerrar sesión') then
       begin
         UsuarioAnterior := UDM.UserName;
         RolAnterior := UDM.Rol;
         UDM.log(Format('El usuario "%s" con el rol de "%s" ha cerrado sesión', [UsuarioAnterior, RolAnterior]), 13, '', '', '');
         CerrarSesion;
         FIsAuthenticated := False;
-        UDM.sms('Sesión cerrada. Ahora está como "Invitado" con rol "visor".', 3);
+        TMensajes.Informacion('Sesión cerrada. Ahora está como "Invitado" con rol "visor".', 'Sesión cerrada');
       end;
       Exit;
     end;
 
     if not Autenticar(Resultado) then
     begin
-      UDM.sms('Autenticación cancelada.', 3);
+      TMensajes.Informacion('Autenticación cancelada.', 'Autenticación');
       Exit;
     end;
 
     AplicarSesion(Resultado.Usuario, Resultado.Rol);
     FIsAuthenticated := True;
-    UDM.sms(Format('Ud se ha autenticado al sistema con el Rol de %s', [AnsiQuotedStr(UDM.Rol, '"')]), 3);
+    TMensajes.Exito(Format('Ud se ha autenticado al sistema con el Rol de %s', [AnsiQuotedStr(UDM.Rol, '"')]), 'Sesión iniciada');
     UDM.log(Format('El usuario "%s" con el rol de "%s" se ha autenticado en el sistema', [UDM.UserName, UDM.Rol]), 11, '', '', '');
   except
     on E: Exception do
     begin
-      UDM.sms('Error durante la autenticación: ' + E.Message, 3);
+      TMensajes.Error('Error durante la autenticación: ' + E.Message, 'Autenticación');
       // Si falló a medias, volver al estado sin sesión para no dejar el sistema inconsistente.
       FIsAuthenticated := False;
       try

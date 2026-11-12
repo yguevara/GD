@@ -31,7 +31,7 @@ implementation
 {$R *.dfm}
 
 uses
-  md5, UCapaDatos, UAutenticacion;
+  md5, UCapaDatos, UAutenticacion, UMensajes;
 
 procedure TfrmChangePass.btnCloseClick(Sender: TObject);
 begin
@@ -45,8 +45,7 @@ begin
   // Regla unica de clave nueva (longitud minima y confirmacion): ver UAutenticacion.
   if not ValidarClaveNueva(Trim(edtpass.Text), Trim(edtconfirmpass.Text), MensajeClave) then
   begin
-    UDM.sms('No se pudo cambiar la contraseña.', 1);
-    UDM.sms(MensajeClave, 3);
+    TMensajes.Advertencia('No se pudo cambiar la contraseña.' + sLineBreak + MensajeClave, 'Cambio de contraseña');
     Exit;
   end;
   if (edtpass.Text = edtconfirmpass.Text) and (edtpass.text <> '') then
