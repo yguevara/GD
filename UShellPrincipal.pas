@@ -145,6 +145,12 @@ type
     FInicioGrupo: TPanel;
     FInicioAgregar: TBotonShell;
     FInicioBuscar: TBotonShell;
+    // Contenido externo (p. ej. un clasificador): ocupa el area de trabajo,
+    // bajo la cabecera, mientras esta abierto
+    FExterno: TPanel;
+    FExternoActivo: Boolean;
+    FRutaExt, FTituloExt: string;
+    FNavVisibleAntes: Boolean;
     FMenuGestion: TPopupMenu;
     FOrigenes: TDictionary<TMenuItem, TMenuItem>;
     FTimer: TTimer;
@@ -193,6 +199,7 @@ type
     procedure ChipClick(Sender: TObject);
     procedure BusquedaBuscar(Sender: TObject);
     procedure SelAmbitoChange(Sender: TObject);
+    procedure CrearExterno;
     procedure ConstruirMenuGestion;
     procedure CopiarItems(Origen, Destino: TMenuItem);
     procedure ItemBotonClick(Sender: TObject);
@@ -211,6 +218,14 @@ type
     procedure Refrescar;
     { Ranura para el selector de ambito de la Tarea 4: oculta y de ancho 0
       hasta que se use. Para mostrarla: Visible := True, Width y Reacomodar. }
+    { Pone una pantalla dentro de la ventana principal: muestra un contenedor sobre
+      el area de trabajo (oculta el arbol y la pantalla de inicio) y escribe
+      ARuta / ATitulo en la cabecera. Devuelve el contenedor para que la pantalla
+      se acople a el (Parent, Align = alClient). }
+    function AbrirExterno(const ARuta, ATitulo: string): TWinControl;
+    { Quita el contenido externo y devuelve el area de trabajo como estaba. }
+    procedure CerrarExterno;
+    function ExternoActivo: Boolean;
     property RanuraAmbito: TPanel read FRanuraAmbito;
     { Ambito que se envia en OnBuscar. Por defecto general (Tarea 4 lo elige). }
     property Ambito: TAmbitoBusqueda read FAmbito write FAmbito;
@@ -749,6 +764,7 @@ begin
     CrearColumna;
     CrearCabecera;
     CrearInicio;
+    CrearExterno;
     FMenuGestion := TPopupMenu.Create(Self);
     FMenuGestion.AutoHotkeys := maManual;
     FMenuGestion.Images := TIconos.Lista;
@@ -828,6 +844,8 @@ begin
   FInicioGrupo := nil;
   FInicioAgregar := nil;
   FInicioBuscar := nil;
+  FreeAndNil(FExterno);
+  FExternoActivo := False;
   FreeAndNil(FInicio);
   FreeAndNil(FColumna);
   FreeAndNil(FCabecera);
@@ -1139,6 +1157,67 @@ begin
   InicioResize(nil);
 end;
 
+{ Contenedor del contenido externo: igual que la pantalla de inicio, cubre el area
+  de trabajo bajo la cabecera. Oculto hasta AbrirExterno. }
+procedure TShellPrincipal.CrearExterno;
+begin
+  FExterno := TPanel.Create(Self);
+  FExterno.BevelOuter := bvNone;
+  FExterno.ParentBackground := False;
+  FExterno.StyleElements := [];
+  FExterno.ShowCaption := False;
+  FExterno.Color := FTema.Fondo;
+  FExterno.Align := alClient;
+  FExterno.AlignWithMargins := True;
+  FExterno.Margins.SetBounds(0, FCabecera.Height, 0, 0);
+  FExterno.Visible := False;
+  FExterno.Parent := FMain;
+end;
+
+function TShellPrincipal.AbrirExterno(const ARuta, ATitulo: string): TWinControl;
+begin
+  Result := nil;
+  if (FExterno = nil) or (FCabecera = nil) then
+    Exit;
+  FRutaExt := ARuta;
+  FTituloExt := ATitulo;
+  if not FExternoActivo then
+  begin
+    FExternoActivo := True;
+    if FNavBar <> nil then
+    begin
+      FNavVisibleAntes := FNavBar.Visible;
+      FNavBar.Visible := False;
+    end;
+  end;
+  if FInicio <> nil then
+    FInicio.Visible := False;
+  FExterno.Visible := True;
+  FExterno.BringToFront;
+  FCabecera.BringToFront;
+  SincronizarCabecera;
+  ActualizarUbicacion;
+  Result := FExterno;
+end;
+
+procedure TShellPrincipal.CerrarExterno;
+begin
+  if not FExternoActivo then
+    Exit;
+  FExternoActivo := False;
+  if FExterno <> nil then
+    FExterno.Visible := False;
+  if (FNavBar <> nil) and FNavVisibleAntes then
+    FNavBar.Visible := True;
+  SincronizarCabecera;
+  Refrescar;
+end;
+
+function TShellPrincipal.ExternoActivo: Boolean;
+begin
+  Result := FExternoActivo;
+end;
+
 procedure TShellPrincipal.InicioResize(Sender: TObject);
 begin
   if (FInicio = nil) or (FInicioGrupo = nil) then
@@ -1155,7 +1234,7 @@ var
 begin
   if FInicio = nil then
     Exit;
-  Mostrar := (FArbol <> nil) and (FArbol.Selected = nil);
+  Mostrar := (FArbol <> nil) and (FArbol.Selected = nil) and not FExternoActivo;
   if FInicio.Visible <> Mostrar then
   begin
     FInicio.Visible := Mostrar;
@@ -1278,6 +1357,8 @@ begin
       FContenedor.Margins.Top := H;
     if (FInicio <> nil) and (FInicio.Margins.Top <> H) then
       FInicio.Margins.Top := H;
+    if (FExterno <> nil) and (FExterno.Margins.Top <> H) then
+      FExterno.Margins.Top := H;
   finally
     FSincronizando := False;
   end;
@@ -1310,6 +1391,14 @@ var
 begin
   if (FRuta = nil) or (FTitulo = nil) then
     Exit;
+  if FExternoActivo then
+  begin
+    if FRuta.Caption <> FRutaExt then
+      FRuta.Caption := FRutaExt;
+    if FTitulo.Caption <> FTituloExt then
+      FTitulo.Caption := FTituloExt;
+    Exit;
+  end;
   N := nil;
   if FArbol <> nil then
     N := FArbol.Selected;

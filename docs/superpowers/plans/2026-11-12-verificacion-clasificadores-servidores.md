@@ -5,6 +5,14 @@ Entrar como administrador y abrir **Clasificadores → Servidores**.
 
 Estado: la apariencia se comprobó con capturas de pantalla el 2026-11-12 (tabla sin rejilla, panel lateral, selector FTP/S3, botones). Pendiente de ejecutar con el usuario todo lo que sigue.
 
+## Dentro de la ventana principal
+
+- [ ] Al abrir Clasificadores > Servidores, la pantalla queda dentro de la ventana principal (no flota): la columna de navegación sigue a la izquierda y la cabecera dice "Clasificadores / Servidores de ficheros". El árbol "Mi área" se oculta mientras tanto.
+- [ ] Pulsar Inicio, Archivo o cualquier otra sección cierra el clasificador y devuelve el árbol y la cabecera de antes. Con cambios sin guardar, pregunta primero.
+- [ ] Esc con el panel cerrado cierra el clasificador; con el panel abierto cierra primero el panel.
+- [ ] Cerrar la aplicación con el clasificador abierto y cambios sin guardar pregunta antes de salir.
+- [ ] Con `shell_clasico.flag` (sin shell) se abre la pantalla clásica.
+
 ## Apariencia
 
 - [ ] La tabla ocupa todo el ancho, sin aspecto de Excel (encabezado suave, líneas finas, fila elegida resaltada).

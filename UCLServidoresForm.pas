@@ -18,9 +18,13 @@ unit UCLServidoresForm;
 interface
 
 uses
-  FireDAC.Comp.Client;
+  FireDAC.Comp.Client, UClasificadorBase;
 
-{ Abre la pantalla de Servidores FTP/S3 de forma modal sobre Conn. }
+{ Crea la pantalla de Servidores FTP/S3 sin mostrarla: quien la llama la embebe
+  en la ventana principal con Embeber (TMAIN.AbrirClasificador). }
+function CrearClasificadorServidores(Conn: TFDConnection): TFormClasificadorBase;
+
+{ Abre la pantalla de Servidores FTP/S3 de forma modal sobre Conn (respaldo). }
 procedure MostrarClasificadorServidores(Conn: TFDConnection);
 
 implementation
@@ -28,7 +32,7 @@ implementation
 uses
   System.SysUtils, System.Classes, System.Variants, System.Generics.Collections,
   Winapi.Windows, Vcl.Controls, Vcl.Forms, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.Graphics,
-  UTema, UShellPrincipal, UClasificadorBase, UClasificadorEstado, UServidoresDatos,
+  UTema, UShellPrincipal, UClasificadorEstado, UServidoresDatos,
   UMensajes;
 
 type
@@ -100,6 +104,11 @@ type
     constructor CrearServidores(AOwner: TComponent; AConn: TFDConnection);
     destructor Destroy; override;
   end;
+
+function CrearClasificadorServidores(Conn: TFDConnection): TFormClasificadorBase;
+begin
+  Result := TfrmServidores.CrearServidores(nil, Conn);
+end;
 
 procedure MostrarClasificadorServidores(Conn: TFDConnection);
 var
@@ -396,7 +405,10 @@ begin
       Destino(S)], S.Id);
   end;
   RefrescarVista;
-  FijarSubtitulo(Format('%d servidores - %d en S3 / MinIO', [Length(FServidores), NumS3]));
+  if Length(FServidores) = 1 then
+    FijarSubtitulo(Format('1 servidor - %d en S3 / MinIO', [NumS3]))
+  else
+    FijarSubtitulo(Format('%d servidores - %d en S3 / MinIO', [Length(FServidores), NumS3]));
   if ASeleccionarId >= 0 then
     SeleccionarPorTag(ASeleccionarId);
 end;

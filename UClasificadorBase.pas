@@ -47,6 +47,8 @@ type
     FColTag: TcxGridColumn;
     FEstilos: TcxStyleRepository;
     FTextoNuevo: string;
+    FEmbebido: Boolean;
+    FOnSalir: TNotifyEvent;
     function NuevoEstilo(AColor, ATexto: TColor; ATam: Integer; ANegrita: Boolean): TcxStyle;
     function NuevoBoton(AParent: TWinControl; const ATexto, AIcono: string;
       APrimario: Boolean; ATextoColor: TColor): TBotonShell;
@@ -108,6 +110,15 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    { Acopla la pantalla DENTRO de un contenedor de la ventana principal (en vez
+      de abrirla como ventana modal): sin borde, ocupando todo el contenedor. El
+      titulo lo muestra la cabecera de la ventana principal. }
+    procedure Embeber(AHost: TWinControl);
+    { Pregunta si hay cambios sin guardar; True si se puede abandonar la pantalla. }
+    function PuedeSalir: Boolean;
+    { Se dispara cuando el usuario pide salir (Esc sin panel abierto). Quien
+      embebio la pantalla decide: normalmente PuedeSalir y liberarla. }
+    property OnSalir: TNotifyEvent read FOnSalir write FOnSalir;
   end;
 
 implementation
@@ -332,6 +343,8 @@ begin
   FZonaTabla.StyleElements := [];
   FZonaTabla.ShowCaption := False;
   FZonaTabla.Color := FTema.Superficie;
+  // margen alrededor de la tabla (el texto no debe tocar los bordes)
+  FZonaTabla.Padding.SetBounds(Esc(16), 0, Esc(16), Esc(16));
 
   FGrid := TcxGrid.Create(Self);
   FGrid.Parent := FZonaTabla;
@@ -487,6 +500,28 @@ begin
   FCuerpo.Color := FTema.Superficie;
   FCuerpo.AlignWithMargins := True;
   FCuerpo.Margins.SetBounds(Esc(16), Esc(4), Esc(16), Esc(4));
+end;
+
+procedure TFormClasificadorBase.Embeber(AHost: TWinControl);
+begin
+  FEmbebido := True;
+  BorderStyle := bsNone;
+  BorderIcons := [];
+  Color := FTema.Fondo;
+  Parent := AHost;
+  Align := alClient;
+  // El titulo ya lo muestra la cabecera de la ventana principal: aqui queda el
+  // subtitulo (p. ej. el numero de elementos) como texto principal.
+  FTitulo.Visible := False;
+  FSubtitulo.Font.Size := 10;
+  FSubtitulo.SetBounds(Esc(20), (FCabecera.Height - FSubtitulo.Height) div 2,
+    FSubtitulo.Width, FSubtitulo.Height);
+  Visible := True;
+end;
+
+function TFormClasificadorBase.PuedeSalir: Boolean;
+begin
+  Result := ConfirmarAbandonar;
 end;
 
 procedure TFormClasificadorBase.FijarSubtitulo(const ATexto: string);
@@ -768,6 +803,11 @@ begin
     begin
       if ConfirmarAbandonar then
         CerrarPanel;
+    end
+    else if FEmbebido then
+    begin
+      if Assigned(FOnSalir) then
+        FOnSalir(Self);
     end
     else
       Close;

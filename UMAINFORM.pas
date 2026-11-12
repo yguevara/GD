@@ -3,6 +3,7 @@ unit UMAINFORM;
 interface
 
 uses
+  UClasificadorBase,
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
   System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Menus,
   AdvMenus, JvExControls, JvButton, JvTransparentButton, Vcl.ExtCtrls,
@@ -502,6 +503,10 @@ type
     procedure F1Click(Sender: TObject);
     procedure L1Click(Sender: TObject);
     procedure AbrirServidoresClasico;
+    procedure AbrirClasificador(AForm: TFormClasificadorBase; const ATitulo, ANombreLog: string;
+      AAlSalir: TProc);
+    function CerrarClasificador: Boolean;
+    procedure ClasificadorSalir(Sender: TObject);
     procedure pmtvResetClick(Sender: TObject);
     procedure S1Click(Sender: TObject);
     procedure S2Click(Sender: TObject);
@@ -653,6 +658,10 @@ type
   private
     FShellMenuConfig: TPopupMenu;
     FShellMenuClasif: TPopupMenu;
+    // Clasificador abierto dentro de la ventana principal (nil si no hay)
+    FClasificador: TFormClasificadorBase;
+    FClasificadorAlSalir: TProc;
+    FClasificadorLog: string;
     // Lista de documentos de la subserie (F2)
     FListaDocs: TPanelDocumentos;
     FBarraTrabajo: TBarraTrabajo;
@@ -6470,6 +6479,11 @@ end;
 
 procedure TMAIN.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
+  if (FClasificador <> nil) and not CerrarClasificador then
+  begin
+    CanClose := False;
+    Exit;
+  end;
   if UDM.sms('¿Realmente desea salir del sistema?', 4) = 6 then
   begin
     CanClose := True;
@@ -8611,6 +8625,9 @@ end;
 // Traslados y Prestamos abren lo mismo que sus items de PMTool.
 procedure TMAIN.ShellSeccion(const Nombre: string);
 begin
+  // Cambiar de seccion cierra el clasificador abierto (pregunta si hay cambios)
+  if (FClasificador <> nil) and not CerrarClasificador then
+    Exit;
   if (Nombre = SECCION_INICIO) or (Nombre = SECCION_ARCHIVO) then
   begin
     if not nbMain.Visible then
@@ -9745,45 +9762,107 @@ begin
     end;
   end;
 end;
-// Servidores de ficheros: pantalla nueva (UCLServidoresForm). Con
-// clasificadores_clasico.flag junto al ejecutable se abre la clasica; si la nueva
-// falla, el motivo queda en clasificadores_error.log y se abre la clasica.
+// Servidores de ficheros: pantalla nueva (UCLServidoresForm), DENTRO de la
+// ventana principal. Se usa la clasica con clasificadores_clasico.flag, sin el
+// shell (no hay donde acoplarla) y como respaldo si la nueva falla: el motivo
+// queda en clasificadores_error.log.
 procedure TMAIN.L1Click(Sender: TObject);
 begin
-  if ClasificadoresClasicos(PathSys) then
+  if ClasificadoresClasicos(PathSys) or not ShellActivo then
   begin
     AbrirServidoresClasico;
     Exit;
   end;
-  PContainer.Visible := False;
   try
-    try
-      if Assigned(UDM) then
-        UDM.log('Accediendo al clasificador de Servidores FTP.', 14, '', '', '');
-      MostrarClasificadorServidores(UDM.Conn);
-      if Assigned(UDM) then
+    AbrirClasificador(CrearClasificadorServidores(UDM.Conn), 'Servidores de ficheros',
+      'Servidores FTP',
+      procedure
       begin
-        try
-          UDM.cl_ftp_Server.Refresh;
-          UDM.cmdServer.Refresh;
-        except
-          on E: Exception do
-            TMensajes.Error('Error al actualizar datos de servidores: ' + E.Message, 'Servidores');
-        end;
-        UDM.log('Abandonando al clasificador de Servidores FTP.', 15, '', '', '');
-      end;
-    except
-      on E: Exception do
-      begin
-        RegistrarErrorClasificador(PathSys, 'Servidores: ' + E.ClassName + ': ' + E.Message);
-        PContainer.Visible := True;
-        AbrirServidoresClasico;
-      end;
+        UDM.cl_ftp_Server.Refresh;
+        UDM.cmdServer.Refresh;
+      end);
+  except
+    on E: Exception do
+    begin
+      RegistrarErrorClasificador(PathSys, 'Servidores: ' + E.ClassName + ': ' + E.Message);
+      AbrirServidoresClasico;
     end;
-  finally
-    PContainer.Visible := True;
-    Screen.Cursor := crDefault;
   end;
+end;
+
+// Muestra un clasificador DENTRO de la ventana principal: el shell le cede el
+// area de trabajo (con "Clasificadores > ATitulo" en su cabecera). Toma posesion
+// de AForm. AAlSalir se ejecuta al cerrarlo (p. ej. refrescar datasets).
+procedure TMAIN.AbrirClasificador(AForm: TFormClasificadorBase; const ATitulo, ANombreLog: string;
+  AAlSalir: TProc);
+var
+  Host: TWinControl;
+begin
+  if (FClasificador <> nil) and not CerrarClasificador then
+  begin
+    AForm.Free;
+    Exit;
+  end;
+  try
+    Host := ShellPrincipal.AbrirExterno('Clasificadores', ATitulo);
+    if Host = nil then
+      raise Exception.Create('El area de trabajo no esta disponible para la pantalla.');
+    AForm.OnSalir := ClasificadorSalir;
+    AForm.Embeber(Host);
+  except
+    if ShellActivo then
+      ShellPrincipal.CerrarExterno;
+    AForm.Free;
+    raise;
+  end;
+  FClasificador := AForm;
+  FClasificadorLog := ANombreLog;
+  FClasificadorAlSalir := AAlSalir;
+  if Assigned(UDM) then
+    UDM.log('Accediendo al clasificador de ' + ANombreLog + '.', 14, '', '', '');
+end;
+
+// Cierra el clasificador abierto. Devuelve False si el usuario decide quedarse
+// (hay cambios sin guardar y no los descarta).
+function TMAIN.CerrarClasificador: Boolean;
+var
+  Frm: TFormClasificadorBase;
+  AlSalir: TProc;
+  Nombre: string;
+begin
+  Result := True;
+  if FClasificador = nil then
+    Exit;
+  if not FClasificador.PuedeSalir then
+    Exit(False);
+  Frm := FClasificador;
+  AlSalir := FClasificadorAlSalir;
+  Nombre := FClasificadorLog;
+  FClasificador := nil;
+  FClasificadorAlSalir := nil;
+  Frm.Visible := False;
+  if ShellActivo then
+    ShellPrincipal.CerrarExterno;
+  // se libera despues: puede estar ejecutandose uno de sus propios eventos
+  TThread.ForceQueue(nil,
+    procedure
+    begin
+      Frm.Free;
+    end);
+  if Assigned(AlSalir) then
+  try
+    AlSalir;
+  except
+    on E: Exception do
+      TMensajes.Error('Error al actualizar los datos: ' + E.Message, 'Clasificadores');
+  end;
+  if Assigned(UDM) then
+    UDM.log('Abandonando al clasificador de ' + Nombre + '.', 15, '', '', '');
+end;
+
+procedure TMAIN.ClasificadorSalir(Sender: TObject);
+begin
+  CerrarClasificador;
 end;
 
 {procedure TMAIN.L1Click(Sender: TObject);
