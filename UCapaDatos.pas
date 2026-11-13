@@ -1115,7 +1115,7 @@ implementation
 
 uses
   UTiempos,
-  UEsquemaAlcance, UEsquemaAlmacen, UEsquemaCarga, UEsquemaTrazabilidad, UEsquemaProcesos, UTrazabilidadDatos, UAlcanceDatos, UTopografia,
+  UEsquemaAlcance, UEsquemaAlmacen, UEsquemaCarga, UEsquemaTrazabilidad, UEsquemaProcesos, UPrestamosMigracion, UProcesosInterruptor, UTrazabilidadDatos, UAlcanceDatos, UTopografia,
   UAlmacenFicheros, UAlmacenServidor, UProgresoTransferencia;
 
 
@@ -5652,6 +5652,8 @@ procedure TUDM.UpDateDB;
 var
   cad: string;
   List: TStringList;
+  InformeMig: TInformeMigracion;
+  LineaMig: string;
 begin              //
   cad := 'UPDATE cl_ttipoarch SET tipoarch = ' + QuotedStr('Gestión') + ' WHERE ldtipoarch = 2';
   execSQLUPD(cad);
@@ -5697,6 +5699,25 @@ begin              //
   CrearEsquemaTrazabilidad(Conn, TBD = 'S');
   // Procesos archivisticos: prestamo, transferencia, depuracion (ver UEsquemaProcesos.pas)
   CrearEsquemaProcesos(Conn, TBD = 'S');
+  // Prestamos de la pantalla vieja -> procesos nuevos (ver UPrestamosMigracion.pas).
+  // Es idempotente: copia solo los que faltan y no toca las tablas viejas. Un fallo
+  // no impide arrancar; el resumen y los avisos van a procesos_error.log.
+  if TBD = 'S' then
+  try
+    InformeMig := MigrarPrestamosViejos(Conn, True);
+    if (InformeMig.Migrados > 0) or (Length(InformeMig.Avisos) > 0) then
+    begin
+      RegistrarErrorProceso(PathSys, 'Migracion de prestamos: leidos ' +
+        IntToStr(InformeMig.Leidos) + ', migrados ' + IntToStr(InformeMig.Migrados) +
+        ', sin documentos ' + IntToStr(InformeMig.SinDocumentos) +
+        ', documentos omitidos ' + IntToStr(InformeMig.DocumentosOmitidos));
+      for LineaMig in InformeMig.Avisos do
+        RegistrarErrorProceso(PathSys, '  ' + LineaMig);
+    end;
+  except
+    on E: Exception do
+      RegistrarErrorProceso(PathSys, 'Migracion de prestamos fallo: ' + E.Message);
+  end;
   if not EsquemaAlmacenCompleto(Conn) then
   begin
     // Sin permiso para alterar cl_ftp_Server: la aplicacion arranca igual con la

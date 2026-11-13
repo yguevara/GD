@@ -22,7 +22,7 @@ Quedaron escritas pero **sin ejecutar** (se omiten sin la variable de entorno):
 ## Pantalla base (manual, con la aplicación)
 
 - [ ] Sin variable de entorno: la sección **Préstamos** abre la pantalla vieja, como siempre.
-- [ ] Con `ARCHIGENIO_PROCESOS_DEMO=1`: la sección Préstamos abre la pantalla nueva dentro de la ventana principal, con «Procesos > Préstamos» en la cabecera.
+- [x] (F1) La pantalla base de F0 y su demostración se reemplazaron por el formulario con `.dfm` de Préstamos; ver `verificacion-prestamos-f1`.
 - [ ] Con `procesos_clasico.flag` junto al `.exe` (y la variable): se abre la pantalla vieja.
 - [ ] Cambiar de sección con la pantalla abierta funciona y no deja controles huérfanos.
 - [ ] Tema oscuro (Windows en modo oscuro): indicadores, pestañas y tira de pasos legibles (verde, rojo y acento visibles).
