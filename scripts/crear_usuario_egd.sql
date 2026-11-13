@@ -13,7 +13,7 @@
 --                  del simulacro. Elija un nodo que tenga documentos y subseries.
 -- Despues entre en ArchiGenio con ese usuario y contrasena.
 DECLARE @usuario varchar(100) = 'egd';
-DECLARE @clave varchar(100) = 'Egd#2026';
+DECLARE @clave varchar(100) = 'admin';
 DECLARE @nombre varchar(30) = 'Especialista GD';
 DECLARE @idestructura varchar(50) = NULL;
 DECLARE @id int = NULL;
