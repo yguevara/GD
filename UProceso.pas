@@ -59,6 +59,12 @@ function PuedeAvanzar(Tipo: TTipoProceso; PasoActual: Integer;
   hasta el acta (paso 3). }
 function PuedeCancelar(Tipo: TTipoProceso; PasoActual: Integer): Boolean;
 
+{ Si el proceso se puede borrar de la base: uno cancelado, o uno en curso que
+  todavia se puede cancelar (no ha salido nada del archivo). Uno finalizado nunca:
+  es parte del historial archivistico. }
+function PuedeEliminar(Tipo: TTipoProceso; PasoActual: Integer;
+  Estado: TEstadoProceso): Boolean;
+
 { Quien puede iniciar el proceso segun su rol y el tipo del archivo remitente:
   la transferencia sale de un archivo de gestion; la depuracion solo la inicia
   el archivo central o el historico (nunca uno de gestion). }
@@ -124,6 +130,17 @@ begin
     Exit(False);
   Faltan := CondicionesParaAvanzar(Tipo, PasoActual) - Cumplidas;
   Result := Faltan = [];
+end;
+
+function PuedeEliminar(Tipo: TTipoProceso; PasoActual: Integer;
+  Estado: TEstadoProceso): Boolean;
+begin
+  case Estado of
+    epCancelado: Result := True;
+    epEnCurso: Result := PuedeCancelar(Tipo, PasoActual);
+  else
+    Result := False;
+  end;
 end;
 
 function PuedeCancelar(Tipo: TTipoProceso; PasoActual: Integer): Boolean;

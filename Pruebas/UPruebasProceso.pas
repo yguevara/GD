@@ -35,6 +35,8 @@ type
     [Test]
     procedure CancelarDepuracionEnEjecucionEsImposible;
     [Test]
+    procedure EliminarSoloCanceladosOEnCursoQueAunSeCancelan;
+    [Test]
     procedure CancelarTransferenciaTrasRecepcionEsImposible;
     [Test]
     procedure CancelarPrestamoDevueltoEsImposible;
@@ -147,6 +149,19 @@ begin
   Assert.IsFalse(PuedeAvanzar(tpDepuracion, 0, [], Faltan));
   Assert.IsFalse(PuedeAvanzar(tpDepuracion, 6, [cdAutorizado], Faltan));
   Assert.IsFalse(PuedeAvanzar(tpPrestamo, 4, [], Faltan));
+end;
+
+procedure TPruebasProceso.EliminarSoloCanceladosOEnCursoQueAunSeCancelan;
+begin
+  // cancelado: siempre (queda como borrador inutil)
+  Assert.IsTrue(PuedeEliminar(tpTransferencia, 3, epCancelado));
+  // en curso: solo mientras todavia se puede cancelar
+  Assert.IsTrue(PuedeEliminar(tpTransferencia, 1, epEnCurso));
+  Assert.IsTrue(PuedeEliminar(tpTransferencia, 4, epEnCurso));
+  Assert.IsFalse(PuedeEliminar(tpTransferencia, 5, epEnCurso));
+  // finalizado: nunca, es parte del archivo historico
+  Assert.IsFalse(PuedeEliminar(tpTransferencia, 6, epFinalizado));
+  Assert.IsFalse(PuedeEliminar(tpPrestamo, 3, epFinalizado));
 end;
 
 procedure TPruebasProceso.CancelarDepuracionEnEjecucionEsImposible;

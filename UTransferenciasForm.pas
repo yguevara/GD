@@ -86,6 +86,7 @@ type
     pnlAccionesDer: TPanel;
     btnAvanzar: TcxButton;
     btnCancelarTransf: TcxButton;
+    btnEliminarTransf: TcxButton;
     pnlAviso: TPanel;
     lblAviso: TLabel;
     pnlContenido: TPanel;
@@ -195,6 +196,7 @@ type
     procedure btnEtiquetasClick(Sender: TObject);
     procedure btnAvanzarClick(Sender: TObject);
     procedure btnCancelarTransfClick(Sender: TObject);
+    procedure btnEliminarTransfClick(Sender: TObject);
   private
     FConn: TFDConnection;
     FNodos: TArray<TClaveNodo>;
@@ -835,6 +837,7 @@ begin
   Edita := EnCurso and FPuedeActuar;
   btnAvanzar.Visible := Edita and (Fila.Paso <= 3);
   btnCancelarTransf.Visible := Edita and PuedeCancelar(tpTransferencia, Fila.Paso);
+  btnEliminarTransf.Visible := FPuedeActuar and PuedeEliminar(tpTransferencia, Fila.Paso, Fila.Proceso);
   btnAgregar.Enabled := Edita;
   btnQuitar.Enabled := Edita;
   btnRegistrarAut.Enabled := Edita;
@@ -1230,6 +1233,19 @@ begin
     Exit;
   if not CancelarProceso(FConn, FActual.IdProceso, FUsuario, 'Cancelada por el usuario') then
     TMensajes.Advertencia('La transferencia ya no se puede cancelar.', 'Transferencias');
+  Recargar;
+end;
+
+procedure TfrmTransferenciasNuevo.btnEliminarTransfClick(Sender: TObject);
+begin
+  if not TMensajes.Confirmar(#191 + 'Eliminar la transferencia ' + FActual.Numero +
+    '? Se borra por completo y no se puede deshacer; los documentos quedar' + #225 +
+    'n libres.', 'Eliminar transferencia') then
+    Exit;
+  if not EliminarProceso(FConn, FActual.IdProceso) then
+    TMensajes.Advertencia('La transferencia ya no se puede eliminar.', 'Transferencias');
+  FIdSeleccionado := 0;
+  pnlDetalle.Visible := False;
   Recargar;
 end;
 

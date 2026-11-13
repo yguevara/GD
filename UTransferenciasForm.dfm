@@ -467,6 +467,15 @@ object frmTransferenciasNuevo: TfrmTransferenciasNuevo
         TabOrder = 1
         OnClick = btnCancelarTransfClick
       end
+      object btnEliminarTransf: TcxButton
+        Left = 224
+        Top = 13
+        Width = 190
+        Height = 36
+        Caption = 'Eliminar transferencia'
+        TabOrder = 2
+        OnClick = btnEliminarTransfClick
+      end
     end
     object pnlAviso: TPanel
       Left = 0

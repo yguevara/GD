@@ -77,6 +77,11 @@ function AvanzarPaso(Conn: TFDConnection; IdProceso, PasoLeido: Integer;
 function CancelarProceso(Conn: TFDConnection; IdProceso: Integer;
   const Usuario, Motivo: string): Boolean;
 
+{ Borra el proceso y todo lo suyo (unidades, bloqueos, eventos, cajas...: las tablas
+  hijas se borran en cascada) si PuedeEliminar lo permite. Los documentos quedan
+  libres. Devuelve False si no existe o ya no se puede borrar. }
+function EliminarProceso(Conn: TFDConnection; IdProceso: Integer): Boolean;
+
 procedure RegistrarEvento(Conn: TFDConnection; IdProceso: Integer;
   const Usuario, Texto: string);
 
@@ -354,6 +359,33 @@ begin
         'Paso ' + IntToStr(Paso) + ' completado');
     ConfirmarTx(Conn, Propia);
     Result := True;
+  except
+    DeshacerTx(Conn, Propia);
+    raise;
+  end;
+end;
+
+function EliminarProceso(Conn: TFDConnection; IdProceso: Integer): Boolean;
+var
+  Tipo: TTipoProceso;
+  Paso: Integer;
+  Estado: string;
+  Propia: Boolean;
+begin
+  Result := False;
+  if not LeerProceso(Conn, IdProceso, Tipo, Paso, Estado) then
+    Exit;
+  if not PuedeEliminar(Tipo, Paso, EstadoDesdeCodigo(Estado)) then
+    Exit;
+  Propia := IniciarTx(Conn);
+  try
+    // el paso y el estado en la condicion: si alguien avanzo el proceso, no se borra
+    Result := Conn.ExecSQL('DELETE FROM prc_proceso WHERE IdProceso = :i AND ' +
+      'Paso = :p AND Estado = :e', [IdProceso, Paso, Estado]) = 1;
+    if Result then
+      ConfirmarTx(Conn, Propia)
+    else
+      DeshacerTx(Conn, Propia);
   except
     DeshacerTx(Conn, Propia);
     raise;
