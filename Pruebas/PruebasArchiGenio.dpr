@@ -120,7 +120,9 @@ uses
   UPrestadosSql in '..\UPrestadosSql.pas',
   UPruebasPrestadosSql in 'UPruebasPrestadosSql.pas',
   UProcesoPintura in '..\UProcesoPintura.pas',
-  UPruebasProcesoPintura in 'UPruebasProcesoPintura.pas';
+  UPruebasProcesoPintura in 'UPruebasProcesoPintura.pas',
+  UTransferenciasReglas in '..\UTransferenciasReglas.pas',
+  UPruebasTransferenciasReglas in 'UPruebasTransferenciasReglas.pas';
 
 var
   Corredor: ITestRunner;
