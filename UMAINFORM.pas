@@ -9188,15 +9188,29 @@ begin
 end;
 
 procedure TMAIN.GestorOptions;
+var
+  EsEGD: Boolean;
 begin
   btnViewPanel.Align := alRight;
   acceso := 'acceso total';
 //  btnRecuperacion.Visible := True;
+  // El gestor que es EGD de algun nodo (SQL Server) trabaja con prestamos, transferencias,
+  // depuracion e indices (menu de herramientas) y con los clasificadores; sin ser EGD
+  // conserva la regla heredada (sin esas opciones). Usuarios, cuadro de clasificacion y
+  // configuracion siguen siendo solo del administrador.
+  EsEGD := (UDM.Alcance <> nil) and UDM.Alcance.EsEGDDeAlgunNodo;
   btnusercontrol.Visible := False;
-  btnLC.Visible := False;
+  btnLC.Visible := EsEGD;
   btnManagementTree.Visible := False;
   btnPrint.Visible := True;
-  btnTool.Visible := False;
+  btnTool.Visible := EsEGD;
+  btnTransfer.Enabled := True;
+  P3.Enabled := True;
+  D3.Enabled := True;
+  I2.Enabled := True;
+  B1.Enabled := False;
+  C1.Enabled := False;
+  log.Enabled := False;
 //  btnViewtopoSS.Visible := False;
   btnViewPanel.Align := alLeft;
   cxGrid2DBTableView1fichero.Visible := True;
@@ -9356,6 +9370,9 @@ begin
   btnManagementTree.Visible := True;
   btnPrint.Visible := True;
   btnTool.Visible := True;
+  B1.Enabled := True;
+  C1.Enabled := True;
+  log.Enabled := True;
   btnViewPanel.Align := alLeft;
   btnViewtopoSS.Visible := True;
   //botones del mainform
