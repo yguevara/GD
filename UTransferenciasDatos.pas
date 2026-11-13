@@ -29,7 +29,7 @@ interface
 
 uses
   System.SysUtils, FireDAC.Comp.Client, UAlcance, UProceso, UProcesosDatos,
-  UTransferenciasReglas;
+  UAutorizacion, UTransferenciasReglas;
 
 type
   { Documentos vencidos de una subserie en un nodo, listos para proponer. }
@@ -114,6 +114,10 @@ procedure QuitarGrupo(Conn: TFDConnection; IdProceso: Integer; const IdEstructur
   IdNodo: Integer; const CodSubs: string);
 
 function ContarUnidades(Conn: TFDConnection; IdProceso: Integer): Integer;
+
+{ Acta y acuerdo registrados para la transferencia; False si no hay. }
+function LeerAutorizacion(Conn: TFDConnection; IdProceso: Integer;
+  out A: TAutorizacion): Boolean;
 
 { Lo agregado a la transferencia agrupado por nodo y subserie (una consulta). }
 function GruposDeLaTransferencia(Conn: TFDConnection;
@@ -581,6 +585,39 @@ function ContarUnidades(Conn: TFDConnection; IdProceso: Integer): Integer;
 begin
   Result := Integer(Conn.ExecSQLScalar('SELECT COUNT(*) FROM prc_unidad WHERE ' +
     'IdProceso = :p AND Activa <> 0', [IdProceso]));
+end;
+
+function LeerAutorizacion(Conn: TFDConnection; IdProceso: Integer;
+  out A: TAutorizacion): Boolean;
+var
+  Q: TFDQuery;
+  C: string;
+begin
+  Q := TFDQuery.Create(nil);
+  try
+    Q.Connection := Conn;
+    Q.SQL.Text := 'SELECT Organo, NumActa, NumAcuerdo, Fecha FROM prc_autorizacion ' +
+      'WHERE IdProceso = :p';
+    Q.ParamByName('p').AsInteger := IdProceso;
+    Q.Open;
+    Result := not Q.IsEmpty;
+    if not Result then
+      Exit;
+    C := Trim(Q.FieldByName('Organo').AsString);
+    if C = 'M' then
+      A.Organo := ocMunicipal
+    else if C = 'P' then
+      A.Organo := ocProvincial
+    else if C = 'N' then
+      A.Organo := ocNacional
+    else
+      A.Organo := ocCentral;
+    A.NumActa := Q.FieldByName('NumActa').AsString;
+    A.NumAcuerdo := Q.FieldByName('NumAcuerdo').AsString;
+    A.Fecha := FechaODefecto(Q.FieldByName('Fecha'));
+  finally
+    Q.Free;
+  end;
 end;
 
 function GruposDeLaTransferencia(Conn: TFDConnection;

@@ -516,6 +516,8 @@ type
     procedure ProcesoSalir(Sender: TObject);
     function CerrarPantallasExternas: Boolean;
     procedure AbrirPrestamos;
+    function NodosDelArbolElegido: TArray<TClaveNodo>;
+    procedure AbrirTransferencias;
     procedure pmtvResetClick(Sender: TObject);
     procedure S1Click(Sender: TObject);
     procedure S2Click(Sender: TObject);
@@ -885,7 +887,7 @@ var
 implementation
 
 uses
-  UAparienciaLegacy, UTema, UIconos, UDocumentoVistaDatos, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UAutenticacion, UMensajes, UTiempos, USplash, UCLServidoresForm, UCLArchivosForm, UCLSeriesForm, UClasificadoresInterruptor, UProcesosInterruptor, UPantallaProceso, UPrestamosForm, UPrestamosImpresos, UCapaDatos, UUserGest, UDocManagement,
+  UAparienciaLegacy, UTema, UIconos, UDocumentoVistaDatos, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UAutenticacion, UMensajes, UTiempos, USplash, UCLServidoresForm, UCLArchivosForm, UCLSeriesForm, UClasificadoresInterruptor, UProcesosInterruptor, UPantallaProceso, UPrestamosForm, UPrestamosImpresos, UTransferenciasForm, UCapaDatos, UUserGest, UDocManagement,
   UPantallaCarga, UCLSeriesDocumentales, UCLFtpServer, UGestEstruct, UMangementArch,
   UManagementFileSeries, UViewFunciones, UVeditor, UExcelExport, UManagementNode,
   USystemMsg, UNodeProperties, UCL_TiposExp, USysConfig, UTransferencias,
@@ -8744,7 +8746,7 @@ begin
   if not ShellSeccionDisponible(Nombre) then
     Exit;
   if Nombre = SECCION_TRASLADOS then
-    btnTransfer.Click
+    AbrirTransferencias
   else if Nombre = SECCION_PRESTAMOS then
     AbrirPrestamos
   else if Nombre = SECCION_DEPURACION then
@@ -10073,6 +10075,84 @@ begin
     end;
   finally
     Nodos.Free;
+  end;
+end;
+
+// Nodos del arbol para las pantallas de procesos: el elegido y sus descendientes
+// (todo el arbol si no hay nodo elegido). El primero es el nodo elegido (o la raiz).
+function TMAIN.NodosDelArbolElegido: TArray<TClaveNodo>;
+var
+  Nodos: TList<TClaveNodo>;
+  Raiz: TTreeNode;
+
+  procedure Recoger(ANodo: TTreeNode);
+  var
+    Hijo: TTreeNode;
+    K: TClaveNodo;
+  begin
+    if ANodo.Data <> nil then
+    begin
+      K.IdEstructura := PDataRec(ANodo.Data).estruct;
+      K.Id := PDataRec(ANodo.Data).Id;
+      Nodos.Add(K);
+    end;
+    Hijo := ANodo.GetFirstChild;
+    while Hijo <> nil do
+    begin
+      Recoger(Hijo);
+      Hijo := Hijo.GetNextSibling;
+    end;
+  end;
+
+begin
+  Nodos := TList<TClaveNodo>.Create;
+  try
+    if tvTree.Selected <> nil then
+      Recoger(tvTree.Selected)
+    else
+    begin
+      Raiz := tvTree.Items.GetFirstNode;
+      while Raiz <> nil do
+      begin
+        Recoger(Raiz);
+        Raiz := Raiz.GetNextSibling;
+      end;
+    end;
+    Result := Nodos.ToArray;
+  finally
+    Nodos.Free;
+  end;
+end;
+
+// Transferencias: pantalla nueva (UTransferenciasForm) DENTRO de la ventana principal.
+// Con procesos_clasico.flag, sin ventana principal nueva o si la pantalla nueva falla
+// al abrirse, se usa la antigua (btnTransfer).
+procedure TMAIN.AbrirTransferencias;
+var
+  Nodos: TArray<TClaveNodo>;
+  Pantalla: TfrmTransferenciasNuevo;
+begin
+  if ProcesosClasicos(PathSys) or not ShellActivo then
+  begin
+    btnTransfer.Click;
+    Exit;
+  end;
+  try
+    Nodos := NodosDelArbolElegido;
+    if Length(Nodos) = 0 then
+      raise Exception.Create('No hay nodos en el arbol.');
+    Pantalla := CrearPantallaTransferencias(UDM.Conn, Nodos, Nodos[0], UDM.Alcance,
+      UDM.UserName);
+    // solo el especialista de gestion documental transfiere en su nodo
+    Pantalla.PuedeActuar := (UDM.Alcance = nil) or
+      UDM.Alcance.PuedeRealizar(acTransferir, Nodos[0], '');
+    AbrirPantallaProceso(Pantalla, 'Transferencias', 'Transferencias');
+  except
+    on E: Exception do
+    begin
+      RegistrarErrorProceso(PathSys, 'Transferencias: ' + E.ClassName + ': ' + E.Message);
+      btnTransfer.Click;
+    end;
   end;
 end;
 
