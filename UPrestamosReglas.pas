@@ -57,6 +57,11 @@ function DiasDeRetraso(FechaLimite, Hoy: TDateTime): Integer;
 { Fecha limite sugerida: la fecha de entrega (sin hora) mas Dias. }
 function FechaLimiteSugerida(Entrega: TDateTime; Dias: Integer): TDateTime;
 
+{ Texto del estado para la lista: "Entregado", "Vence hoy", "Vence en 2 dias",
+  "Vencido . 3 dias" (con punto medio y tildes). }
+function TextoEstadoPrestamo(Estado: TEstadoPrestamo; FechaLimite,
+  Hoy: TDateTime): string;
+
 { Errores de la solicitud (campos 'solicitante', 'carnet', 'entidad', 'limite');
   vacia si es valida. }
 function ValidarSolicitud(const S: TSolicitudPrestamo;
@@ -102,6 +107,39 @@ end;
 function FechaLimiteSugerida(Entrega: TDateTime; Dias: Integer): TDateTime;
 begin
   Result := Trunc(Entrega) + Dias;
+end;
+
+function DiasTexto(N: Integer): string;
+begin
+  if N = 1 then
+    Result := '1 d' + #237 + 'a'
+  else
+    Result := IntToStr(N) + ' d' + #237 + 'as';
+end;
+
+function TextoEstadoPrestamo(Estado: TEstadoPrestamo; FechaLimite,
+  Hoy: TDateTime): string;
+var
+  Faltan: Integer;
+begin
+  case Estado of
+    epsSolicitado: Result := 'Solicitado';
+    epsEntregado: Result := 'Entregado';
+    epsDevuelto: Result := 'Devuelto';
+    epsCancelado: Result := 'Cancelado';
+    epsVencido:
+      Result := 'Vencido ' + #183 + ' ' + DiasTexto(DiasDeRetraso(FechaLimite, Hoy));
+    epsPorVencer:
+      begin
+        Faltan := Trunc(FechaLimite) - Trunc(Hoy);
+        if Faltan <= 0 then
+          Result := 'Vence hoy'
+        else
+          Result := 'Vence en ' + DiasTexto(Faltan);
+      end;
+  else
+    Result := '';
+  end;
 end;
 
 procedure Agregar(var Lista: TArray<TErrorCampo>; const Campo, Mensaje: string);

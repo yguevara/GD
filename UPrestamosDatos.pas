@@ -41,6 +41,7 @@ type
     IdProceso: Integer;
     Anio, Consecutivo: Integer;
     Numero, Solicitante, Carnet, Entidad: string;
+    AtendidoPor, Obs: string;
     Usuario: TTipoUsuarioPrestamo;
     Unidades: Integer;
     FEntrega, FLimite, FDevolucion: TDateTime;   // 0 = sin fecha
@@ -485,7 +486,7 @@ begin
       Cond := CondicionFiltro(Filtro);
       Sql := 'SELECT TOP ' + IntToStr(Tope) + ' p.IdProceso, p.Anio, p.Consecutivo, ' +
         'p.Numero, p.Estado, p.Paso, r.Solicitante, r.Carnet, r.Entidad, ' +
-        'r.TipoUsuario, r.FEntrega, r.FLimite, r.FDevolucion, ' +
+        'r.TipoUsuario, r.FEntrega, r.FLimite, r.FDevolucion, r.AtendidoPor, r.Obs, ' +
         '(SELECT COUNT(*) FROM prc_unidad u WHERE u.IdProceso = p.IdProceso) AS Unidades ' +
         'FROM prc_proceso p INNER JOIN prc_prestamo r ON r.IdProceso = p.IdProceso ' +
         'WHERE p.Tipo = ''P'' AND (' + CondicionNodos('p.IdEstructura', 'p.IdNodo',
@@ -515,6 +516,8 @@ begin
           F.Solicitante := Q.FieldByName('Solicitante').AsString;
           F.Carnet := Q.FieldByName('Carnet').AsString;
           F.Entidad := Q.FieldByName('Entidad').AsString;
+          F.AtendidoPor := Q.FieldByName('AtendidoPor').AsString;
+          F.Obs := Q.FieldByName('Obs').AsString;
           if Trim(Q.FieldByName('TipoUsuario').AsString) = 'E' then
             F.Usuario := tuExterno
           else

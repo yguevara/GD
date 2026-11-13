@@ -108,12 +108,6 @@ type
       defecto: la pantalla hija la llena y la muestra con MostrarIndice. }
     function Indice: TPanel;
     procedure MostrarIndice(AVisible: Boolean);
-    { Paneles internos para pantallas derivadas que agregan franjas o botones
-      propios (p. ej. los procesos archivisticos): la cabecera, el panel lateral
-      y su barra de acciones. No cambian el comportamiento de los clasificadores. }
-    function Cabecera: TPanel;
-    function PanelLateral: TPanel;
-    function BarraAcciones: TPanel;
     { Sustituye la tabla (y el indice y el panel lateral) por una vista a pantalla
       completa, p. ej. un editor; VolverALista la restaura. }
     procedure MostrarVista(AVista: TWinControl);
@@ -441,21 +435,6 @@ end;
 function TFormClasificadorBase.Indice: TPanel;
 begin
   Result := FIndice;
-end;
-
-function TFormClasificadorBase.Cabecera: TPanel;
-begin
-  Result := FCabecera;
-end;
-
-function TFormClasificadorBase.PanelLateral: TPanel;
-begin
-  Result := FPanel;
-end;
-
-function TFormClasificadorBase.BarraAcciones: TPanel;
-begin
-  Result := FBarraAcciones;
 end;
 
 procedure TFormClasificadorBase.MostrarIndice(AVisible: Boolean);

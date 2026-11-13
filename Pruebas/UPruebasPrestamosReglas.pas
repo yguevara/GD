@@ -38,6 +38,12 @@ type
     procedure SolicitanteVacioEsError;
     [Test]
     procedure SolicitudCorrectaNoTieneErrores;
+    [Test]
+    procedure TextoDeLosEstadosSimples;
+    [Test]
+    procedure TextoVencidoDiceLosDias;
+    [Test]
+    procedure TextoPorVencerDiceCuantoFalta;
   end;
 
 implementation
@@ -185,6 +191,32 @@ begin
   HOY := EncodeDate(2026, 11, 12);
   Assert.AreEqual(0, Length(ValidarSolicitud(Solicitud(tuInterno), HOY)));
   Assert.AreEqual(0, Length(ValidarSolicitud(Solicitud(tuExterno), HOY)));
+end;
+
+procedure TPruebasPrestamosReglas.TextoDeLosEstadosSimples;
+begin
+  HOY := EncodeDate(2026, 11, 12);
+  Assert.AreEqual('Solicitado', TextoEstadoPrestamo(epsSolicitado, 0, HOY));
+  Assert.AreEqual('Entregado', TextoEstadoPrestamo(epsEntregado, HOY + 20, HOY));
+  Assert.AreEqual('Devuelto', TextoEstadoPrestamo(epsDevuelto, HOY - 5, HOY));
+  Assert.AreEqual('Cancelado', TextoEstadoPrestamo(epsCancelado, 0, HOY));
+end;
+
+procedure TPruebasPrestamosReglas.TextoVencidoDiceLosDias;
+begin
+  HOY := EncodeDate(2026, 11, 12);
+  Assert.AreEqual('Vencido ' + #183 + ' 2 d' + #237 + 'as',
+    TextoEstadoPrestamo(epsVencido, HOY - 2, HOY));
+  Assert.AreEqual('Vencido ' + #183 + ' 1 d' + #237 + 'a',
+    TextoEstadoPrestamo(epsVencido, HOY - 1, HOY));
+end;
+
+procedure TPruebasPrestamosReglas.TextoPorVencerDiceCuantoFalta;
+begin
+  HOY := EncodeDate(2026, 11, 12);
+  Assert.AreEqual('Vence hoy', TextoEstadoPrestamo(epsPorVencer, HOY, HOY));
+  Assert.AreEqual('Vence en 1 d' + #237 + 'a', TextoEstadoPrestamo(epsPorVencer, HOY + 1, HOY));
+  Assert.AreEqual('Vence en 3 d' + #237 + 'as', TextoEstadoPrestamo(epsPorVencer, HOY + 3, HOY));
 end;
 
 end.
