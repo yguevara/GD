@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<TfrxReport Version="2022.3" DotMatrixReport="False" IniFile="\Software\Fast Reports" PreviewOptions.Buttons="167935" PreviewOptions.Zoom="1" PrintOptions.Printer="Default" PrintOptions.PrintOnSheet="0" ReportOptions.CreateDate="46338.5" ReportOptions.Description.Text="Anexo 8.2 del Manual Marco: Solicitud de consulta o préstamo de documentos. Los datos los aporta la aplicación." ReportOptions.LastChange="46338.5" ScriptLanguage="PascalScript" ScriptText.Text="&#13;&#10;begin&#13;&#10;&#13;&#10;end.">
+  <Variables>
+    <item Name=" Datos"/>
+    <item Name="Empresa"/>
+    <item Name="Numero"/>
+    <item Name="Solicitante"/>
+    <item Name="Carnet"/>
+    <item Name="Entidad"/>
+    <item Name="TipoUsuario"/>
+    <item Name="FEntrega"/>
+    <item Name="FLimite"/>
+    <item Name="Atendido"/>
+  </Variables>
+  <TfrxDataPage Name="Data" HGuides.Text="" VGuides.Text="" Height="1000" Left="0" Top="0" Width="1000"/>
+    <TfrxReportPage Name="Page1" HGuides.Text="" VGuides.Text="" PaperWidth="210" PaperHeight="297" PaperSize="9" LeftMargin="15" RightMargin="15" TopMargin="15" BottomMargin="15" ColumnWidth="0" ColumnPositions.Text="" Frame.Typ="0" MirrorMode="0">
+    <TfrxReportTitle Name="ReportTitle1" FillType="ftBrush" FillGap.Top="0" FillGap.Left="0" FillGap.Bottom="0" FillGap.Right="0" Frame.Typ="0" Height="302" Left="0" Top="0" Width="680">
+      <TfrxMemoView Name="mTitulo" AllowVectorExport="True" Left="0" Top="0" Width="680" Height="26" Font.Charset="1" Font.Color="0" Font.Height="-17" Font.Name="Arial" Font.Style="1" Frame.Typ="0" HAlign="haCenter" ParentFont="False" VAlign="vaCenter" Text="SOLICITUD DE CONSULTA O PRÉSTAMO DE DOCUMENTOS"/>
+      <TfrxMemoView Name="mEmpresa" AllowVectorExport="True" Left="0" Top="26" Width="680" Height="20" Font.Charset="1" Font.Color="0" Font.Height="-13" Font.Name="Arial" Font.Style="0" Frame.Typ="0" HAlign="haCenter" ParentFont="False" VAlign="vaCenter" Text="[Empresa]"/>
+      <TfrxMemoView Name="mNumero" AllowVectorExport="True" Left="0" Top="52" Width="680" Height="20" Font.Charset="1" Font.Color="0" Font.Height="-13" Font.Name="Arial" Font.Style="1" Frame.Typ="0" HAlign="haRight" ParentFont="False" VAlign="vaCenter" Text="Préstamo N.º [Numero]"/>
+      <TfrxMemoView Name="mRot0" AllowVectorExport="True" Left="0" Top="82" Width="220" Height="26" Font.Charset="1" Font.Color="0" Font.Height="-13" Font.Name="Arial" Font.Style="1" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="Nombre y apellidos del solicitante"/>
+      <TfrxMemoView Name="mVal0" AllowVectorExport="True" Left="220" Top="82" Width="460" Height="26" Font.Charset="1" Font.Color="0" Font.Height="-13" Font.Name="Arial" Font.Style="0" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="[Solicitante]"/>
+      <TfrxMemoView Name="mRot1" AllowVectorExport="True" Left="0" Top="108" Width="220" Height="26" Font.Charset="1" Font.Color="0" Font.Height="-13" Font.Name="Arial" Font.Style="1" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="Carnet de identidad N.º"/>
+      <TfrxMemoView Name="mVal1" AllowVectorExport="True" Left="220" Top="108" Width="460" Height="26" Font.Charset="1" Font.Color="0" Font.Height="-13" Font.Name="Arial" Font.Style="0" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="[Carnet]"/>
+      <TfrxMemoView Name="mRot2" AllowVectorExport="True" Left="0" Top="134" Width="220" Height="26" Font.Charset="1" Font.Color="0" Font.Height="-13" Font.Name="Arial" Font.Style="1" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="Entidad a que pertenece"/>
+      <TfrxMemoView Name="mVal2" AllowVectorExport="True" Left="220" Top="134" Width="460" Height="26" Font.Charset="1" Font.Color="0" Font.Height="-13" Font.Name="Arial" Font.Style="0" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="[Entidad]"/>
+      <TfrxMemoView Name="mRot3" AllowVectorExport="True" Left="0" Top="160" Width="220" Height="26" Font.Charset="1" Font.Color="0" Font.Height="-13" Font.Name="Arial" Font.Style="1" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="Tipo de usuario"/>
+      <TfrxMemoView Name="mVal3" AllowVectorExport="True" Left="220" Top="160" Width="460" Height="26" Font.Charset="1" Font.Color="0" Font.Height="-13" Font.Name="Arial" Font.Style="0" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="[TipoUsuario]"/>
+      <TfrxMemoView Name="mRot4" AllowVectorExport="True" Left="0" Top="186" Width="220" Height="26" Font.Charset="1" Font.Color="0" Font.Height="-13" Font.Name="Arial" Font.Style="1" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="Fecha de entrega"/>
+      <TfrxMemoView Name="mVal4" AllowVectorExport="True" Left="220" Top="186" Width="460" Height="26" Font.Charset="1" Font.Color="0" Font.Height="-13" Font.Name="Arial" Font.Style="0" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="[FEntrega]"/>
+      <TfrxMemoView Name="mRot5" AllowVectorExport="True" Left="0" Top="212" Width="220" Height="26" Font.Charset="1" Font.Color="0" Font.Height="-13" Font.Name="Arial" Font.Style="1" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="Fecha de devolución (límite)"/>
+      <TfrxMemoView Name="mVal5" AllowVectorExport="True" Left="220" Top="212" Width="460" Height="26" Font.Charset="1" Font.Color="0" Font.Height="-13" Font.Name="Arial" Font.Style="0" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="[FLimite]"/>
+      <TfrxMemoView Name="mRot6" AllowVectorExport="True" Left="0" Top="238" Width="220" Height="26" Font.Charset="1" Font.Color="0" Font.Height="-13" Font.Name="Arial" Font.Style="1" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="Atendido por"/>
+      <TfrxMemoView Name="mVal6" AllowVectorExport="True" Left="220" Top="238" Width="460" Height="26" Font.Charset="1" Font.Color="0" Font.Height="-13" Font.Name="Arial" Font.Style="0" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="[Atendido]"/>
+      <TfrxMemoView Name="mDocsTit" AllowVectorExport="True" Left="0" Top="278" Width="680" Height="22" Font.Charset="1" Font.Color="0" Font.Height="-13" Font.Name="Arial" Font.Style="1" Frame.Typ="0" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="Documento(s) que consulta"/>
+    </TfrxReportTitle>
+    <TfrxHeader Name="Header1" FillType="ftBrush" FillGap.Top="0" FillGap.Left="0" FillGap.Bottom="0" FillGap.Right="0" Frame.Typ="0" Height="22" Left="0" Top="302" Width="680">
+      <TfrxMemoView Name="hCod" AllowVectorExport="True" Left="0" Top="0" Width="110" Height="22" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="1" Frame.Typ="15" HAlign="haCenter" ParentFont="False" VAlign="vaCenter" Text="Código"/>
+      <TfrxMemoView Name="hDoc" AllowVectorExport="True" Left="110" Top="0" Width="360" Height="22" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="1" Frame.Typ="15" HAlign="haCenter" ParentFont="False" VAlign="vaCenter" Text="Documento"/>
+      <TfrxMemoView Name="hUbi" AllowVectorExport="True" Left="470" Top="0" Width="210" Height="22" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="1" Frame.Typ="15" HAlign="haCenter" ParentFont="False" VAlign="vaCenter" Text="Ubicación"/>
+    </TfrxHeader>
+    <TfrxMasterData Name="MasterData1" FillType="ftBrush" FillGap.Top="0" FillGap.Left="0" FillGap.Bottom="0" FillGap.Right="0" Frame.Typ="0" Height="22" Left="0" Top="324" Width="680" ColumnWidth="0" ColumnGap="0" DataSet="frxDocumentos" DataSetName="Documentos" RowCount="0" Stretched="True">
+      <TfrxMemoView Name="dCod" AllowVectorExport="True" Left="0" Top="0" Width="110" Height="22" StretchMode="smMaxHeight" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="0" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="[Documentos.&#34;Codigo&#34;]"/>
+      <TfrxMemoView Name="dDoc" AllowVectorExport="True" Left="110" Top="0" Width="360" Height="22" StretchMode="smMaxHeight" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="0" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="[Documentos.&#34;Titulo&#34;]"/>
+      <TfrxMemoView Name="dUbi" AllowVectorExport="True" Left="470" Top="0" Width="210" Height="22" StretchMode="smMaxHeight" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="0" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="[Documentos.&#34;Ubicacion&#34;]"/>
+    </TfrxMasterData>
+    <TfrxReportSummary Name="ReportSummary1" FillType="ftBrush" FillGap.Top="0" FillGap.Left="0" FillGap.Bottom="0" FillGap.Right="0" Frame.Typ="0" Height="100" Left="0" Top="386" Width="680">
+      <TfrxMemoView Name="fSol" AllowVectorExport="True" Left="0" Top="46" Width="300" Height="20" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="0" Frame.Typ="0" HAlign="haCenter" ParentFont="False" VAlign="vaTop" Text="Firma del solicitante (constancia de recibido)"/>
+      <TfrxMemoView Name="fAte" AllowVectorExport="True" Left="380" Top="46" Width="300" Height="20" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="0" Frame.Typ="0" HAlign="haCenter" ParentFont="False" VAlign="vaTop" Text="Firma de quien atiende"/>
+      <TfrxLineView Name="lSol" AllowVectorExport="True" Left="0" Top="40" Width="300" Height="0" Frame.Typ="4"/>
+      <TfrxLineView Name="lAte" AllowVectorExport="True" Left="380" Top="40" Width="300" Height="0" Frame.Typ="4"/>
+    </TfrxReportSummary>
+  </TfrxReportPage>
+</TfrxReport>

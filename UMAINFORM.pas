@@ -885,7 +885,7 @@ var
 implementation
 
 uses
-  UAparienciaLegacy, UTema, UIconos, UDocumentoVistaDatos, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UAutenticacion, UMensajes, UTiempos, USplash, UCLServidoresForm, UCLArchivosForm, UCLSeriesForm, UClasificadoresInterruptor, UProcesosInterruptor, UPantallaProceso, UPrestamosForm, UCapaDatos, UUserGest, UDocManagement,
+  UAparienciaLegacy, UTema, UIconos, UDocumentoVistaDatos, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UAutenticacion, UMensajes, UTiempos, USplash, UCLServidoresForm, UCLArchivosForm, UCLSeriesForm, UClasificadoresInterruptor, UProcesosInterruptor, UPantallaProceso, UPrestamosForm, UPrestamosImpresos, UCapaDatos, UUserGest, UDocManagement,
   UPantallaCarga, UCLSeriesDocumentales, UCLFtpServer, UGestEstruct, UMangementArch,
   UManagementFileSeries, UViewFunciones, UVeditor, UExcelExport, UManagementNode,
   USystemMsg, UNodeProperties, UCL_TiposExp, USysConfig, UTransferencias,
@@ -9991,6 +9991,8 @@ var
   Nodos: TList<TClaveNodo>;
   Raiz: TTreeNode;
   Pantalla: TfrmPrestamos;
+  Carpeta: string;
+  NodosImpresos: TArray<TClaveNodo>;
 
   procedure Recoger(ANodo: TTreeNode);
   var
@@ -10038,6 +10040,29 @@ begin
       // solo el especialista de gestion documental presta en su nodo
       Pantalla.PuedeActuar := (UDM.Alcance = nil) or
         UDM.Alcance.PuedeRealizar(acPrestar, Nodos[0], '');
+      // impresos oficiales (Anexos 8.2 y 8.3); los .fr3 estan en la carpeta Report
+      Carpeta := ExtractFilePath(Application.ExeName) + 'Report\';
+      Pantalla.AlImprimirSolicitud :=
+        procedure(IdProceso: Integer)
+        begin
+          try
+            ImprimirSolicitud(UDM.Conn, IdProceso, Carpeta);
+          except
+            on E: Exception do
+              TMensajes.Error('No se pudo imprimir la solicitud: ' + E.Message, 'Pr' + #233 + 'stamos');
+          end;
+        end;
+      NodosImpresos := Nodos.ToArray;
+      Pantalla.AlImprimirRegistro :=
+        procedure(Anio: Integer)
+        begin
+          try
+            ImprimirRegistro(UDM.Conn, NodosImpresos, Anio, Carpeta);
+          except
+            on E: Exception do
+              TMensajes.Error('No se pudo imprimir el registro: ' + E.Message, 'Pr' + #233 + 'stamos');
+          end;
+        end;
       AbrirPantallaProceso(Pantalla, 'Pr' + #233 + 'stamos', 'Prestamos');
     except
       on E: Exception do

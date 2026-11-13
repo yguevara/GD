@@ -42,6 +42,7 @@ type
     Anio, Consecutivo: Integer;
     Numero, Solicitante, Carnet, Entidad: string;
     AtendidoPor, Obs: string;
+    Creado: TDateTime;                           // fecha de la solicitud
     Usuario: TTipoUsuarioPrestamo;
     Unidades: Integer;
     FEntrega, FLimite, FDevolucion: TDateTime;   // 0 = sin fecha
@@ -485,7 +486,7 @@ begin
         Hasta := High(Nodos);
       Cond := CondicionFiltro(Filtro);
       Sql := 'SELECT TOP ' + IntToStr(Tope) + ' p.IdProceso, p.Anio, p.Consecutivo, ' +
-        'p.Numero, p.Estado, p.Paso, r.Solicitante, r.Carnet, r.Entidad, ' +
+        'p.Numero, p.Estado, p.Paso, p.Creado, r.Solicitante, r.Carnet, r.Entidad, ' +
         'r.TipoUsuario, r.FEntrega, r.FLimite, r.FDevolucion, r.AtendidoPor, r.Obs, ' +
         '(SELECT COUNT(*) FROM prc_unidad u WHERE u.IdProceso = p.IdProceso) AS Unidades ' +
         'FROM prc_proceso p INNER JOIN prc_prestamo r ON r.IdProceso = p.IdProceso ' +
@@ -518,6 +519,7 @@ begin
           F.Entidad := Q.FieldByName('Entidad').AsString;
           F.AtendidoPor := Q.FieldByName('AtendidoPor').AsString;
           F.Obs := Q.FieldByName('Obs').AsString;
+          F.Creado := FechaODefecto(Q.FieldByName('Creado'));
           if Trim(Q.FieldByName('TipoUsuario').AsString) = 'E' then
             F.Usuario := tuExterno
           else

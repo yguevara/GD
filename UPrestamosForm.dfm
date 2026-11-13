@@ -762,26 +762,35 @@ object frmPrestamos: TfrmPrestamos
         ShowCaption = False
         TabOrder = 0
         object edtBuscar: TcxTextEdit
-          Left = 10
+          Left = 0
           Top = 15
             Properties.OnChange = edtBuscarPropertiesChange
           TabOrder = 0
           TextHint = 'Buscar solicitante, n'#250'mero o entidad...'
-          Width = 250
+          Width = 200
+        end
+        object btnRegistro: TcxButton
+          Left = 210
+          Top = 15
+          Width = 110
+          Height = 36
+            Caption = 'Registro anual'
+          TabOrder = 1
+          OnClick = btnRegistroClick
         end
         object btnExportar: TcxButton
-          Left = 274
+          Left = 330
           Top = 15
-          Width = 100
+          Width = 90
           Height = 36
             Caption = 'Exportar'
           TabOrder = 1
           OnClick = btnExportarClick
         end
         object btnNuevo: TcxButton
-          Left = 388
+          Left = 432
           Top = 15
-          Width = 192
+          Width = 160
           Height = 36
             Caption = 'Nuevo pr'#233'stamo'
           TabOrder = 2

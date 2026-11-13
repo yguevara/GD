@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<TfrxReport Version="2022.3" DotMatrixReport="False" IniFile="\Software\Fast Reports" PreviewOptions.Buttons="167935" PreviewOptions.Zoom="1" PrintOptions.Printer="Default" PrintOptions.PrintOnSheet="0" ReportOptions.CreateDate="46338.5" ReportOptions.Description.Text="Anexo 8.3 del Manual Marco: Registro interno de préstamo de documentos. Los datos los aporta la aplicación." ReportOptions.LastChange="46338.5" ScriptLanguage="PascalScript" ScriptText.Text="&#13;&#10;begin&#13;&#10;&#13;&#10;end.">
+  <Variables>
+    <item Name=" Datos"/>
+    <item Name="Empresa"/>
+    <item Name="Anio"/>
+  </Variables>
+  <TfrxDataPage Name="Data" HGuides.Text="" VGuides.Text="" Height="1000" Left="0" Top="0" Width="1000"/>
+    <TfrxReportPage Name="Page1" HGuides.Text="" VGuides.Text="" Orientation="poLandscape" PaperWidth="297" PaperHeight="210" PaperSize="9" LeftMargin="10" RightMargin="10" TopMargin="10" BottomMargin="10" ColumnWidth="0" ColumnPositions.Text="" Frame.Typ="0" MirrorMode="0">
+    <TfrxReportTitle Name="ReportTitle1" FillType="ftBrush" FillGap.Top="0" FillGap.Left="0" FillGap.Bottom="0" FillGap.Right="0" Frame.Typ="0" Height="52" Left="0" Top="0" Width="1000">
+      <TfrxMemoView Name="mTitulo" AllowVectorExport="True" Left="0" Top="0" Width="1000" Height="26" Font.Charset="1" Font.Color="0" Font.Height="-17" Font.Name="Arial" Font.Style="1" Frame.Typ="0" HAlign="haCenter" ParentFont="False" VAlign="vaCenter" Text="REGISTRO INTERNO DE PRÉSTAMO DE DOCUMENTOS · Año [Anio]"/>
+      <TfrxMemoView Name="mEmpresa" AllowVectorExport="True" Left="0" Top="26" Width="1000" Height="20" Font.Charset="1" Font.Color="0" Font.Height="-13" Font.Name="Arial" Font.Style="0" Frame.Typ="0" HAlign="haCenter" ParentFont="False" VAlign="vaCenter" Text="[Empresa]"/>
+    </TfrxReportTitle>
+    <TfrxPageHeader Name="PageHeader1" FillType="ftBrush" FillGap.Top="0" FillGap.Left="0" FillGap.Bottom="0" FillGap.Right="0" Frame.Typ="0" Height="32" Left="0" Top="52" Width="1000">
+      <TfrxMemoView Name="h0" AllowVectorExport="True" Left="0" Top="0" Width="80" Height="32" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="1" Frame.Typ="15" HAlign="haCenter" ParentFont="False" VAlign="vaCenter" Text="N.º"/>
+      <TfrxMemoView Name="h1" AllowVectorExport="True" Left="80" Top="0" Width="190" Height="32" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="1" Frame.Typ="15" HAlign="haCenter" ParentFont="False" VAlign="vaCenter" Text="Nombre y apellidos del solicitante"/>
+      <TfrxMemoView Name="h2" AllowVectorExport="True" Left="270" Top="0" Width="190" Height="32" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="1" Frame.Typ="15" HAlign="haCenter" ParentFont="False" VAlign="vaCenter" Text="Serie documental"/>
+      <TfrxMemoView Name="h3" AllowVectorExport="True" Left="460" Top="0" Width="100" Height="32" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="1" Frame.Typ="15" HAlign="haCenter" ParentFont="False" VAlign="vaCenter" Text="Fecha de solicitud"/>
+      <TfrxMemoView Name="h4" AllowVectorExport="True" Left="560" Top="0" Width="100" Height="32" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="1" Frame.Typ="15" HAlign="haCenter" ParentFont="False" VAlign="vaCenter" Text="Fecha de devolución"/>
+      <TfrxMemoView Name="h5" AllowVectorExport="True" Left="660" Top="0" Width="170" Height="32" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="1" Frame.Typ="15" HAlign="haCenter" ParentFont="False" VAlign="vaCenter" Text="Entidad a que pertenece"/>
+      <TfrxMemoView Name="h6" AllowVectorExport="True" Left="830" Top="0" Width="170" Height="32" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="1" Frame.Typ="15" HAlign="haCenter" ParentFont="False" VAlign="vaCenter" Text="Observaciones"/>
+    </TfrxPageHeader>
+    <TfrxMasterData Name="MasterData1" FillType="ftBrush" FillGap.Top="0" FillGap.Left="0" FillGap.Bottom="0" FillGap.Right="0" Frame.Typ="0" Height="22" Left="0" Top="84" Width="1000" ColumnWidth="0" ColumnGap="0" DataSet="frxRegistro" DataSetName="Registro" RowCount="0" Stretched="True">
+      <TfrxMemoView Name="c0" AllowVectorExport="True" Left="0" Top="0" Width="80" Height="22" StretchMode="smMaxHeight" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="0" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="[Registro.&#34;Numero&#34;]"/>
+      <TfrxMemoView Name="c1" AllowVectorExport="True" Left="80" Top="0" Width="190" Height="22" StretchMode="smMaxHeight" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="0" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="[Registro.&#34;Solicitante&#34;]"/>
+      <TfrxMemoView Name="c2" AllowVectorExport="True" Left="270" Top="0" Width="190" Height="22" StretchMode="smMaxHeight" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="0" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="[Registro.&#34;Serie&#34;]"/>
+      <TfrxMemoView Name="c3" AllowVectorExport="True" Left="460" Top="0" Width="100" Height="22" StretchMode="smMaxHeight" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="0" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="[Registro.&#34;FSolicitud&#34;]"/>
+      <TfrxMemoView Name="c4" AllowVectorExport="True" Left="560" Top="0" Width="100" Height="22" StretchMode="smMaxHeight" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="0" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="[Registro.&#34;FDevolucion&#34;]"/>
+      <TfrxMemoView Name="c5" AllowVectorExport="True" Left="660" Top="0" Width="170" Height="22" StretchMode="smMaxHeight" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="0" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="[Registro.&#34;Entidad&#34;]"/>
+      <TfrxMemoView Name="c6" AllowVectorExport="True" Left="830" Top="0" Width="170" Height="22" StretchMode="smMaxHeight" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="0" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="[Registro.&#34;Observaciones&#34;]"/>
+    </TfrxMasterData>
+  </TfrxReportPage>
+</TfrxReport>

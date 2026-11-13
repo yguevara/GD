@@ -29,6 +29,7 @@ uses
   UProcesoPintura in 'UProcesoPintura.pas',
   UPantallaProceso in 'UPantallaProceso.pas',
   UPrestamosForm in 'UPrestamosForm.pas' {frmPrestamos},
+  UPrestamosImpresos in 'UPrestamosImpresos.pas',
   UTrazabilidad in 'UTrazabilidad.pas',
   UTrazabilidadDatos in 'UTrazabilidadDatos.pas',
   UHistoriaDocumento in 'UHistoriaDocumento.pas',

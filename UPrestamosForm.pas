@@ -41,6 +41,8 @@ uses
 type
   { Pide imprimir la solicitud (Anexo 8.2) de un prestamo. }
   TImprimirSolicitud = reference to procedure(IdProceso: Integer);
+  { Pide imprimir el registro de prestamos (Anexo 8.3) de un ano. }
+  TImprimirRegistro = reference to procedure(Anio: Integer);
 
   TfrmPrestamos = class(TForm, IPantallaProceso)
     pnlLateral: TPanel;
@@ -114,6 +116,7 @@ type
     lblTitulo: TLabel;
     lblSubtitulo: TLabel;
     edtBuscar: TcxTextEdit;
+    btnRegistro: TcxButton;
     btnExportar: TcxButton;
     btnNuevo: TcxButton;
     pnlCabeceraAcciones: TPanel;
@@ -150,6 +153,7 @@ type
     procedure edtBuscarPropertiesChange(Sender: TObject);
     procedure tmrBuscarListaTimer(Sender: TObject);
     procedure btnExportarClick(Sender: TObject);
+    procedure btnRegistroClick(Sender: TObject);
     procedure btnNuevoClick(Sender: TObject);
     procedure pbIndicadoresPaint(Sender: TObject);
     procedure pbPasosPaint(Sender: TObject);
@@ -203,8 +207,10 @@ type
     FEmbebido: Boolean;
     FAlSalir: TNotifyEvent;
     FAlImprimir: TImprimirSolicitud;
+    FAlImprimirRegistro: TImprimirRegistro;
     FPuedeActuar: Boolean;
     procedure SetPuedeActuar(Valor: Boolean);
+    procedure SetAlImprimirRegistro(const Valor: TImprimirRegistro);
     procedure AplicarTema;
     procedure ConfigurarBoton(B: TcxButton; Primario: Boolean);
     procedure Recargar;
@@ -252,6 +258,8 @@ type
     procedure FijarAlSalir(const Valor: TNotifyEvent);
     { Si se asigna, el boton "Imprimir solicitud" llama a este procedimiento. }
     property AlImprimirSolicitud: TImprimirSolicitud read FAlImprimir write FAlImprimir;
+    { Si se asigna, el boton "Registro anual" llama a este procedimiento con el ano en curso. }
+    property AlImprimirRegistro: TImprimirRegistro read FAlImprimirRegistro write SetAlImprimirRegistro;
     { Solo quien puede prestar en el nodo (el especialista de gestion documental)
       crea prestamos y registra entregas, devoluciones y cancelaciones; los demas
       ven la lista y las fichas. Por defecto, si. }
@@ -314,6 +322,7 @@ begin
   FEstadoProceso := epEnCurso;
   FNombresPasos := ['Solicitado', 'Entregado', 'Devuelto'];
   cboTipoUsuario.ItemIndex := 0;
+  btnRegistro.Visible := False;
   AplicarTema;
   ActualizarCamposExterno;
 end;
@@ -322,6 +331,18 @@ destructor TfrmPrestamos.Destroy;
 begin
   FElegidos.Free;
   inherited Destroy;
+end;
+
+procedure TfrmPrestamos.SetAlImprimirRegistro(const Valor: TImprimirRegistro);
+begin
+  FAlImprimirRegistro := Valor;
+  btnRegistro.Visible := Assigned(Valor);
+end;
+
+procedure TfrmPrestamos.btnRegistroClick(Sender: TObject);
+begin
+  if Assigned(FAlImprimirRegistro) then
+    FAlImprimirRegistro(YearOf(Date));
 end;
 
 procedure TfrmPrestamos.SetPuedeActuar(Valor: Boolean);
@@ -437,6 +458,7 @@ begin
   tvElegidos.OptionsView.GridLineColor := T.Linea;
   ConfigurarBoton(btnNuevo, True);
   ConfigurarBoton(btnExportar, False);
+  ConfigurarBoton(btnRegistro, False);
   ConfigurarBoton(btnEntrega, True);
   ConfigurarBoton(btnDevolucion, True);
   ConfigurarBoton(btnRenovar, False);
