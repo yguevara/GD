@@ -122,7 +122,9 @@ uses
   UProcesoPintura in '..\UProcesoPintura.pas',
   UPruebasProcesoPintura in 'UPruebasProcesoPintura.pas',
   UTransferenciasReglas in '..\UTransferenciasReglas.pas',
-  UPruebasTransferenciasReglas in 'UPruebasTransferenciasReglas.pas';
+  UPruebasTransferenciasReglas in 'UPruebasTransferenciasReglas.pas',
+  UTransferenciasDatos in '..\UTransferenciasDatos.pas',
+  UPruebasTransferenciasDatos in 'UPruebasTransferenciasDatos.pas';
 
 var
   Corredor: ITestRunner;
