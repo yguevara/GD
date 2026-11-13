@@ -99,6 +99,56 @@ CREATE TABLE prc_prestamo (
     REFERENCES prc_proceso(IdProceso) ON DELETE CASCADE
 );
 
+IF OBJECT_ID('dbo.prc_transferencia', 'U') IS NULL
+CREATE TABLE prc_transferencia (
+  IdProceso INT NOT NULL,
+  FPrevista DATETIME NULL,
+  FEntrega DATETIME NULL,
+  EntregadoPor VARCHAR(100) NULL,
+  Obs VARCHAR(255) NULL,
+  CONSTRAINT PK_prc_transferencia PRIMARY KEY (IdProceso),
+  CONSTRAINT FK_prc_transferencia_proceso FOREIGN KEY (IdProceso)
+    REFERENCES prc_proceso(IdProceso) ON DELETE CASCADE
+);
+
+IF OBJECT_ID('dbo.prc_cronograma', 'U') IS NULL
+CREATE TABLE prc_cronograma (
+  IdCronograma INT IDENTITY(1,1) NOT NULL,
+  Anio INT NOT NULL,
+  IdEstructura VARCHAR(50) NOT NULL,
+  IdNodo INT NOT NULL,
+  FPrevista DATETIME NOT NULL,
+  IdProceso INT NULL,
+  CONSTRAINT PK_prc_cronograma PRIMARY KEY (IdCronograma),
+  CONSTRAINT UQ_prc_cronograma UNIQUE (Anio, IdEstructura, IdNodo),
+  CONSTRAINT FK_prc_cronograma_tree FOREIGN KEY (IdEstructura, IdNodo)
+    REFERENCES tb_tree(IdEstructura, id)
+);
+
+IF OBJECT_ID('dbo.prc_caja', 'U') IS NULL
+CREATE TABLE prc_caja (
+  IdProceso INT NOT NULL,
+  Caja INT NOT NULL,
+  Tipo VARCHAR(100) NULL,
+  Descripcion VARCHAR(255) NULL,
+  FDesde DATETIME NULL,
+  FHasta DATETIME NULL,
+  Unidades INT NOT NULL,
+  CONSTRAINT PK_prc_caja PRIMARY KEY (IdProceso, Caja),
+  CONSTRAINT FK_prc_caja_proceso FOREIGN KEY (IdProceso)
+    REFERENCES prc_proceso(IdProceso) ON DELETE CASCADE
+);
+
+IF OBJECT_ID('dbo.prc_verificacion', 'U') IS NULL
+CREATE TABLE prc_verificacion (
+  IdProceso INT NOT NULL,
+  Codigo VARCHAR(30) NOT NULL,
+  Marcada BIT NOT NULL DEFAULT 0,
+  CONSTRAINT PK_prc_verificacion PRIMARY KEY (IdProceso, Codigo),
+  CONSTRAINT FK_prc_verificacion_proceso FOREIGN KEY (IdProceso)
+    REFERENCES prc_proceso(IdProceso) ON DELETE CASCADE
+);
+
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_prc_unidad_nodo' AND object_id = OBJECT_ID('dbo.prc_unidad'))
 CREATE INDEX IX_prc_unidad_nodo ON prc_unidad (IdEstructura, id);
 
@@ -110,3 +160,6 @@ CREATE INDEX IX_prc_evento_proceso ON prc_evento (IdProceso);
 
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_prc_prestamo_limite' AND object_id = OBJECT_ID('dbo.prc_prestamo'))
 CREATE INDEX IX_prc_prestamo_limite ON prc_prestamo (FLimite);
+
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_prc_unidad_caja' AND object_id = OBJECT_ID('dbo.prc_unidad'))
+CREATE INDEX IX_prc_unidad_caja ON prc_unidad (IdProceso, Caja);

@@ -26,7 +26,7 @@ type
     [Test]
     procedure Unidad_BorraseConSuProceso;
     [Test]
-    procedure TieneLosCuatroIndices;
+    procedure TieneLosCincoIndices;
     [Test]
     procedure SqlServer_IndicesConGuarda;
     [Test]
@@ -35,6 +35,16 @@ type
     procedure Prestamo_TablaConClaveYCascada;
     [Test]
     procedure Prestamo_IndiceDeLimite;
+    [Test]
+    procedure Transferencia_TablaConCascadaYDatosDeEntrega;
+    [Test]
+    procedure Cronograma_UnoPorNodoYAnio;
+    [Test]
+    procedure Caja_ClaveEsProcesoYNumero;
+    [Test]
+    procedure Verificacion_ClaveEsProcesoYCodigo;
+    [Test]
+    procedure Unidad_IndiceDeCaja;
   end;
 
   [TestFixture]
@@ -69,8 +79,9 @@ uses
 
 const
   VAR_BD = 'ARCHIGENIO_TEST_DB';
-  TABLAS: array[0..5] of string = ('prc_proceso', 'prc_unidad', 'prc_evento',
-    'prc_autorizacion', 'prc_bloqueo', 'prc_prestamo');
+  TABLAS: array[0..9] of string = ('prc_proceso', 'prc_unidad', 'prc_evento',
+    'prc_autorizacion', 'prc_bloqueo', 'prc_prestamo', 'prc_transferencia',
+    'prc_cronograma', 'prc_caja', 'prc_verificacion');
 
 { TPruebasEsquemaProcesosSql }
 
@@ -129,15 +140,15 @@ begin
   Assert.IsTrue(Pos('REFERENCES prc_proceso(IdProceso) ON DELETE CASCADE', Todo(True)) > 0);
 end;
 
-procedure TPruebasEsquemaProcesosSql.TieneLosCuatroIndices;
+procedure TPruebasEsquemaProcesosSql.TieneLosCincoIndices;
 begin
-  Assert.AreEqual(4, Contar(Todo(True), 'CREATE INDEX'));
-  Assert.AreEqual(4, Contar(Todo(False), 'CREATE INDEX'));
+  Assert.AreEqual(5, Contar(Todo(True), 'CREATE INDEX'));
+  Assert.AreEqual(5, Contar(Todo(False), 'CREATE INDEX'));
 end;
 
 procedure TPruebasEsquemaProcesosSql.SqlServer_IndicesConGuarda;
 begin
-  Assert.AreEqual(4, Contar(Todo(True), 'IF NOT EXISTS (SELECT 1 FROM sys.indexes'));
+  Assert.AreEqual(5, Contar(Todo(True), 'IF NOT EXISTS (SELECT 1 FROM sys.indexes'));
 end;
 
 procedure TPruebasEsquemaProcesosSql.Bloqueo_ClavePrimariaEsElDocumento;
@@ -167,6 +178,43 @@ procedure TPruebasEsquemaProcesosSql.Prestamo_IndiceDeLimite;
 begin
   Assert.IsTrue(Pos('CREATE INDEX IX_prc_prestamo_limite ON prc_prestamo (FLimite)', Todo(True)) > 0);
   Assert.IsTrue(Pos('CREATE INDEX IX_prc_prestamo_limite ON prc_prestamo (FLimite)', Todo(False)) > 0);
+end;
+
+procedure TPruebasEsquemaProcesosSql.Transferencia_TablaConCascadaYDatosDeEntrega;
+var
+  Sql: string;
+begin
+  Sql := Todo(True);
+  Assert.IsTrue(Pos('IF OBJECT_ID(''dbo.prc_transferencia'', ''U'') IS NULL CREATE TABLE prc_transferencia (', Sql) > 0);
+  Assert.IsTrue(Pos('CONSTRAINT PK_prc_transferencia PRIMARY KEY (IdProceso)', Sql) > 0);
+  Assert.IsTrue(Pos('EntregadoPor VARCHAR(100) NULL', Sql) > 0);
+  Assert.IsTrue(Pos('FOREIGN KEY (IdProceso) REFERENCES prc_proceso(IdProceso) ON DELETE CASCADE', Sql) > 0);
+  Assert.IsTrue(Pos('CREATE TABLE prc_transferencia (', Todo(False)) > 0);
+end;
+
+procedure TPruebasEsquemaProcesosSql.Cronograma_UnoPorNodoYAnio;
+begin
+  Assert.IsTrue(Pos('UNIQUE (Anio, IdEstructura, IdNodo)', Todo(True)) > 0);
+  Assert.IsTrue(Pos('UNIQUE (Anio, IdEstructura, IdNodo)', Todo(False)) > 0);
+  Assert.IsTrue(Pos('FOREIGN KEY (IdEstructura, IdNodo) REFERENCES tb_tree(IdEstructura, id)',
+    Todo(True)) > 0);
+end;
+
+procedure TPruebasEsquemaProcesosSql.Caja_ClaveEsProcesoYNumero;
+begin
+  Assert.IsTrue(Pos('CONSTRAINT PK_prc_caja PRIMARY KEY (IdProceso, Caja)', Todo(True)) > 0);
+  Assert.IsTrue(Pos('CONSTRAINT PK_prc_caja PRIMARY KEY (IdProceso, Caja)', Todo(False)) > 0);
+end;
+
+procedure TPruebasEsquemaProcesosSql.Verificacion_ClaveEsProcesoYCodigo;
+begin
+  Assert.IsTrue(Pos('CONSTRAINT PK_prc_verificacion PRIMARY KEY (IdProceso, Codigo)', Todo(True)) > 0);
+  Assert.IsTrue(Pos('CONSTRAINT PK_prc_verificacion PRIMARY KEY (IdProceso, Codigo)', Todo(False)) > 0);
+end;
+
+procedure TPruebasEsquemaProcesosSql.Unidad_IndiceDeCaja;
+begin
+  Assert.IsTrue(Pos('CREATE INDEX IX_prc_unidad_caja ON prc_unidad (IdProceso, Caja)', Todo(True)) > 0);
 end;
 
 { TPruebasEsquemaProcesosBD }

@@ -15,6 +15,7 @@ unit UEsquemaProcesos;
     prc_autorizacion : acta y acuerdo de la Comision (una por proceso).
     prc_bloqueo      : candado por documento (un proceso abierto a la vez).
     prc_prestamo     : datos propios del prestamo (solicitante, fechas, devolucion).
+    prc_transferencia / prc_cronograma / prc_caja / prc_verificacion: transferencias.
   Las tablas propias de cada modulo (cajas, incidencias, testigos, muestras,
   datos del prestamo) las agrega cada fase en este mismo archivo.
   Tipo: 'P' prestamo, 'T' transferencia, 'D' depuracion.
@@ -41,7 +42,7 @@ uses
 function SentenciasEsquemaProcesos(EsSqlServer: Boolean): TArray<string>;
 var
   Lista: TArray<string>;
-  TId, TBit, TLargo: string;
+  TId, TBit, TBitNo, TLargo: string;
 
   procedure Agregar(const Sql: string);
   begin
@@ -76,12 +77,14 @@ begin
   begin
     TId := 'INT IDENTITY(1,1) NOT NULL';
     TBit := 'BIT NOT NULL DEFAULT 1';
+    TBitNo := 'BIT NOT NULL DEFAULT 0';
     TLargo := 'VARCHAR(500)';
   end
   else
   begin
     TId := 'COUNTER';
     TBit := 'BIT';
+    TBitNo := 'BIT';
     TLargo := 'VARCHAR(255)';
   end;
 
@@ -172,6 +175,52 @@ begin
     'CONSTRAINT FK_prc_prestamo_proceso FOREIGN KEY (IdProceso) ' +
     'REFERENCES prc_proceso(IdProceso) ON DELETE CASCADE');
 
+  // Datos propios de la transferencia (uno por proceso de tipo 'T').
+  Tabla('prc_transferencia',
+    'IdProceso INT NOT NULL, ' +
+    'FPrevista DATETIME NULL, ' +
+    'FEntrega DATETIME NULL, ' +
+    'EntregadoPor VARCHAR(100) NULL, ' +
+    'Obs VARCHAR(255) NULL, ' +
+    'CONSTRAINT PK_prc_transferencia PRIMARY KEY (IdProceso), ' +
+    'CONSTRAINT FK_prc_transferencia_proceso FOREIGN KEY (IdProceso) ' +
+    'REFERENCES prc_proceso(IdProceso) ON DELETE CASCADE');
+
+  // Cronograma anual: una transferencia prevista por unidad (nodo) y ano.
+  Tabla('prc_cronograma',
+    'IdCronograma ' + TId + ', ' +
+    'Anio INT NOT NULL, ' +
+    'IdEstructura VARCHAR(50) NOT NULL, ' +
+    'IdNodo INT NOT NULL, ' +
+    'FPrevista DATETIME NOT NULL, ' +
+    'IdProceso INT NULL, ' +
+    'CONSTRAINT PK_prc_cronograma PRIMARY KEY (IdCronograma), ' +
+    'CONSTRAINT UQ_prc_cronograma UNIQUE (Anio, IdEstructura, IdNodo), ' +
+    'CONSTRAINT FK_prc_cronograma_tree FOREIGN KEY (IdEstructura, IdNodo) ' +
+    'REFERENCES tb_tree(IdEstructura, id)');
+
+  // Cajas de la transferencia (numeracion consecutiva por proceso).
+  Tabla('prc_caja',
+    'IdProceso INT NOT NULL, ' +
+    'Caja INT NOT NULL, ' +
+    'Tipo VARCHAR(100) NULL, ' +
+    'Descripcion VARCHAR(255) NULL, ' +
+    'FDesde DATETIME NULL, ' +
+    'FHasta DATETIME NULL, ' +
+    'Unidades INT NOT NULL, ' +
+    'CONSTRAINT PK_prc_caja PRIMARY KEY (IdProceso, Caja), ' +
+    'CONSTRAINT FK_prc_caja_proceso FOREIGN KEY (IdProceso) ' +
+    'REFERENCES prc_proceso(IdProceso) ON DELETE CASCADE');
+
+  // Verificaciones previas a la entrega (casillas marcadas por el usuario).
+  Tabla('prc_verificacion',
+    'IdProceso INT NOT NULL, ' +
+    'Codigo VARCHAR(30) NOT NULL, ' +
+    'Marcada ' + TBitNo + ', ' +
+    'CONSTRAINT PK_prc_verificacion PRIMARY KEY (IdProceso, Codigo), ' +
+    'CONSTRAINT FK_prc_verificacion_proceso FOREIGN KEY (IdProceso) ' +
+    'REFERENCES prc_proceso(IdProceso) ON DELETE CASCADE');
+
   // Para saber rapido que documentos de un nodo estan bloqueados.
   Indice('IX_prc_unidad_nodo', 'prc_unidad', 'IdEstructura, id');
   // Para los contadores y pestanas de cada pantalla.
@@ -180,6 +229,8 @@ begin
   Indice('IX_prc_evento_proceso', 'prc_evento', 'IdProceso');
   // Para los vencimientos de los prestamos.
   Indice('IX_prc_prestamo_limite', 'prc_prestamo', 'FLimite');
+  // Para listar las unidades de una caja.
+  Indice('IX_prc_unidad_caja', 'prc_unidad', 'IdProceso, Caja');
 
   Result := Lista;
 end;
