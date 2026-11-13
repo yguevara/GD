@@ -1318,6 +1318,24 @@ object frmTransferenciasNuevo: TfrmTransferenciasNuevo
           Font.Style = []
           ParentFont = False
         end
+        object btnRelacion5: TcxButton
+          Left = 20
+          Top = 96
+          Width = 230
+          Height = 36
+          Caption = 'Imprimir relaci'#243'n de entrega'
+          TabOrder = 1
+          OnClick = btnRelacionClick
+        end
+        object btnEtiquetas5: TcxButton
+          Left = 264
+          Top = 96
+          Width = 230
+          Height = 36
+          Caption = 'Imprimir etiquetas de caja'
+          TabOrder = 2
+          OnClick = btnEtiquetasClick
+        end
       end
     end
   end

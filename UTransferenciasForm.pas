@@ -163,6 +163,8 @@ type
     btnRegistrarEntrega: TcxButton;
     btnRelacion: TcxButton;
     btnEtiquetas: TcxButton;
+    btnRelacion5: TcxButton;
+    btnEtiquetas5: TcxButton;
     lblEntInfo: TLabel;
     pnlPaso5: TPanel;
     lblP5: TLabel;
@@ -354,6 +356,8 @@ begin
   dteEntrega.Date := Date;
   btnRelacion.Visible := False;
   btnEtiquetas.Visible := False;
+  btnRelacion5.Visible := False;
+  btnEtiquetas5.Visible := False;
   lblNodoTrab.Visible := False;
   cboNodoTrabajo.Visible := False;
   AplicarTema;
@@ -409,12 +413,14 @@ procedure TfrmTransferenciasNuevo.SetAlImprimirRelacion(const Valor: TImprimirTr
 begin
   FAlImprimirRelacion := Valor;
   btnRelacion.Visible := Assigned(Valor);
+  btnRelacion5.Visible := Assigned(Valor);
 end;
 
 procedure TfrmTransferenciasNuevo.SetAlImprimirEtiquetas(const Valor: TImprimirTransferencia);
 begin
   FAlImprimirEtiquetas := Valor;
   btnEtiquetas.Visible := Assigned(Valor);
+  btnEtiquetas5.Visible := Assigned(Valor);
 end;
 
 { ---------------------------------- tema --------------------------------- }
