@@ -395,9 +395,30 @@ object frmPrestamos: TfrmPrestamos
       Color = 16383487
       TabOrder = 3
       Visible = False
-      object lblNuevoTipo: TLabel
+      object lblNuevoNodo: TLabel
         Left = 18
         Top = 8
+        Width = 3
+        Height = 15
+        Caption = 'Nodo ('#225'rea) donde se crea el pr'#233'stamo'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = 5924725
+        Font.Height = -11
+        Font.Name = 'Segoe UI'
+        Font.Style = []
+        ParentFont = False
+      end
+      object cboNodoTrabajo: TcxComboBox
+        Left = 18
+        Top = 26
+        Properties.DropDownListStyle = lsFixedList
+        Properties.OnChange = cboNodoTrabajoPropertiesChange
+        TabOrder = 0
+        Width = 403
+      end
+      object lblNuevoTipo: TLabel
+        Left = 18
+        Top = 64
         Width = 85
         Height = 15
         Caption = 'Tipo de usuario'
@@ -410,7 +431,7 @@ object frmPrestamos: TfrmPrestamos
       end
       object cboTipoUsuario: TcxComboBox
         Left = 18
-        Top = 26
+        Top = 82
         Properties.DropDownListStyle = lsFixedList
         Properties.Items.Strings = (
           'Interno'
@@ -422,7 +443,7 @@ object frmPrestamos: TfrmPrestamos
       end
       object lblNuevoLimite: TLabel
         Left = 230
-        Top = 8
+        Top = 64
         Width = 100
         Height = 15
         Caption = 'Devolver antes del'
@@ -435,13 +456,13 @@ object frmPrestamos: TfrmPrestamos
       end
       object dteNuevoLimite: TcxDateEdit
         Left = 230
-        Top = 26
+        Top = 82
         TabOrder = 1
         Width = 191
       end
       object lblNuevoSolicitante: TLabel
         Left = 18
-        Top = 56
+        Top = 112
         Width = 59
         Height = 15
         Caption = 'Solicitante'
@@ -454,13 +475,13 @@ object frmPrestamos: TfrmPrestamos
       end
       object edtSolicitante: TcxTextEdit
         Left = 18
-        Top = 72
+        Top = 128
         TabOrder = 2
         Width = 403
       end
       object lblNuevoCarnet: TLabel
         Left = 18
-        Top = 102
+        Top = 158
         Width = 105
         Height = 15
         Caption = 'Carnet de identidad'
@@ -473,14 +494,14 @@ object frmPrestamos: TfrmPrestamos
       end
       object edtCarnet: TcxTextEdit
         Left = 18
-        Top = 118
+        Top = 174
         Properties.MaxLength = 11
         TabOrder = 3
         Width = 190
       end
       object lblNuevoEntidad: TLabel
         Left = 230
-        Top = 102
+        Top = 158
         Width = 40
         Height = 15
         Caption = 'Entidad'
@@ -493,13 +514,13 @@ object frmPrestamos: TfrmPrestamos
       end
       object edtEntidad: TcxTextEdit
         Left = 230
-        Top = 118
+        Top = 174
         TabOrder = 4
         Width = 191
       end
       object lblNuevoBuscar: TLabel
         Left = 18
-        Top = 150
+        Top = 206
         Width = 111
         Height = 15
         Caption = 'Documentos a prestar'
@@ -512,7 +533,7 @@ object frmPrestamos: TfrmPrestamos
       end
       object edtBuscarDoc: TcxTextEdit
         Left = 18
-        Top = 168
+        Top = 224
         Properties.OnChange = edtBuscarDocPropertiesChange
         TabOrder = 5
         TextHint = 'C'#243'digo o t'#237'tulo del documento...'
@@ -520,7 +541,7 @@ object frmPrestamos: TfrmPrestamos
       end
       object grdBuscarDoc: TcxGrid
         Left = 18
-        Top = 198
+        Top = 254
         Width = 403
         Height = 120
         Anchors = [akLeft, akTop, akRight]
@@ -582,7 +603,7 @@ object frmPrestamos: TfrmPrestamos
       end
       object btnAgregarDoc: TcxButton
         Left = 18
-        Top = 322
+        Top = 378
         Width = 120
         Height = 28
         Caption = 'Agregar'
@@ -591,7 +612,7 @@ object frmPrestamos: TfrmPrestamos
       end
       object lblNuevoElegidos: TLabel
         Left = 150
-        Top = 330
+        Top = 386
         Width = 117
         Height = 15
         Caption = 'Documentos elegidos'
@@ -604,7 +625,7 @@ object frmPrestamos: TfrmPrestamos
       end
       object grdElegidos: TcxGrid
         Left = 18
-        Top = 356
+        Top = 412
         Width = 403
         Height = 80
         Anchors = [akLeft, akTop, akRight]
@@ -655,7 +676,7 @@ object frmPrestamos: TfrmPrestamos
       end
       object lblNuevoAyuda: TLabel
         Left = 18
-        Top = 442
+        Top = 498
         Width = 3
         Height = 15
         Font.Charset = DEFAULT_CHARSET
@@ -667,7 +688,7 @@ object frmPrestamos: TfrmPrestamos
       end
       object lblNuevoError: TLabel
         Left = 18
-        Top = 462
+        Top = 518
         Width = 3
         Height = 15
         Font.Charset = DEFAULT_CHARSET

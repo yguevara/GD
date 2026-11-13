@@ -124,7 +124,9 @@ uses
   UTransferenciasReglas in '..\UTransferenciasReglas.pas',
   UPruebasTransferenciasReglas in 'UPruebasTransferenciasReglas.pas',
   UTransferenciasDatos in '..\UTransferenciasDatos.pas',
-  UPruebasTransferenciasDatos in 'UPruebasTransferenciasDatos.pas';
+  UPruebasTransferenciasDatos in 'UPruebasTransferenciasDatos.pas',
+  UOpcionNodo in '..\UOpcionNodo.pas',
+  UPruebasOpcionNodo in 'UPruebasOpcionNodo.pas';
 
 var
   Corredor: ITestRunner;

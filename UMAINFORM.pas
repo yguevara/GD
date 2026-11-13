@@ -33,7 +33,7 @@ uses
   cxDBRichEdit, System.Generics.Collections, cxSplitter, AdvListV, DBAdvLst,
   IniFiles, cxSpinEdit, Vcl.Grids, Vcl.DBGrids, JvDBControls, cxMaskEdit,
   dxScreenTip, dxCustomHint, cxHint, cxEditRepositoryItems, cxGroupBox,
-  UBusqueda, UAlcance, UInicioDatos, UPanelDocumentos, UBarraTrabajo, UBloqueAccion, UPanelLateral,
+  UBusqueda, UAlcance, UOpcionNodo, UInicioDatos, UPanelDocumentos, UBarraTrabajo, UBloqueAccion, UPanelLateral,
   UCargaDocumento, UAgregarFicheros, UEdicionDocumento, UFormularioDocumento, UDocumentoVista, UMigracionPantalla, UExpedienteCompleto, UProgresoTransferencia, UTrazabilidad, UTrazabilidadDatos,
   UAlmacenFicheros, UAlmacenServidor;
 
@@ -517,6 +517,7 @@ type
     function CerrarPantallasExternas: Boolean;
     procedure AbrirPrestamos;
     function NodosDelArbolElegido: TArray<TClaveNodo>;
+    function NodosDondeActua(Accion: TAccion): TArray<TOpcionNodo>;
     procedure AbrirTransferencias;
     procedure pmtvResetClick(Sender: TObject);
     procedure S1Click(Sender: TObject);
@@ -2389,6 +2390,8 @@ end;
 // -----------------------------------------------------------------------------
 procedure TMAIN.AplicarSesion(const AUsuario, ARol: string);
 begin
+  // las pantallas de procesos abiertas conservan los permisos de la sesion anterior
+  CerrarPantallasExternas;
   UDM.Rol := ARol;
   UDM.UserName := AUsuario;
   UDM.EstablecerAlcance(AUsuario, SameText(ARol, 'Administrador'));
@@ -10056,9 +10059,8 @@ begin
         raise Exception.Create('No hay nodos en el arbol.');
       Pantalla := CrearPantallaPrestamos(UDM.Conn, Nodos.ToArray, Nodos[0], UDM.Alcance,
         UDM.UserName);
-      // solo el especialista de gestion documental presta en su nodo
-      Pantalla.PuedeActuar := (UDM.Alcance = nil) or
-        UDM.Alcance.PuedeRealizar(acPrestar, Nodos[0], '');
+      // solo el especialista de gestion documental presta, y solo en sus nodos
+      Pantalla.FijarNodosDeTrabajo(NodosDondeActua(acPrestar), Nodos[0]);
       // impresos oficiales (Anexos 8.2 y 8.3); los .fr3 estan en la carpeta Report
       Carpeta := ExtractFilePath(Application.ExeName) + 'Report\';
       Pantalla.AlImprimirSolicitud :=
@@ -10141,6 +10143,51 @@ begin
   end;
 end;
 
+// Nodos del arbol sobre los que el usuario puede realizar Accion (prestar,
+// transferir...), con su ruta para mostrar. Sin alcance (Access) son todos.
+function TMAIN.NodosDondeActua(Accion: TAccion): TArray<TOpcionNodo>;
+var
+  Lista: TList<TOpcionNodo>;
+  Raiz: TTreeNode;
+
+  procedure Recorrer(ANodo: TTreeNode; const Ruta: string);
+  var
+    Hijo: TTreeNode;
+    O: TOpcionNodo;
+    Texto: string;
+  begin
+    Texto := RutaTexto([Ruta, ANodo.Text]);
+    if ANodo.Data <> nil then
+    begin
+      O.Clave.IdEstructura := PDataRec(ANodo.Data).estruct;
+      O.Clave.Id := PDataRec(ANodo.Data).Id;
+      O.Texto := Texto;
+      if (UDM.Alcance = nil) or UDM.Alcance.PuedeRealizar(Accion, O.Clave, '') then
+        Lista.Add(O);
+    end;
+    Hijo := ANodo.GetFirstChild;
+    while Hijo <> nil do
+    begin
+      Recorrer(Hijo, Texto);
+      Hijo := Hijo.GetNextSibling;
+    end;
+  end;
+
+begin
+  Lista := TList<TOpcionNodo>.Create;
+  try
+    Raiz := tvTree.Items.GetFirstNode;
+    while Raiz <> nil do
+    begin
+      Recorrer(Raiz, '');
+      Raiz := Raiz.GetNextSibling;
+    end;
+    Result := Lista.ToArray;
+  finally
+    Lista.Free;
+  end;
+end;
+
 // Transferencias: pantalla nueva (UTransferenciasForm) DENTRO de la ventana principal.
 // Con procesos_clasico.flag, sin ventana principal nueva o si la pantalla nueva falla
 // al abrirse, se usa la antigua (btnTransfer).
@@ -10161,9 +10208,8 @@ begin
       raise Exception.Create('No hay nodos en el arbol.');
     Pantalla := CrearPantallaTransferencias(UDM.Conn, Nodos, Nodos[0], UDM.Alcance,
       UDM.UserName);
-    // solo el especialista de gestion documental transfiere en su nodo
-    Pantalla.PuedeActuar := (UDM.Alcance = nil) or
-      UDM.Alcance.PuedeRealizar(acTransferir, Nodos[0], '');
+    // solo el especialista de gestion documental transfiere, y solo en sus nodos
+    Pantalla.FijarNodosDeTrabajo(NodosDondeActua(acTransferir), Nodos[0]);
     // impresos oficiales (Anexo 16 y etiquetas de caja); los .fr3 estan en la carpeta Report
     Carpeta := ExtractFilePath(Application.ExeName) + 'Report';
     Pantalla.AlImprimirRelacion :=

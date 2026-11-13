@@ -36,7 +36,7 @@ uses
   cxMaskEdit, cxDropDownEdit, cxCalendar, cxMemo, cxButtons, cxGridLevel, cxClasses,
   cxGridCustomView, cxGridCustomTableView, cxGridTableView, cxGrid,
   FireDAC.Comp.Client, UAlcance, UProceso, UTema, UCandados, UProcesoPintura,
-  UPantallaProceso, UPrestamosReglas, UPrestamosDatos;
+  UPantallaProceso, UOpcionNodo, UPrestamosReglas, UPrestamosDatos;
 
 type
   { Pide imprimir la solicitud (Anexo 8.2) de un prestamo. }
@@ -79,6 +79,8 @@ type
     btnImprimir: TcxButton;
     btnCancelarPrestamo: TcxButton;
     pnlNuevo: TScrollBox;
+    lblNuevoNodo: TLabel;
+    cboNodoTrabajo: TcxComboBox;
     lblNuevoTipo: TLabel;
     cboTipoUsuario: TcxComboBox;
     lblNuevoLimite: TLabel;
@@ -171,6 +173,7 @@ type
     procedure btnImprimirClick(Sender: TObject);
     procedure btnCancelarPrestamoClick(Sender: TObject);
     procedure cboTipoUsuarioPropertiesChange(Sender: TObject);
+    procedure cboNodoTrabajoPropertiesChange(Sender: TObject);
     procedure edtBuscarDocPropertiesChange(Sender: TObject);
     procedure tmrBuscarDocTimer(Sender: TObject);
     procedure tvBuscarDocCellDblClick(Sender: TcxCustomGridTableView;
@@ -187,6 +190,7 @@ type
     FConn: TFDConnection;
     FNodos: TArray<TClaveNodo>;
     FNodoActual: TClaveNodo;
+    FOpciones: TArray<TOpcionNodo>;
     FAlcance: TAlcanceUsuario;
     FUsuario: string;
     FTema: TTemaColores;
@@ -252,6 +256,10 @@ type
     procedure MostrarBuscados(const Docs: TArray<TDocumentoBuscado>);
     { Abre el panel de prestamo nuevo (con los campos vacios). }
     procedure MostrarNuevo;
+    { Nodos donde el usuario puede crear prestamos (los arma la ventana principal)
+      y el nodo que se prefiere elegir. Sin ninguno, la pantalla es de solo consulta. }
+    procedure FijarNodosDeTrabajo(const Opciones: TArray<TOpcionNodo>;
+      const Preferido: TClaveNodo);
     { IPantallaProceso }
     procedure Embeber(Host: TWinControl);
     function PuedeSalir: Boolean;
@@ -323,6 +331,8 @@ begin
   FNombresPasos := ['Solicitado', 'Entregado', 'Devuelto'];
   cboTipoUsuario.ItemIndex := 0;
   btnRegistro.Visible := False;
+  lblNuevoNodo.Visible := False;
+  cboNodoTrabajo.Visible := False;
   AplicarTema;
   ActualizarCamposExterno;
 end;
@@ -343,6 +353,33 @@ procedure TfrmPrestamos.btnRegistroClick(Sender: TObject);
 begin
   if Assigned(FAlImprimirRegistro) then
     FAlImprimirRegistro(YearOf(Date));
+end;
+
+procedure TfrmPrestamos.FijarNodosDeTrabajo(const Opciones: TArray<TOpcionNodo>;
+  const Preferido: TClaveNodo);
+var
+  I, Sel: Integer;
+begin
+  FOpciones := Opciones;
+  cboNodoTrabajo.Properties.Items.Clear;
+  for I := 0 to High(Opciones) do
+    cboNodoTrabajo.Properties.Items.Add(Opciones[I].Texto);
+  Sel := ElegirNodo(Opciones, Preferido);
+  cboNodoTrabajo.ItemIndex := Sel;
+  if Sel >= 0 then
+    FNodoActual := Opciones[Sel].Clave;
+  lblNuevoNodo.Visible := Sel >= 0;
+  cboNodoTrabajo.Visible := Sel >= 0;
+  PuedeActuar := Sel >= 0;
+end;
+
+procedure TfrmPrestamos.cboNodoTrabajoPropertiesChange(Sender: TObject);
+var
+  I: Integer;
+begin
+  I := cboNodoTrabajo.ItemIndex;
+  if (I >= 0) and (I <= High(FOpciones)) then
+    FNodoActual := FOpciones[I].Clave;
 end;
 
 procedure TfrmPrestamos.SetPuedeActuar(Valor: Boolean);
@@ -1025,9 +1062,10 @@ begin
   // el boton responde siempre: si el rol no puede prestar, se explica por que
   if not FPuedeActuar then
   begin
-    TMensajes.Informacion('Solo el especialista de gesti' + #243 + 'n documental (EGD) del ' +
-      #225 + 'rea puede crear y cambiar pr' + #233 + 'stamos. Con su rol actual solo ' +
-      'puede consultarlos.', 'Pr' + #233 + 'stamos');
+    TMensajes.Informacion('Su usuario no es especialista de gesti' + #243 + 'n documental ' +
+      '(EGD) de ning' + #250 + 'n ' + #225 + 'rea, as' + #237 + ' que solo puede consultar los ' +
+      'pr' + #233 + 'stamos. Un administrador asigna los EGD en Administraci' + #243 +
+      'n de usuarios.', 'Pr' + #233 + 'stamos');
     Exit;
   end;
   MostrarNuevo;

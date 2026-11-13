@@ -65,9 +65,9 @@ object frmTransferenciasNuevo: TfrmTransferenciasNuevo
         ParentFont = False
       end
       object pnlCabeceraAcciones: TPanel
-        Left = 880
+        Left = 600
         Top = 0
-        Width = 400
+        Width = 680
         Height = 65
         Align = alRight
         BevelOuter = bvNone
@@ -75,8 +75,29 @@ object frmTransferenciasNuevo: TfrmTransferenciasNuevo
         ParentBackground = False
         ShowCaption = False
         TabOrder = 0
-        object btnAbrir: TcxButton
+        object lblNodoTrab: TLabel
           Left = 10
+          Top = 6
+          Width = 3
+          Height = 15
+          Caption = 'Crear en el nodo'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = 5924725
+          Font.Height = -11
+          Font.Name = 'Segoe UI'
+          Font.Style = []
+          ParentFont = False
+        end
+        object cboNodoTrabajo: TcxComboBox
+          Left = 10
+          Top = 26
+          Properties.DropDownListStyle = lsFixedList
+          Properties.OnChange = cboNodoTrabajoPropertiesChange
+          TabOrder = 2
+          Width = 265
+        end
+        object btnAbrir: TcxButton
+          Left = 290
           Top = 15
           Width = 100
           Height = 36
@@ -85,7 +106,7 @@ object frmTransferenciasNuevo: TfrmTransferenciasNuevo
           OnClick = btnAbrirClick
         end
         object btnNueva: TcxButton
-          Left = 124
+          Left = 404
           Top = 15
           Width = 200
           Height = 36

@@ -33,7 +33,7 @@ uses
   cxMaskEdit, cxDropDownEdit, cxCalendar, cxSpinEdit, cxButtons, cxGridLevel,
   cxClasses, cxGridCustomView, cxGridCustomTableView, cxGridTableView, cxGrid,
   FireDAC.Comp.Client, UAlcance, UProceso, UTema, UAutorizacion, UProcesoPintura,
-  UPantallaProceso, UTransferenciasReglas, UTransferenciasDatos;
+  UPantallaProceso, UOpcionNodo, UTransferenciasReglas, UTransferenciasDatos;
 
 type
   { Pide imprimir un impreso de una transferencia. }
@@ -45,6 +45,8 @@ type
     lblTitulo: TLabel;
     lblSubtitulo: TLabel;
     pnlCabeceraAcciones: TPanel;
+    lblNodoTrab: TLabel;
+    cboNodoTrabajo: TcxComboBox;
     btnAbrir: TcxButton;
     btnNueva: TcxButton;
     pnlCabeceraLinea: TPanel;
@@ -172,6 +174,7 @@ type
     procedure tvCustomDrawColumnHeader(Sender: TcxGridTableView; ACanvas: TcxCanvas;
       AViewInfo: TcxGridColumnHeaderViewInfo; var ADone: Boolean);
     procedure btnNuevaClick(Sender: TObject);
+    procedure cboNodoTrabajoPropertiesChange(Sender: TObject);
     procedure btnAbrirClick(Sender: TObject);
     procedure btnProgramarClick(Sender: TObject);
     procedure tvTransferenciasCellDblClick(Sender: TcxCustomGridTableView;
@@ -196,6 +199,7 @@ type
     FConn: TFDConnection;
     FNodos: TArray<TClaveNodo>;
     FNodoActual: TClaveNodo;
+    FOpciones: TArray<TOpcionNodo>;
     FAlcance: TAlcanceUsuario;
     FUsuario: string;
     FTema: TTemaColores;
@@ -234,6 +238,11 @@ type
       nodo donde se crean las nuevas, alcance del usuario y usuario. Carga la lista. }
     procedure Iniciar(Conn: TFDConnection; const Nodos: TArray<TClaveNodo>;
       const NodoActual: TClaveNodo; Alcance: TAlcanceUsuario; const Usuario: string);
+    { Nodos donde el usuario puede crear transferencias (los arma la ventana
+      principal) y el nodo que se prefiere elegir. Sin ninguno, la pantalla es de
+      solo consulta. }
+    procedure FijarNodosDeTrabajo(const Opciones: TArray<TOpcionNodo>;
+      const Preferido: TClaveNodo);
     { Presentacion sin leer la base (la usan los metodos que leen y las pruebas
       visuales). }
     procedure MostrarLista(const Filas: TArray<TTransferenciaFila>;
@@ -341,6 +350,8 @@ begin
   dteEntrega.Date := Date;
   btnRelacion.Visible := False;
   btnEtiquetas.Visible := False;
+  lblNodoTrab.Visible := False;
+  cboNodoTrabajo.Visible := False;
   AplicarTema;
 end;
 
@@ -361,6 +372,33 @@ begin
   FPuedeActuar := Valor;
   if pnlDetalle.Visible then
     MostrarDetalle(FActual);
+end;
+
+procedure TfrmTransferenciasNuevo.FijarNodosDeTrabajo(const Opciones: TArray<TOpcionNodo>;
+  const Preferido: TClaveNodo);
+var
+  I, Sel: Integer;
+begin
+  FOpciones := Opciones;
+  cboNodoTrabajo.Properties.Items.Clear;
+  for I := 0 to High(Opciones) do
+    cboNodoTrabajo.Properties.Items.Add(Opciones[I].Texto);
+  Sel := ElegirNodo(Opciones, Preferido);
+  cboNodoTrabajo.ItemIndex := Sel;
+  if Sel >= 0 then
+    FNodoActual := Opciones[Sel].Clave;
+  lblNodoTrab.Visible := Sel >= 0;
+  cboNodoTrabajo.Visible := Sel >= 0;
+  PuedeActuar := Sel >= 0;
+end;
+
+procedure TfrmTransferenciasNuevo.cboNodoTrabajoPropertiesChange(Sender: TObject);
+var
+  I: Integer;
+begin
+  I := cboNodoTrabajo.ItemIndex;
+  if (I >= 0) and (I <= High(FOpciones)) then
+    FNodoActual := FOpciones[I].Clave;
 end;
 
 procedure TfrmTransferenciasNuevo.SetAlImprimirRelacion(const Valor: TImprimirTransferencia);
@@ -529,9 +567,10 @@ end;
 { El boton responde siempre: si el rol no puede transferir, se explica por que. }
 procedure TfrmTransferenciasNuevo.AvisarSinPermiso;
 begin
-  TMensajes.Informacion('Solo el especialista de gesti' + #243 + 'n documental (EGD) del ' +
-    #225 + 'rea puede crear y cambiar transferencias. Con su rol actual solo puede ' +
-    'consultarlas.', 'Transferencias');
+  TMensajes.Informacion('Su usuario no es especialista de gesti' + #243 + 'n documental ' +
+    '(EGD) de ning' + #250 + 'n ' + #225 + 'rea, as' + #237 + ' que solo puede consultar las ' +
+    'transferencias. Un administrador asigna los EGD en Administraci' + #243 + 'n de usuarios.',
+    'Transferencias');
 end;
 
 procedure TfrmTransferenciasNuevo.PedirSalir;

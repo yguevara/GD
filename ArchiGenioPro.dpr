@@ -26,6 +26,7 @@ uses
   UPrestamosReglas in 'UPrestamosReglas.pas',
   UPrestamosDatos in 'UPrestamosDatos.pas',
   UPrestamosMigracion in 'UPrestamosMigracion.pas',
+  UOpcionNodo in 'UOpcionNodo.pas',
   UProcesoPintura in 'UProcesoPintura.pas',
   UPantallaProceso in 'UPantallaProceso.pas',
   UPrestamosForm in 'UPrestamosForm.pas' {frmPrestamos},
