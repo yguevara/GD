@@ -110,7 +110,9 @@ uses
   UProcesosDatos in '..\UProcesosDatos.pas',
   UPruebasProcesosDatos in 'UPruebasProcesosDatos.pas',
   UProcesosInterruptor in '..\UProcesosInterruptor.pas',
-  UPruebasProcesosInterruptor in 'UPruebasProcesosInterruptor.pas';
+  UPruebasProcesosInterruptor in 'UPruebasProcesosInterruptor.pas',
+  UPrestamosReglas in '..\UPrestamosReglas.pas',
+  UPruebasPrestamosReglas in 'UPruebasPrestamosReglas.pas';
 
 var
   Corredor: ITestRunner;
