@@ -33,7 +33,7 @@ uses
   Vcl.ExtCtrls, cxGraphics, cxControls, cxLookAndFeels, cxLookAndFeelPainters,
   cxStyles, dxSkinsCore, dxSkinsDefaultPainters, cxCustomData, cxFilter, cxData,
   cxDataStorage, cxEdit, cxNavigator, dxDateRanges, cxContainer, cxTextEdit,
-  cxMaskEdit, cxDropDownEdit, cxCalendar, cxButtons, cxGridLevel, cxClasses,
+  cxMaskEdit, cxDropDownEdit, cxCalendar, cxMemo, cxButtons, cxGridLevel, cxClasses,
   cxGridCustomView, cxGridCustomTableView, cxGridTableView, cxGrid,
   FireDAC.Comp.Client, UAlcance, UProceso, UTema, UCandados, UProcesoPintura,
   UPantallaProceso, UPrestamosReglas, UPrestamosDatos;

@@ -109,7 +109,7 @@ object frmPrestamos: TfrmPrestamos
       end
       object lblSecSolicitante: TLabel
         Left = 18
-        Top = 28
+        Top = 30
         Width = 76
         Height = 13
         Caption = 'SOLICITANTE'
@@ -122,7 +122,7 @@ object frmPrestamos: TfrmPrestamos
       end
       object lblFichaSolicitante: TLabel
         Left = 18
-        Top = 44
+        Top = 48
         Width = 3
         Height = 17
         Font.Charset = DEFAULT_CHARSET
@@ -134,7 +134,7 @@ object frmPrestamos: TfrmPrestamos
       end
       object lblFichaDetalle: TLabel
         Left = 18
-        Top = 64
+        Top = 72
         Width = 3
         Height = 15
         Font.Charset = DEFAULT_CHARSET
@@ -146,7 +146,7 @@ object frmPrestamos: TfrmPrestamos
       end
       object lblSecFechas: TLabel
         Left = 18
-        Top = 90
+        Top = 104
         Width = 44
         Height = 13
         Caption = 'FECHAS'
@@ -159,7 +159,7 @@ object frmPrestamos: TfrmPrestamos
       end
       object lblFichaEntregaTit: TLabel
         Left = 18
-        Top = 106
+        Top = 124
         Width = 40
         Height = 15
         Caption = 'Entrega'
@@ -172,7 +172,7 @@ object frmPrestamos: TfrmPrestamos
       end
       object lblFichaEntrega: TLabel
         Left = 18
-        Top = 120
+        Top = 144
         Width = 3
         Height = 17
         Font.Charset = DEFAULT_CHARSET
@@ -184,7 +184,7 @@ object frmPrestamos: TfrmPrestamos
       end
       object lblFichaLimiteTit: TLabel
         Left = 230
-        Top = 106
+        Top = 124
         Width = 100
         Height = 15
         Caption = 'Devolver antes del'
@@ -197,7 +197,7 @@ object frmPrestamos: TfrmPrestamos
       end
       object lblFichaLimite: TLabel
         Left = 230
-        Top = 120
+        Top = 144
         Width = 3
         Height = 17
         Font.Charset = DEFAULT_CHARSET
@@ -209,7 +209,7 @@ object frmPrestamos: TfrmPrestamos
       end
       object lblFichaAtendido: TLabel
         Left = 18
-        Top = 142
+        Top = 170
         Width = 3
         Height = 15
         Font.Charset = DEFAULT_CHARSET
@@ -221,7 +221,7 @@ object frmPrestamos: TfrmPrestamos
       end
       object lblSecDocs: TLabel
         Left = 18
-        Top = 166
+        Top = 200
         Width = 82
         Height = 13
         Caption = 'DOCUMENTOS'
@@ -234,10 +234,10 @@ object frmPrestamos: TfrmPrestamos
       end
       object grdFichaDocs: TcxGrid
         Left = 18
-        Top = 182
+        Top = 220
         Width = 403
-        Height = 100
-        Anchors = [akLeft, akTop, akRight]
+        Height = 222
+        Anchors = [akLeft, akTop, akRight, akBottom]
         BorderStyle = cxcbsNone
         TabOrder = 0
         LookAndFeel.Kind = lfUltraFlat
@@ -249,6 +249,7 @@ object frmPrestamos: TfrmPrestamos
           OptionsData.Editing = False
           OptionsData.Inserting = False
           OptionsSelection.CellSelect = False
+          OptionsView.CellAutoHeight = True
           OptionsView.ColumnAutoWidth = True
           OptionsView.DataRowHeight = 30
           OptionsView.GridLineColor = 13031136
@@ -270,14 +271,17 @@ object frmPrestamos: TfrmPrestamos
             Width = 70
           end
           object colFichaTitulo: TcxGridColumn
+            PropertiesClassName = 'TcxMemoProperties'
+            Properties.ReadOnly = True
+            Properties.WordWrap = True
             Caption = 'T'#237'tulo'
             DataBinding.ValueType = 'String'
-            Width = 150
+            Width = 210
           end
           object colFichaUbicacion: TcxGridColumn
             Caption = 'Ubicaci'#243'n'
             DataBinding.ValueType = 'String'
-            Width = 150
+            Width = 90
           end
         end
         object lvFichaDocs: TcxGridLevel
@@ -286,7 +290,8 @@ object frmPrestamos: TfrmPrestamos
       end
       object lblFichaAccionTit: TLabel
         Left = 18
-        Top = 292
+        Top = 450
+        Anchors = [akLeft, akBottom]
         Width = 3
         Height = 15
         Font.Charset = DEFAULT_CHARSET
@@ -298,13 +303,15 @@ object frmPrestamos: TfrmPrestamos
       end
       object dteFichaLimite: TcxDateEdit
         Left = 18
-        Top = 310
+        Top = 470
+        Anchors = [akLeft, akBottom]
         TabOrder = 1
         Width = 180
       end
       object chkCompleto: TCheckBox
         Left = 18
-        Top = 340
+        Top = 500
+        Anchors = [akLeft, akBottom]
         Width = 190
         Height = 21
         Caption = 'Devuelto completo'
@@ -314,7 +321,8 @@ object frmPrestamos: TfrmPrestamos
       end
       object edtObservacion: TcxTextEdit
         Left = 18
-        Top = 366
+        Top = 526
+        Anchors = [akLeft, akRight, akBottom]
         TabOrder = 3
         TextHint = 'Observaciones de la devoluci'#243'n'
         Width = 403
@@ -528,6 +536,7 @@ object frmPrestamos: TfrmPrestamos
           OptionsData.Editing = False
           OptionsData.Inserting = False
           OptionsSelection.CellSelect = False
+          OptionsView.CellAutoHeight = True
           OptionsView.ColumnAutoWidth = True
           OptionsView.DataRowHeight = 30
           OptionsView.GridLineColor = 13031136
@@ -549,19 +558,22 @@ object frmPrestamos: TfrmPrestamos
             Width = 70
           end
           object colBuscarTitulo: TcxGridColumn
+            PropertiesClassName = 'TcxMemoProperties'
+            Properties.ReadOnly = True
+            Properties.WordWrap = True
             Caption = 'T'#237'tulo'
             DataBinding.ValueType = 'String'
-            Width = 120
+            Width = 170
           end
           object colBuscarUbicacion: TcxGridColumn
             Caption = 'Ubicaci'#243'n'
             DataBinding.ValueType = 'String'
-            Width = 110
+            Width = 80
           end
           object colBuscarEstado: TcxGridColumn
             Caption = 'Estado'
             DataBinding.ValueType = 'String'
-            Width = 100
+            Width = 90
           end
         end
         object lvBuscarDoc: TcxGridLevel
@@ -607,6 +619,7 @@ object frmPrestamos: TfrmPrestamos
           OptionsData.Editing = False
           OptionsData.Inserting = False
           OptionsSelection.CellSelect = False
+          OptionsView.CellAutoHeight = True
           OptionsView.ColumnAutoWidth = True
           OptionsView.DataRowHeight = 28
           OptionsView.GridLineColor = 13031136
@@ -628,6 +641,9 @@ object frmPrestamos: TfrmPrestamos
             Width = 90
           end
           object colElegidoTitulo: TcxGridColumn
+            PropertiesClassName = 'TcxMemoProperties'
+            Properties.ReadOnly = True
+            Properties.WordWrap = True
             Caption = 'T'#237'tulo'
             DataBinding.ValueType = 'String'
             Width = 300
@@ -902,6 +918,7 @@ object frmPrestamos: TfrmPrestamos
           OptionsData.Editing = False
           OptionsData.Inserting = False
           OptionsSelection.CellSelect = False
+          OptionsView.CellAutoHeight = True
           OptionsView.ColumnAutoWidth = True
           OptionsView.DataRowHeight = 42
           OptionsView.GridLineColor = 13031136
