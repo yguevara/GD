@@ -898,7 +898,9 @@ begin
       1:
         begin
           MostrarAgregados(GruposDeLaTransferencia(FConn, FActual.IdProceso));
-          MostrarPropuesta(ProponerTransferencia(FConn, FNodos, Now, chkAnticipada.Checked));
+          // solo las series del area (nodo) de esta transferencia
+          MostrarPropuesta(ProponerTransferencia(FConn, [FActual.Nodo], Now,
+            chkAnticipada.Checked));
         end;
       2:
         begin

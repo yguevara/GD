@@ -632,7 +632,7 @@ object frmTransferenciasNuevo: TfrmTransferenciasNuevo
                 OptionsView.GroupByBox = False
                 OptionsView.HeaderHeight = 30
                 OptionsView.Indicator = False
-                OptionsView.NoDataToDisplayInfoText = 'No hay documentos con el plazo vencido'
+                OptionsView.NoDataToDisplayInfoText = 'No hay documentos con el plazo vencido. Marque "Mostrar tambi'#233'n las que a'#250'n no vencen" para ver todos.'
                 Styles.Background = stContenido
                 Styles.Content = stContenido
                 Styles.ContentEven = stContenido

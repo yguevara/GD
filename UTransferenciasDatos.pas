@@ -50,6 +50,7 @@ type
     FPrevista, FEntrega: TDateTime;     // 0 = sin fecha
     Cajas, Unidades: Integer;
     Proceso: TEstadoProceso;
+    Nodo: TClaveNodo;                   // nodo (area) remitente de la transferencia
   end;
 
   TCronogramaFila = record
@@ -983,7 +984,7 @@ begin
       Q := TFDQuery.Create(nil);
       try
         Q.Connection := Conn;
-        Q.SQL.Text := 'SELECT TOP ' + IntToStr(Tope) + ' p.IdProceso, p.Anio, ' +
+        Q.SQL.Text := 'SELECT TOP ' + IntToStr(Tope) + ' p.IdProceso, p.Anio, p.IdEstructura, p.IdNodo, ' +
           'p.Consecutivo, p.Numero, p.Estado, p.Paso, N.etiqueta AS Remitente, ' +
           't.FPrevista, t.FEntrega, ' +
           '(SELECT COUNT(*) FROM prc_unidad u WHERE u.IdProceso = p.IdProceso) AS Unidades, ' +
@@ -1003,6 +1004,8 @@ begin
           F.Consecutivo := Q.FieldByName('Consecutivo').AsInteger;
           F.Numero := Trim(Q.FieldByName('Numero').AsString);
           F.Remitente := Q.FieldByName('Remitente').AsString;
+          F.Nodo.IdEstructura := Q.FieldByName('IdEstructura').AsString;
+          F.Nodo.Id := Q.FieldByName('IdNodo').AsInteger;
           F.Paso := Q.FieldByName('Paso').AsInteger;
           F.Proceso := EstadoDesdeCodigo(Q.FieldByName('Estado').AsString);
           F.Estado := TextoEstadoTransferencia(F.Paso, F.Proceso);
