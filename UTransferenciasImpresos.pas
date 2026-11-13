@@ -162,7 +162,7 @@ var
   Rep: TfrxReport;
 begin
   LeerCabecera(Conn, IdProceso, D);
-  Rep := PrepararRelacion(CarpetaReportes + ARCHIVO_RELACION, D,
+  Rep := PrepararRelacion(IncludeTrailingPathDelimiter(CarpetaReportes) + ARCHIVO_RELACION, D,
     RelacionDeEntrega(Conn, IdProceso));
   try
     Rep.ShowReport;
@@ -223,7 +223,7 @@ begin
   end;
   if Length(Docs) = 0 then
     raise EArgumentException.Create('La transferencia no tiene cajas numeradas.');
-  Rep := PrepararEtiquetas(CarpetaReportes + ARCHIVO_ETIQUETAS, D, Docs);
+  Rep := PrepararEtiquetas(IncludeTrailingPathDelimiter(CarpetaReportes) + ARCHIVO_ETIQUETAS, D, Docs);
   try
     Rep.ShowReport;
   finally
