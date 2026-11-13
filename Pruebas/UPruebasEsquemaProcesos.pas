@@ -125,8 +125,8 @@ end;
 
 procedure TPruebasEsquemaProcesosSql.Access_UsaCounterEnLasClavesAutonumericas;
 begin
-  Assert.AreEqual(2, Contar(Todo(False), 'COUNTER'), 'IdProceso e IdEvento');
-  Assert.AreEqual(2, Contar(Todo(True), 'IDENTITY(1,1)'));
+  Assert.AreEqual(3, Contar(Todo(False), 'COUNTER'), 'IdProceso, IdEvento e IdCronograma');
+  Assert.AreEqual(3, Contar(Todo(True), 'IDENTITY(1,1)'));
 end;
 
 procedure TPruebasEsquemaProcesosSql.Proceso_TieneClaveUnicaTipoAnioConsecutivo;
