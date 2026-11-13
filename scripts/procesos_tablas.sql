@@ -80,6 +80,25 @@ CREATE TABLE prc_bloqueo (
     REFERENCES prc_proceso(IdProceso) ON DELETE CASCADE
 );
 
+IF OBJECT_ID('dbo.prc_prestamo', 'U') IS NULL
+CREATE TABLE prc_prestamo (
+  IdProceso INT NOT NULL,
+  Solicitante VARCHAR(150) NOT NULL,
+  Carnet VARCHAR(20) NULL,
+  Entidad VARCHAR(150) NULL,
+  TipoUsuario VARCHAR(1) NOT NULL,
+  FEntrega DATETIME NULL,
+  FLimite DATETIME NULL,
+  FDevolucion DATETIME NULL,
+  AtendidoPor VARCHAR(100) NULL,
+  Obs VARCHAR(255) NULL,
+  Completo BIT NULL,
+  IdPrestamoViejo VARCHAR(12) NULL,
+  CONSTRAINT PK_prc_prestamo PRIMARY KEY (IdProceso),
+  CONSTRAINT FK_prc_prestamo_proceso FOREIGN KEY (IdProceso)
+    REFERENCES prc_proceso(IdProceso) ON DELETE CASCADE
+);
+
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_prc_unidad_nodo' AND object_id = OBJECT_ID('dbo.prc_unidad'))
 CREATE INDEX IX_prc_unidad_nodo ON prc_unidad (IdEstructura, id);
 
@@ -88,3 +107,6 @@ CREATE INDEX IX_prc_proceso_estado ON prc_proceso (Estado, Tipo);
 
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_prc_evento_proceso' AND object_id = OBJECT_ID('dbo.prc_evento'))
 CREATE INDEX IX_prc_evento_proceso ON prc_evento (IdProceso);
+
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_prc_prestamo_limite' AND object_id = OBJECT_ID('dbo.prc_prestamo'))
+CREATE INDEX IX_prc_prestamo_limite ON prc_prestamo (FLimite);

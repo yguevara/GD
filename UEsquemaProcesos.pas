@@ -14,6 +14,7 @@ unit UEsquemaProcesos;
     prc_evento       : bitacora de cambios de estado.
     prc_autorizacion : acta y acuerdo de la Comision (una por proceso).
     prc_bloqueo      : candado por documento (un proceso abierto a la vez).
+    prc_prestamo     : datos propios del prestamo (solicitante, fechas, devolucion).
   Las tablas propias de cada modulo (cajas, incidencias, testigos, muestras,
   datos del prestamo) las agrega cada fase en este mismo archivo.
   Tipo: 'P' prestamo, 'T' transferencia, 'D' depuracion.
@@ -153,12 +154,32 @@ begin
     'CONSTRAINT FK_prc_bloqueo_proceso FOREIGN KEY (IdProceso) ' +
     'REFERENCES prc_proceso(IdProceso) ON DELETE CASCADE');
 
+  // Datos propios del prestamo (uno por proceso de tipo 'P').
+  Tabla('prc_prestamo',
+    'IdProceso INT NOT NULL, ' +
+    'Solicitante VARCHAR(150) NOT NULL, ' +
+    'Carnet VARCHAR(20) NULL, ' +
+    'Entidad VARCHAR(150) NULL, ' +
+    'TipoUsuario VARCHAR(1) NOT NULL, ' +
+    'FEntrega DATETIME NULL, ' +
+    'FLimite DATETIME NULL, ' +
+    'FDevolucion DATETIME NULL, ' +
+    'AtendidoPor VARCHAR(100) NULL, ' +
+    'Obs VARCHAR(255) NULL, ' +
+    'Completo BIT NULL, ' +
+    'IdPrestamoViejo VARCHAR(12) NULL, ' +
+    'CONSTRAINT PK_prc_prestamo PRIMARY KEY (IdProceso), ' +
+    'CONSTRAINT FK_prc_prestamo_proceso FOREIGN KEY (IdProceso) ' +
+    'REFERENCES prc_proceso(IdProceso) ON DELETE CASCADE');
+
   // Para saber rapido que documentos de un nodo estan bloqueados.
   Indice('IX_prc_unidad_nodo', 'prc_unidad', 'IdEstructura, id');
   // Para los contadores y pestanas de cada pantalla.
   Indice('IX_prc_proceso_estado', 'prc_proceso', 'Estado, Tipo');
   // Para la bitacora de un proceso.
   Indice('IX_prc_evento_proceso', 'prc_evento', 'IdProceso');
+  // Para los vencimientos de los prestamos.
+  Indice('IX_prc_prestamo_limite', 'prc_prestamo', 'FLimite');
 
   Result := Lista;
 end;
