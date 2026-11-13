@@ -57,59 +57,12 @@ procedure ImprimirRegistro(Conn: TFDConnection; const Nodos: TArray<TClaveNodo>;
 implementation
 
 uses
-  System.Classes, System.Generics.Collections, System.Variants, Data.DB, frxDBSet;
+  System.Classes, System.Generics.Collections, System.Variants, Data.DB,
+  UImpresosComun;
 
 const
   ARCHIVO_SOLICITUD = 'rSolicitudPrestamo.fr3';
   ARCHIVO_REGISTRO = 'rRegistroPrestamos.fr3';
-
-function Fecha(D: TDateTime): string;
-begin
-  if D = 0 then
-    Result := ''
-  else
-    Result := FormatDateTime('dd/mm/yyyy', D);
-end;
-
-{ Valor de una variable de FastReport: el texto entre comillas simples. }
-function Cadena(const S: string): string;
-begin
-  Result := QuotedStr(S);
-end;
-
-{ Tabla en memoria con campos de texto (nombre, largo) lista para agregar filas. }
-function NuevaTabla(Dueno: TComponent; const Campos: array of string;
-  const Largos: array of Integer): TFDMemTable;
-var
-  I: Integer;
-begin
-  Result := TFDMemTable.Create(Dueno);
-  for I := 0 to High(Campos) do
-    Result.FieldDefs.Add(Campos[I], ftString, Largos[I]);
-  Result.CreateDataSet;
-end;
-
-{ Conecta la tabla al informe con el nombre (UserName) que el .fr3 espera y la
-  asigna a la banda de datos Banda (el .fr3 no declara datasets: asi no lleva
-  nada de la aplicacion dentro). }
-procedure ConectarDataset(Rep: TfrxReport; Tabla: TFDMemTable; const Nombre, Banda: string);
-var
-  Ds: TfrxDBDataset;
-  Obj: TfrxComponent;
-begin
-  Ds := TfrxDBDataset.Create(Rep);
-  Ds.Name := 'frx' + Nombre;     // el .fr3 lo busca con este nombre
-  Ds.UserName := Nombre;
-  Ds.DataSet := Tabla;
-  Ds.OpenDataSource := True;
-  Rep.DataSets.Add(Ds);
-  Rep.EnabledDataSets.Add(Ds);
-  Obj := Rep.FindObject(Banda);
-  if Obj is TfrxDataBand then
-    TfrxDataBand(Obj).DataSet := Ds
-  else
-    raise EArgumentException.Create('El informe no tiene la banda de datos ' + Banda);
-end;
 
 function PrepararSolicitud(const Fr3: string; const D: TDatosSolicitud;
   const Docs: TArray<TDocumentoBuscado>): TfrxReport;
@@ -120,16 +73,16 @@ begin
   Result := TfrxReport.Create(nil);
   try
     Result.LoadFromFile(Fr3);
-    Result.Variables['Empresa'] := Cadena(D.Empresa);
-    Result.Variables['Numero'] := Cadena(D.Numero);
-    Result.Variables['Solicitante'] := Cadena(D.Solicitante);
-    Result.Variables['Carnet'] := Cadena(D.Carnet);
-    Result.Variables['Entidad'] := Cadena(D.Entidad);
-    Result.Variables['TipoUsuario'] := Cadena(D.TipoUsuario);
-    Result.Variables['FEntrega'] := Cadena(Fecha(D.FEntrega));
-    Result.Variables['FLimite'] := Cadena(Fecha(D.FLimite));
-    Result.Variables['Atendido'] := Cadena(D.Atendido);
-    Tabla := NuevaTabla(Result, ['Codigo', 'Titulo', 'Ubicacion'], [20, 255, 255]);
+    Result.Variables['Empresa'] := CadenaFr(D.Empresa);
+    Result.Variables['Numero'] := CadenaFr(D.Numero);
+    Result.Variables['Solicitante'] := CadenaFr(D.Solicitante);
+    Result.Variables['Carnet'] := CadenaFr(D.Carnet);
+    Result.Variables['Entidad'] := CadenaFr(D.Entidad);
+    Result.Variables['TipoUsuario'] := CadenaFr(D.TipoUsuario);
+    Result.Variables['FEntrega'] := CadenaFr(FechaTexto(D.FEntrega));
+    Result.Variables['FLimite'] := CadenaFr(FechaTexto(D.FLimite));
+    Result.Variables['Atendido'] := CadenaFr(D.Atendido);
+    Tabla := NuevaTablaMemoria(Result, ['Codigo', 'Titulo', 'Ubicacion'], [20, 255, 255]);
     for Doc in Docs do
     begin
       Tabla.Append;
@@ -154,9 +107,9 @@ begin
   Result := TfrxReport.Create(nil);
   try
     Result.LoadFromFile(Fr3);
-    Result.Variables['Empresa'] := Cadena(Empresa);
-    Result.Variables['Anio'] := Cadena(IntToStr(Anio));
-    Tabla := NuevaTabla(Result, ['Numero', 'Solicitante', 'Serie', 'FSolicitud',
+    Result.Variables['Empresa'] := CadenaFr(Empresa);
+    Result.Variables['Anio'] := CadenaFr(IntToStr(Anio));
+    Tabla := NuevaTablaMemoria(Result, ['Numero', 'Solicitante', 'Serie', 'FSolicitud',
       'FDevolucion', 'Entidad', 'Observaciones'], [20, 150, 255, 12, 12, 150, 255]);
     for L in Lineas do
     begin
@@ -164,8 +117,8 @@ begin
       Tabla.FieldByName('Numero').AsString := L.Numero;
       Tabla.FieldByName('Solicitante').AsString := L.Solicitante;
       Tabla.FieldByName('Serie').AsString := L.Serie;
-      Tabla.FieldByName('FSolicitud').AsString := Fecha(L.FSolicitud);
-      Tabla.FieldByName('FDevolucion').AsString := Fecha(L.FDevolucion);
+      Tabla.FieldByName('FSolicitud').AsString := FechaTexto(L.FSolicitud);
+      Tabla.FieldByName('FDevolucion').AsString := FechaTexto(L.FDevolucion);
       Tabla.FieldByName('Entidad').AsString := L.Entidad;
       Tabla.FieldByName('Observaciones').AsString := L.Observaciones;
       Tabla.Post;
@@ -174,16 +127,6 @@ begin
   except
     Result.Free;
     raise;
-  end;
-end;
-
-{ Nombre de la empresa (tb_sysconfig); vacio si no se puede leer. }
-function EmpresaDe(Conn: TFDConnection): string;
-begin
-  try
-    Result := VarToStr(Conn.ExecSQLScalar('SELECT TOP 1 empresa FROM tb_sysconfig'));
-  except
-    Result := '';
   end;
 end;
 

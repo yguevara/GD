@@ -887,7 +887,7 @@ var
 implementation
 
 uses
-  UAparienciaLegacy, UTema, UIconos, UDocumentoVistaDatos, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UAutenticacion, UMensajes, UTiempos, USplash, UCLServidoresForm, UCLArchivosForm, UCLSeriesForm, UClasificadoresInterruptor, UProcesosInterruptor, UPantallaProceso, UPrestamosForm, UPrestamosImpresos, UTransferenciasForm, UCapaDatos, UUserGest, UDocManagement,
+  UAparienciaLegacy, UTema, UIconos, UDocumentoVistaDatos, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UAutenticacion, UMensajes, UTiempos, USplash, UCLServidoresForm, UCLArchivosForm, UCLSeriesForm, UClasificadoresInterruptor, UProcesosInterruptor, UPantallaProceso, UPrestamosForm, UPrestamosImpresos, UTransferenciasForm, UTransferenciasImpresos, UCapaDatos, UUserGest, UDocManagement,
   UPantallaCarga, UCLSeriesDocumentales, UCLFtpServer, UGestEstruct, UMangementArch,
   UManagementFileSeries, UViewFunciones, UVeditor, UExcelExport, UManagementNode,
   USystemMsg, UNodeProperties, UCL_TiposExp, USysConfig, UTransferencias,
@@ -10131,6 +10131,7 @@ procedure TMAIN.AbrirTransferencias;
 var
   Nodos: TArray<TClaveNodo>;
   Pantalla: TfrmTransferenciasNuevo;
+  Carpeta: string;
 begin
   if ProcesosClasicos(PathSys) or not ShellActivo then
   begin
@@ -10146,6 +10147,28 @@ begin
     // solo el especialista de gestion documental transfiere en su nodo
     Pantalla.PuedeActuar := (UDM.Alcance = nil) or
       UDM.Alcance.PuedeRealizar(acTransferir, Nodos[0], '');
+    // impresos oficiales (Anexo 16 y etiquetas de caja); los .fr3 estan en la carpeta Report
+    Carpeta := ExtractFilePath(Application.ExeName) + 'Report';
+    Pantalla.AlImprimirRelacion :=
+      procedure(IdProceso: Integer)
+      begin
+        try
+          ImprimirRelacion(UDM.Conn, IdProceso, Carpeta);
+        except
+          on E: Exception do
+            TMensajes.Error('No se pudo imprimir la relacion de entrega: ' + E.Message, 'Transferencias');
+        end;
+      end;
+    Pantalla.AlImprimirEtiquetas :=
+      procedure(IdProceso: Integer)
+      begin
+        try
+          ImprimirEtiquetas(UDM.Conn, IdProceso, Carpeta);
+        except
+          on E: Exception do
+            TMensajes.Error('No se pudieron imprimir las etiquetas: ' + E.Message, 'Transferencias');
+        end;
+      end;
     AbrirPantallaProceso(Pantalla, 'Transferencias', 'Transferencias');
   except
     on E: Exception do
