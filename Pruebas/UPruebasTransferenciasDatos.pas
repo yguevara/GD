@@ -66,6 +66,8 @@ type
     procedure CronogramaAtrasado;
     [Test]
     procedure RelacionTieneUnaLineaPorCaja;
+    [Test]
+    procedure GruposAgregadosSumanLasUnidades;
   end;
 
 implementation
@@ -418,6 +420,25 @@ begin
   Assert.AreEqual(2, Length(L));
   Assert.AreEqual(1, L[0].Caja);
   Assert.AreEqual(2, L[0].Unidades);
+end;
+
+procedure TPruebasTransferenciasDatosBD.GruposAgregadosSumanLasUnidades;
+var
+  R: TProcesoRef;
+  G: TArray<TGrupoAgregado>;
+  I, Suma: Integer;
+begin
+  if not Conectar then Exit;
+  R := CrearTransferencia(FConn, NodoDePrueba(FConn), USUARIO, 1990, 0);
+  Unidad(R.IdProceso, 'S1', 'D1');
+  Unidad(R.IdProceso, 'S1', 'D2');
+  Unidad(R.IdProceso, 'S2', 'D3');
+  G := GruposDeLaTransferencia(FConn, R.IdProceso);
+  Assert.AreEqual(2, Length(G), 'un grupo por subserie');
+  Suma := 0;
+  for I := 0 to High(G) do
+    Inc(Suma, G[I].Unidades);
+  Assert.AreEqual(3, Suma);
 end;
 
 end.

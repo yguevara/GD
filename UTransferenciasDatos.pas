@@ -61,6 +61,15 @@ type
     Estado: TEstadoCronograma;
   end;
 
+  { Documentos ya agregados a la transferencia, por nodo y subserie. }
+  TGrupoAgregado = record
+    IdEstructura: string;
+    IdNodo: Integer;
+    CodSubs, Serie, Subserie: string;
+    Unidades: Integer;
+    Desde, Hasta: TDateTime;
+  end;
+
   { Una linea de la Relacion de entrega (Anexo 16): una por caja. }
   TLineaRelacion = record
     Numero: Integer;
@@ -105,6 +114,10 @@ procedure QuitarGrupo(Conn: TFDConnection; IdProceso: Integer; const IdEstructur
   IdNodo: Integer; const CodSubs: string);
 
 function ContarUnidades(Conn: TFDConnection; IdProceso: Integer): Integer;
+
+{ Lo agregado a la transferencia agrupado por nodo y subserie (una consulta). }
+function GruposDeLaTransferencia(Conn: TFDConnection;
+  IdProceso: Integer): TArray<TGrupoAgregado>;
 
 { Reparte los documentos en cajas numeradas desde 1 (RepartirEnCajas) y reconstruye
   prc_caja. Idempotente. }
@@ -568,6 +581,45 @@ function ContarUnidades(Conn: TFDConnection; IdProceso: Integer): Integer;
 begin
   Result := Integer(Conn.ExecSQLScalar('SELECT COUNT(*) FROM prc_unidad WHERE ' +
     'IdProceso = :p AND Activa <> 0', [IdProceso]));
+end;
+
+function GruposDeLaTransferencia(Conn: TFDConnection;
+  IdProceso: Integer): TArray<TGrupoAgregado>;
+var
+  Q: TFDQuery;
+  L: TList<TGrupoAgregado>;
+  G: TGrupoAgregado;
+begin
+  L := TList<TGrupoAgregado>.Create;
+  Q := TFDQuery.Create(nil);
+  try
+    Q.Connection := Conn;
+    Q.SQL.Text := 'SELECT u.IdEstructura AS Ie, u.id AS Id, u.codsubs AS Cs, ' +
+      'C.subserie AS Sub, R.serie AS Ser, COUNT(*) AS N, MIN(u.fecha) AS Desde, ' +
+      'MAX(u.fecha) AS Hasta FROM (prc_unidad u LEFT JOIN cl_subseries C ON ' +
+      'C.codsubs = u.codsubs) LEFT JOIN cl_series R ON R.codserie = C.codserie ' +
+      'WHERE u.IdProceso = :p AND u.Activa <> 0 GROUP BY u.IdEstructura, u.id, ' +
+      'u.codsubs, C.subserie, R.serie ORDER BY R.serie, C.subserie';
+    Q.ParamByName('p').AsInteger := IdProceso;
+    Q.Open;
+    while not Q.Eof do
+    begin
+      G.IdEstructura := Q.FieldByName('Ie').AsString;
+      G.IdNodo := Q.FieldByName('Id').AsInteger;
+      G.CodSubs := Q.FieldByName('Cs').AsString;
+      G.Subserie := Q.FieldByName('Sub').AsString;
+      G.Serie := Q.FieldByName('Ser').AsString;
+      G.Unidades := Q.FieldByName('N').AsInteger;
+      G.Desde := FechaODefecto(Q.FieldByName('Desde'));
+      G.Hasta := FechaODefecto(Q.FieldByName('Hasta'));
+      L.Add(G);
+      Q.Next;
+    end;
+    Result := L.ToArray;
+  finally
+    Q.Free;
+    L.Free;
+  end;
 end;
 
 { --------------------------------- cajas --------------------------------- }
