@@ -163,6 +163,14 @@ type
     btnRegistrarEntrega: TcxButton;
     btnRelacion: TcxButton;
     btnEtiquetas: TcxButton;
+    lblRecFecha: TLabel;
+    dteRecepcion: TcxDateEdit;
+    lblRecPor: TLabel;
+    edtRecibidoPor: TcxTextEdit;
+    btnRegistrarRecepcion: TcxButton;
+    lblUbic: TLabel;
+    edtUbicacion: TcxTextEdit;
+    btnRegistrarUbicacion: TcxButton;
     btnRelacion5: TcxButton;
     btnEtiquetas5: TcxButton;
     lblEntInfo: TLabel;
@@ -200,6 +208,8 @@ type
     procedure btnAvanzarClick(Sender: TObject);
     procedure btnCancelarTransfClick(Sender: TObject);
     procedure btnEliminarTransfClick(Sender: TObject);
+    procedure btnRegistrarRecepcionClick(Sender: TObject);
+    procedure btnRegistrarUbicacionClick(Sender: TObject);
     procedure chkAnticipadaPropertiesChange(Sender: TObject);
   private
     FConn: TFDConnection;
@@ -235,6 +245,7 @@ type
     function FilaDeLista(IdProceso: Integer; out Fila: TTransferenciaFila): Boolean;
     function IdDeLaFilaElegida: Integer;
     procedure ActualizarFaltantes;
+    procedure MostrarPostEntrega(const Fila: TTransferenciaFila; Edita: Boolean);
     procedure PedirSalir;
     procedure AvisarSinPermiso;
     function Casilla(I: Integer): TCheckBox;
@@ -354,6 +365,7 @@ begin
   dteProgramar.Date := Date + 30;
   dteAutorizacion.Date := Date;
   dteEntrega.Date := Date;
+  dteRecepcion.Date := Date;
   btnRelacion.Visible := False;
   btnEtiquetas.Visible := False;
   btnRelacion5.Visible := False;
@@ -865,10 +877,42 @@ begin
   lblAviso.Caption := '';
   MostrarEntrega(Fila);
   if Fila.Paso >= 5 then
-    lblP5.Caption := 'La transferencia fue entregada' + FechaEntrega(Fila) +
-      '. La recepci' + #243 + 'n en el archivo ' +
-      'central y la ubicaci' + #243 + 'n de las cajas se registran en la siguiente fase ' +
-      'del sistema.';
+    MostrarPostEntrega(Fila, Edita);
+end;
+
+{ Pasos 5 y 6: recepcion en el archivo central y ubicacion de las cajas. Cada
+  seccion solo se edita en su paso; despues se muestra lo registrado. }
+procedure TfrmTransferenciasNuevo.MostrarPostEntrega(const Fila: TTransferenciaFila;
+  Edita: Boolean);
+var
+  EnRecepcion, EnUbicacion: Boolean;
+begin
+  EnRecepcion := Edita and (Fila.Paso = 5);
+  EnUbicacion := Edita and (Fila.Paso = 6);
+  lblRecFecha.Enabled := EnRecepcion;
+  dteRecepcion.Enabled := EnRecepcion;
+  lblRecPor.Enabled := EnRecepcion;
+  edtRecibidoPor.Enabled := EnRecepcion;
+  btnRegistrarRecepcion.Visible := EnRecepcion;
+  lblUbic.Enabled := EnUbicacion;
+  edtUbicacion.Enabled := EnUbicacion;
+  btnRegistrarUbicacion.Visible := EnUbicacion;
+  if Fila.FRecepcion <> 0 then
+    dteRecepcion.Date := Fila.FRecepcion;
+  if Fila.RecibidoPor <> '' then
+    edtRecibidoPor.Text := Fila.RecibidoPor;
+  if Fila.Ubicacion <> '' then
+    edtUbicacion.Text := Fila.Ubicacion;
+  if Fila.Proceso = epFinalizado then
+    lblP5.Caption := 'Transferencia completada. Entregada' + FechaEntrega(Fila) +
+      ', recibida el ' + FechaTexto(Fila.FRecepcion) + ' por ' + Fila.RecibidoPor +
+      '. Cajas ubicadas en: ' + Fila.Ubicacion + '.'
+  else if Fila.Paso = 5 then
+    lblP5.Caption := 'La transferencia fue entregada' + FechaEntrega(Fila) + '. Cuando ' +
+      'el archivo central reciba las cajas, registre aqu' + #237 + ' la recepci' + #243 + 'n.'
+  else
+    lblP5.Caption := 'Recibida el ' + FechaTexto(Fila.FRecepcion) + ' por ' + Fila.RecibidoPor +
+      '. Falta registrar d' + #243 + 'nde quedan las cajas para finalizar la transferencia.';
 end;
 
 procedure TfrmTransferenciasNuevo.pbPasosPaint(Sender: TObject);
@@ -1259,6 +1303,62 @@ procedure TfrmTransferenciasNuevo.chkAnticipadaPropertiesChange(Sender: TObject)
 begin
   if (FActual.Paso = 1) and pnlDetalle.Visible then
     CargarPaso;
+end;
+
+procedure TfrmTransferenciasNuevo.btnRegistrarRecepcionClick(Sender: TObject);
+var
+  Fecha: TDateTime;
+  Errores: TArray<string>;
+begin
+  if VarIsNull(dteRecepcion.EditValue) then
+    Fecha := Date
+  else
+    Fecha := dteRecepcion.Date;
+  Errores := ValidarRecepcion(edtRecibidoPor.Text, Fecha, FActual.FEntrega, Now);
+  if Length(Errores) > 0 then
+  begin
+    lblAviso.Caption := Errores[0];
+    Exit;
+  end;
+  if not TMensajes.Confirmar('Se registra que el archivo central recibi' + #243 + ' las cajas. ' +
+    #191 + 'Continuar?', 'Registrar la recepci' + #243 + 'n') then
+    Exit;
+  try
+    if not RegistrarRecepcionTransferencia(FConn, FActual.IdProceso, FUsuario,
+      edtRecibidoPor.Text, Fecha) then
+      TMensajes.Advertencia('La transferencia ya no est' + #225 + ' en el paso de recepci' + #243 +
+        'n.', 'Transferencias');
+  except
+    on E: Exception do
+      TMensajes.Error('No se pudo registrar la recepci' + #243 + 'n: ' + E.Message, 'Transferencias');
+  end;
+  Recargar;
+end;
+
+procedure TfrmTransferenciasNuevo.btnRegistrarUbicacionClick(Sender: TObject);
+var
+  Errores: TArray<string>;
+begin
+  Errores := ValidarUbicacion(edtUbicacion.Text);
+  if Length(Errores) > 0 then
+  begin
+    lblAviso.Caption := Errores[0];
+    Exit;
+  end;
+  if not TMensajes.Confirmar('Se registra la ubicaci' + #243 + 'n de las cajas y se finaliza la ' +
+    'transferencia: los documentos quedan libres. ' + #191 + 'Continuar?',
+    'Finalizar la transferencia') then
+    Exit;
+  try
+    if not RegistrarUbicacionTransferencia(FConn, FActual.IdProceso, FUsuario,
+      edtUbicacion.Text) then
+      TMensajes.Advertencia('La transferencia ya no est' + #225 + ' en el paso de ubicaci' + #243 +
+        'n.', 'Transferencias');
+  except
+    on E: Exception do
+      TMensajes.Error('No se pudo finalizar la transferencia: ' + E.Message, 'Transferencias');
+  end;
+  Recargar;
 end;
 
 procedure TfrmTransferenciasNuevo.btnEliminarTransfClick(Sender: TObject);

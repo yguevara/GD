@@ -31,6 +31,10 @@ type
     [Test]
     procedure CorteAnticipadoIncluyeTodoYNuncaEsCero;
     [Test]
+    procedure RecepcionExigeQuienRecibeYFechaCoherente;
+    [Test]
+    procedure UbicacionExigeTextoYNoPasaDelLimite;
+    [Test]
     procedure CronogramaAtrasadaYProgramada;
     [Test]
     procedure CronogramaEnTramiteYRealizada;
@@ -124,6 +128,36 @@ begin
   // anticipado: un corte muy futuro, con o sin plazo, para incluir los que aun no vencen
   Assert.IsTrue(FechaCorteGrupo(HOY, 5, True) > HOY + 365 * 50);
   Assert.IsTrue(FechaCorteGrupo(HOY, 0, True) > HOY + 365 * 50);
+end;
+
+procedure TPruebasTransferenciasReglas.RecepcionExigeQuienRecibeYFechaCoherente;
+var
+  Entrega, Hoy: TDateTime;
+begin
+  Hoy := EncodeDate(2026, 11, 13);
+  Entrega := EncodeDate(2026, 11, 10);
+  // correcta: el mismo dia de la entrega, un dia despues y hoy
+  Assert.AreEqual(0, Length(ValidarRecepcion('Ana', Entrega, Entrega, Hoy)));
+  Assert.AreEqual(0, Length(ValidarRecepcion(' Ana ', Hoy, Entrega, Hoy)));
+  // sin nombre
+  Assert.AreEqual(1, Length(ValidarRecepcion('   ', Hoy, Entrega, Hoy)));
+  // futura
+  Assert.AreEqual(1, Length(ValidarRecepcion('Ana', Hoy + 1, Entrega, Hoy)));
+  // anterior a la entrega
+  Assert.AreEqual(1, Length(ValidarRecepcion('Ana', Entrega - 1, Entrega, Hoy)));
+  // sin fecha de entrega conocida: solo cuenta que no sea futura
+  Assert.AreEqual(0, Length(ValidarRecepcion('Ana', Hoy, 0, Hoy)));
+  // varios errores a la vez
+  Assert.AreEqual(2, Length(ValidarRecepcion('', Hoy + 1, Entrega, Hoy)));
+end;
+
+procedure TPruebasTransferenciasReglas.UbicacionExigeTextoYNoPasaDelLimite;
+begin
+  Assert.AreEqual(0, Length(ValidarUbicacion('Deposito 2, estante 5')));
+  Assert.AreEqual(1, Length(ValidarUbicacion('')));
+  Assert.AreEqual(1, Length(ValidarUbicacion('    ')));
+  Assert.AreEqual(0, Length(ValidarUbicacion(StringOfChar('x', 255))));
+  Assert.AreEqual(1, Length(ValidarUbicacion(StringOfChar('x', 256))));
 end;
 
 procedure TPruebasTransferenciasReglas.FechaCorteRestaAniosYCeroSinPlazo;

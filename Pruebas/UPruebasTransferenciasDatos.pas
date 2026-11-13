@@ -17,6 +17,8 @@ type
     [Test]
     procedure CondicionVencidoUsaFechaFinSoloSiNoEsAnterior;
     [Test]
+    procedure NoTransferidoExcluyeLosDeTransferenciasFinalizadas;
+    [Test]
     procedure ArchivosDeGestionComoLista;
     [Test]
     procedure SinArchivosDeGestionNoSeleccionaNada;
@@ -100,6 +102,20 @@ begin
   Assert.IsTrue(Contiene(S, 'H.FechaFin <= :corte'));
   Assert.IsTrue(Contiene(S, 'H.Fecha <= :corte'));
   Assert.IsTrue(Contiene(S, 'H.FechaFin IS NULL OR H.FechaFin < H.Fecha'));
+end;
+
+procedure TPruebasTransferenciasPuro.NoTransferidoExcluyeLosDeTransferenciasFinalizadas;
+var
+  S: string;
+begin
+  S := SqlNoTransferido;
+  Assert.IsTrue(Contiene(S, 'NOT EXISTS'));
+  Assert.IsTrue(Contiene(S, 'prc_unidad'));
+  Assert.IsTrue(Contiene(S, 'Tipo = ''T'''));
+  Assert.IsTrue(Contiene(S, 'Estado = ''F'''));
+  Assert.IsTrue(Contiene(S, 'X.codsubs = H.codsubs'));
+  Assert.IsTrue(Contiene(S, 'X.version = H.version'));
+  Assert.IsFalse(Contiene(S, ':'), 'sin parametros');
 end;
 
 procedure TPruebasTransferenciasPuro.ArchivosDeGestionComoLista;

@@ -26,6 +26,8 @@ type
     [Test]
     procedure Unidad_BorraseConSuProceso;
     [Test]
+    procedure Transferencia_TieneColumnasDeRecepcionYUbicacion;
+    [Test]
     procedure TieneLosCincoIndices;
     [Test]
     procedure SqlServer_IndicesConGuarda;
@@ -133,6 +135,19 @@ procedure TPruebasEsquemaProcesosSql.Proceso_TieneClaveUnicaTipoAnioConsecutivo;
 begin
   Assert.IsTrue(Pos('UNIQUE (Tipo, Anio, Consecutivo)', Todo(True)) > 0);
   Assert.IsTrue(Pos('UNIQUE (Tipo, Anio, Consecutivo)', Todo(False)) > 0);
+end;
+
+procedure TPruebasEsquemaProcesosSql.Transferencia_TieneColumnasDeRecepcionYUbicacion;
+var
+  C: string;
+begin
+  for C in TArray<string>.Create('FRecepcion', 'RecibidoPor', 'Ubicacion') do
+  begin
+    Assert.IsTrue(Pos('ALTER TABLE prc_transferencia ADD ' + C, Todo(True)) > 0, 'SQL Server ' + C);
+    Assert.IsTrue(Pos('ALTER TABLE prc_transferencia ADD COLUMN ' + C, Todo(False)) > 0, 'Access ' + C);
+  end;
+  // en SQL Server solo se agrega si falta
+  Assert.IsTrue(Pos('COL_LENGTH(''prc_transferencia'', ''FRecepcion'') IS NULL', Todo(True)) > 0);
 end;
 
 procedure TPruebasEsquemaProcesosSql.Unidad_BorraseConSuProceso;

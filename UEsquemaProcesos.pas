@@ -61,6 +61,17 @@ var
       Agregar('CREATE TABLE ' + Nombre + ' (' + Definicion + ');');
   end;
 
+  { Columna agregada despues de crear la tabla. SQL Server: solo si falta. Access: el
+    fallo por "ya existe" se ignora al ejecutar. }
+  procedure Columna(const ATabla, Nombre, Definicion: string);
+  begin
+    if EsSqlServer then
+      Agregar('IF COL_LENGTH(''' + ATabla + ''', ''' + Nombre + ''') IS NULL ALTER TABLE ' +
+        ATabla + ' ADD ' + Nombre + ' ' + Definicion)
+    else
+      Agregar('ALTER TABLE ' + ATabla + ' ADD COLUMN ' + Nombre + ' ' + Definicion);
+  end;
+
   procedure Indice(const Nombre, ATabla, Columnas: string);
   begin
     if EsSqlServer then
@@ -185,6 +196,11 @@ begin
     'CONSTRAINT PK_prc_transferencia PRIMARY KEY (IdProceso), ' +
     'CONSTRAINT FK_prc_transferencia_proceso FOREIGN KEY (IdProceso) ' +
     'REFERENCES prc_proceso(IdProceso) ON DELETE CASCADE');
+
+  // Recepcion en el archivo central (paso 5) y ubicacion de las cajas (paso 6).
+  Columna('prc_transferencia', 'FRecepcion', 'DATETIME NULL');
+  Columna('prc_transferencia', 'RecibidoPor', 'VARCHAR(100) NULL');
+  Columna('prc_transferencia', 'Ubicacion', 'VARCHAR(255) NULL');
 
   // Cronograma anual: una transferencia prevista por unidad (nodo) y ano.
   Tabla('prc_cronograma',

@@ -51,6 +51,8 @@ type
     Cajas, Unidades: Integer;
     Proceso: TEstadoProceso;
     Nodo: TClaveNodo;                   // nodo (area) remitente de la transferencia
+    FRecepcion: TDateTime;              // 0 = aun no recibida
+    RecibidoPor, Ubicacion: string;
   end;
 
   TCronogramaFila = record
@@ -82,6 +84,10 @@ type
 
 { Condicion de fecha de los documentos vencidos (alias H; parametro :corte). }
 function SqlCondicionVencido: string;
+
+{ Excluye (alias H) los documentos que ya pasaron por una transferencia finalizada:
+  al terminar se liberan sus bloqueos y, sin este filtro, volverian a proponerse. }
+function SqlNoTransferido: string;
 
 { H.Archivo IN (...) con los archivos de gestion; '1 = 0' si no hay ninguno. }
 function SqlArchivosGestion(const Codigos: array of Integer): string;
@@ -147,6 +153,17 @@ function AvanzarTransferencia(Conn: TFDConnection; IdProceso, PasoLeido: Integer
 function RegistrarEntregaTransferencia(Conn: TFDConnection; IdProceso: Integer;
   const Usuario, EntregadoPor: string; Fecha: TDateTime): Boolean;
 
+{ Paso 5 -> 6: registra la recepcion en el archivo central. Lanza EArgumentException
+  si ValidarRecepcion encuentra errores. False si ya no esta en el paso 5. }
+function RegistrarRecepcionTransferencia(Conn: TFDConnection; IdProceso: Integer;
+  const Usuario, RecibidoPor: string; Fecha: TDateTime): Boolean;
+
+{ Paso 6 -> finalizada: registra donde quedan las cajas, libera los documentos y
+  cierra la transferencia. Lanza EArgumentException si la ubicacion no es valida.
+  False si ya no esta en el paso 6. }
+function RegistrarUbicacionTransferencia(Conn: TFDConnection; IdProceso: Integer;
+  const Usuario, Ubicacion: string): Boolean;
+
 function ListarTransferencias(Conn: TFDConnection; const Nodos: TArray<TClaveNodo>;
   Anio, Limite: Integer): TArray<TTransferenciaFila>;
 
@@ -174,6 +191,15 @@ function SqlCondicionVencido: string;
 begin
   Result := '((H.FechaFin IS NOT NULL AND H.FechaFin >= H.Fecha AND H.FechaFin <= :corte) ' +
     'OR ((H.FechaFin IS NULL OR H.FechaFin < H.Fecha) AND H.Fecha <= :corte))';
+end;
+
+function SqlNoTransferido: string;
+begin
+  Result := 'NOT EXISTS (SELECT 1 FROM prc_unidad X INNER JOIN prc_proceso Y ON ' +
+    'Y.IdProceso = X.IdProceso WHERE Y.Tipo = ''T'' AND Y.Estado = ''F'' AND ' +
+    'X.Activa <> 0 AND X.IdEstructura = H.IdEstructura AND X.id = H.id AND ' +
+    'X.codsubs = H.codsubs AND X.Codigodoc = H.Codigodoc AND X.fecha = H.fecha AND ' +
+    'X.version = H.version)';
 end;
 
 function SqlArchivosGestion(const Codigos: array of Integer): string;
@@ -346,7 +372,8 @@ var
   begin
     Sql := 'SELECT COUNT(*) AS N, MIN(H.Fecha) AS Desde, MAX(H.Fecha) AS Hasta ' +
       'FROM tb_SeriesDatos H WHERE H.IdEstructura = :e AND H.id = :i AND H.codsubs = :s ' +
-      'AND ' + SqlArchivosGestion(Gestion) + ' AND ' + SqlCondicionVencido;
+      'AND ' + SqlArchivosGestion(Gestion) + ' AND ' + SqlCondicionVencido + ' AND ' +
+      SqlNoTransferido;
     if SoloRetenidos then
       Sql := Sql + ' AND EXISTS (SELECT 1 FROM prc_bloqueo B WHERE ' +
         'B.IdEstructura = H.IdEstructura AND B.id = H.id AND B.codsubs = H.codsubs ' +
@@ -510,7 +537,8 @@ begin
   Gestion := CodigosArchivoGestion(Conn);
   P := IntToStr(IdProceso);
   Filtro := 'H.IdEstructura = :e AND H.id = :i AND H.codsubs = :s AND ' +
-    SqlArchivosGestion(Gestion) + ' AND ' + SqlCondicionVencido + ' AND NOT EXISTS ' +
+    SqlArchivosGestion(Gestion) + ' AND ' + SqlCondicionVencido + ' AND ' +
+    SqlNoTransferido + ' AND NOT EXISTS ' +
     '(SELECT 1 FROM prc_bloqueo B WHERE B.IdEstructura = H.IdEstructura AND ' +
     'B.id = H.id AND B.codsubs = H.codsubs AND B.Codigodoc = H.Codigodoc AND ' +
     'B.fecha = H.fecha AND B.version = H.version)';
@@ -959,6 +987,81 @@ begin
   end;
 end;
 
+function RegistrarRecepcionTransferencia(Conn: TFDConnection; IdProceso: Integer;
+  const Usuario, RecibidoPor: string; Fecha: TDateTime): Boolean;
+var
+  Tipo: TTipoProceso;
+  Paso: Integer;
+  Estado: string;
+  Falta: TCondiciones;
+  Errores: TArray<string>;
+  FEntrega: TDateTime;
+  Propia: Boolean;
+begin
+  Result := False;
+  if not LeerProceso(Conn, IdProceso, Tipo, Paso, Estado) or (Tipo <> tpTransferencia) then
+    Exit;
+  if (Estado <> 'C') or (Paso <> 5) then
+    Exit;
+  FEntrega := Conn.ExecSQLScalar('SELECT FEntrega FROM prc_transferencia WHERE IdProceso = :p',
+    [IdProceso]);
+  Errores := ValidarRecepcion(RecibidoPor, Fecha, FEntrega, Now);
+  if Length(Errores) > 0 then
+    raise EArgumentException.Create(Errores[0]);
+  Propia := IniciarTx(Conn);
+  try
+    if not AvanzarPaso(Conn, IdProceso, 5, [cdRecepcionConfirmada], Usuario, Falta) then
+    begin
+      DeshacerTx(Conn, Propia);
+      Exit;
+    end;
+    Conn.ExecSQL('UPDATE prc_transferencia SET FRecepcion = :f, RecibidoPor = :r ' +
+      'WHERE IdProceso = :p', [Fecha, Copy(Trim(RecibidoPor), 1, 100), IdProceso],
+      [ftDateTime, ftString, ftInteger]);
+    ConfirmarTx(Conn, Propia);
+    Result := True;
+  except
+    DeshacerTx(Conn, Propia);
+    raise;
+  end;
+end;
+
+function RegistrarUbicacionTransferencia(Conn: TFDConnection; IdProceso: Integer;
+  const Usuario, Ubicacion: string): Boolean;
+var
+  Tipo: TTipoProceso;
+  Paso: Integer;
+  Estado: string;
+  Falta: TCondiciones;
+  Errores: TArray<string>;
+  Propia: Boolean;
+begin
+  Result := False;
+  if not LeerProceso(Conn, IdProceso, Tipo, Paso, Estado) or (Tipo <> tpTransferencia) then
+    Exit;
+  if (Estado <> 'C') or (Paso <> 6) then
+    Exit;
+  Errores := ValidarUbicacion(Ubicacion);
+  if Length(Errores) > 0 then
+    raise EArgumentException.Create(Errores[0]);
+  Propia := IniciarTx(Conn);
+  try
+    // el ultimo paso finaliza el proceso y libera los bloqueos (AvanzarPaso)
+    if not AvanzarPaso(Conn, IdProceso, 6, [cdUbicacionCompleta], Usuario, Falta) then
+    begin
+      DeshacerTx(Conn, Propia);
+      Exit;
+    end;
+    Conn.ExecSQL('UPDATE prc_transferencia SET Ubicacion = :u WHERE IdProceso = :p',
+      [Copy(Trim(Ubicacion), 1, 255), IdProceso], [ftString, ftInteger]);
+    ConfirmarTx(Conn, Propia);
+    Result := True;
+  except
+    DeshacerTx(Conn, Propia);
+    raise;
+  end;
+end;
+
 { -------------------------------- listados ------------------------------- }
 
 function ListarTransferencias(Conn: TFDConnection; const Nodos: TArray<TClaveNodo>;
@@ -986,7 +1089,7 @@ begin
         Q.Connection := Conn;
         Q.SQL.Text := 'SELECT TOP ' + IntToStr(Tope) + ' p.IdProceso, p.Anio, p.IdEstructura, p.IdNodo, ' +
           'p.Consecutivo, p.Numero, p.Estado, p.Paso, N.etiqueta AS Remitente, ' +
-          't.FPrevista, t.FEntrega, ' +
+          't.FPrevista, t.FEntrega, t.FRecepcion, t.RecibidoPor, t.Ubicacion, ' +
           '(SELECT COUNT(*) FROM prc_unidad u WHERE u.IdProceso = p.IdProceso) AS Unidades, ' +
           '(SELECT COUNT(*) FROM prc_caja c WHERE c.IdProceso = p.IdProceso) AS Cajas ' +
           'FROM (prc_proceso p INNER JOIN prc_transferencia t ON t.IdProceso = p.IdProceso) ' +
@@ -1011,6 +1114,9 @@ begin
           F.Estado := TextoEstadoTransferencia(F.Paso, F.Proceso);
           F.FPrevista := FechaODefecto(Q.FieldByName('FPrevista'));
           F.FEntrega := FechaODefecto(Q.FieldByName('FEntrega'));
+          F.FRecepcion := FechaODefecto(Q.FieldByName('FRecepcion'));
+          F.RecibidoPor := Q.FieldByName('RecibidoPor').AsString;
+          F.Ubicacion := Q.FieldByName('Ubicacion').AsString;
           F.Unidades := Q.FieldByName('Unidades').AsInteger;
           F.Cajas := Q.FieldByName('Cajas').AsInteger;
           Lista.Add(F);

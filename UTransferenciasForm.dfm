@@ -1306,9 +1306,9 @@ object frmTransferenciasNuevo: TfrmTransferenciasNuevo
         Visible = False
         object lblP5: TLabel
           Left = 20
-          Top = 20
+          Top = 16
           Width = 1240
-          Height = 60
+          Height = 40
           AutoSize = False
           WordWrap = True
           Font.Charset = DEFAULT_CHARSET
@@ -1318,22 +1318,97 @@ object frmTransferenciasNuevo: TfrmTransferenciasNuevo
           Font.Style = []
           ParentFont = False
         end
+        object lblRecFecha: TLabel
+          Left = 20
+          Top = 64
+          Width = 3
+          Height = 15
+          Caption = 'Fecha de la recepci'#243'n'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = 5924725
+          Font.Height = -12
+          Font.Name = 'Segoe UI'
+          Font.Style = []
+          ParentFont = False
+        end
+        object dteRecepcion: TcxDateEdit
+          Left = 20
+          Top = 82
+          TabOrder = 0
+          Width = 180
+        end
+        object lblRecPor: TLabel
+          Left = 230
+          Top = 64
+          Width = 3
+          Height = 15
+          Caption = 'Recibe (nombre de quien recibe)'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = 5924725
+          Font.Height = -12
+          Font.Name = 'Segoe UI'
+          Font.Style = []
+          ParentFont = False
+        end
+        object edtRecibidoPor: TcxTextEdit
+          Left = 230
+          Top = 82
+          TabOrder = 1
+          Width = 280
+        end
+        object btnRegistrarRecepcion: TcxButton
+          Left = 20
+          Top = 124
+          Width = 230
+          Height = 38
+          Caption = 'Registrar la recepci'#243'n'
+          TabOrder = 2
+          OnClick = btnRegistrarRecepcionClick
+        end
+        object lblUbic: TLabel
+          Left = 20
+          Top = 190
+          Width = 3
+          Height = 15
+          Caption = 'Ubicaci'#243'n de las cajas (dep'#243'sito, estante...)'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = 5924725
+          Font.Height = -12
+          Font.Name = 'Segoe UI'
+          Font.Style = []
+          ParentFont = False
+        end
+        object edtUbicacion: TcxTextEdit
+          Left = 20
+          Top = 208
+          TabOrder = 3
+          Width = 490
+        end
+        object btnRegistrarUbicacion: TcxButton
+          Left = 20
+          Top = 250
+          Width = 290
+          Height = 38
+          Caption = 'Registrar ubicaci'#243'n y finalizar'
+          TabOrder = 4
+          OnClick = btnRegistrarUbicacionClick
+        end
         object btnRelacion5: TcxButton
           Left = 20
-          Top = 96
+          Top = 330
           Width = 230
           Height = 36
           Caption = 'Imprimir relaci'#243'n de entrega'
-          TabOrder = 1
+          TabOrder = 5
           OnClick = btnRelacionClick
         end
         object btnEtiquetas5: TcxButton
           Left = 264
-          Top = 96
+          Top = 330
           Width = 230
           Height = 36
           Caption = 'Imprimir etiquetas de caja'
-          TabOrder = 2
+          TabOrder = 6
           OnClick = btnEtiquetasClick
         end
       end

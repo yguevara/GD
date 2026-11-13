@@ -89,6 +89,16 @@ function RepartirEnCajas(const Items: TArray<TItemCaja>; Capacidad,
 { Texto del estado de una transferencia para la lista. }
 function TextoEstadoTransferencia(Paso: Integer; Estado: TEstadoProceso): string;
 
+{ Errores (vacia si es valida) al registrar la recepcion en el archivo central: hay
+  que decir quien recibe y la fecha no puede ser futura ni anterior a la entrega
+  (FEntrega = 0 si no se conoce). }
+function ValidarRecepcion(const RecibidoPor: string; Fecha, FEntrega,
+  Hoy: TDateTime): TArray<string>;
+
+{ Errores (vacia si es valida) al registrar donde quedan las cajas: un texto no
+  vacio de hasta 255 caracteres (limite de Access). }
+function ValidarUbicacion(const Ubicacion: string): TArray<string>;
+
 implementation
 
 uses
@@ -229,6 +239,34 @@ begin
     Grupos.Free;
     Indices.Free;
   end;
+end;
+
+function ValidarRecepcion(const RecibidoPor: string; Fecha, FEntrega,
+  Hoy: TDateTime): TArray<string>;
+var
+  Lista: TList<string>;
+begin
+  Lista := TList<string>.Create;
+  try
+    if Trim(RecibidoPor) = '' then
+      Lista.Add('Escriba el nombre de quien recibe.');
+    if Trunc(Fecha) > Trunc(Hoy) then
+      Lista.Add('La fecha de recepci' + #243 + 'n no puede ser futura.');
+    if (FEntrega <> 0) and (Trunc(Fecha) < Trunc(FEntrega)) then
+      Lista.Add('La recepci' + #243 + 'n no puede ser anterior a la entrega.');
+    Result := Lista.ToArray;
+  finally
+    Lista.Free;
+  end;
+end;
+
+function ValidarUbicacion(const Ubicacion: string): TArray<string>;
+begin
+  Result := nil;
+  if Trim(Ubicacion) = '' then
+    Result := ['Indique d' + #243 + 'nde quedan las cajas (dep' + #243 + 'sito, estante...).']
+  else if Length(Trim(Ubicacion)) > 255 then
+    Result := ['La ubicaci' + #243 + 'n es demasiado larga (m' + #225 + 'ximo 255 caracteres).'];
 end;
 
 function TextoEstadoTransferencia(Paso: Integer; Estado: TEstadoProceso): string;
