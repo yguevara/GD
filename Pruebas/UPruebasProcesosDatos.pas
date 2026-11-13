@@ -19,6 +19,8 @@ type
     procedure TipoDesdeCodigoInvalidoLanza;
     [Test]
     procedure CodigoDeOrgano;
+    [Test]
+    procedure EstadoDesdeCodigoYVuelta;
   end;
 
   [TestFixture]
@@ -108,6 +110,18 @@ begin
   Assert.AreEqual('M', CodigoOrgano(ocMunicipal));
   Assert.AreEqual('P', CodigoOrgano(ocProvincial));
   Assert.AreEqual('N', CodigoOrgano(ocNacional));
+end;
+
+procedure TPruebasProcesosCodigos.EstadoDesdeCodigoYVuelta;
+begin
+  Assert.IsTrue(EstadoDesdeCodigo('C') = epEnCurso);
+  Assert.IsTrue(EstadoDesdeCodigo('F ') = epFinalizado, 'tolera espacios de CHAR');
+  Assert.IsTrue(EstadoDesdeCodigo('X') = epCancelado);
+  Assert.WillRaise(
+    procedure
+    begin
+      EstadoDesdeCodigo('?');
+    end, EArgumentException);
 end;
 
 { TPruebasProcesosDatosBD }

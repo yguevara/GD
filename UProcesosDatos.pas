@@ -44,6 +44,20 @@ type
 function CodigoTipo(Tipo: TTipoProceso): string;
 function TipoDesdeCodigo(const Codigo: string): TTipoProceso;
 function CodigoOrgano(Organo: TOrganoComision): string;
+{ 'C' en curso, 'F' finalizado, 'X' cancelado (tolera los espacios de un CHAR).
+  Lanza EArgumentException con otro codigo. }
+function EstadoDesdeCodigo(const Codigo: string): TEstadoProceso;
+
+{ Transacciones: IniciarTx devuelve True si abrio una (y entonces el llamador la
+  cierra con ConfirmarTx o DeshacerTx); si ya habia una abierta no hace nada y
+  las otras dos tampoco (no se anidan). }
+function IniciarTx(Conn: TFDConnection): Boolean;
+procedure ConfirmarTx(Conn: TFDConnection; Propia: Boolean);
+procedure DeshacerTx(Conn: TFDConnection; Propia: Boolean);
+
+{ Lee tipo, paso y estado ('C', 'F' o 'X') del proceso. False si no existe. }
+function LeerProceso(Conn: TFDConnection; IdProceso: Integer;
+  out Tipo: TTipoProceso; out Paso: Integer; out Estado: string): Boolean;
 
 { Crea un proceso en el paso 1 con el siguiente consecutivo del tipo y del ano
   (reintenta si otro usuario toma el mismo numero a la vez) y escribe el primer
@@ -133,9 +147,23 @@ begin
   end;
 end;
 
+function EstadoDesdeCodigo(const Codigo: string): TEstadoProceso;
+var
+  C: string;
+begin
+  C := Trim(Codigo);
+  if C = 'C' then
+    Result := epEnCurso
+  else if C = 'F' then
+    Result := epFinalizado
+  else if C = 'X' then
+    Result := epCancelado
+  else
+    raise EArgumentException.Create('Estado de proceso desconocido: ' + Codigo);
+end;
+
 { ---------------------------- transacciones ------------------------------ }
 
-{ True si esta llamada abrio la transaccion (y por tanto debe cerrarla). }
 function IniciarTx(Conn: TFDConnection): Boolean;
 begin
   Result := not Conn.InTransaction;
@@ -165,7 +193,6 @@ begin
     [IdProceso, Now, Usuario, Paso, Copy(Texto, 1, LARGO_TEXTO_EVENTO)]);
 end;
 
-{ Lee tipo, paso y estado del proceso. False si no existe. }
 function LeerProceso(Conn: TFDConnection; IdProceso: Integer;
   out Tipo: TTipoProceso; out Paso: Integer; out Estado: string): Boolean;
 var
