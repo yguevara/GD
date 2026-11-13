@@ -226,6 +226,7 @@ type
     function IdDeLaFilaElegida: Integer;
     procedure ActualizarFaltantes;
     procedure PedirSalir;
+    procedure AvisarSinPermiso;
     function Casilla(I: Integer): TCheckBox;
   public
     constructor Create(AOwner: TComponent); override;
@@ -358,9 +359,6 @@ end;
 procedure TfrmTransferenciasNuevo.SetPuedeActuar(Valor: Boolean);
 begin
   FPuedeActuar := Valor;
-  btnNueva.Enabled := Valor;
-  btnProgramar.Enabled := Valor;
-  dteProgramar.Enabled := Valor;
   if pnlDetalle.Visible then
     MostrarDetalle(FActual);
 end;
@@ -528,6 +526,14 @@ begin
   CanClose := PuedeSalir;
 end;
 
+{ El boton responde siempre: si el rol no puede transferir, se explica por que. }
+procedure TfrmTransferenciasNuevo.AvisarSinPermiso;
+begin
+  TMensajes.Informacion('Solo el especialista de gesti' + #243 + 'n documental (EGD) del ' +
+    #225 + 'rea puede crear y cambiar transferencias. Con su rol actual solo puede ' +
+    'consultarlas.', 'Transferencias');
+end;
+
 procedure TfrmTransferenciasNuevo.PedirSalir;
 begin
   if FEmbebido and Assigned(FAlSalir) then
@@ -687,6 +693,11 @@ procedure TfrmTransferenciasNuevo.btnNuevaClick(Sender: TObject);
 var
   R: TProcesoRef;
 begin
+  if not FPuedeActuar then
+  begin
+    AvisarSinPermiso;
+    Exit;
+  end;
   if not TMensajes.Confirmar('Se crea una transferencia nueva del ' + #225 + 'rea elegida. ' +
     #191 + 'Continuar?', 'Nueva transferencia') then
     Exit;
@@ -706,6 +717,11 @@ end;
 
 procedure TfrmTransferenciasNuevo.btnProgramarClick(Sender: TObject);
 begin
+  if not FPuedeActuar then
+  begin
+    AvisarSinPermiso;
+    Exit;
+  end;
   if VarIsNull(dteProgramar.EditValue) then
   begin
     TMensajes.Advertencia('Indique la fecha prevista.', 'Cronograma');

@@ -348,7 +348,6 @@ end;
 procedure TfrmPrestamos.SetPuedeActuar(Valor: Boolean);
 begin
   FPuedeActuar := Valor;
-  btnNuevo.Enabled := Valor;
   if FIdSeleccionado <> 0 then
     Recargar;
 end;
@@ -1023,6 +1022,14 @@ end;
 
 procedure TfrmPrestamos.btnNuevoClick(Sender: TObject);
 begin
+  // el boton responde siempre: si el rol no puede prestar, se explica por que
+  if not FPuedeActuar then
+  begin
+    TMensajes.Informacion('Solo el especialista de gesti' + #243 + 'n documental (EGD) del ' +
+      #225 + 'rea puede crear y cambiar pr' + #233 + 'stamos. Con su rol actual solo ' +
+      'puede consultarlos.', 'Pr' + #233 + 'stamos');
+    Exit;
+  end;
   MostrarNuevo;
 end;
 
