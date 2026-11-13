@@ -29,6 +29,8 @@ type
     [Test]
     procedure FechaCorteRestaAniosYCeroSinPlazo;
     [Test]
+    procedure CorteAnticipadoIncluyeTodoYNuncaEsCero;
+    [Test]
     procedure CronogramaAtrasadaYProgramada;
     [Test]
     procedure CronogramaEnTramiteYRealizada;
@@ -112,6 +114,16 @@ begin
   HOY := EncodeDate(2026, 11, 12);
   // por Fecha (2015 + 5) estaria vencido; por FechaFin (2024 + 5 = 2029) no
   Assert.IsFalse(PlazoVencido(EncodeDate(2015, 1, 1), EncodeDate(2024, 1, 1), True, 5, HOY));
+end;
+
+procedure TPruebasTransferenciasReglas.CorteAnticipadoIncluyeTodoYNuncaEsCero;
+begin
+  // normal: igual que FechaCorte (0 = sin plazo, no se propone)
+  Assert.AreEqual(EncodeDate(2021, 11, 12), FechaCorteGrupo(HOY, 5, False), 0.0001);
+  Assert.AreEqual(0.0, FechaCorteGrupo(HOY, 0, False), 0.0001);
+  // anticipado: un corte muy futuro, con o sin plazo, para incluir los que aun no vencen
+  Assert.IsTrue(FechaCorteGrupo(HOY, 5, True) > HOY + 365 * 50);
+  Assert.IsTrue(FechaCorteGrupo(HOY, 0, True) > HOY + 365 * 50);
 end;
 
 procedure TPruebasTransferenciasReglas.FechaCorteRestaAniosYCeroSinPlazo;

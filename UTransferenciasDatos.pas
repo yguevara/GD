@@ -41,6 +41,7 @@ type
     Unidades: Integer;            // disponibles para transferir
     Retenidos: Integer;           // vencidos pero retenidos por otro proceso abierto
     Desde, Hasta: TDateTime;      // fechas extremas
+    Anticipada: Boolean;          // propuesta antes de vencer (o sin plazo)
   end;
 
   TTransferenciaFila = record
@@ -94,9 +95,10 @@ function TextosQueFaltan(Faltan: TCondiciones; TotalUnidades, SinCaja: Integer;
   const Marcadas: array of string): TArray<string>;
 
 { Documentos vencidos por (nodo, subserie) de los nodos dados. Una consulta por
-  subserie, nunca por documento. }
+  subserie, nunca por documento. Con IncluirNoVencidas se proponen todos los
+  documentos de gestion (aunque el plazo no haya vencido o no exista). }
 function ProponerTransferencia(Conn: TFDConnection; const Nodos: TArray<TClaveNodo>;
-  Hoy: TDateTime): TArray<TGrupoPropuesto>;
+  Hoy: TDateTime; IncluirNoVencidas: Boolean = False): TArray<TGrupoPropuesto>;
 
 { Crea la transferencia (paso 1) con su fecha prevista (0 = sin fecha) y la enlaza
   con el cronograma del nodo y ano si existe. }
@@ -324,7 +326,7 @@ end;
 { ------------------------------- propuesta ------------------------------- }
 
 function ProponerTransferencia(Conn: TFDConnection; const Nodos: TArray<TClaveNodo>;
-  Hoy: TDateTime): TArray<TGrupoPropuesto>;
+  Hoy: TDateTime; IncluirNoVencidas: Boolean): TArray<TGrupoPropuesto>;
 var
   Lista: TList<TGrupoPropuesto>;
   Gestion: TArray<Integer>;
@@ -333,7 +335,7 @@ var
   Q: TFDQuery;
   Desde, Hasta, I, Total, Ret: Integer;
   Corte: TDateTime;
-  Base, Cond: string;
+  Base, Cond, SoloConPlazo: string;
 
   { Cuenta (y fechas extremas) los documentos vencidos del grupo; Retenidos=True
     cuenta solo los que ya retiene otro proceso. }
@@ -376,7 +378,11 @@ begin
   Lista := TList<TGrupoPropuesto>.Create;
   Subs := TList<TGrupoPropuesto>.Create;
   try
-    // 1) subseries con plazo definido asignadas a los nodos
+    // 1) subseries asignadas a los nodos (con plazo definido, salvo transferencia anticipada)
+    if IncluirNoVencidas then
+      SoloConPlazo := ''
+    else
+      SoloConPlazo := 'C.tgestion > 0 AND ';
     Desde := 0;
     while Desde < Length(Nodos) do
     begin
@@ -387,7 +393,7 @@ begin
       Base := 'SELECT S.IdEstructura, S.id, S.codsubs, C.subserie, C.tgestion, R.serie ' +
         'FROM (tb_Serietree S INNER JOIN cl_subseries C ON C.codsubs = S.codsubs) ' +
         'INNER JOIN cl_series R ON R.codserie = C.codserie ' +
-        'WHERE C.tgestion > 0 AND (' + Cond + ') ORDER BY R.serie, C.subserie';
+        'WHERE ' + SoloConPlazo + '(' + Cond + ') ORDER BY R.serie, C.subserie';
       Q := TFDQuery.Create(nil);
       try
         Q.Connection := Conn;
@@ -406,6 +412,7 @@ begin
           G.Retenidos := 0;
           G.Desde := 0;
           G.Hasta := 0;
+          G.Anticipada := IncluirNoVencidas;
           Subs.Add(G);
           Q.Next;
         end;
@@ -418,7 +425,7 @@ begin
     for I := 0 to Subs.Count - 1 do
     begin
       G := Subs[I];
-      Corte := FechaCorte(Hoy, G.Anios);
+      Corte := FechaCorteGrupo(Hoy, G.Anios, G.Anticipada);
       Contar(G, False, Total);
       if Total = 0 then
         Continue;
@@ -493,7 +500,7 @@ begin
     Motivo := 'Solo se pueden agregar documentos en el paso de propuesta';
     Exit;
   end;
-  Corte := FechaCorte(Hoy, G.Anios);
+  Corte := FechaCorteGrupo(Hoy, G.Anios, G.Anticipada);
   if Corte = 0 then
   begin
     Motivo := 'La subserie no tiene plazo definido en el archivo de gestion';

@@ -29,7 +29,7 @@ uses
   System.Generics.Collections, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.StdCtrls,
   Vcl.ExtCtrls, cxGraphics, cxControls, cxLookAndFeels, cxLookAndFeelPainters,
   cxStyles, dxSkinsCore, dxSkinsDefaultPainters, cxCustomData, cxFilter, cxData,
-  cxDataStorage, cxEdit, cxNavigator, dxDateRanges, cxContainer, cxTextEdit,
+  cxDataStorage, cxEdit, cxNavigator, dxDateRanges, cxContainer, cxCheckBox, cxTextEdit,
   cxMaskEdit, cxDropDownEdit, cxCalendar, cxSpinEdit, cxButtons, cxGridLevel,
   cxClasses, cxGridCustomView, cxGridCustomTableView, cxGridTableView, cxGrid,
   FireDAC.Comp.Client, UAlcance, UProceso, UTema, UAutorizacion, UProcesoPintura,
@@ -87,6 +87,7 @@ type
     btnAvanzar: TcxButton;
     btnCancelarTransf: TcxButton;
     btnEliminarTransf: TcxButton;
+    chkAnticipada: TcxCheckBox;
     pnlAviso: TPanel;
     lblAviso: TLabel;
     pnlContenido: TPanel;
@@ -197,6 +198,7 @@ type
     procedure btnAvanzarClick(Sender: TObject);
     procedure btnCancelarTransfClick(Sender: TObject);
     procedure btnEliminarTransfClick(Sender: TObject);
+    procedure chkAnticipadaPropertiesChange(Sender: TObject);
   private
     FConn: TFDConnection;
     FNodos: TArray<TClaveNodo>;
@@ -896,7 +898,7 @@ begin
       1:
         begin
           MostrarAgregados(GruposDeLaTransferencia(FConn, FActual.IdProceso));
-          MostrarPropuesta(ProponerTransferencia(FConn, FNodos, Now));
+          MostrarPropuesta(ProponerTransferencia(FConn, FNodos, Now, chkAnticipada.Checked));
         end;
       2:
         begin
@@ -934,12 +936,17 @@ begin
     begin
       G := Grupos[I];
       DC.Values[I, colPropSerie.Index] := G.Serie + ' ' + #183 + ' ' + G.Subserie;
-      DC.Values[I, colPropAnios.Index] := IntToStr(G.Anios) + ' a' + #241 + 'os';
+      if G.Anios > 0 then
+        DC.Values[I, colPropAnios.Index] := IntToStr(G.Anios) + ' a' + #241 + 'os'
+      else
+        DC.Values[I, colPropAnios.Index] := 'sin plazo';
       DC.Values[I, colPropUnidades.Index] := IntToStr(G.Unidades);
       DC.Values[I, colPropFechas.Index] := RangoTexto(G.Desde, G.Hasta);
       Obs := '';
+      if G.Anticipada then
+        Obs := 'Antes de vencer el plazo';
       if G.Retenidos > 0 then
-        Obs := IntToStr(G.Retenidos) + ' en pr' + #233 + 'stamo u otro proceso';
+        Obs := Trim(Obs + '  ' + IntToStr(G.Retenidos) + ' en pr' + #233 + 'stamo u otro proceso');
       DC.Values[I, colPropObs.Index] := Obs;
     end;
   finally
@@ -1068,6 +1075,10 @@ begin
     TMensajes.Informacion('Marque las series que quiere agregar.', 'Transferencias');
     Exit;
   end;
+  if chkAnticipada.Checked and not TMensajes.Confirmar('Est' + #225 + ' transfiriendo antes de que ' +
+    'venza el plazo en el archivo de gesti' + #243 + 'n, lo que el Manual no prev' + #233 +
+    ' en el curso normal. ' + #191 + 'Desea continuar?', 'Transferencia anticipada') then
+    Exit;
   Total := 0;
   Problemas := '';
   for I := 0 to tvPropuesta.Controller.SelectedRecordCount - 1 do
@@ -1234,6 +1245,12 @@ begin
   if not CancelarProceso(FConn, FActual.IdProceso, FUsuario, 'Cancelada por el usuario') then
     TMensajes.Advertencia('La transferencia ya no se puede cancelar.', 'Transferencias');
   Recargar;
+end;
+
+procedure TfrmTransferenciasNuevo.chkAnticipadaPropertiesChange(Sender: TObject);
+begin
+  if (FActual.Paso = 1) and pnlDetalle.Visible then
+    CargarPaso;
 end;
 
 procedure TfrmTransferenciasNuevo.btnEliminarTransfClick(Sender: TObject);

@@ -61,6 +61,11 @@ const
   anos. 0 si no hay plazo (AniosGestion <= 0). }
 function FechaCorte(Hoy: TDateTime; AniosGestion: Integer): TDateTime;
 
+{ Como FechaCorte, pero con Anticipada (transferir antes de que venza el plazo, o
+  sin plazo definido) devuelve un corte tan lejano que incluye todos los documentos. }
+function FechaCorteGrupo(Hoy: TDateTime; AniosGestion: Integer;
+  Anticipada: Boolean): TDateTime;
+
 { True si el plazo en el archivo de gestion ya vencio. }
 function PlazoVencido(Fecha, FechaFin: TDateTime; HayFechaFin: Boolean;
   AniosGestion: Integer; Hoy: TDateTime): Boolean;
@@ -96,6 +101,15 @@ begin
     Result := 0
   else
     Result := IncYear(Hoy, -AniosGestion);
+end;
+
+function FechaCorteGrupo(Hoy: TDateTime; AniosGestion: Integer;
+  Anticipada: Boolean): TDateTime;
+begin
+  if Anticipada then
+    Result := IncYear(Hoy, 100)
+  else
+    Result := FechaCorte(Hoy, AniosGestion);
 end;
 
 function PlazoVencido(Fecha, FechaFin: TDateTime; HayFechaFin: Boolean;

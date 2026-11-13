@@ -561,6 +561,14 @@ object frmTransferenciasNuevo: TfrmTransferenciasNuevo
               Font.Style = []
               ParentFont = False
             end
+            object chkAnticipada: TcxCheckBox
+              Left = 640
+              Top = 10
+              Properties.Caption = 'Mostrar tambi'#233'n las que a'#250'n no vencen'
+              Properties.OnChange = chkAnticipadaPropertiesChange
+              TabOrder = 1
+              Width = 320
+            end
             object pnlP1TopDer: TPanel
               Left = 1010
               Top = 0
