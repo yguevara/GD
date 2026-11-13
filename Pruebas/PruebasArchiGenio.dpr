@@ -114,7 +114,9 @@ uses
   UPrestamosReglas in '..\UPrestamosReglas.pas',
   UPruebasPrestamosReglas in 'UPruebasPrestamosReglas.pas',
   UPrestamosDatos in '..\UPrestamosDatos.pas',
-  UPruebasPrestamosDatos in 'UPruebasPrestamosDatos.pas';
+  UPruebasPrestamosDatos in 'UPruebasPrestamosDatos.pas',
+  UPrestamosMigracion in '..\UPrestamosMigracion.pas',
+  UPruebasPrestamosMigracion in 'UPruebasPrestamosMigracion.pas';
 
 var
   Corredor: ITestRunner;
