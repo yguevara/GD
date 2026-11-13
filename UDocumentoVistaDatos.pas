@@ -61,7 +61,7 @@ function CargarRequiereAccion(Conn: TFDConnection;
 implementation
 
 uses
-  Data.DB, FireDAC.Stan.Param, FireDAC.Stan.Error, UAlcanceDatos;
+  Data.DB, FireDAC.Stan.Param, FireDAC.Stan.Error, UAlcanceDatos, UPrestadosSql;
 
 function ClaveTexto(const C: TClaveDocumento): string;
 begin
@@ -251,11 +251,7 @@ begin
     try
       // Prestamos abiertos de la subserie (sin fecha de devolucion)
       // un prestamo cancelado (FCancelacion) tampoco deja el documento fuera
-      Q := NuevaConsulta(Conn, 'SELECT D.fecha AS Fecha, D.version AS Version, ' +
-        'D.Codigodoc AS Codigodoc FROM TB_PrestamosDocumentos D INNER JOIN ' +
-        'TB_Prestamos P ON P.IdEstructura = D.IdEstructura AND P.id = D.id AND ' +
-        'P.IdPrestamo = D.IdPrestamo WHERE D.IdEstructura = :est AND D.id = :id ' +
-        'AND D.codsubs = :cs AND P.FDevolucion IS NULL AND P.FCancelacion IS NULL');
+      Q := NuevaConsulta(Conn, SqlClavesPrestadasDeSubserie);
       try
         PonClavesSubserie(Q, IdEstructura, Id, CodSubs);
         Q.Open;
@@ -339,13 +335,7 @@ var
 begin
   N := 0;
   Cuenta('prestados', 'Prestados ahora',
-    'SELECT COUNT(*) FROM (SELECT DISTINCT H.IdEstructura, H.id, H.codsubs, ' +
-    'H.Codigodoc, H.fecha, H.version FROM (TB_PrestamosDocumentos D INNER JOIN ' +
-    'TB_Prestamos P ON P.IdEstructura = D.IdEstructura AND P.id = D.id AND ' +
-    'P.IdPrestamo = D.IdPrestamo) INNER JOIN tb_SeriesDatos H ON ' +
-    'H.IdEstructura = D.IdEstructura AND H.id = D.id AND H.codsubs = D.codsubs ' +
-    'AND H.Codigodoc = D.Codigodoc AND H.fecha = D.fecha AND H.version = D.version ' +
-    'WHERE P.FDevolucion IS NULL AND P.FCancelacion IS NULL AND ({filtro})) AS T');
+    'SELECT COUNT(*) FROM (' + SqlPrestadosCombinados + ') AS T');
   Cuenta('sinubicacion', 'Sin ubicación',
     'SELECT COUNT(*) FROM tb_SeriesDatos H WHERE ({filtro}) AND ' +
     '(H.Archivo IS NULL OR H.Archivo = 0 OR ' + // Archivo es numerico

@@ -37,7 +37,7 @@ implementation
 
 uses
   System.Generics.Collections, Data.DB, FireDAC.Stan.Param, FireDAC.Stan.Error,
-  UAlcanceDatos;
+  UAlcanceDatos, UPrestadosSql;
 
 function ClaveDeNodo(const AEstructura: string; AId: Integer): string;
 begin
@@ -151,15 +151,10 @@ begin
       'H.deposito IS NULL OR H.deposito = '''' OR H.deposito = ''0'' OR ' +
       'H.gaveta IS NULL OR H.gaveta = '''' OR H.gaveta = ''0'') ' +
       'GROUP BY H.IdEstructura, H.id');
+    // Prestamos nuevos (prc_bloqueo) y viejos abiertos, sin duplicar (UPrestadosSql)
     Result.Prestados := SumaPorNodo(
-      'SELECT T.IdEstructura, T.id, COUNT(*) FROM (SELECT DISTINCT H.IdEstructura, H.id, ' +
-      'H.codsubs, H.Codigodoc, H.fecha, H.version FROM (TB_PrestamosDocumentos D ' +
-      'INNER JOIN TB_Prestamos P ON P.IdEstructura = D.IdEstructura AND P.id = D.id AND ' +
-      'P.IdPrestamo = D.IdPrestamo) INNER JOIN tb_SeriesDatos H ON ' +
-      'H.IdEstructura = D.IdEstructura AND H.id = D.id AND H.codsubs = D.codsubs ' +
-      'AND H.Codigodoc = D.Codigodoc AND H.fecha = D.fecha AND H.version = D.version ' +
-      'WHERE P.FDevolucion IS NULL AND P.FCancelacion IS NULL AND ({filtro})) AS T ' +
-      'GROUP BY T.IdEstructura, T.id');
+      'SELECT T.IdEstructura, T.id, COUNT(*) FROM (' + SqlPrestadosCombinados +
+      ') AS T GROUP BY T.IdEstructura, T.id');
   finally
     Conjunto.Free;
   end;
