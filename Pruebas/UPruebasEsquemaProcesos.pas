@@ -355,9 +355,9 @@ begin
     QuotedStr(IdEstr) + ', ' + IntToStr(IdNodo) + ')');
   try
     IdProc := Integer(Escalar('SELECT IdProceso FROM prc_proceso WHERE Anio = 1998'));
-    FConn.ExecSQL('INSERT INTO prc_unidad (IdProceso, IdEstructura, id, Codigodoc, ' +
+    FConn.ExecSQL('INSERT INTO prc_unidad (IdProceso, IdEstructura, id, codsubs, Codigodoc, ' +
       'fecha, version, Activa) VALUES (' + IntToStr(IdProc) + ', ' + QuotedStr(IdEstr) +
-      ', ' + IntToStr(IdNodo) + ', ''X'', ''2020-01-01'', ''1'', 1)');
+      ', ' + IntToStr(IdNodo) + ', ''S'', ''X'', ''2020-01-01'', ''1'', 1)');
     FConn.ExecSQL('DELETE FROM prc_proceso WHERE IdProceso = ' + IntToStr(IdProc));
     Assert.AreEqual(0, Integer(Escalar('SELECT COUNT(*) FROM prc_unidad WHERE IdProceso = ' +
       IntToStr(IdProc))));
