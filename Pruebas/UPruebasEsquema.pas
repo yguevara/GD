@@ -164,7 +164,7 @@ end;
 procedure TPruebasEsquema.MigraClaveAntiguaSinPerderFilas;
 var
   IdEstr, Usuario1, Usuario2: string;
-  IdNodo: Integer;
+  IdNodo, Antes: Integer;
 begin
   if FConn = nil then
   begin
@@ -176,6 +176,9 @@ begin
   IdNodo := Integer(Escalar('SELECT TOP 1 id FROM tb_tree ORDER BY IdEstructura, id'));
   Usuario1 := VarToStr(Escalar('SELECT TOP 1 nombreuser FROM tb_user ORDER BY nombreuser'));
   Usuario2 := VarToStr(Escalar('SELECT TOP 1 nombreuser FROM tb_user ORDER BY nombreuser DESC'));
+  // las filas reales del nodo se guardan y se restauran al terminar
+  FConn.ExecSQL('SELECT * INTO zz_egd_prev_prueba FROM tb_nodo_egd WHERE IdEstructura = :a AND id = :b', [IdEstr, IdNodo]);
+  Antes := Integer(Escalar('SELECT COUNT(*) FROM zz_egd_prev_prueba'));
   FConn.ExecSQL('DELETE FROM tb_nodo_egd WHERE IdEstructura = :a AND id = :b', [IdEstr, IdNodo]);
   try
     // se vuelve a la clave vieja (la tabla no debe tener dos EGD por nodo)
@@ -193,7 +196,12 @@ begin
       QuotedStr(IdEstr) + ' AND id = ' + IntToStr(IdNodo))));
   finally
     FConn.ExecSQL('DELETE FROM tb_nodo_egd WHERE IdEstructura = :a AND id = :b', [IdEstr, IdNodo]);
+    CrearEsquemaAlcance(FConn, True); // deja la clave vigente aunque la prueba fallara a medias
+    FConn.ExecSQL('INSERT INTO tb_nodo_egd (IdEstructura, id, user_id) SELECT IdEstructura, id, user_id FROM zz_egd_prev_prueba');
+    FConn.ExecSQL('DROP TABLE zz_egd_prev_prueba');
   end;
+  Assert.AreEqual(Antes, Integer(Escalar('SELECT COUNT(*) FROM tb_nodo_egd WHERE IdEstructura = ' +
+    QuotedStr(IdEstr) + ' AND id = ' + IntToStr(IdNodo))), 'No se restauraron las filas del nodo');
 end;
 
 procedure TPruebasEsquema.EsIdempotente;
