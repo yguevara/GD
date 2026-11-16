@@ -201,6 +201,9 @@ begin
   Columna('prc_transferencia', 'FRecepcion', 'DATETIME NULL');
   Columna('prc_transferencia', 'RecibidoPor', 'VARCHAR(100) NULL');
   Columna('prc_transferencia', 'Ubicacion', 'VARCHAR(255) NULL');
+  // F3: archivo central que recibe y registro general de entrada (Anexo 17).
+  Columna('prc_transferencia', 'IdArchivoDestino', 'SMALLINT NULL');
+  Columna('prc_transferencia', 'NumRegistroEntrada', 'VARCHAR(30) NULL');
 
   // Cronograma anual: una transferencia prevista por unidad (nodo) y ano.
   Tabla('prc_cronograma',
@@ -228,6 +231,29 @@ begin
     'CONSTRAINT FK_prc_caja_proceso FOREIGN KEY (IdProceso) ' +
     'REFERENCES prc_proceso(IdProceso) ON DELETE CASCADE');
 
+  // F3: recepcion y ubicacion por caja. Estado: P pendiente, R recibida, Q cuarentena,
+  // F faltante; NULL se lee como pendiente (Access no admite bien DEFAULT al agregar).
+  Columna('prc_caja', 'Deposito', 'VARCHAR(255) NULL');
+  Columna('prc_caja', 'Gaveta', 'VARCHAR(20) NULL');
+  Columna('prc_caja', 'Posicion', 'VARCHAR(10) NULL');
+  Columna('prc_caja', 'Estado', 'VARCHAR(1) NULL');
+  Columna('prc_caja', 'Conservacion', 'VARCHAR(255) NULL');
+
+  // Faltas y danos detectados en la recepcion. Estado: A abierta, C cerrada.
+  Tabla('prc_incidencia',
+    'IdIncidencia ' + TId + ', ' +
+    'IdProceso INT NOT NULL, ' +
+    'Caja INT NULL, ' +
+    'Tipo VARCHAR(20) NOT NULL, ' +
+    'Descripcion VARCHAR(255) NULL, ' +
+    'FechaLimite DATETIME NULL, ' +
+    'Estado VARCHAR(1) NOT NULL, ' +
+    'Usuario VARCHAR(100) NULL, ' +
+    'Fecha DATETIME NULL, ' +
+    'CONSTRAINT PK_prc_incidencia PRIMARY KEY (IdIncidencia), ' +
+    'CONSTRAINT FK_prc_incidencia_proceso FOREIGN KEY (IdProceso) ' +
+    'REFERENCES prc_proceso(IdProceso) ON DELETE CASCADE');
+
   // Verificaciones previas a la entrega (casillas marcadas por el usuario).
   Tabla('prc_verificacion',
     'IdProceso INT NOT NULL, ' +
@@ -245,6 +271,8 @@ begin
   Indice('IX_prc_evento_proceso', 'prc_evento', 'IdProceso');
   // Para los vencimientos de los prestamos.
   Indice('IX_prc_prestamo_limite', 'prc_prestamo', 'FLimite');
+  // Para las incidencias de una transferencia.
+  Indice('IX_prc_incidencia_proceso', 'prc_incidencia', 'IdProceso');
   // Para listar las unidades de una caja.
   Indice('IX_prc_unidad_caja', 'prc_unidad', 'IdProceso, Caja');
 
