@@ -35,6 +35,18 @@ type
     [Test]
     procedure UbicacionExigeTextoYNoPasaDelLimite;
     [Test]
+    procedure EntradaCentralExigeDestinoYRegistro;
+    [Test]
+    procedure CajasDecididasNecesitaCajasYNingunaPendiente;
+    [Test]
+    procedure HayCajaRecibidaSoloConAlgunaRecibida;
+    [Test]
+    procedure UbicacionDeCajaExigeLosTresCamposYSusLimites;
+    [Test]
+    procedure EstadoDeCajaIdaYVueltaConElCodigo;
+    [Test]
+    procedure ReclamacionVenceTreintaDiasDespues;
+    [Test]
     procedure CronogramaAtrasadaYProgramada;
     [Test]
     procedure CronogramaEnTramiteYRealizada;
@@ -149,6 +161,59 @@ begin
   Assert.AreEqual(0, Length(ValidarRecepcion('Ana', Hoy, 0, Hoy)));
   // varios errores a la vez
   Assert.AreEqual(2, Length(ValidarRecepcion('', Hoy + 1, Entrega, Hoy)));
+end;
+
+procedure TPruebasTransferenciasReglas.EntradaCentralExigeDestinoYRegistro;
+begin
+  Assert.AreEqual(2, Length(ValidarEntradaCentral(0, '')));
+  Assert.AreEqual(1, Length(ValidarEntradaCentral(3, '')));
+  Assert.AreEqual(1, Length(ValidarEntradaCentral(3, '   ')));
+  Assert.AreEqual(0, Length(ValidarEntradaCentral(3, '2026-0012')));
+  Assert.AreEqual(0, Length(ValidarEntradaCentral(3, StringOfChar('x', 30))));
+  Assert.AreEqual(1, Length(ValidarEntradaCentral(3, StringOfChar('x', 31))));
+end;
+
+procedure TPruebasTransferenciasReglas.CajasDecididasNecesitaCajasYNingunaPendiente;
+begin
+  Assert.IsFalse(CajasDecididas([]));
+  Assert.IsFalse(CajasDecididas([ecRecibida, ecPendiente]));
+  Assert.IsTrue(CajasDecididas([ecRecibida, ecCuarentena, ecFaltante]));
+end;
+
+procedure TPruebasTransferenciasReglas.HayCajaRecibidaSoloConAlgunaRecibida;
+begin
+  Assert.IsFalse(HayCajaRecibida([]));
+  Assert.IsFalse(HayCajaRecibida([ecFaltante]));
+  Assert.IsTrue(HayCajaRecibida([ecRecibida, ecFaltante]));
+end;
+
+procedure TPruebasTransferenciasReglas.UbicacionDeCajaExigeLosTresCamposYSusLimites;
+begin
+  Assert.AreEqual(3, Length(ValidarUbicacionCaja('', '', '')));
+  Assert.AreEqual(1, Length(ValidarUbicacionCaja('0', '02', '3')));
+  Assert.AreEqual(0, Length(ValidarUbicacionCaja(' 01 ', '02', '3')));
+  Assert.AreEqual(1, Length(ValidarUbicacionCaja('01', StringOfChar('g', 21), '3')));
+  Assert.AreEqual(0, Length(ValidarUbicacionCaja('01', StringOfChar('g', 20), '3')));
+  Assert.AreEqual(1, Length(ValidarUbicacionCaja('01', '02', StringOfChar('7', 11))));
+  Assert.AreEqual(1, Length(ValidarUbicacionCaja(StringOfChar('d', 256), '02', '3')));
+  Assert.AreEqual(0, Length(ValidarUbicacionCaja(StringOfChar('d', 255), '02', '3')));
+end;
+
+procedure TPruebasTransferenciasReglas.EstadoDeCajaIdaYVueltaConElCodigo;
+var
+  E: TEstadoCaja;
+begin
+  for E := Low(TEstadoCaja) to High(TEstadoCaja) do
+    Assert.AreEqual(Ord(E), Ord(EstadoCajaDesdeCodigo(CodigoDeEstadoCaja(E))));
+  Assert.AreEqual(Ord(ecCuarentena), Ord(EstadoCajaDesdeCodigo('Q')));
+  Assert.AreEqual(Ord(ecPendiente), Ord(EstadoCajaDesdeCodigo('x')));
+  Assert.AreEqual(Ord(ecPendiente), Ord(EstadoCajaDesdeCodigo('')));
+end;
+
+procedure TPruebasTransferenciasReglas.ReclamacionVenceTreintaDiasDespues;
+begin
+  Assert.AreEqual(30, PLAZO_RECLAMACION_DIAS);
+  Assert.AreEqual(EncodeDate(2026, 12, 1), FechaLimiteReclamacion(EncodeDate(2026, 11, 1)), 0.0001);
 end;
 
 procedure TPruebasTransferenciasReglas.UbicacionExigeTextoYNoPasaDelLimite;

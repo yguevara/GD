@@ -44,6 +44,15 @@ type
     Texto: string;
   end;
 
+  { Estado de una caja en la recepcion (paso 5). Se guarda como P, R, Q o F; un
+    valor vacio o desconocido es pendiente. }
+  TEstadoCaja = (ecPendiente, ecRecibida, ecCuarentena, ecFaltante);
+
+const
+  { Dias para reclamar una falta desde la recepcion (valor provisional: las normas
+    consultadas no lo fijan). }
+  PLAZO_RECLAMACION_DIAS = 30;
+
 const
   VERIFICACIONES: array[0..4] of TVerificacion = (
     (Codigo: 'unicos';
@@ -98,6 +107,30 @@ function ValidarRecepcion(const RecibidoPor: string; Fecha, FEntrega,
 { Errores (vacia si es valida) al registrar donde quedan las cajas: un texto no
   vacio de hasta 255 caracteres (limite de Access). }
 function ValidarUbicacion(const Ubicacion: string): TArray<string>;
+
+function EstadoCajaDesdeCodigo(const Codigo: string): TEstadoCaja;
+function CodigoDeEstadoCaja(E: TEstadoCaja): string;
+
+{ Errores (vacia si es valida) al recibir en el archivo central: hay que elegir el
+  archivo destino (> 0) y escribir el registro general de entrada (Anexo 17, hasta
+  30 caracteres). }
+function ValidarEntradaCentral(IdArchivoDestino: Integer;
+  const NumRegistro: string): TArray<string>;
+
+{ True si hay al menos una caja y ninguna sigue pendiente. }
+function CajasDecididas(const Estados: array of TEstadoCaja): Boolean;
+
+{ True si al menos una caja esta recibida (algo que ubicar). }
+function HayCajaRecibida(const Estados: array of TEstadoCaja): Boolean;
+
+{ Errores (vacia si es valida) al ubicar una caja (Anexo 18): deposito (hasta 255),
+  gaveta (hasta 20) y posicion (hasta 10), ninguno vacio ni '0', como en
+  tb_SeriesDatos. Un error por campo. }
+function ValidarUbicacionCaja(const Deposito, Gaveta,
+  Posicion: string): TArray<string>;
+
+{ Ultimo dia para reclamar una falta detectada en la recepcion. }
+function FechaLimiteReclamacion(FRecepcion: TDateTime): TDateTime;
 
 implementation
 
@@ -267,6 +300,100 @@ begin
     Result := ['Indique d' + #243 + 'nde quedan las cajas (dep' + #243 + 'sito, estante...).']
   else if Length(Trim(Ubicacion)) > 255 then
     Result := ['La ubicaci' + #243 + 'n es demasiado larga (m' + #225 + 'ximo 255 caracteres).'];
+end;
+
+function EstadoCajaDesdeCodigo(const Codigo: string): TEstadoCaja;
+begin
+  if Codigo = 'R' then
+    Result := ecRecibida
+  else if Codigo = 'Q' then
+    Result := ecCuarentena
+  else if Codigo = 'F' then
+    Result := ecFaltante
+  else
+    Result := ecPendiente;
+end;
+
+function CodigoDeEstadoCaja(E: TEstadoCaja): string;
+begin
+  case E of
+    ecRecibida: Result := 'R';
+    ecCuarentena: Result := 'Q';
+    ecFaltante: Result := 'F';
+  else
+    Result := 'P';
+  end;
+end;
+
+function ValidarEntradaCentral(IdArchivoDestino: Integer;
+  const NumRegistro: string): TArray<string>;
+var
+  Lista: TList<string>;
+begin
+  Lista := TList<string>.Create;
+  try
+    if IdArchivoDestino <= 0 then
+      Lista.Add('Elija el archivo central que recibe la transferencia.');
+    if Trim(NumRegistro) = '' then
+      Lista.Add('Escriba el n' + #250 + 'mero de registro general de entrada.')
+    else if Length(Trim(NumRegistro)) > 30 then
+      Lista.Add('El n' + #250 + 'mero de registro es demasiado largo (m' + #225 +
+        'ximo 30 caracteres).');
+    Result := Lista.ToArray;
+  finally
+    Lista.Free;
+  end;
+end;
+
+function CajasDecididas(const Estados: array of TEstadoCaja): Boolean;
+var
+  E: TEstadoCaja;
+begin
+  Result := Length(Estados) > 0;
+  for E in Estados do
+    if E = ecPendiente then
+      Exit(False);
+end;
+
+function HayCajaRecibida(const Estados: array of TEstadoCaja): Boolean;
+var
+  E: TEstadoCaja;
+begin
+  Result := False;
+  for E in Estados do
+    if E = ecRecibida then
+      Exit(True);
+end;
+
+function ValidarUbicacionCaja(const Deposito, Gaveta,
+  Posicion: string): TArray<string>;
+var
+  Lista: TList<string>;
+
+  procedure Revisar(const Valor, Nombre: string; Maximo: Integer);
+  begin
+    if (Trim(Valor) = '') or (Trim(Valor) = '0') then
+      Lista.Add('Indique ' + Nombre + ' de la caja.')
+    else if Length(Trim(Valor)) > Maximo then
+      Lista.Add(Nombre + ' es demasiado largo (m' + #225 + 'ximo ' + IntToStr(Maximo) +
+        ' caracteres).');
+  end;
+
+begin
+  Lista := TList<string>.Create;
+  try
+    Revisar(Deposito, 'el dep' + #243 + 'sito', 255);
+    Revisar(Gaveta, 'la gaveta', 20);
+    Revisar(Posicion, 'la posici' + #243 + 'n', 10);
+    Result := Lista.ToArray;
+  finally
+    Lista.Free;
+  end;
+end;
+
+function FechaLimiteReclamacion(FRecepcion: TDateTime): TDateTime;
+begin
+  Result := Trunc(FRecepcion) + PLAZO_RECLAMACION_DIAS;
 end;
 
 function TextoEstadoTransferencia(Paso: Integer; Estado: TEstadoProceso): string;
