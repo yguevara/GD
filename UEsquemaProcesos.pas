@@ -254,6 +254,32 @@ begin
     'CONSTRAINT FK_prc_incidencia_proceso FOREIGN KEY (IdProceso) ' +
     'REFERENCES prc_proceso(IdProceso) ON DELETE CASCADE');
 
+  // F4: datos propios de la depuracion (acta de eliminacion, Anexo 19). Via: I
+  // incineracion, T trituracion.
+  Tabla('prc_depuracion',
+    'IdProceso INT NOT NULL, ' +
+    'Lugar VARCHAR(255) NULL, ' +
+    'Via VARCHAR(1) NULL, ' +
+    'FPrevista DATETIME NULL, ' +
+    'FEjecucion DATETIME NULL, ' +
+    'MuestraDesc VARCHAR(255) NULL, ' +
+    'MuestraDonde VARCHAR(255) NULL, ' +
+    'CONSTRAINT PK_prc_depuracion PRIMARY KEY (IdProceso), ' +
+    'CONSTRAINT FK_prc_depuracion_proceso FOREIGN KEY (IdProceso) ' +
+    'REFERENCES prc_proceso(IdProceso) ON DELETE CASCADE');
+
+  // Testigos del acta. Origen: C Comision, G archivo de gestion, O otro.
+  Tabla('prc_testigo',
+    'IdTestigo ' + TId + ', ' +
+    'IdProceso INT NOT NULL, ' +
+    'Nombre VARCHAR(100) NOT NULL, ' +
+    'Cargo VARCHAR(100) NULL, ' +
+    'Origen VARCHAR(1) NOT NULL, ' +
+    'Firmo ' + TBitNo + ', ' +
+    'CONSTRAINT PK_prc_testigo PRIMARY KEY (IdTestigo), ' +
+    'CONSTRAINT FK_prc_testigo_proceso FOREIGN KEY (IdProceso) ' +
+    'REFERENCES prc_proceso(IdProceso) ON DELETE CASCADE');
+
   // Verificaciones previas a la entrega (casillas marcadas por el usuario).
   Tabla('prc_verificacion',
     'IdProceso INT NOT NULL, ' +
@@ -273,6 +299,8 @@ begin
   Indice('IX_prc_prestamo_limite', 'prc_prestamo', 'FLimite');
   // Para las incidencias de una transferencia.
   Indice('IX_prc_incidencia_proceso', 'prc_incidencia', 'IdProceso');
+  // Para los testigos de una depuracion.
+  Indice('IX_prc_testigo_proceso', 'prc_testigo', 'IdProceso');
   // Para listar las unidades de una caja.
   Indice('IX_prc_unidad_caja', 'prc_unidad', 'IdProceso, Caja');
 

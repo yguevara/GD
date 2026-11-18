@@ -53,6 +53,10 @@ type
     procedure CajaF3_ColumnasDeUbicacionYEstado;
     [Test]
     procedure Incidencia_TablaConCascadaEIndice;
+    [Test]
+    procedure Depuracion_TablaConClaveYCascada;
+    [Test]
+    procedure Testigo_TablaConClaveCascadaEIndice;
   end;
 
   [TestFixture]
@@ -87,9 +91,9 @@ uses
 
 const
   VAR_BD = 'ARCHIGENIO_TEST_DB';
-  TABLAS: array[0..10] of string = ('prc_proceso', 'prc_unidad', 'prc_evento',
+  TABLAS: array[0..12] of string = ('prc_proceso', 'prc_unidad', 'prc_evento',
     'prc_autorizacion', 'prc_bloqueo', 'prc_prestamo', 'prc_transferencia',
-    'prc_cronograma', 'prc_caja', 'prc_verificacion', 'prc_incidencia');
+    'prc_cronograma', 'prc_caja', 'prc_verificacion', 'prc_incidencia', 'prc_depuracion', 'prc_testigo');
 
 { TPruebasEsquemaProcesosSql }
 
@@ -133,8 +137,8 @@ end;
 
 procedure TPruebasEsquemaProcesosSql.Access_UsaCounterEnLasClavesAutonumericas;
 begin
-  Assert.AreEqual(4, Contar(Todo(False), 'COUNTER'), 'IdProceso, IdEvento, IdCronograma e IdIncidencia');
-  Assert.AreEqual(4, Contar(Todo(True), 'IDENTITY(1,1)'));
+  Assert.AreEqual(5, Contar(Todo(False), 'COUNTER'), 'IdProceso, IdEvento, IdCronograma, IdIncidencia e IdTestigo');
+  Assert.AreEqual(5, Contar(Todo(True), 'IDENTITY(1,1)'));
 end;
 
 procedure TPruebasEsquemaProcesosSql.Proceso_TieneClaveUnicaTipoAnioConsecutivo;
@@ -163,13 +167,13 @@ end;
 
 procedure TPruebasEsquemaProcesosSql.TieneLosCincoIndices;
 begin
-  Assert.AreEqual(6, Contar(Todo(True), 'CREATE INDEX'));
-  Assert.AreEqual(6, Contar(Todo(False), 'CREATE INDEX'));
+  Assert.AreEqual(7, Contar(Todo(True), 'CREATE INDEX'));
+  Assert.AreEqual(7, Contar(Todo(False), 'CREATE INDEX'));
 end;
 
 procedure TPruebasEsquemaProcesosSql.SqlServer_IndicesConGuarda;
 begin
-  Assert.AreEqual(6, Contar(Todo(True), 'IF NOT EXISTS (SELECT 1 FROM sys.indexes'));
+  Assert.AreEqual(7, Contar(Todo(True), 'IF NOT EXISTS (SELECT 1 FROM sys.indexes'));
 end;
 
 procedure TPruebasEsquemaProcesosSql.Bloqueo_ClavePrimariaEsElDocumento;
@@ -256,6 +260,39 @@ begin
     Assert.IsTrue(Pos('ALTER TABLE prc_caja ADD ' + C, Todo(True)) > 0, 'SQL Server ' + C);
     Assert.IsTrue(Pos('ALTER TABLE prc_caja ADD COLUMN ' + C, Todo(False)) > 0, 'Access ' + C);
   end;
+end;
+
+procedure TPruebasEsquemaProcesosSql.Depuracion_TablaConClaveYCascada;
+var
+  C: string;
+begin
+  for C in TArray<string>.Create('CREATE TABLE prc_depuracion (',
+    'CONSTRAINT PK_prc_depuracion PRIMARY KEY (IdProceso)',
+    'Lugar VARCHAR(255) NULL', 'Via VARCHAR(1) NULL', 'FPrevista DATETIME NULL',
+    'FEjecucion DATETIME NULL', 'MuestraDesc VARCHAR(255) NULL',
+    'MuestraDonde VARCHAR(255) NULL') do
+  begin
+    Assert.IsTrue(Pos(C, Todo(True)) > 0, 'SQL Server ' + C);
+    Assert.IsTrue(Pos(C, Todo(False)) > 0, 'Access ' + C);
+  end;
+  Assert.IsTrue(Pos('CONSTRAINT FK_prc_depuracion_proceso FOREIGN KEY (IdProceso) ' +
+    'REFERENCES prc_proceso(IdProceso) ON DELETE CASCADE', Todo(False)) > 0);
+end;
+
+procedure TPruebasEsquemaProcesosSql.Testigo_TablaConClaveCascadaEIndice;
+var
+  C: string;
+begin
+  for C in TArray<string>.Create('CREATE TABLE prc_testigo (',
+    'CONSTRAINT PK_prc_testigo PRIMARY KEY (IdTestigo)', 'Nombre VARCHAR(100) NOT NULL',
+    'Cargo VARCHAR(100) NULL', 'Origen VARCHAR(1) NOT NULL') do
+  begin
+    Assert.IsTrue(Pos(C, Todo(True)) > 0, 'SQL Server ' + C);
+    Assert.IsTrue(Pos(C, Todo(False)) > 0, 'Access ' + C);
+  end;
+  Assert.IsTrue(Pos('CONSTRAINT FK_prc_testigo_proceso FOREIGN KEY (IdProceso) ' +
+    'REFERENCES prc_proceso(IdProceso) ON DELETE CASCADE', Todo(True)) > 0);
+  Assert.IsTrue(Pos('CREATE INDEX IX_prc_testigo_proceso ON prc_testigo (IdProceso)', Todo(True)) > 0);
 end;
 
 procedure TPruebasEsquemaProcesosSql.Incidencia_TablaConCascadaEIndice;
