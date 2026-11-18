@@ -10232,6 +10232,16 @@ begin
             TMensajes.Error('No se pudieron imprimir las etiquetas: ' + E.Message, 'Transferencias');
         end;
       end;
+    Pantalla.AlImprimirTopografico :=
+      procedure(IdProceso: Integer)
+      begin
+        try
+          ImprimirRegistroTopografico(UDM.Conn, IdProceso, Carpeta);
+        except
+          on E: Exception do
+            TMensajes.Error('No se pudo imprimir el registro topografico: ' + E.Message, 'Transferencias');
+        end;
+      end;
     AbrirPantallaProceso(Pantalla, 'Transferencias', 'Transferencias');
   except
     on E: Exception do

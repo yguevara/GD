@@ -47,6 +47,10 @@ type
     [Test]
     procedure TextoDelEstadoDeCajaEsParaPersonas;
     [Test]
+    procedure RegistroTopograficoSoloLlevaCajasRecibidasEnOrden;
+    [Test]
+    procedure RegistroTopograficoSinCajasRecibidasEstaVacio;
+    [Test]
     procedure TextoDeUbicacionVaciaSinDatosYCompletaConTodos;
     [Test]
     procedure CronogramaAtrasadaYProgramada;
@@ -210,6 +214,39 @@ begin
   Assert.AreEqual(Ord(ecCuarentena), Ord(EstadoCajaDesdeCodigo('Q')));
   Assert.AreEqual(Ord(ecPendiente), Ord(EstadoCajaDesdeCodigo('x')));
   Assert.AreEqual(Ord(ecPendiente), Ord(EstadoCajaDesdeCodigo('')));
+end;
+
+function CajaTopo(N: Integer; E: TEstadoCaja; const Dep: string): TCajaFila;
+begin
+  Result := Default(TCajaFila);
+  Result.Caja := N;
+  Result.Estado := E;
+  Result.Deposito := Dep;
+  Result.Gaveta := 'G' + IntToStr(N);
+  Result.Posicion := IntToStr(N);
+  Result.Unidades := 10 + N;
+  Result.Descripcion := 'Caja ' + IntToStr(N);
+end;
+
+procedure TPruebasTransferenciasReglas.RegistroTopograficoSoloLlevaCajasRecibidasEnOrden;
+var
+  L: TArray<TLineaTopografia>;
+begin
+  L := LineasRegistroTopografico([CajaTopo(3, ecRecibida, 'D3'), CajaTopo(1, ecRecibida, 'D1'),
+    CajaTopo(2, ecCuarentena, ''), CajaTopo(4, ecFaltante, ''), CajaTopo(5, ecPendiente, '')]);
+  Assert.AreEqual(2, Length(L), 'solo las recibidas');
+  Assert.AreEqual(1, L[0].Caja);
+  Assert.AreEqual('D1', L[0].Deposito);
+  Assert.AreEqual('G1', L[0].Gaveta);
+  Assert.AreEqual('1', L[0].Posicion);
+  Assert.AreEqual(11, L[0].Unidades);
+  Assert.AreEqual(3, L[1].Caja, 'orden ascendente por numero de caja');
+end;
+
+procedure TPruebasTransferenciasReglas.RegistroTopograficoSinCajasRecibidasEstaVacio;
+begin
+  Assert.AreEqual(0, Length(LineasRegistroTopografico([])));
+  Assert.AreEqual(0, Length(LineasRegistroTopografico([CajaTopo(1, ecFaltante, '')])));
 end;
 
 procedure TPruebasTransferenciasReglas.TextoDelEstadoDeCajaEsParaPersonas;

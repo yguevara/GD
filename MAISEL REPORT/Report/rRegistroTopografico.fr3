@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<TfrxReport Version="2022.3" DotMatrixReport="False" IniFile="\Software\Fast Reports" PreviewOptions.Buttons="167935" PreviewOptions.Zoom="1" PrintOptions.Printer="Default" PrintOptions.PrintOnSheet="0" ReportOptions.CreateDate="46341.5" ReportOptions.Description.Text="Anexo 18 del Manual de procedimientos GD: Registro topográfico del archivo receptor. Una fila por caja recibida con su ubicación. Los datos los aporta la aplicación." ReportOptions.LastChange="46341.5" ScriptLanguage="PascalScript" ScriptText.Text="&#13;&#10;begin&#13;&#10;&#13;&#10;end.">
+  <Variables>
+    <item Name=" Datos"/>
+    <item Name="Empresa"/>
+    <item Name="Archivo"/>
+    <item Name="Numero"/>
+    <item Name="NumRegistro"/>
+    <item Name="FRecepcion"/>
+    <item Name="RecibidoPor"/>
+  </Variables>
+  <TfrxDataPage Name="Data" HGuides.Text="" VGuides.Text="" Height="1000" Left="0" Top="0" Width="1000"/>
+    <TfrxReportPage Name="Page1" HGuides.Text="" VGuides.Text="" PaperWidth="210" PaperHeight="297" PaperSize="9" LeftMargin="15" RightMargin="15" TopMargin="15" BottomMargin="15" ColumnWidth="0" ColumnPositions.Text="" Frame.Typ="0" MirrorMode="0">
+    <TfrxReportTitle Name="ReportTitle1" FillType="ftBrush" FillGap.Top="0" FillGap.Left="0" FillGap.Bottom="0" FillGap.Right="0" Frame.Typ="0" Height="140" Left="0" Top="0" Width="680">
+      <TfrxMemoView Name="mTitulo" AllowVectorExport="True" Left="0" Top="0" Width="680" Height="40" Font.Charset="1" Font.Color="0" Font.Height="-17" Font.Name="Arial" Font.Style="1" Frame.Typ="0" HAlign="haCenter" ParentFont="False" VAlign="vaCenter" Text="REGISTRO TOPOGRÁFICO"/>
+      <TfrxMemoView Name="mEmpresa" AllowVectorExport="True" Left="0" Top="42" Width="680" Height="20" Font.Charset="1" Font.Color="0" Font.Height="-13" Font.Name="Arial" Font.Style="0" Frame.Typ="0" HAlign="haCenter" ParentFont="False" VAlign="vaCenter" Text="[Empresa]"/>
+      <TfrxMemoView Name="mArcRot" AllowVectorExport="True" Left="0" Top="70" Width="150" Height="30" Font.Charset="1" Font.Color="0" Font.Height="-13" Font.Name="Arial" Font.Style="1" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="Archivo receptor"/>
+      <TfrxMemoView Name="mArcVal" AllowVectorExport="True" Left="150" Top="70" Width="250" Height="30" Font.Charset="1" Font.Color="0" Font.Height="-13" Font.Name="Arial" Font.Style="0" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="[Archivo]"/>
+      <TfrxMemoView Name="mRegRot" AllowVectorExport="True" Left="400" Top="70" Width="170" Height="30" Font.Charset="1" Font.Color="0" Font.Height="-13" Font.Name="Arial" Font.Style="1" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="Registro General de Entrada N.º"/>
+      <TfrxMemoView Name="mRegVal" AllowVectorExport="True" Left="570" Top="70" Width="110" Height="30" Font.Charset="1" Font.Color="0" Font.Height="-13" Font.Name="Arial" Font.Style="0" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="[NumRegistro]"/>
+      <TfrxMemoView Name="mNumRot" AllowVectorExport="True" Left="0" Top="100" Width="150" Height="30" Font.Charset="1" Font.Color="0" Font.Height="-13" Font.Name="Arial" Font.Style="1" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="Transferencia N.º"/>
+      <TfrxMemoView Name="mNumVal" AllowVectorExport="True" Left="150" Top="100" Width="250" Height="30" Font.Charset="1" Font.Color="0" Font.Height="-13" Font.Name="Arial" Font.Style="0" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="[Numero]"/>
+      <TfrxMemoView Name="mFecRot" AllowVectorExport="True" Left="400" Top="100" Width="170" Height="30" Font.Charset="1" Font.Color="0" Font.Height="-13" Font.Name="Arial" Font.Style="1" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="Fecha de la recepción"/>
+      <TfrxMemoView Name="mFecVal" AllowVectorExport="True" Left="570" Top="100" Width="110" Height="30" Font.Charset="1" Font.Color="0" Font.Height="-13" Font.Name="Arial" Font.Style="0" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="[FRecepcion]"/>
+    </TfrxReportTitle>
+    <TfrxHeader Name="Header1" FillType="ftBrush" FillGap.Top="0" FillGap.Left="0" FillGap.Bottom="0" FillGap.Right="0" Frame.Typ="0" Height="26" Left="0" Top="140" Width="680">
+      <TfrxMemoView Name="hCaja" AllowVectorExport="True" Left="0" Top="0" Width="50" Height="26" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="1" Frame.Typ="15" HAlign="haCenter" ParentFont="False" VAlign="vaCenter" Text="Caja"/>
+      <TfrxMemoView Name="hDesc" AllowVectorExport="True" Left="50" Top="0" Width="210" Height="26" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="1" Frame.Typ="15" HAlign="haCenter" ParentFont="False" VAlign="vaCenter" Text="Contenido"/>
+      <TfrxMemoView Name="hFec" AllowVectorExport="True" Left="260" Top="0" Width="120" Height="26" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="1" Frame.Typ="15" HAlign="haCenter" ParentFont="False" VAlign="vaCenter" Text="Fechas extremas"/>
+      <TfrxMemoView Name="hDep" AllowVectorExport="True" Left="380" Top="0" Width="120" Height="26" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="1" Frame.Typ="15" HAlign="haCenter" ParentFont="False" VAlign="vaCenter" Text="Depósito"/>
+      <TfrxMemoView Name="hGav" AllowVectorExport="True" Left="500" Top="0" Width="100" Height="26" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="1" Frame.Typ="15" HAlign="haCenter" ParentFont="False" VAlign="vaCenter" Text="Gaveta"/>
+      <TfrxMemoView Name="hPos" AllowVectorExport="True" Left="600" Top="0" Width="80" Height="26" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="1" Frame.Typ="15" HAlign="haCenter" ParentFont="False" VAlign="vaCenter" Text="Posición"/>
+    </TfrxHeader>
+    <TfrxMasterData Name="MasterData1" FillType="ftBrush" FillGap.Top="0" FillGap.Left="0" FillGap.Bottom="0" FillGap.Right="0" Frame.Typ="0" Height="22" Left="0" Top="166" Width="680" ColumnWidth="0" ColumnGap="0" DataSet="frxTopografico" DataSetName="Topografico" RowCount="0" Stretched="True">
+      <TfrxMemoView Name="dCaja" AllowVectorExport="True" Left="0" Top="0" Width="50" Height="22" StretchMode="smMaxHeight" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="0" Frame.Typ="15" HAlign="haCenter" ParentFont="False" VAlign="vaCenter" Text="[Topografico.&#34;Caja&#34;]"/>
+      <TfrxMemoView Name="dDesc" AllowVectorExport="True" Left="50" Top="0" Width="210" Height="22" StretchMode="smMaxHeight" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="0" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="[Topografico.&#34;Descripcion&#34;]"/>
+      <TfrxMemoView Name="dFec" AllowVectorExport="True" Left="260" Top="0" Width="120" Height="22" StretchMode="smMaxHeight" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="0" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="[Topografico.&#34;Fechas&#34;]"/>
+      <TfrxMemoView Name="dDep" AllowVectorExport="True" Left="380" Top="0" Width="120" Height="22" StretchMode="smMaxHeight" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="0" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="[Topografico.&#34;Deposito&#34;]"/>
+      <TfrxMemoView Name="dGav" AllowVectorExport="True" Left="500" Top="0" Width="100" Height="22" StretchMode="smMaxHeight" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="0" Frame.Typ="15" HAlign="haCenter" ParentFont="False" VAlign="vaCenter" Text="[Topografico.&#34;Gaveta&#34;]"/>
+      <TfrxMemoView Name="dPos" AllowVectorExport="True" Left="600" Top="0" Width="80" Height="22" StretchMode="smMaxHeight" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="0" Frame.Typ="15" HAlign="haCenter" ParentFont="False" VAlign="vaCenter" Text="[Topografico.&#34;Posicion&#34;]"/>
+    </TfrxMasterData>
+    <TfrxReportSummary Name="ReportSummary1" FillType="ftBrush" FillGap.Top="0" FillGap.Left="0" FillGap.Bottom="0" FillGap.Right="0" Frame.Typ="0" Height="110" Left="0" Top="210" Width="680">
+      <TfrxLineView Name="lRec" AllowVectorExport="True" Left="190" Top="60" Width="300" Height="0" Frame.Typ="4"/>
+      <TfrxMemoView Name="fNom" AllowVectorExport="True" Left="190" Top="30" Width="300" Height="24" Font.Charset="1" Font.Color="0" Font.Height="-13" Font.Name="Arial" Font.Style="0" Frame.Typ="0" HAlign="haCenter" ParentFont="False" VAlign="vaBottom" Text="[RecibidoPor]"/>
+      <TfrxMemoView Name="fRec" AllowVectorExport="True" Left="190" Top="64" Width="300" Height="34" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="0" Frame.Typ="0" HAlign="haCenter" ParentFont="False" VAlign="vaTop" Text="Recibe: nombre, cargo y firma"/>
+    </TfrxReportSummary>
+    </TfrxReportPage>
+</TfrxReport>

@@ -1650,6 +1650,15 @@ object frmTransferenciasNuevo: TfrmTransferenciasNuevo
           TabOrder = 4
           OnClick = btnEtiquetasClick
         end
+        object btnTopografico5: TcxButton
+          Left = 508
+          Top = 404
+          Width = 270
+          Height = 36
+          Caption = 'Imprimir registro topogr'#225'fico'
+          TabOrder = 5
+          OnClick = btnTopograficoClick
+        end
       end
     end
   end

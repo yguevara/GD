@@ -25,7 +25,8 @@ unit UTransferenciasImpresos;
 interface
 
 uses
-  System.SysUtils, FireDAC.Comp.Client, frxClass, UTransferenciasDatos;
+  System.SysUtils, FireDAC.Comp.Client, frxClass, UTransferenciasReglas,
+  UTransferenciasDatos;
 
 type
   TDatosRelacion = record
@@ -41,8 +42,16 @@ type
     CajaUnidades: Integer;
   end;
 
+  { Registro topografico (Anexo 18): lo que firma el archivo receptor. }
+  TDatosTopografico = record
+    Empresa, Archivo, Numero, NumRegistro, RecibidoPor: string;
+    FRecepcion: TDateTime;
+  end;
+
 function PrepararRelacion(const Fr3: string; const D: TDatosRelacion;
   const Lineas: TArray<TLineaRelacion>): TfrxReport;
+function PrepararRegistroTopografico(const Fr3: string; const D: TDatosTopografico;
+  const Lineas: TArray<TLineaTopografia>): TfrxReport;
 function PrepararEtiquetas(const Fr3: string; const D: TDatosRelacion;
   const Docs: TArray<TDocumentoCaja>): TfrxReport;
 
@@ -50,6 +59,8 @@ function PrepararEtiquetas(const Fr3: string; const D: TDatosRelacion;
 procedure ImprimirRelacion(Conn: TFDConnection; IdProceso: Integer;
   const CarpetaReportes: string);
 procedure ImprimirEtiquetas(Conn: TFDConnection; IdProceso: Integer;
+  const CarpetaReportes: string);
+procedure ImprimirRegistroTopografico(Conn: TFDConnection; IdProceso: Integer;
   const CarpetaReportes: string);
 
 implementation
@@ -60,6 +71,7 @@ uses
 const
   ARCHIVO_RELACION = 'rRelacionEntrega.fr3';
   ARCHIVO_ETIQUETAS = 'rEtiquetasCaja.fr3';
+  ARCHIVO_TOPOGRAFICO = 'rRegistroTopografico.fr3';
 
 function PrepararRelacion(const Fr3: string; const D: TDatosRelacion;
   const Lineas: TArray<TLineaRelacion>): TfrxReport;
@@ -89,6 +101,42 @@ begin
       Tabla.Post;
     end;
     ConectarDataset(Result, Tabla, 'Relacion', 'MasterData1');
+  except
+    Result.Free;
+    raise;
+  end;
+end;
+
+function PrepararRegistroTopografico(const Fr3: string; const D: TDatosTopografico;
+  const Lineas: TArray<TLineaTopografia>): TfrxReport;
+var
+  Tabla: TFDMemTable;
+  L: TLineaTopografia;
+begin
+  Result := TfrxReport.Create(nil);
+  try
+    Result.LoadFromFile(Fr3);
+    Result.Variables['Empresa'] := CadenaFr(D.Empresa);
+    Result.Variables['Archivo'] := CadenaFr(D.Archivo);
+    Result.Variables['Numero'] := CadenaFr(D.Numero);
+    Result.Variables['NumRegistro'] := CadenaFr(D.NumRegistro);
+    Result.Variables['FRecepcion'] := CadenaFr(FechaTexto(D.FRecepcion));
+    Result.Variables['RecibidoPor'] := CadenaFr(D.RecibidoPor);
+    Tabla := NuevaTablaMemoria(Result, ['Caja', 'Descripcion', 'Fechas', 'Deposito',
+      'Gaveta', 'Posicion'], [10, 255, 30, 255, 20, 10]);
+    for L in Lineas do
+    begin
+      Tabla.Append;
+      Tabla.FieldByName('Caja').AsString := IntToStr(L.Caja);
+      Tabla.FieldByName('Descripcion').AsString := L.Descripcion + ' (' +
+        IntToStr(L.Unidades) + ' doc.)';
+      Tabla.FieldByName('Fechas').AsString := RangoTexto(L.Desde, L.Hasta);
+      Tabla.FieldByName('Deposito').AsString := L.Deposito;
+      Tabla.FieldByName('Gaveta').AsString := L.Gaveta;
+      Tabla.FieldByName('Posicion').AsString := L.Posicion;
+      Tabla.Post;
+    end;
+    ConectarDataset(Result, Tabla, 'Topografico', 'MasterData1');
   except
     Result.Free;
     raise;
@@ -152,6 +200,53 @@ begin
       D.FTransferencia := Q.FieldByName('FEntrega').AsDateTime;
   finally
     Q.Free;
+  end;
+end;
+
+{ Cabecera del Registro topografico: transferencia, archivo receptor y recepcion. }
+procedure LeerCabeceraTopografico(Conn: TFDConnection; IdProceso: Integer;
+  out D: TDatosTopografico);
+var
+  Q: TFDQuery;
+begin
+  Q := TFDQuery.Create(nil);
+  try
+    Q.Connection := Conn;
+    Q.SQL.Text := 'SELECT p.Numero, t.NumRegistroEntrada, t.FRecepcion, t.RecibidoPor, ' +
+      'a.nombreArchivo AS Archivo FROM ((prc_proceso p INNER JOIN prc_transferencia t ON ' +
+      't.IdProceso = p.IdProceso) LEFT JOIN cl_ArchivosGestion a ON ' +
+      'a.Cod = t.IdArchivoDestino) WHERE p.IdProceso = :i';
+    Q.ParamByName('i').AsInteger := IdProceso;
+    Q.Open;
+    if Q.IsEmpty then
+      raise EArgumentException.Create('La transferencia no existe: ' + IntToStr(IdProceso));
+    D.Empresa := EmpresaDe(Conn);
+    D.Numero := Trim(Q.FieldByName('Numero').AsString);
+    D.Archivo := Q.FieldByName('Archivo').AsString;
+    D.NumRegistro := Q.FieldByName('NumRegistroEntrada').AsString;
+    D.RecibidoPor := Q.FieldByName('RecibidoPor').AsString;
+    if Q.FieldByName('FRecepcion').IsNull then
+      D.FRecepcion := Date
+    else
+      D.FRecepcion := Q.FieldByName('FRecepcion').AsDateTime;
+  finally
+    Q.Free;
+  end;
+end;
+
+procedure ImprimirRegistroTopografico(Conn: TFDConnection; IdProceso: Integer;
+  const CarpetaReportes: string);
+var
+  D: TDatosTopografico;
+  Rep: TfrxReport;
+begin
+  LeerCabeceraTopografico(Conn, IdProceso, D);
+  Rep := PrepararRegistroTopografico(IncludeTrailingPathDelimiter(CarpetaReportes) +
+    ARCHIVO_TOPOGRAFICO, D, LineasRegistroTopografico(CajasDeTransferencia(Conn, IdProceso)));
+  try
+    Rep.ShowReport;
+  finally
+    Rep.Free;
   end;
 end;
 

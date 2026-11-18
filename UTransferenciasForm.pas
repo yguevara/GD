@@ -202,6 +202,7 @@ type
     btnCerrarTransf: TcxButton;
     btnRelacion5: TcxButton;
     btnEtiquetas5: TcxButton;
+    btnTopografico5: TcxButton;
     lblEntInfo: TLabel;
     pnlPaso5: TPanel;
     lblP5: TLabel;
@@ -234,6 +235,7 @@ type
     procedure btnRegistrarEntregaClick(Sender: TObject);
     procedure btnRelacionClick(Sender: TObject);
     procedure btnEtiquetasClick(Sender: TObject);
+    procedure btnTopograficoClick(Sender: TObject);
     procedure btnAvanzarClick(Sender: TObject);
     procedure btnCancelarTransfClick(Sender: TObject);
     procedure btnEliminarTransfClick(Sender: TObject);
@@ -260,7 +262,7 @@ type
     FPuedeActuar: Boolean;
     FEmbebido: Boolean;
     FAlSalir: TNotifyEvent;
-    FAlImprimirRelacion, FAlImprimirEtiquetas: TImprimirTransferencia;
+    FAlImprimirRelacion, FAlImprimirEtiquetas, FAlImprimirTopografico: TImprimirTransferencia;
     FFilas: TArray<TTransferenciaFila>;
     FCrono: TArray<TCronogramaFila>;
     FPropuesta: TArray<TGrupoPropuesto>;
@@ -276,6 +278,7 @@ type
     procedure SetPuedeActuar(Valor: Boolean);
     procedure SetAlImprimirRelacion(const Valor: TImprimirTransferencia);
     procedure SetAlImprimirEtiquetas(const Valor: TImprimirTransferencia);
+    procedure SetAlImprimirTopografico(const Valor: TImprimirTransferencia);
     procedure AplicarTema;
     procedure ConfigurarBoton(B: TcxButton; Primario: Boolean);
     procedure Recargar;
@@ -331,6 +334,9 @@ type
       write SetAlImprimirRelacion;
     property AlImprimirEtiquetas: TImprimirTransferencia read FAlImprimirEtiquetas
       write SetAlImprimirEtiquetas;
+    { Registro topografico (Anexo 18): se ofrece desde la ubicacion (paso 6). }
+    property AlImprimirTopografico: TImprimirTransferencia read FAlImprimirTopografico
+      write SetAlImprimirTopografico;
   end;
 
 function CrearPantallaTransferencias(Conn: TFDConnection; const Nodos: TArray<TClaveNodo>;
@@ -418,6 +424,7 @@ begin
   btnEtiquetas.Visible := False;
   btnRelacion5.Visible := False;
   btnEtiquetas5.Visible := False;
+  btnTopografico5.Visible := False;
   lblNodoTrab.Visible := False;
   cboNodoTrabajo.Visible := False;
   AplicarTema;
@@ -481,6 +488,18 @@ begin
   FAlImprimirEtiquetas := Valor;
   btnEtiquetas.Visible := Assigned(Valor);
   btnEtiquetas5.Visible := Assigned(Valor);
+end;
+
+procedure TfrmTransferenciasNuevo.SetAlImprimirTopografico(const Valor: TImprimirTransferencia);
+begin
+  FAlImprimirTopografico := Valor;
+  btnTopografico5.Visible := Assigned(Valor) and (FActual.Paso >= 6);
+end;
+
+procedure TfrmTransferenciasNuevo.btnTopograficoClick(Sender: TObject);
+begin
+  if Assigned(FAlImprimirTopografico) then
+    FAlImprimirTopografico(FActual.IdProceso);
 end;
 
 { ---------------------------------- tema --------------------------------- }
@@ -950,6 +969,7 @@ begin
   edtRecibidoPor.Enabled := FEnRecepcion;
   btnRegistrarRecepcion.Visible := FEnRecepcion;
   btnCerrarTransf.Visible := FEnUbicacion;
+  btnTopografico5.Visible := Assigned(FAlImprimirTopografico) and (Fila.Paso >= 6);
   if Fila.FRecepcion <> 0 then
     dteRecepcion.Date := Fila.FRecepcion;
   if Fila.RecibidoPor <> '' then

@@ -48,6 +48,26 @@ type
     valor vacio o desconocido es pendiente. }
   TEstadoCaja = (ecPendiente, ecRecibida, ecCuarentena, ecFaltante);
 
+  { Una caja de la transferencia con su estado de recepcion y su ubicacion. }
+  TCajaFila = record
+    Caja: Integer;
+    Tipo, Descripcion: string;
+    FDesde, FHasta: TDateTime;
+    Unidades: Integer;
+    Estado: TEstadoCaja;
+    Conservacion: string;
+    Deposito, Gaveta, Posicion: string;
+  end;
+
+  { Una caja recibida con su ubicacion, para el Registro topografico (Anexo 18). }
+  TLineaTopografia = record
+    Caja: Integer;
+    Descripcion: string;
+    Desde, Hasta: TDateTime;
+    Unidades: Integer;
+    Deposito, Gaveta, Posicion: string;
+  end;
+
 const
   { Dias para reclamar una falta desde la recepcion (valor provisional: las normas
     consultadas no lo fijan). }
@@ -130,6 +150,9 @@ function FechaLimiteReclamacion(FRecepcion: TDateTime): TDateTime;
 
 { Pendiente, Recibida, En cuarentena o Faltante. }
 function TextoEstadoCaja(E: TEstadoCaja): string;
+
+{ Lineas del Registro topografico: solo las cajas recibidas, por numero de caja. }
+function LineasRegistroTopografico(const Cajas: array of TCajaFila): TArray<TLineaTopografia>;
 
 { "Dep. 01 / Gav. 02 / Pos. 3" con lo que haya (vacio y '0' no cuentan); '' si no
   hay nada. }
@@ -398,6 +421,38 @@ begin
     ecFaltante: Result := 'Faltante';
   else
     Result := 'Pendiente';
+  end;
+end;
+
+function LineasRegistroTopografico(const Cajas: array of TCajaFila): TArray<TLineaTopografia>;
+var
+  Lista: TList<TLineaTopografia>;
+  C: TCajaFila;
+  L: TLineaTopografia;
+begin
+  Lista := TList<TLineaTopografia>.Create;
+  try
+    for C in Cajas do
+      if C.Estado = ecRecibida then
+      begin
+        L.Caja := C.Caja;
+        L.Descripcion := C.Descripcion;
+        L.Desde := C.FDesde;
+        L.Hasta := C.FHasta;
+        L.Unidades := C.Unidades;
+        L.Deposito := C.Deposito;
+        L.Gaveta := C.Gaveta;
+        L.Posicion := C.Posicion;
+        Lista.Add(L);
+      end;
+    Lista.Sort(TComparer<TLineaTopografia>.Construct(
+      function(const A, B: TLineaTopografia): Integer
+      begin
+        Result := A.Caja - B.Caja;
+      end));
+    Result := Lista.ToArray;
+  finally
+    Lista.Free;
   end;
 end;
 

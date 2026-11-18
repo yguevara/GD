@@ -88,17 +88,6 @@ type
     Nombre: string;
   end;
 
-  { Una caja de la transferencia con su estado de recepcion y su ubicacion. }
-  TCajaFila = record
-    Caja: Integer;
-    Tipo, Descripcion: string;
-    FDesde, FHasta: TDateTime;
-    Unidades: Integer;
-    Estado: TEstadoCaja;
-    Conservacion: string;
-    Deposito, Gaveta, Posicion: string;
-  end;
-
 { Condicion de fecha de los documentos vencidos (alias H; parametro :corte). }
 function SqlCondicionVencido: string;
 
