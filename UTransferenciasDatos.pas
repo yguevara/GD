@@ -1134,16 +1134,24 @@ begin
       ' figura como faltante y ya no forma parte de la transferencia.');
 end;
 
+const
+  { Condicion que se agrega al UPDATE de una caja: la transferencia sigue en la
+    recepcion. Revisarlo en la misma sentencia evita que otro usuario la mueva al
+    paso 6 entre la comprobacion y el cambio. }
+  SQL_EN_RECEPCION = ' AND EXISTS (SELECT 1 FROM prc_proceso P WHERE P.IdProceso = ' +
+    'prc_caja.IdProceso AND P.Paso = 5 AND P.Estado = ''C'')';
+
 procedure CambiarEstadoCaja(Conn: TFDConnection; IdProceso, Caja: Integer;
   Estado: TEstadoCaja; const Conservacion: string);
 begin
   ExigirRecepcion(Conn, IdProceso);
   ExigirCajaNoFaltante(Conn, IdProceso, Caja);
   if Conn.ExecSQL('UPDATE prc_caja SET Estado = :e, Conservacion = :c ' +
-    'WHERE IdProceso = :p AND Caja = :k', [CodigoDeEstadoCaja(Estado),
+    'WHERE IdProceso = :p AND Caja = :k' + SQL_EN_RECEPCION, [CodigoDeEstadoCaja(Estado),
     Copy(Trim(Conservacion), 1, 255), IdProceso, Caja],
     [ftString, ftString, ftInteger, ftInteger]) = 0 then
-    raise EArgumentException.Create('La caja ' + IntToStr(Caja) + ' no existe en la transferencia.');
+    raise EArgumentException.Create('La caja ' + IntToStr(Caja) + ' no existe o la ' +
+      'transferencia ya no est' + #225 + ' en la recepci' + #243 + 'n.');
 end;
 
 procedure MarcarCajaRecibida(Conn: TFDConnection; IdProceso, Caja: Integer;
@@ -1162,7 +1170,7 @@ procedure ResolverCuarentena(Conn: TFDConnection; IdProceso, Caja: Integer);
 begin
   ExigirRecepcion(Conn, IdProceso);
   Conn.ExecSQL('UPDATE prc_caja SET Estado = ''R'' WHERE IdProceso = :p AND Caja = :k ' +
-    'AND Estado = ''Q''', [IdProceso, Caja], [ftInteger, ftInteger]);
+    'AND Estado = ''Q''' + SQL_EN_RECEPCION, [IdProceso, Caja], [ftInteger, ftInteger]);
 end;
 
 procedure MarcarCajaFaltante(Conn: TFDConnection; IdProceso, Caja: Integer;
@@ -1174,9 +1182,10 @@ begin
   ExigirCajaNoFaltante(Conn, IdProceso, Caja);
   Propia := IniciarTx(Conn);
   try
-    if Conn.ExecSQL('UPDATE prc_caja SET Estado = ''F'' WHERE IdProceso = :p AND Caja = :k',
-      [IdProceso, Caja], [ftInteger, ftInteger]) = 0 then
-      raise EArgumentException.Create('La caja ' + IntToStr(Caja) + ' no existe en la transferencia.');
+    if Conn.ExecSQL('UPDATE prc_caja SET Estado = ''F'' WHERE IdProceso = :p AND Caja = :k' +
+      SQL_EN_RECEPCION, [IdProceso, Caja], [ftInteger, ftInteger]) = 0 then
+      raise EArgumentException.Create('La caja ' + IntToStr(Caja) + ' no existe o la ' +
+        'transferencia ya no est' + #225 + ' en la recepci' + #243 + 'n.');
     Conn.ExecSQL('INSERT INTO prc_incidencia (IdProceso, Caja, Tipo, Descripcion, ' +
       'FechaLimite, Estado, Usuario, Fecha) VALUES (:p, :k, ''FALTA'', :d, :l, ''A'', :u, :f)',
       [IdProceso, Caja, Copy(Trim(Descripcion), 1, 255), FechaLimiteReclamacion(Hoy),
@@ -1232,24 +1241,26 @@ begin
       EsCentral := True;
   if not EsCentral then
     raise EArgumentException.Create('El archivo elegido no es un archivo central.');
-  Cajas := CajasDeTransferencia(Conn, IdProceso);
-  SetLength(Estados, Length(Cajas));
-  for I := 0 to High(Cajas) do
-    Estados[I] := Cajas[I].Estado;
-  if not CajasDecididas(Estados) then
-    raise EArgumentException.Create('Marque cada caja como recibida, en cuarentena o faltante.');
-  for I := 0 to High(Estados) do
-    if Estados[I] = ecCuarentena then
-      raise EArgumentException.Create('Hay cajas en cuarentena: resu' + #233 + 'lvalas antes de seguir.');
-  if not HayCajaRecibida(Estados) then
-    raise EArgumentException.Create('Ninguna caja fue recibida: no hay nada que ubicar.');
   Propia := IniciarTx(Conn);
   try
+    // AvanzarPaso toma el proceso: desde aqui las marcas de caja de otros usuarios
+    // se rechazan (SQL_EN_RECEPCION), asi que lo que se revisa abajo ya no cambia
     if not AvanzarPaso(Conn, IdProceso, 5, [cdRecepcionConfirmada], Usuario, Falta) then
     begin
       DeshacerTx(Conn, Propia);
       Exit;
     end;
+    Cajas := CajasDeTransferencia(Conn, IdProceso);
+    SetLength(Estados, Length(Cajas));
+    for I := 0 to High(Cajas) do
+      Estados[I] := Cajas[I].Estado;
+    if not CajasDecididas(Estados) then
+      raise EArgumentException.Create('Marque cada caja como recibida, en cuarentena o faltante.');
+    for I := 0 to High(Estados) do
+      if Estados[I] = ecCuarentena then
+        raise EArgumentException.Create('Hay cajas en cuarentena: resu' + #233 + 'lvalas antes de seguir.');
+    if not HayCajaRecibida(Estados) then
+      raise EArgumentException.Create('Ninguna caja fue recibida: no hay nada que ubicar.');
     Conn.ExecSQL('UPDATE prc_transferencia SET FRecepcion = :f, RecibidoPor = :r, ' +
       'NumRegistroEntrada = :n, IdArchivoDestino = :a WHERE IdProceso = :p',
       [Fecha, Copy(Trim(RecibidoPor), 1, 100), Copy(Trim(NumRegistro), 1, 30),
@@ -1322,31 +1333,36 @@ begin
       EsCentral := True;
   if not EsCentral then
     raise EArgumentException.Create('El archivo destino ya no existe o ya no es un archivo central.');
-  Cajas := CajasDeTransferencia(Conn, IdProceso);
-  Recibidas := 0;
-  Resumen := '';
-  for I := 0 to High(Cajas) do
-    if Cajas[I].Estado = ecRecibida then
-    begin
-      Inc(Recibidas);
-      Errores := ValidarUbicacionCaja(Cajas[I].Deposito, Cajas[I].Gaveta, Cajas[I].Posicion);
-      if Length(Errores) > 0 then
-        raise EArgumentException.Create('Caja ' + IntToStr(Cajas[I].Caja) + ': ' + Errores[0]);
-      if Resumen <> '' then
-        Resumen := Resumen + '; ';
-      Resumen := Resumen + 'caja ' + IntToStr(Cajas[I].Caja) + ': ' + Cajas[I].Deposito +
-        '/' + Cajas[I].Gaveta + '/' + Cajas[I].Posicion;
-    end;
-  if Recibidas = 0 then
-    raise EArgumentException.Create('No hay cajas recibidas que ubicar.');
   Propia := IniciarTx(Conn);
   try
-    // el ultimo paso finaliza el proceso y libera los bloqueos (AvanzarPaso)
+    // el ultimo paso finaliza el proceso y libera los bloqueos (AvanzarPaso); al
+    // tomar el proceso aqui, lo que se lee despues (cajas y ubicaciones) es lo que se aplica
     if not AvanzarPaso(Conn, IdProceso, 6, [cdUbicacionCompleta], Usuario, Falta) then
     begin
       DeshacerTx(Conn, Propia);
       Exit;
     end;
+    Cajas := CajasDeTransferencia(Conn, IdProceso);
+    Recibidas := 0;
+    Resumen := '';
+    for I := 0 to High(Cajas) do
+      if Cajas[I].Estado = ecRecibida then
+      begin
+        Inc(Recibidas);
+        Errores := ValidarUbicacionCaja(Cajas[I].Deposito, Cajas[I].Gaveta, Cajas[I].Posicion);
+        if Length(Errores) > 0 then
+          raise EArgumentException.Create('Caja ' + IntToStr(Cajas[I].Caja) + ': ' + Errores[0]);
+        if Resumen <> '' then
+          Resumen := Resumen + '; ';
+        Resumen := Resumen + 'caja ' + IntToStr(Cajas[I].Caja) + ': ' + Cajas[I].Deposito +
+          '/' + Cajas[I].Gaveta + '/' + Cajas[I].Posicion;
+      end;
+    if Recibidas = 0 then
+      raise EArgumentException.Create('No hay cajas recibidas que ubicar.');
+    // lo que no esta en una caja recibida no se traslada ni cuenta como transferido
+    Conn.ExecSQL('UPDATE prc_unidad SET Activa = 0 WHERE IdProceso = :p AND NOT EXISTS ' +
+      '(SELECT 1 FROM prc_caja C WHERE C.IdProceso = prc_unidad.IdProceso AND ' +
+      'C.Caja = prc_unidad.Caja AND C.Estado = ''R'')', [IdProceso], [ftInteger]);
     for I := 0 to High(Cajas) do
       if Cajas[I].Estado = ecRecibida then
       begin

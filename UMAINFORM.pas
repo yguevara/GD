@@ -8039,12 +8039,34 @@ begin
   AgregarDocumentosConRutas(nil);
 end;
 
+// '' si el documento no esta transferido; si lo esta, a donde fue. Si no se puede
+// comprobar (error de base) devuelve un texto que bloquea la accion: no se asegura que
+// no este transferido.
+function DondeTransferidoDoc(const Clave: TClaveDocumento): string;
+var
+  U: TUnidadDoc;
+begin
+  U.IdEstructura := Clave.IdEstructura;
+  U.Id := Clave.Id;
+  U.CodSubs := Clave.CodSubs;
+  U.CodigoDoc := Clave.Codigodoc;
+  U.Fecha := Clave.Fecha;
+  U.Version := Clave.Version;
+  try
+    Result := DondeEstaTransferido(UDM.Conn, U);
+  except
+    on E: Exception do
+      Result := 'No se pudo comprobar si el documento ya fue transferido (' + E.Message + ')';
+  end;
+end;
+
 // Si el usuario puede modificar los ficheros del documento actual: con alcance
 // (SQL Server) lo decide UAlcance para el nodo y la subserie; sin el (Access) vale
 // la misma regla por rol que habilita el boton de guardar del navegador.
 function TMAIN.ListaDocsPuedeEditar: Boolean;
 var
   Nodo: TClaveNodo;
+  Actual: TClaveDocumento;
 begin
   if (UDM.Alcance <> nil) and UDM.tb_Serietree.Active and not UDM.tb_Serietree.IsEmpty then
   begin
@@ -8056,6 +8078,21 @@ begin
   else
     Result := (UDM.Alcance = nil) and (nbPost in dbnSeriesDatos.VisibleButtons) and
       UDM.tb_SeriesDatos.Active and UDM.tb_SeriesDatos.CanModify;
+  // un documento transferido esta en solo lectura en el origen (la ficha lo refleja)
+  if Result and UDM.tb_SeriesDatos.Active and not UDM.tb_SeriesDatos.IsEmpty then
+  begin
+    Actual.IdEstructura := UDM.tb_SeriesDatos.FieldByName('IdEstructura').AsString;
+    Actual.Id := UDM.tb_SeriesDatos.FieldByName('id').AsInteger;
+    Actual.CodSubs := UDM.tb_SeriesDatos.FieldByName('codsubs').AsString;
+    if UDM.tb_SeriesDatos.FieldByName('Fecha').IsNull then
+      Actual.Fecha := 0
+    else
+      Actual.Fecha := UDM.tb_SeriesDatos.FieldByName('Fecha').AsDateTime;
+    Actual.Version := UDM.tb_SeriesDatos.FieldByName('Version').AsString;
+    Actual.Codigodoc := UDM.tb_SeriesDatos.FieldByName('Codigodoc').AsString;
+    if DondeTransferidoDoc(Actual) <> '' then
+      Result := False;
+  end;
 end;
 
 function TMAIN.ListaDocsPuedeTopografia: Boolean;
@@ -8107,7 +8144,6 @@ var
   Nodo: TClaveNodo;
   Dias: Integer;
   Puede: Boolean;
-  U: TUnidadDoc;
   Donde: string;
 begin
   if not ListaDocsLocalizar(Clave) then
@@ -8116,18 +8152,7 @@ begin
     Exit;
   end;
   // un documento transferido ya esta en el archivo central: no se borra desde el origen
-  U.IdEstructura := Clave.IdEstructura;
-  U.Id := Clave.Id;
-  U.CodSubs := Clave.CodSubs;
-  U.CodigoDoc := Clave.Codigodoc;
-  U.Fecha := Clave.Fecha;
-  U.Version := Clave.Version;
-  try
-    Donde := DondeEstaTransferido(UDM.Conn, U);
-  except
-    on Exception do
-      Donde := '';  // sin las tablas de procesos no hay documentos transferidos
-  end;
+  Donde := DondeTransferidoDoc(Clave);
   if Donde <> '' then
   begin
     TMensajes.Advertencia(Donde + '. Ya no se puede eliminar desde el archivo de origen.',
@@ -8182,8 +8207,18 @@ var
   R: TResultadoFicheros;
   Prog: TProgresoTransferencia;
   I, J, Agregados, Fallidos, Docs: Integer;
-  Msg: string;
+  Msg, Donde: string;
 begin
+  for I := 0 to High(Claves) do
+  begin
+    Donde := DondeTransferidoDoc(Claves[I]);
+    if Donde <> '' then
+    begin
+      TMensajes.Advertencia(Donde + '. Ya no se puede modificar desde el archivo de origen.',
+        'Documento transferido');
+      Exit;
+    end;
+  end;
   if not ListaDocsPuedeEditar then
   begin
     UDM.sms('No tiene permiso para agregar ficheros a estos documentos.', 3);
@@ -8399,8 +8434,15 @@ var
   Origen: TOrigenDocumento;
   R: TResultadoFicheros;
   Prog: TProgresoTransferencia;
-  Anterior: string;
+  Anterior, Donde: string;
 begin
+  Donde := DondeTransferidoDoc(Clave);
+  if Donde <> '' then
+  begin
+    TMensajes.Advertencia(Donde + '. Ya no se puede modificar desde el archivo de origen.',
+      'Documento transferido');
+    Exit;
+  end;
   if not ListaDocsPuedeEditar then
   begin
     UDM.sms('No tiene permiso para modificar el contenido de este documento.', 3);
@@ -8479,7 +8521,15 @@ var
   Prog: TProgresoTransferencia;
   I: Integer;
   HayCarpeta: Boolean;
+  Donde: string;
 begin
+  Donde := DondeTransferidoDoc(Clave);
+  if Donde <> '' then
+  begin
+    TMensajes.Advertencia(Donde + '. Ya no se puede modificar desde el archivo de origen.',
+      'Documento transferido');
+    Exit;
+  end;
   if not ListaDocsPuedeEditar then
   begin
     UDM.sms('No tiene permiso para agregar ficheros a este documento.', 3);

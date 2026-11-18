@@ -35,6 +35,10 @@ type
     procedure DocumentoTransferidoDiceDondeEstaYOtroNo;
     [Test]
     procedure UnaUnidadInactivaNoCuentaComoTransferida;
+    [Test]
+    procedure ClavesTransferidasMarcaCadaDocumentoDeUnaVez;
+    [Test]
+    procedure SinLasTablasDeProcesosNadaEstaTransferido;
   end;
 
 implementation
@@ -145,6 +149,50 @@ begin
   SembrarTransferido(FConn, U, USUARIO);
   FConn.ExecSQL('UPDATE prc_unidad SET Activa = 0 WHERE Codigodoc = ''DT3'' AND id = 906');
   Assert.IsFalse(EstaTransferido(FConn, U), 'una caja faltante se queda en el origen');
+end;
+
+procedure TPruebasTransferidosBD.ClavesTransferidasMarcaCadaDocumentoDeUnaVez;
+var
+  U1, U2, U3: TUnidadDoc;
+  F: TArray<Boolean>;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB'); Exit; end;
+  U1 := UnidadApoyo('ZZ.T', 907, 'S1', 'DT4');
+  U2 := UnidadApoyo('ZZ.T', 907, 'S1', 'DT5');  // no transferido
+  U3 := UnidadApoyo('ZZ.T', 908, 'S9', 'DT6');  // transferido, en otra subserie
+  SembrarTransferido(FConn, U1, USUARIO);
+  SembrarTransferido(FConn, U3, USUARIO);
+  F := ClavesTransferidas(FConn, [U1, U2, U3]);
+  Assert.AreEqual(3, Length(F));
+  Assert.IsTrue(F[0]);
+  Assert.IsFalse(F[1]);
+  Assert.IsTrue(F[2]);
+  Assert.AreEqual(0, Length(ClavesTransferidas(FConn, [])));
+end;
+
+procedure TPruebasTransferidosBD.SinLasTablasDeProcesosNadaEstaTransferido;
+var
+  C: TFDConnection;
+begin
+  if FConn = nil then begin Assert.Pass('omitida: falta ARCHIGENIO_TEST_DB'); Exit; end;
+  C := TFDConnection.Create(nil);
+  try
+    C.LoginPrompt := False;
+    C.DriverName := 'MSSQL';
+    C.Params.Values['Server'] := 'localhost';
+    C.Params.Values['Database'] := 'tempdb';  // sin tablas prc_*
+    C.Params.Values['User_Name'] := 'geoconn';
+    C.Params.Values['Password'] := 'geoconn';
+    C.Params.Values['OSAuthent'] := 'No';
+    C.Connected := True;
+    Assert.IsFalse(TablasDeProcesosExisten(C));
+    Assert.IsTrue(TablasDeProcesosExisten(FConn));
+    Assert.AreEqual('', DondeEstaTransferido(C, UnidadApoyo('ZZ.T', 1, 'S1', 'X')));
+    Assert.AreEqual(1, Length(ClavesTransferidas(C, [UnidadApoyo('ZZ.T', 1, 'S1', 'X')])));
+    Assert.IsFalse(ClavesTransferidas(C, [UnidadApoyo('ZZ.T', 1, 'S1', 'X')])[0]);
+  finally
+    C.Free;
+  end;
 end;
 
 end.

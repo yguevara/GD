@@ -151,6 +151,10 @@ function FechaLimiteReclamacion(FRecepcion: TDateTime): TDateTime;
 { Pendiente, Recibida, En cuarentena o Faltante. }
 function TextoEstadoCaja(E: TEstadoCaja): string;
 
+{ "Descripcion (N doc.)" sin pasar de 255 caracteres (campo del impreso y limite de
+  Access): si no cabe se recorta la descripcion con "..." y el final se conserva. }
+function DescripcionConDocs(const Descripcion: string; Unidades: Integer): string;
+
 { Lineas del Registro topografico: solo las cajas recibidas, por numero de caja. }
 function LineasRegistroTopografico(const Cajas: array of TCajaFila): TArray<TLineaTopografia>;
 
@@ -422,6 +426,19 @@ begin
   else
     Result := 'Pendiente';
   end;
+end;
+
+function DescripcionConDocs(const Descripcion: string; Unidades: Integer): string;
+const
+  MAXIMO = 255;
+var
+  Final, Texto: string;
+begin
+  Final := ' (' + IntToStr(Unidades) + ' doc.)';
+  Texto := Trim(Descripcion);
+  if Length(Texto) + Length(Final) > MAXIMO then
+    Texto := Copy(Texto, 1, MAXIMO - Length(Final) - 3) + '...';
+  Result := Texto + Final;
 end;
 
 function LineasRegistroTopografico(const Cajas: array of TCajaFila): TArray<TLineaTopografia>;

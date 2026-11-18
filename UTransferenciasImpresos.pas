@@ -95,8 +95,8 @@ begin
       Tabla.FieldByName('Numero').AsString := IntToStr(L.Numero);
       Tabla.FieldByName('Fechas').AsString := RangoTexto(L.Desde, L.Hasta);
       Tabla.FieldByName('Tipo').AsString := L.Tipo;
-      Tabla.FieldByName('Descripcion').AsString := L.Descripcion + ' (' +
-        IntToStr(L.Unidades) + ' doc.)';
+      Tabla.FieldByName('Descripcion').AsString := DescripcionConDocs(L.Descripcion,
+        L.Unidades);
       Tabla.FieldByName('Caja').AsString := IntToStr(L.Caja);
       Tabla.Post;
     end;
@@ -128,8 +128,8 @@ begin
     begin
       Tabla.Append;
       Tabla.FieldByName('Caja').AsString := IntToStr(L.Caja);
-      Tabla.FieldByName('Descripcion').AsString := L.Descripcion + ' (' +
-        IntToStr(L.Unidades) + ' doc.)';
+      Tabla.FieldByName('Descripcion').AsString := DescripcionConDocs(L.Descripcion,
+        L.Unidades);
       Tabla.FieldByName('Fechas').AsString := RangoTexto(L.Desde, L.Hasta);
       Tabla.FieldByName('Deposito').AsString := L.Deposito;
       Tabla.FieldByName('Gaveta').AsString := L.Gaveta;

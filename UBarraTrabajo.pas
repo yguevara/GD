@@ -254,6 +254,7 @@ begin
   FCmbEstado.Items.Add('Todos los estados');
   FCmbEstado.Items.Add('En archivo');
   FCmbEstado.Items.Add('Prestado');
+  FCmbEstado.Items.Add('Transferido');
   FCmbEstado.ItemIndex := 0;
   FCmbEstado.OnChange := EstadoChange;
 
@@ -403,6 +404,7 @@ begin
   case Valor of
     edEnArchivo: FCmbEstado.ItemIndex := 1;
     edPrestado: FCmbEstado.ItemIndex := 2;
+    edTransferido: FCmbEstado.ItemIndex := 3;
   else
     FCmbEstado.ItemIndex := 0;
   end;
@@ -434,6 +436,7 @@ begin
   case FCmbEstado.ItemIndex of
     1: Result := edEnArchivo;
     2: Result := edPrestado;
+    3: Result := edTransferido;
   else
     Result := edDesconocido;
   end;

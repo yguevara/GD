@@ -47,6 +47,8 @@ type
     [Test]
     procedure TextoDelEstadoDeCajaEsParaPersonas;
     [Test]
+    procedure DescripcionConDocsNoPasaDe255ConservandoElFinal;
+    [Test]
     procedure RegistroTopograficoSoloLlevaCajasRecibidasEnOrden;
     [Test]
     procedure RegistroTopograficoSinCajasRecibidasEstaVacio;
@@ -247,6 +249,20 @@ procedure TPruebasTransferenciasReglas.RegistroTopograficoSinCajasRecibidasEstaV
 begin
   Assert.AreEqual(0, Length(LineasRegistroTopografico([])));
   Assert.AreEqual(0, Length(LineasRegistroTopografico([CajaTopo(1, ecFaltante, '')])));
+end;
+
+procedure TPruebasTransferenciasReglas.DescripcionConDocsNoPasaDe255ConservandoElFinal;
+var
+  S: string;
+begin
+  Assert.AreEqual('Actas 2019 (12 doc.)', DescripcionConDocs('Actas 2019', 12));
+  Assert.AreEqual('Actas (3 doc.)', DescripcionConDocs('  Actas ', 3));
+  S := DescripcionConDocs(StringOfChar('x', 300), 12);
+  Assert.AreEqual(255, Length(S));
+  Assert.IsTrue(Copy(S, Length(S) - 9, 10) = ' (12 doc.)', 'el numero de documentos siempre se ve');
+  Assert.IsTrue(Pos('...', S) > 0, 'se nota que se recorto');
+  S := DescripcionConDocs(StringOfChar('y', 255), 5);
+  Assert.IsTrue(Length(S) <= 255);
 end;
 
 procedure TPruebasTransferenciasReglas.TextoDelEstadoDeCajaEsParaPersonas;

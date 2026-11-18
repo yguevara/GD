@@ -301,24 +301,26 @@ begin
   Q.Free;
 end;
 
-{ True si el documento ya paso a un archivo central (solo lectura en el origen).
-  Una base sin las tablas de procesos no tiene documentos transferidos. }
-function DocumentoTransferido(Conn: TFDConnection; const K: TClaveDocumento): Boolean;
+{ Cuales de las claves ya pasaron a un archivo central (solo lectura en el origen):
+  una consulta por subserie. Una base sin las tablas de procesos no tiene documentos
+  transferidos; cualquier otro error de base se propaga. }
+function ClavesYaTransferidas(Conn: TFDConnection;
+  const Claves: TArray<TClaveDocumento>): TArray<Boolean>;
 var
-  U: TUnidadDoc;
+  Docs: TArray<TUnidadDoc>;
+  I: Integer;
 begin
-  U.IdEstructura := K.IdEstructura;
-  U.Id := K.Id;
-  U.CodSubs := K.CodSubs;
-  U.CodigoDoc := K.Codigodoc;
-  U.Fecha := K.Fecha;
-  U.Version := K.Version;
-  try
-    Result := EstaTransferido(Conn, U);
-  except
-    on EFDDBEngineException do
-      Result := False;
+  SetLength(Docs, Length(Claves));
+  for I := 0 to High(Claves) do
+  begin
+    Docs[I].IdEstructura := Claves[I].IdEstructura;
+    Docs[I].Id := Claves[I].Id;
+    Docs[I].CodSubs := Claves[I].CodSubs;
+    Docs[I].CodigoDoc := Claves[I].Codigodoc;
+    Docs[I].Fecha := Claves[I].Fecha;
+    Docs[I].Version := Claves[I].Version;
   end;
+  Result := ClavesTransferidas(Conn, Docs);
 end;
 
 function ActualizarDocumentos(Conn: TFDConnection; Alcance: TAlcanceUsuario;
@@ -330,6 +332,7 @@ var
   Nodo: TClaveNodo;
   K: TClaveDocumento;
   PuedeTopo, Propia: Boolean;
+  YaTransferido: TArray<Boolean>;
   Q: TFDQuery;
   Sets, Cambiados, PrimerError, Otro: string;
 begin
@@ -348,12 +351,13 @@ begin
   TopoOmitida := 0;
   SinPermiso := 0;
   Transferidos := 0;
+  YaTransferido := ClavesYaTransferidas(Conn, Claves);
   for I := 0 to High(Claves) do
   begin
     K := Claves[I];
     Nodo.IdEstructura := K.IdEstructura;
     Nodo.Id := K.Id;
-    if DocumentoTransferido(Conn, K) then
+    if YaTransferido[I] then
     begin
       Inc(Result.Omitidos);
       Inc(Transferidos);

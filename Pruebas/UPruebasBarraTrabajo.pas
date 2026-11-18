@@ -25,6 +25,8 @@ type
     [Test]
     procedure ModoEdicion_CambiaTextoDelBotonYBloqueaElFiltro;
     [Test]
+    procedure FiltroDeEstado_TransferidoIdaYVuelta;
+    [Test]
     procedure PuedeCambiarSerie_TodosLosEstados;
   end;
 
@@ -224,6 +226,26 @@ begin
     Assert.AreEqual('Ver lista', B.TextoBotonEditar);
     B.ModoEdicion(False);
     Assert.AreEqual('Editar', B.TextoBotonEditar);
+  finally
+    F.Free;
+  end;
+end;
+
+procedure TPruebasBarraTrabajo.FiltroDeEstado_TransferidoIdaYVuelta;
+var
+  F: TForm;
+  B: TBarraTrabajo;
+begin
+  F := TForm.CreateNew(nil);
+  try
+    B := NuevaBarra(F);
+    B.FijarEstado(edTransferido);
+    Assert.IsTrue(B.FiltrarEstado);
+    Assert.AreEqual(Ord(edTransferido), Ord(B.Estado));
+    B.FijarEstado(edPrestado);
+    Assert.AreEqual(Ord(edPrestado), Ord(B.Estado), 'los otros siguen igual');
+    B.FijarEstado(edDesconocido);
+    Assert.IsFalse(B.FiltrarEstado);
   finally
     F.Free;
   end;

@@ -39,7 +39,13 @@ Lo automatico ya cubierto: 863 pruebas (SQL Server) de reglas, datos, cierre ato
 
 ## Cosas que no se resolvieron (a decidir)
 
-- Filtro «Transferido» en la barra de la lista de documentos.
-- Los botones de la ficha del documento siguen visibles aunque el guardado se omita.
 - Plazo de reclamacion de incidencias (30 dias provisional).
+- Que el archivo central tenga nodo propio en el arbol (hoy nadie del central ve ni presta los documentos transferidos).
 - `errores_inesperados.log` con `EAccessViolation` en `TVisorContenido` en cada sesion (pendiente de la sesion anterior).
+
+## Extra a comprobar (menores cerrados despues de la revision)
+
+- [ ] En la lista de documentos del origen el filtro de estado ofrece **Transferido**.
+- [ ] En la ficha de un documento transferido el boton de editar no esta disponible; soltar un fichero encima o eliminarlo avisa y no hace nada.
+- [ ] Sin ningun archivo Central, **Registrar la recepcion** dice que hay que crearlo en Clasificadores > Archivos.
+- [ ] Descripciones de caja muy largas salen recortadas con "..." en la relacion y el registro topografico, sin perder el "(N doc.)".

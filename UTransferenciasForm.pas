@@ -1393,6 +1393,12 @@ begin
     Fecha := Date
   else
     Fecha := dteRecepcion.Date;
+  if Length(FCentrales) = 0 then
+  begin
+    lblAviso.Caption := 'No hay archivos de tipo Central. Cree uno en Clasificadores ' +
+      '> Archivos y vuelva a abrir esta pantalla.';
+    Exit;
+  end;
   Destino := 0;
   if (cmbDestino.ItemIndex >= 0) and (cmbDestino.ItemIndex <= High(FCentrales)) then
     Destino := FCentrales[cmbDestino.ItemIndex].Cod;

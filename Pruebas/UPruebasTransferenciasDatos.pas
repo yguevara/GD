@@ -113,6 +113,8 @@ type
     procedure CerrarConElDestinoYaNoCentralLanzaYNoCambiaNada;
     [Test]
     procedure CargarEstadosMarcaTransferidoElDocumentoTraspasado;
+    [Test]
+    procedure CerrarNoCuentaComoTransferidoLoDeUnaCajaQueYaNoEstaRecibida;
   end;
 
 implementation
@@ -123,7 +125,7 @@ uses
   FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys, FireDAC.Phys.MSSQL,
   FireDAC.DApt, FireDAC.ConsoleUI.Wait, FireDAC.Stan.Param, Data.DB, UAlcance,
   UProceso, UAutorizacion, UEsquemaProcesos,
-  UTransferenciasReglas, UTransferenciasDatos, UDocumentoVista, UDocumentoVistaDatos;
+  UTransferenciasReglas, UTransferenciasDatos, UDocumentoVista, UDocumentoVistaDatos, UCandados, UTransferidos;
 
 const
   VAR_BD = 'ARCHIGENIO_TEST_DB';
@@ -946,6 +948,37 @@ begin
   Assert.AreEqual('2', DocCampo(1, 'Archivo'), 'el documento sigue en el origen');
   Assert.AreEqual(6, Integer(Escalar('SELECT Paso FROM prc_proceso WHERE IdProceso = ' +
     IntToStr(R.IdProceso))));
+end;
+
+procedure TPruebasTransferenciasDatosBD.CerrarNoCuentaComoTransferidoLoDeUnaCajaQueYaNoEstaRecibida;
+var
+  R: TProcesoRef;
+  Id: string;
+  U1, U2: TUnidadDoc;
+  Sel: string;
+begin
+  if not Conectar then Exit;
+  R := TransferenciaEnPaso6(2, 0);
+  Id := IntToStr(R.IdProceso);
+  RegistrarUbicacionCaja(FConn, R.IdProceso, 1, '01', '02', '3');
+  RegistrarUbicacionCaja(FConn, R.IdProceso, 2, '04', '05', '6');
+  // otro usuario dejo la caja 2 en cuarentena justo antes del cierre
+  FConn.ExecSQL('UPDATE prc_caja SET Estado = ''Q'' WHERE IdProceso = ' + Id + ' AND Caja = 2');
+  Assert.IsTrue(CerrarTransferencia(FConn, R.IdProceso, USUARIO));
+  Assert.AreEqual('9990', DocCampo(1, 'Archivo'));
+  Assert.AreEqual('2', DocCampo(2, 'Archivo'), 'la caja en cuarentena no se traslada');
+  Sel := ' FROM tb_SeriesDatos WHERE titulodoc = ''' + USUARIO + ''' AND Codigodoc = ';
+  U1.IdEstructura := VarToStr(Escalar('SELECT IdEstructura' + Sel + '''PF3-1'''));
+  U1.Id := Integer(Escalar('SELECT id' + Sel + '''PF3-1'''));
+  U1.CodSubs := VarToStr(Escalar('SELECT codsubs' + Sel + '''PF3-1'''));
+  U1.CodigoDoc := 'PF3-1';
+  U1.Fecha := EncodeDate(2018, 1, 1);
+  U1.Version := '1';
+  U2 := U1;
+  U2.CodigoDoc := 'PF3-2';
+  Assert.IsTrue(EstaTransferido(FConn, U1));
+  Assert.IsFalse(EstaTransferido(FConn, U2), 'no queda como transferido lo que no se traslado');
+  Assert.AreEqual(0, Integer(Escalar('SELECT COUNT(*) FROM prc_bloqueo WHERE IdProceso = ' + Id)));
 end;
 
 end.
