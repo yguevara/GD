@@ -7,7 +7,8 @@ unit UPruebasDepuracionDatos;
 interface
 
 uses
-  DUnitX.TestFramework, FireDAC.Comp.Client, UProcesosDatos, UDepuracionDatos;
+  DUnitX.TestFramework, FireDAC.Comp.Client, UAlcance, UProcesosDatos,
+  UDepuracionDatos;
 
 type
   [TestFixture]
@@ -21,9 +22,12 @@ type
   TPruebasDepuracionDatosBD = class
   private
     FConn: TFDConnection;
+    FNodo: TClaveNodo;
     function Conectar: Boolean;
     function Escalar(const Sql: string): Variant;
     function NuevaDepuracion(Docs: Integer): TProcesoRef;
+    function DepuracionListaParaEjecutar(Docs: Integer): TProcesoRef;
+    function Filas: Integer;
     function ActaValida: TActaDepuracion;
     procedure AgregarDosTestigosValidos(IdProceso: Integer);
   public
@@ -75,6 +79,22 @@ type
     procedure RecorridoDeLosPasosUnoATres;
     [Test]
     procedure UnPasoLeidoDesfasadoNoAvanzaNiCambiaNada;
+    [Test]
+    procedure EjecutarConConfirmacionIncorrectaLanzaYNoCambiaNada;
+    [Test]
+    procedure EjecutarMarcaEliminadosSinTocarLasFilas;
+    [Test]
+    procedure EjecutarRevalidaQueSigaRetenido;
+    [Test]
+    procedure EjecutarRevalidaLosPrestamosViejos;
+    [Test]
+    procedure EjecutarRevalidaQueSigaEnUnArchivoCentral;
+    [Test]
+    procedure EjecutarFueraDelPasoCuatroDevuelveFalse;
+    [Test]
+    procedure CerrarSoloDesdeElPasoCincoYLiberaLosCandados;
+    [Test]
+    procedure CancelarHastaElPasoTresLiberaLosCandados;
   end;
 
 implementation
@@ -84,8 +104,9 @@ uses
   FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf,
   FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys,
   FireDAC.Phys.MSSQL, FireDAC.DApt, FireDAC.ConsoleUI.Wait, FireDAC.Stan.Param,
-  Data.DB, UAlcance, UCandados, UProceso, UEsquemaProcesos,
-  UAutorizacion, UDepuracionReglas, UPruebasApoyoTransferido, UPruebasApoyoDepuracion;
+  Data.DB, UCandados, UProceso, UEsquemaProcesos,
+  UAutorizacion, UDepuracionReglas, UEliminados, UPruebasApoyoTransferido,
+  UPruebasApoyoDepuracion;
 
 const
   VAR_BD = 'ARCHIGENIO_TEST_DB';
@@ -174,9 +195,35 @@ var
   Motivo: string;
 begin
   Nodo := SembrarSerieDepurable(FConn, COD, 5, Docs, ArchivoCentralApoyo(FConn));
+  FNodo := Nodo;
   Result := CrearDepuracion(FConn, Nodo, USUARIO, 1992);
   BuscarGrupo(ProponerDepuracion(FConn, Nodo, Date), COD, G);
   AgregarGrupoDepuracion(FConn, Result.IdProceso, G, Date, N, Motivo);
+end;
+
+{ Depuracion con todo cargado y en el paso 4 (ejecucion). }
+function TPruebasDepuracionDatosBD.DepuracionListaParaEjecutar(Docs: Integer): TProcesoRef;
+var
+  A: TAutorizacion;
+  Faltan: TArray<string>;
+begin
+  Result := NuevaDepuracion(Docs);
+  AvanzarDepuracion(FConn, Result.IdProceso, 1, USUARIO, Faltan);
+  A.Organo := ocProvincial;
+  A.NumActa := '14';
+  A.NumAcuerdo := '9';
+  A.Fecha := Date - 1;
+  GuardarAutorizacion(FConn, Result.IdProceso, A, USUARIO);
+  AvanzarDepuracion(FConn, Result.IdProceso, 2, USUARIO, Faltan);
+  GuardarActaDepuracion(FConn, Result.IdProceso, ActaValida);
+  AgregarDosTestigosValidos(Result.IdProceso);
+  AvanzarDepuracion(FConn, Result.IdProceso, 3, USUARIO, Faltan);
+end;
+
+{ Filas de documentos de prueba en tb_SeriesDatos. }
+function TPruebasDepuracionDatosBD.Filas: Integer;
+begin
+  Result := Integer(Escalar('SELECT COUNT(*) FROM tb_SeriesDatos WHERE titulodoc = ''__prueba__'''));
 end;
 
 function TPruebasDepuracionDatosBD.ActaValida: TActaDepuracion;
@@ -651,6 +698,153 @@ begin
   FConn.ExecSQL('UPDATE prc_proceso SET Paso = 2 WHERE IdProceso = ' + IntToStr(R.IdProceso));
   Assert.IsFalse(AvanzarDepuracion(FConn, R.IdProceso, 1, USUARIO, Faltan), 'el usuario vio el paso 1 pero ya esta en el 2');
   Assert.AreEqual(2, Integer(Escalar('SELECT Paso FROM prc_proceso WHERE IdProceso = ' + IntToStr(R.IdProceso))));
+end;
+
+procedure TPruebasDepuracionDatosBD.EjecutarConConfirmacionIncorrectaLanzaYNoCambiaNada;
+var
+  R: TProcesoRef;
+  Id: string;
+begin
+  if not Conectar then Exit;
+  R := DepuracionListaParaEjecutar(3);
+  Id := IntToStr(R.IdProceso);
+  Assert.AreEqual(4, Integer(Escalar('SELECT Paso FROM prc_proceso WHERE IdProceso = ' + Id)), 'parte del paso 4');
+  Assert.WillRaise(
+    procedure
+    begin
+      EjecutarDepuracion(FConn, R.IdProceso, USUARIO, 'eliminar', Date);
+    end, EArgumentException);
+  Assert.WillRaise(
+    procedure
+    begin
+      EjecutarDepuracion(FConn, R.IdProceso, USUARIO, '', Date);
+    end, EArgumentException);
+  Assert.AreEqual(4, Integer(Escalar('SELECT Paso FROM prc_proceso WHERE IdProceso = ' + Id)));
+  Assert.IsTrue(VarIsNull(Escalar('SELECT FEjecucion FROM prc_depuracion WHERE IdProceso = ' + Id)));
+  Assert.IsFalse(EstaEliminado(FConn, DocumentoDeSerie(FNodo, COD, 1)));
+end;
+
+procedure TPruebasDepuracionDatosBD.EjecutarMarcaEliminadosSinTocarLasFilas;
+var
+  R: TProcesoRef;
+  Id: string;
+  Antes: Integer;
+begin
+  if not Conectar then Exit;
+  R := DepuracionListaParaEjecutar(3);
+  Id := IntToStr(R.IdProceso);
+  Antes := Filas;
+  Assert.AreEqual(3, Antes);
+  Assert.IsTrue(EjecutarDepuracion(FConn, R.IdProceso, USUARIO, 'ELIMINAR', Date));
+  Assert.AreEqual(5, Integer(Escalar('SELECT Paso FROM prc_proceso WHERE IdProceso = ' + Id)));
+  Assert.AreEqual(Date, TDateTime(Escalar('SELECT FEjecucion FROM prc_depuracion WHERE IdProceso = ' + Id)), 1.0);
+  Assert.AreEqual(Antes, Filas, 'las filas de los documentos NO se borran');
+  Assert.AreEqual(3, Integer(Escalar('SELECT COUNT(*) FROM prc_bloqueo WHERE IdProceso = ' + Id)), 'siguen retenidos');
+  Assert.IsTrue(EstaEliminado(FConn, DocumentoDeSerie(FNodo, COD, 1)));
+  Assert.IsTrue(EstaEliminado(FConn, DocumentoDeSerie(FNodo, COD, 3)));
+  Assert.IsFalse(EjecutarDepuracion(FConn, R.IdProceso, USUARIO, 'ELIMINAR', Date), 'la segunda vez no hace nada');
+  Assert.AreEqual(5, Integer(Escalar('SELECT Paso FROM prc_proceso WHERE IdProceso = ' + Id)));
+end;
+
+procedure TPruebasDepuracionDatosBD.EjecutarRevalidaQueSigaRetenido;
+var
+  R: TProcesoRef;
+  Id: string;
+begin
+  if not Conectar then Exit;
+  R := DepuracionListaParaEjecutar(3);
+  Id := IntToStr(R.IdProceso);
+  FConn.ExecSQL('DELETE FROM prc_bloqueo WHERE IdProceso = ' + Id + ' AND Codigodoc = ''PD-' + COD + '-2''');
+  Assert.WillRaise(
+    procedure
+    begin
+      EjecutarDepuracion(FConn, R.IdProceso, USUARIO, 'ELIMINAR', Date);
+    end, EArgumentException);
+  Assert.AreEqual(4, Integer(Escalar('SELECT Paso FROM prc_proceso WHERE IdProceso = ' + Id)), 'sigue en el paso 4');
+  Assert.IsTrue(VarIsNull(Escalar('SELECT FEjecucion FROM prc_depuracion WHERE IdProceso = ' + Id)));
+  Assert.IsFalse(EstaEliminado(FConn, DocumentoDeSerie(FNodo, COD, 1)));
+end;
+
+procedure TPruebasDepuracionDatosBD.EjecutarRevalidaLosPrestamosViejos;
+var
+  R: TProcesoRef;
+  U: TUnidadDoc;
+begin
+  if not Conectar then Exit;
+  R := DepuracionListaParaEjecutar(3);
+  U := DocumentoDeSerie(FNodo, COD, 2);
+  FConn.ExecSQL('INSERT INTO TB_Prestamos (IdEstructura, id, IdPrestamo, Prestamista, ' +
+    'Responsable, FPrestamo) VALUES (:e, :i, ''F4A-2'', ''Juan'', ''usr1'', :f)',
+    [U.IdEstructura, U.Id, EncodeDate(2026, 4, 1)]);
+  FConn.ExecSQL('INSERT INTO TB_PrestamosDocumentos (IdEstructura, id, IdPrestamo, Codigodoc, ' +
+    'fecha, version, codsubs, titulodoc) VALUES (:e, :i, ''F4A-2'', :c, :f, ''1'', :s, ''t'')',
+    [U.IdEstructura, U.Id, U.CodigoDoc, U.Fecha, U.CodSubs]);
+  Assert.WillRaise(
+    procedure
+    begin
+      EjecutarDepuracion(FConn, R.IdProceso, USUARIO, 'ELIMINAR', Date);
+    end, EArgumentException);
+  Assert.AreEqual(4, Integer(Escalar('SELECT Paso FROM prc_proceso WHERE IdProceso = ' + IntToStr(R.IdProceso))));
+end;
+
+procedure TPruebasDepuracionDatosBD.EjecutarRevalidaQueSigaEnUnArchivoCentral;
+var
+  R: TProcesoRef;
+begin
+  if not Conectar then Exit;
+  R := DepuracionListaParaEjecutar(3);
+  FConn.ExecSQL('UPDATE tb_SeriesDatos SET Archivo = ' + IntToStr(ArchivoGestionApoyo(FConn)) +
+    ' WHERE codsubs = ''' + COD + ''' AND Codigodoc = ''PD-' + COD + '-1'' AND titulodoc = ''__prueba__''');
+  Assert.WillRaise(
+    procedure
+    begin
+      EjecutarDepuracion(FConn, R.IdProceso, USUARIO, 'ELIMINAR', Date);
+    end, EArgumentException);
+  Assert.AreEqual(4, Integer(Escalar('SELECT Paso FROM prc_proceso WHERE IdProceso = ' + IntToStr(R.IdProceso))));
+  Assert.IsFalse(EstaEliminado(FConn, DocumentoDeSerie(FNodo, COD, 2)), 'ninguno quedo a medias');
+end;
+
+procedure TPruebasDepuracionDatosBD.EjecutarFueraDelPasoCuatroDevuelveFalse;
+var
+  R: TProcesoRef;
+begin
+  if not Conectar then Exit;
+  R := NuevaDepuracion(2);  // paso 1
+  Assert.IsFalse(EjecutarDepuracion(FConn, R.IdProceso, USUARIO, 'ELIMINAR', Date));
+  Assert.AreEqual(1, Integer(Escalar('SELECT Paso FROM prc_proceso WHERE IdProceso = ' + IntToStr(R.IdProceso))));
+end;
+
+procedure TPruebasDepuracionDatosBD.CerrarSoloDesdeElPasoCincoYLiberaLosCandados;
+var
+  R: TProcesoRef;
+  Id: string;
+begin
+  if not Conectar then Exit;
+  R := DepuracionListaParaEjecutar(3);
+  Id := IntToStr(R.IdProceso);
+  Assert.IsFalse(CerrarDepuracion(FConn, R.IdProceso, USUARIO), 'todavia no se ejecuto');
+  Assert.IsTrue(EjecutarDepuracion(FConn, R.IdProceso, USUARIO, 'ELIMINAR', Date));
+  Assert.IsTrue(CerrarDepuracion(FConn, R.IdProceso, USUARIO));
+  Assert.AreEqual('F', Trim(VarToStr(Escalar('SELECT Estado FROM prc_proceso WHERE IdProceso = ' + Id))));
+  Assert.AreEqual(0, Integer(Escalar('SELECT COUNT(*) FROM prc_bloqueo WHERE IdProceso = ' + Id)));
+  Assert.AreEqual(3, Integer(Escalar('SELECT COUNT(*) FROM prc_unidad WHERE IdProceso = ' + Id + ' AND Activa <> 0')));
+  Assert.IsTrue(EstaEliminado(FConn, DocumentoDeSerie(FNodo, COD, 1)), 'cerrada sigue eliminado');
+  Assert.IsFalse(CerrarDepuracion(FConn, R.IdProceso, USUARIO), 'cerrar dos veces no hace nada');
+end;
+
+procedure TPruebasDepuracionDatosBD.CancelarHastaElPasoTresLiberaLosCandados;
+var
+  R, R4: TProcesoRef;
+  Id: string;
+begin
+  if not Conectar then Exit;
+  R := NuevaDepuracion(3);
+  Id := IntToStr(R.IdProceso);
+  Assert.IsTrue(CancelarProceso(FConn, R.IdProceso, USUARIO, 'ya no se depura'));
+  Assert.AreEqual('X', Trim(VarToStr(Escalar('SELECT Estado FROM prc_proceso WHERE IdProceso = ' + Id))));
+  Assert.AreEqual(0, Integer(Escalar('SELECT COUNT(*) FROM prc_bloqueo WHERE IdProceso = ' + Id)));
+  R4 := DepuracionListaParaEjecutar(3);
+  Assert.IsFalse(CancelarProceso(FConn, R4.IdProceso, USUARIO, 'tarde'), 'en el paso 4 ya no se cancela');
 end;
 
 initialization

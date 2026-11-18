@@ -136,6 +136,20 @@ function CondicionesCumplidasDepuracion(Conn: TFDConnection; IdProceso: Integer;
 function AvanzarDepuracion(Conn: TFDConnection; IdProceso, PasoLeido: Integer;
   const Usuario: string; out Faltan: TArray<string>): Boolean;
 
+{ Paso 4 -> 5. False si ya no esta en el paso 4 (por ejemplo, otro usuario la ejecuto
+  antes). Lanza EArgumentException, sin cambiar nada, si Confirmacion no es la
+  palabra ELIMINAR, si alguna unidad ya no esta retenida por esta depuracion, esta en
+  un prestamo viejo abierto o su documento ya no esta en un archivo Central o
+  Historico. En UNA transaccion: avanza el paso, guarda la fecha de ejecucion y deja
+  un evento con el acta. NO modifica tb_SeriesDatos: desde el paso 5 los documentos
+  cuentan como eliminados (UEliminados). }
+function EjecutarDepuracion(Conn: TFDConnection; IdProceso: Integer;
+  const Usuario, Confirmacion: string; Hoy: TDateTime): Boolean;
+
+{ Paso 5 -> finalizada (libera los candados). False si no esta en el paso 5. }
+function CerrarDepuracion(Conn: TFDConnection; IdProceso: Integer;
+  const Usuario: string): Boolean;
+
 implementation
 
 uses
@@ -878,6 +892,97 @@ begin
     Faltan := nil
   else
     Faltan := TextosQueFaltanDepuracion(FaltaCond);
+end;
+
+{ --------------------------- ejecucion y cierre --------------------------- }
+
+function EjecutarDepuracion(Conn: TFDConnection; IdProceso: Integer;
+  const Usuario, Confirmacion: string; Hoy: TDateTime): Boolean;
+var
+  Tipo: TTipoProceso;
+  Paso: Integer;
+  Estado: string;
+  Falta: TCondiciones;
+  Cumplidas: TCondiciones;
+  Textos: TArray<string>;
+  Centrales: TArray<Integer>;
+  A: TAutorizacion;
+  Prestadas, FueraDelCentral: Integer;
+  Propia: Boolean;
+  Referencia: string;
+begin
+  Result := False;
+  if not LeerProceso(Conn, IdProceso, Tipo, Paso, Estado) or (Tipo <> tpDepuracion) then
+    Exit;
+  if (Estado <> 'C') or (Paso <> 4) then
+    Exit;
+  if not ConfirmacionEscritaValida(Confirmacion) then
+    raise EArgumentException.Create('Escriba ' + PALABRA_CONFIRMACION + ' para confirmar la ' +
+      'eliminaci' + #243 + 'n.');
+  Centrales := CodigosArchivoCentral(Conn);
+  Propia := IniciarTx(Conn);
+  try
+    // AvanzarPaso toma el proceso; lo que se revisa despues es lo que se aplica. Las
+    // condiciones se pasan como cumplidas y se comprueban a continuacion: si alguna
+    // falla se lanza y la transaccion deshace el avance.
+    if not AvanzarPaso(Conn, IdProceso, 4, [cdConfirmacionEscrita, cdSinBloqueos], Usuario,
+      Falta) then
+    begin
+      DeshacerTx(Conn, Propia);
+      Exit;
+    end;
+    Cumplidas := CondicionesCumplidasDepuracion(Conn, IdProceso, Textos);
+    if not (cdSinBloqueos in Cumplidas) then
+      raise EArgumentException.Create('Alg' + #250 + 'n documento ya no est' + #225 +
+        ' retenido por esta depuraci' + #243 + 'n (o ya no hay documentos).');
+    Prestadas := Integer(Conn.ExecSQLScalar('SELECT COUNT(*) FROM prc_unidad u WHERE ' +
+      'u.IdProceso = :p AND u.Activa <> 0 AND EXISTS (SELECT 1 FROM TB_PrestamosDocumentos D ' +
+      'INNER JOIN TB_Prestamos Pr ON Pr.IdEstructura = D.IdEstructura AND Pr.id = D.id AND ' +
+      'Pr.IdPrestamo = D.IdPrestamo WHERE Pr.FDevolucion IS NULL AND Pr.FCancelacion IS NULL ' +
+      'AND D.IdEstructura = u.IdEstructura AND D.id = u.id AND D.codsubs = u.codsubs AND ' +
+      'D.Codigodoc = u.Codigodoc AND D.fecha = u.fecha AND D.version = u.version)',
+      [IdProceso]));
+    if Prestadas > 0 then
+      raise EArgumentException.Create(IntToStr(Prestadas) + ' documento(s) est' + #225 +
+        'n en un pr' + #233 + 'stamo abierto: no se puede eliminar.');
+    FueraDelCentral := Integer(Conn.ExecSQLScalar('SELECT COUNT(*) FROM prc_unidad u WHERE ' +
+      'u.IdProceso = :p AND u.Activa <> 0 AND NOT EXISTS (SELECT 1 FROM tb_SeriesDatos H ' +
+      'WHERE H.IdEstructura = u.IdEstructura AND H.id = u.id AND H.codsubs = u.codsubs AND ' +
+      'H.Codigodoc = u.Codigodoc AND H.fecha = u.fecha AND H.version = u.version AND ' +
+      SqlArchivosGestion(Centrales) + ')', [IdProceso]));
+    if FueraDelCentral > 0 then
+      raise EArgumentException.Create(IntToStr(FueraDelCentral) + ' documento(s) ya no est' +
+        #225 + 'n en un archivo central o hist' + #243 + 'rico (o ya no existen): ' +
+        'rev' + #237 + 'selos antes de eliminar.');
+    Conn.ExecSQL('UPDATE prc_depuracion SET FEjecucion = :f WHERE IdProceso = :p',
+      [Trunc(Hoy), IdProceso], [ftDateTime, ftInteger]);
+    Referencia := '';
+    if LeerAutorizacion(Conn, IdProceso, A) then
+      Referencia := ' (acta ' + A.NumActa + ', acuerdo ' + A.NumAcuerdo + ')';
+    RegistrarEvento(Conn, IdProceso, Usuario, 'Eliminaci' + #243 + 'n ejecutada' + Referencia);
+    ConfirmarTx(Conn, Propia);
+    Result := True;
+  except
+    DeshacerTx(Conn, Propia);
+    raise;
+  end;
+end;
+
+function CerrarDepuracion(Conn: TFDConnection; IdProceso: Integer;
+  const Usuario: string): Boolean;
+var
+  Tipo: TTipoProceso;
+  Paso: Integer;
+  Estado: string;
+  Falta: TCondiciones;
+begin
+  Result := False;
+  if not LeerProceso(Conn, IdProceso, Tipo, Paso, Estado) or (Tipo <> tpDepuracion) then
+    Exit;
+  if (Estado <> 'C') or (Paso <> 5) then
+    Exit;
+  // el ultimo paso finaliza el proceso y libera los candados
+  Result := AvanzarPaso(Conn, IdProceso, 5, [], Usuario, Falta);
 end;
 
 end.
