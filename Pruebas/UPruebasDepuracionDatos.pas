@@ -97,6 +97,12 @@ type
     procedure CancelarHastaElPasoTresLiberaLosCandados;
     [Test]
     procedure LaTransferenciaNoProponeNiAgregaLosEliminados;
+    [Test]
+    procedure EjecutarRevalidaTestigosYAutorizacionAunqueSeHayanQuitadoEnElPasoCuatro;
+    [Test]
+    procedure AgregarGrupoUsaElPlazoYElDestinoDeLaBaseNoLosDelGrupo;
+    [Test]
+    procedure AgregarGrupoRechazaOtroNodoQueElDeLaDepuracion;
   end;
 
 implementation
@@ -878,6 +884,80 @@ begin
   T := CrearTransferencia(FConn, Nodo, USUARIO, 1992, 0);
   Assert.IsTrue(AgregarGrupo(FConn, T.IdProceso, Elegido, Date, N, Motivo), Motivo);
   Assert.AreEqual(2, N, 'tampoco se agrega');
+end;
+
+procedure TPruebasDepuracionDatosBD.EjecutarRevalidaTestigosYAutorizacionAunqueSeHayanQuitadoEnElPasoCuatro;
+var
+  R: TProcesoRef;
+  T: TTestigoFila;
+  Id: string;
+begin
+  if not Conectar then Exit;
+  R := DepuracionListaParaEjecutar(3);
+  Id := IntToStr(R.IdProceso);
+  for T in TestigosDeLaDepuracion(FConn, R.IdProceso) do
+    QuitarTestigo(FConn, R.IdProceso, T.IdTestigo);  // se permite hasta el paso 4
+  Assert.WillRaise(
+    procedure
+    begin
+      EjecutarDepuracion(FConn, R.IdProceso, USUARIO, 'ELIMINAR', Date);
+    end, EArgumentException);
+  Assert.AreEqual(4, Integer(Escalar('SELECT Paso FROM prc_proceso WHERE IdProceso = ' + Id)));
+  Assert.IsFalse(EstaEliminado(FConn, DocumentoDeSerie(FNodo, COD, 1)));
+  AgregarDosTestigosValidos(R.IdProceso);
+  FConn.ExecSQL('DELETE FROM prc_autorizacion WHERE IdProceso = ' + Id);
+  Assert.WillRaise(
+    procedure
+    begin
+      EjecutarDepuracion(FConn, R.IdProceso, USUARIO, 'ELIMINAR', Date);
+    end, EArgumentException);
+  Assert.AreEqual(4, Integer(Escalar('SELECT Paso FROM prc_proceso WHERE IdProceso = ' + Id)));
+end;
+
+procedure TPruebasDepuracionDatosBD.AgregarGrupoUsaElPlazoYElDestinoDeLaBaseNoLosDelGrupo;
+var
+  Nodo: TClaveNodo;
+  R: TProcesoRef;
+  G: TGrupoDepuracion;
+  N: Integer;
+  Motivo: string;
+begin
+  if not Conectar then Exit;
+  Nodo := SembrarSerieDepurable(FConn, COD, 50, 3, ArchivoCentralApoyo(FConn));  // plazo no vencido
+  R := CrearDepuracion(FConn, Nodo, USUARIO, 1992);
+  G.IdEstructura := Nodo.IdEstructura;
+  G.IdNodo := Nodo.Id;
+  G.CodSubs := COD;
+  G.AniosGestion := 0;
+  G.AniosCentral := 1;  // el grupo dice 1 ano, la base dice 50
+  Assert.IsFalse(AgregarGrupoDepuracion(FConn, R.IdProceso, G, Date, N, Motivo));
+  Assert.AreEqual(0, N, 'manda el plazo de la base');
+  // destino distinto de Eliminarlo
+  FConn.ExecSQL('UPDATE cl_subseries SET tcentral = 5, destino = 1 WHERE codsubs = ''' + COD + '''');
+  G.AniosCentral := 5;
+  Assert.IsFalse(AgregarGrupoDepuracion(FConn, R.IdProceso, G, Date, N, Motivo));
+  Assert.AreEqual(0, N);
+  Assert.IsTrue(Motivo <> '');
+  Assert.AreEqual(0, Integer(Escalar('SELECT COUNT(*) FROM prc_bloqueo WHERE IdProceso = ' + IntToStr(R.IdProceso))));
+end;
+
+procedure TPruebasDepuracionDatosBD.AgregarGrupoRechazaOtroNodoQueElDeLaDepuracion;
+var
+  Nodo: TClaveNodo;
+  R: TProcesoRef;
+  G: TGrupoDepuracion;
+  N: Integer;
+  Motivo: string;
+begin
+  if not Conectar then Exit;
+  Nodo := SembrarSerieDepurable(FConn, COD, 5, 3, ArchivoCentralApoyo(FConn));
+  R := CrearDepuracion(FConn, Nodo, USUARIO, 1992);
+  BuscarGrupo(ProponerDepuracion(FConn, Nodo, Date), COD, G);
+  G.IdNodo := Nodo.Id + 100000;  // otro nodo
+  Assert.IsFalse(AgregarGrupoDepuracion(FConn, R.IdProceso, G, Date, N, Motivo));
+  Assert.AreEqual(0, N);
+  Assert.IsTrue(Motivo <> '');
+  Assert.AreEqual(0, Integer(Escalar('SELECT COUNT(*) FROM prc_bloqueo WHERE IdProceso = ' + IntToStr(R.IdProceso))));
 end;
 
 initialization

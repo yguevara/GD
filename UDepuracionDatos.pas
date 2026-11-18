@@ -407,6 +407,7 @@ var
   Propia: Boolean;
   Filtro, Clave, P: string;
   Q: TFDQuery;
+  AniosGestion, AniosCentral: Integer;
 begin
   Agregados := 0;
   Motivo := '';
@@ -418,10 +419,33 @@ begin
     Motivo := 'Solo se pueden agregar documentos en el paso de propuesta';
     Exit;
   end;
-  if G.AniosCentral <= 0 then
-  begin
-    Motivo := 'La subserie no tiene plazo definido en el archivo central';
-    Exit;
+  // el nodo, el destino y el plazo salen de la base, no del registro que trae el llamador
+  Q := TFDQuery.Create(nil);
+  try
+    Q.Connection := Conn;
+    Q.SQL.Text := 'SELECT IdEstructura, IdNodo FROM prc_proceso WHERE IdProceso = :p';
+    Q.ParamByName('p').AsInteger := IdProceso;
+    Q.Open;
+    if Q.IsEmpty or (Q.FieldByName('IdEstructura').AsString <> G.IdEstructura) or
+      (Q.FieldByName('IdNodo').AsInteger <> G.IdNodo) then
+    begin
+      Motivo := 'El grupo no pertenece al nodo de esta depuraci' + #243 + 'n';
+      Exit;
+    end;
+    Q.Close;
+    Q.SQL.Text := 'SELECT tgestion, tcentral, destino FROM cl_subseries WHERE codsubs = :s';
+    Q.ParamByName('s').AsString := G.CodSubs;
+    Q.Open;
+    if Q.IsEmpty or (Q.FieldByName('destino').AsInteger <> DESTINO_ELIMINAR) or
+      (Q.FieldByName('tcentral').AsInteger <= 0) then
+    begin
+      Motivo := 'La subserie ya no tiene destino Eliminarlo o plazo definido en el archivo central';
+      Exit;
+    end;
+    AniosGestion := Q.FieldByName('tgestion').AsInteger;
+    AniosCentral := Q.FieldByName('tcentral').AsInteger;
+  finally
+    Q.Free;
   end;
   Centrales := CodigosArchivoCentral(Conn);
   P := IntToStr(IdProceso);
@@ -441,7 +465,7 @@ begin
         Q.ParamByName('e').AsString := G.IdEstructura;
         Q.ParamByName('i').AsInteger := G.IdNodo;
         Q.ParamByName('s').AsString := G.CodSubs;
-        PonerCortes(Q, Hoy, G.AniosGestion, G.AniosCentral);
+        PonerCortes(Q, Hoy, AniosGestion, AniosCentral);
         Q.ExecSQL;
         Agregados := Q.RowsAffected;
       finally
@@ -931,10 +955,16 @@ begin
       DeshacerTx(Conn, Propia);
       Exit;
     end;
+    // todo lo exigido hasta el paso 3 se vuelve a comprobar: los testigos y el acta se
+    // pueden cambiar hasta el paso 4 y la autorizacion se puede reescribir
     Cumplidas := CondicionesCumplidasDepuracion(Conn, IdProceso, Textos);
-    if not (cdSinBloqueos in Cumplidas) then
-      raise EArgumentException.Create('Alg' + #250 + 'n documento ya no est' + #225 +
-        ' retenido por esta depuraci' + #243 + 'n (o ya no hay documentos).');
+    Falta := [cdSinBloqueos, cdAutorizado, cdMuestraDefinida, cdTestigosMinimos,
+      cdActaCompleta] - Cumplidas;
+    if Falta <> [] then
+    begin
+      Textos := TextosQueFaltanDepuracion(Falta);
+      raise EArgumentException.Create(Textos[0]);
+    end;
     Prestadas := Integer(Conn.ExecSQLScalar('SELECT COUNT(*) FROM prc_unidad u WHERE ' +
       'u.IdProceso = :p AND u.Activa <> 0 AND EXISTS (SELECT 1 FROM TB_PrestamosDocumentos D ' +
       'INNER JOIN TB_Prestamos Pr ON Pr.IdEstructura = D.IdEstructura AND Pr.id = D.id AND ' +

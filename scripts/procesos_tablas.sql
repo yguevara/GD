@@ -196,3 +196,34 @@ CREATE TABLE prc_incidencia (
 
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_prc_incidencia_proceso' AND object_id = OBJECT_ID('dbo.prc_incidencia'))
 CREATE INDEX IX_prc_incidencia_proceso ON prc_incidencia (IdProceso);
+
+-- F4: acta de depuracion y testigos (Via: I incineracion, T trituracion; Origen: C Comision, G gestion, O otro).
+IF OBJECT_ID('dbo.prc_depuracion', 'U') IS NULL
+CREATE TABLE prc_depuracion (
+  IdProceso INT NOT NULL,
+  Lugar VARCHAR(255) NULL,
+  Via VARCHAR(1) NULL,
+  FPrevista DATETIME NULL,
+  FEjecucion DATETIME NULL,
+  MuestraDesc VARCHAR(255) NULL,
+  MuestraDonde VARCHAR(255) NULL,
+  CONSTRAINT PK_prc_depuracion PRIMARY KEY (IdProceso),
+  CONSTRAINT FK_prc_depuracion_proceso FOREIGN KEY (IdProceso)
+    REFERENCES prc_proceso(IdProceso) ON DELETE CASCADE
+);
+
+IF OBJECT_ID('dbo.prc_testigo', 'U') IS NULL
+CREATE TABLE prc_testigo (
+  IdTestigo INT IDENTITY(1,1) NOT NULL,
+  IdProceso INT NOT NULL,
+  Nombre VARCHAR(100) NOT NULL,
+  Cargo VARCHAR(100) NULL,
+  Origen VARCHAR(1) NOT NULL,
+  Firmo BIT NOT NULL DEFAULT 0,
+  CONSTRAINT PK_prc_testigo PRIMARY KEY (IdTestigo),
+  CONSTRAINT FK_prc_testigo_proceso FOREIGN KEY (IdProceso)
+    REFERENCES prc_proceso(IdProceso) ON DELETE CASCADE
+);
+
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_prc_testigo_proceso' AND object_id = OBJECT_ID('dbo.prc_testigo'))
+CREATE INDEX IX_prc_testigo_proceso ON prc_testigo (IdProceso);
