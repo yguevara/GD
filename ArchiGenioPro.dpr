@@ -23,6 +23,7 @@ uses
   UProcesosDatos in 'UProcesosDatos.pas',
   UProcesosInterruptor in 'UProcesosInterruptor.pas',
   UTransferidos in 'UTransferidos.pas',
+  UDepuracionReglas in 'UDepuracionReglas.pas',
   UPrestadosSql in 'UPrestadosSql.pas',
   UPrestamosReglas in 'UPrestamosReglas.pas',
   UPrestamosDatos in 'UPrestamosDatos.pas',

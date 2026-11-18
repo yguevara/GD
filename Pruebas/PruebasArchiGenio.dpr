@@ -126,6 +126,8 @@ uses
   UPruebasProcesoPintura in 'UPruebasProcesoPintura.pas',
   UTransferenciasReglas in '..\UTransferenciasReglas.pas',
   UPruebasTransferenciasReglas in 'UPruebasTransferenciasReglas.pas',
+  UDepuracionReglas in '..\UDepuracionReglas.pas',
+  UPruebasDepuracionReglas in 'UPruebasDepuracionReglas.pas',
   UTransferenciasDatos in '..\UTransferenciasDatos.pas',
   UPruebasTransferenciasDatos in 'UPruebasTransferenciasDatos.pas',
   UOpcionNodo in '..\UOpcionNodo.pas',
