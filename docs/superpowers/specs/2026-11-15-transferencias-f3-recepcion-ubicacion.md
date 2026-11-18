@@ -8,7 +8,7 @@ Sustituye a la "version minima" (quien recibe + fecha, ubicacion en texto libre)
 1. **Regla de fondo:** al cerrar la transferencia NO queda ningun documento en el archivo de origen; solo queda el acta (la relacion de entrega y el registro de la transferencia). La topografia completa del documento cambia.
 2. **Destino:** lo elige quien recibe en el paso 5, entre los archivos de tipo *Central* (`cl_ArchivosGestion` con `Tipo` = Central). Si no existe ninguno, la recepcion se bloquea y avisa que hay que crearlo en el clasificador Archivos.
 3. **En el origen:** el documento sigue en el arbol de su nodo, marcado como *transferido* (conserva `IdEstructura`, `id`, `codsubs` y su ficha), con `Archivo` = el central. El EGD de origen lo ve en solo lectura: no presta, no edita, no transfiere ni depura.
-4. **Ubicacion:** por caja. En el paso 6 se ubica cada caja (deposito, gaveta, posicion; Anexo 18) y los documentos de la caja heredan esa ubicacion mas el numero de caja.
+4. **Ubicacion:** por caja. En el paso 6 se ubica cada caja (deposito, gaveta, posicion; Anexo 18) y los documentos de la caja heredan esa ubicacion (el numero de caja queda en `prc_unidad.Caja`, en el acta; el documento no tiene columna de caja).
 
 ## Modelo de datos
 
@@ -25,12 +25,13 @@ Columnas de ubicacion que ya tiene cada documento (`tb_SeriesDatos`): `Archivo` 
 - elige el archivo destino (obligatorio), registra el n.o de registro general de entrada (Anexo 17) y la fecha;
 - por caja: marca *recibida*, estado de conservacion; humedad u hongo => *cuarentena* (no se ubica hasta resolverla);
 - lo que falte frente a la relacion genera una *incidencia* con plazo de reclamacion;
-- avanza al paso 6 solo si todas las cajas estan recibidas o tienen incidencia, y hay archivo destino.
+- avanza al paso 6 solo si todas las cajas estan decididas (recibidas o faltantes; la cuarentena se resuelve antes, en este paso), al menos una esta recibida y hay archivo destino. Una caja faltante no se puede deshacer.
 
 **6 Ubicacion** (Anexo 18):
 - cada caja recibida y no en cuarentena recibe deposito, gaveta y posicion (`UTopografia` valida que no esten vacios);
 - al cerrar, en UNA transaccion: para cada documento de cada caja, `Archivo` = destino, `deposito`/`gaveta`/`posicion` = los de su caja; se libera `prc_bloqueo`; la transferencia pasa a finalizada. Si algo falla, no cambia nada.
-- las cajas en cuarentena no impiden cerrar: sus documentos se traspasan al resolver la cuarentena (queda como lista pendiente en la ficha).
+- no hay cajas en cuarentena en este paso (se resolvieron en el paso 5). Los documentos de una caja faltante NO se traspasan: salen de la transferencia (`Activa = 0`, sin candado) y siguen en el origen, donde pueden proponerse otra vez.
+- plazo de reclamacion de una incidencia: 30 dias desde la recepcion (`PLAZO_RECLAMACION_DIAS`, valor provisional).
 
 ## Reglas sin VCL (con pruebas)
 
