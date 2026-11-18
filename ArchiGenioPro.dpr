@@ -22,6 +22,7 @@ uses
   UAutorizacion in 'UAutorizacion.pas',
   UProcesosDatos in 'UProcesosDatos.pas',
   UProcesosInterruptor in 'UProcesosInterruptor.pas',
+  UTransferidos in 'UTransferidos.pas',
   UPrestadosSql in 'UPrestadosSql.pas',
   UPrestamosReglas in 'UPrestamosReglas.pas',
   UPrestamosDatos in 'UPrestamosDatos.pas',

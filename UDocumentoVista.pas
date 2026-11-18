@@ -17,7 +17,7 @@ type
 
   { Estado fisico del documento: sin dato (no se pudo consultar), en archivo o
     con un prestamo abierto (sin devolucion). }
-  TEstadoDoc = (edDesconocido, edEnArchivo, edPrestado);
+  TEstadoDoc = (edDesconocido, edEnArchivo, edPrestado, edTransferido);
 
   TClaveDocumento = record
     IdEstructura: string;
@@ -347,6 +347,7 @@ begin
   case E of
     edEnArchivo: Result := 'En archivo';
     edPrestado: Result := 'Prestado';
+    edTransferido: Result := 'Transferido';
   else
     Result := '';
   end;

@@ -61,7 +61,8 @@ function CargarRequiereAccion(Conn: TFDConnection;
 implementation
 
 uses
-  Data.DB, FireDAC.Stan.Param, FireDAC.Stan.Error, UAlcanceDatos, UPrestadosSql;
+  Data.DB, FireDAC.Stan.Param, FireDAC.Stan.Error, UAlcanceDatos, UPrestadosSql,
+  UTransferidos;
 
 function ClaveTexto(const C: TClaveDocumento): string;
 begin
@@ -242,11 +243,12 @@ function CargarEstados(Conn: TFDConnection; Alcance: TAlcanceUsuario;
   const CodSubs: string): TIndicadoresEstados;
 var
   Q: TFDQuery;
-  Abiertos: TDictionary<string, Boolean>;
+  Abiertos, Transferidos: TDictionary<string, Boolean>;
   K: string;
 begin
   Result := TIndicadoresEstados.Create;
   Abiertos := TDictionary<string, Boolean>.Create;
+  Transferidos := TDictionary<string, Boolean>.Create;
   try
     try
       // Prestamos abiertos de la subserie (sin fecha de devolucion)
@@ -263,6 +265,20 @@ begin
       finally
         Q.Free;
       end;
+      // Documentos de la subserie que pasaron a un archivo central
+      Q := NuevaConsulta(Conn, SqlTransferidos + ' AND U.IdEstructura = :est AND ' +
+        'U.id = :id AND U.codsubs = :cs');
+      try
+        PonClavesSubserie(Q, IdEstructura, Id, CodSubs);
+        Q.Open;
+        while not Q.Eof do
+        begin
+          Transferidos.AddOrSetValue(ClaveDeFila(Q, IdEstructura, Id, CodSubs), True);
+          Q.Next;
+        end;
+      finally
+        Q.Free;
+      end;
       // Documentos de la subserie que el alcance deja ver
       Q := NuevaConsulta(Conn, 'SELECT Fecha, Version, Codigodoc FROM ' +
         'tb_SeriesDatos WHERE IdEstructura = :est AND id = :id AND codsubs = :cs');
@@ -272,7 +288,9 @@ begin
         while not Q.Eof do
         begin
           K := ClaveDeFila(Q, IdEstructura, Id, CodSubs);
-          if Abiertos.ContainsKey(K) then
+          if Transferidos.ContainsKey(K) then
+            Result.AddOrSetValue(K, edTransferido)
+          else if Abiertos.ContainsKey(K) then
             Result.AddOrSetValue(K, edPrestado)
           else
             Result.AddOrSetValue(K, edEnArchivo);
@@ -292,6 +310,7 @@ begin
     end;
   finally
     Abiertos.Free;
+    Transferidos.Free;
   end;
 end;
 

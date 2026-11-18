@@ -41,6 +41,8 @@ type
     [Test]
     procedure SolicitudInvalidaLanza;
     [Test]
+    procedure AgregarUnDocumentoTransferidoSeRechazaYDiceDonde;
+    [Test]
     procedure EntregaExigeDocumentos;
     [Test]
     procedure EntregaGuardaFechasYPasa;
@@ -74,7 +76,7 @@ uses
   FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys, FireDAC.Phys.MSSQL,
   FireDAC.DApt, FireDAC.ConsoleUI.Wait, FireDAC.Stan.Param, Data.DB, UAlcance,
   UProceso, UCandados, UEsquemaProcesos, UProcesosDatos, UPrestamosReglas,
-  UPrestamosDatos;
+  UPrestamosDatos, UPruebasApoyoTransferido;
 
 const
   VAR_BD = 'ARCHIGENIO_TEST_DB';
@@ -175,6 +177,7 @@ begin
   if FConn <> nil then
   try
     FConn.ExecSQL('DELETE FROM prc_proceso WHERE CreadoPor = ''' + USUARIO + '''');
+    LimpiarTransferidos(FConn, USUARIO);
   finally
     FreeAndNil(FConn);
   end;
@@ -230,6 +233,22 @@ begin
     IntToStr(R.IdProceso))));
   Assert.AreEqual('I', VarToStr(Escalar('SELECT TipoUsuario FROM prc_prestamo WHERE IdProceso = ' +
     IntToStr(R.IdProceso))));
+end;
+
+procedure TPruebasPrestamosDatosBD.AgregarUnDocumentoTransferidoSeRechazaYDiceDonde;
+var
+  R: TProcesoRef;
+  U: TUnidadDoc;
+  Motivo: string;
+begin
+  if not Conectar then Exit;
+  R := CrearSolicitud(FConn, NodoDePrueba(FConn), SolicitudPrueba('Ana'), USUARIO, 1990);
+  U := DocPrueba('ZZ.1', 173, 'S1', 'DX1');
+  SembrarTransferido(FConn, U, USUARIO);
+  Assert.IsFalse(AgregarDocumento(FConn, R.IdProceso, U, Motivo));
+  Assert.IsTrue(Pos('Transferido', Motivo) > 0, 'el motivo dice que fue transferido: ' + Motivo);
+  Assert.AreEqual(0, Integer(Escalar('SELECT COUNT(*) FROM prc_unidad WHERE IdProceso = ' +
+    IntToStr(R.IdProceso))), 'no se agrego');
 end;
 
 procedure TPruebasPrestamosDatosBD.SolicitudInvalidaLanza;

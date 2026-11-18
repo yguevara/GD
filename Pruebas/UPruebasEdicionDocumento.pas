@@ -45,6 +45,8 @@ type
     [Test]
     procedure SinCambios_NoHaceNada;
     [Test]
+    procedure Actualiza_DocumentoTransferido_NoSeEditaYLoDice;
+    [Test]
     procedure NoToca_LasClaves;
     [Test]
     procedure Vaciar_PoneNullEnElCampo;
@@ -71,7 +73,7 @@ uses
   FireDAC.UI.Intf, FireDAC.Phys.Intf, FireDAC.Stan.Def, FireDAC.Stan.Pool,
   FireDAC.Stan.Async, FireDAC.Phys, FireDAC.Phys.MSSQL, FireDAC.Phys.MSAcc,
   FireDAC.DApt, FireDAC.ConsoleUI.Wait, FireDAC.Stan.Param, Data.DB,
-  UEsquemaTrazabilidad;
+  UEsquemaTrazabilidad, UEsquemaProcesos, UCandados, UPruebasApoyoTransferido;
 
 const
   PREF = 'F7T-';
@@ -310,6 +312,44 @@ begin
       Assert.AreEqual('14', Texto(1, 'gaveta'));
       Assert.AreEqual('14', Texto(3, 'gaveta'), 'el siguiente se guarda igual');
       Assert.IsTrue(R.Mensaje <> '');
+    end);
+end;
+
+procedure TPruebasEdicionDocumento.Actualiza_DocumentoTransferido_NoSeEditaYLoDice;
+begin
+  EnCadaMotor(procedure(EsSql: Boolean)
+    var
+      C: TCambiosDoc;
+      R: TResultadoEdicion;
+      K: TClaveDocumento;
+      U: TUnidadDoc;
+    begin
+      if not EsSql then Exit;  // las tablas prc_* solo se prueban en SQL Server
+      CrearEsquemaProcesos(FConn, True);
+      Sembrar(1);
+      Sembrar(2);
+      K := Clave(1);
+      U.IdEstructura := K.IdEstructura;
+      U.Id := K.Id;
+      U.CodSubs := K.CodSubs;
+      U.CodigoDoc := K.Codigodoc;
+      U.Fecha := K.Fecha;
+      U.Version := K.Version;
+      SembrarTransferido(FConn, U, '__prueba__');
+      try
+        C := Default(TCambiosDoc);
+        C.TieneTitulo := True;
+        C.Titulo := 'Nuevo';
+        R := ActualizarDocumentos(FConn, nil, FOrigen, [Clave(1), Clave(2)], C,
+          Default(TCambiosDoc));
+        Assert.AreEqual(1, R.Guardados, 'solo se guarda el que no esta transferido');
+        Assert.AreEqual(1, R.Omitidos);
+        Assert.IsTrue(Pos('transferido', R.Mensaje) > 0, 'el mensaje lo dice: ' + R.Mensaje);
+        Assert.AreNotEqual('Nuevo', Texto(1, 'titulodoc'), 'el transferido no cambia');
+        Assert.AreEqual('Nuevo', Texto(2, 'titulodoc'));
+      finally
+        LimpiarTransferidos(FConn, '__prueba__');
+      end;
     end);
 end;
 

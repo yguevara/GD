@@ -103,6 +103,8 @@ type
     procedure CerrarSinArchivoDestinoLanzaYNoCambiaNada;
     [Test]
     procedure CerrarConElPasoCambiadoDevuelveFalse;
+    [Test]
+    procedure CargarEstadosMarcaTransferidoElDocumentoTraspasado;
   end;
 
 implementation
@@ -113,7 +115,7 @@ uses
   FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys, FireDAC.Phys.MSSQL,
   FireDAC.DApt, FireDAC.ConsoleUI.Wait, FireDAC.Stan.Param, Data.DB, UAlcance,
   UProceso, UAutorizacion, UEsquemaProcesos,
-  UTransferenciasReglas, UTransferenciasDatos;
+  UTransferenciasReglas, UTransferenciasDatos, UDocumentoVista, UDocumentoVistaDatos;
 
 const
   VAR_BD = 'ARCHIGENIO_TEST_DB';
@@ -830,6 +832,38 @@ begin
   FConn.ExecSQL('UPDATE prc_proceso SET Paso = 5 WHERE IdProceso = ' + IntToStr(R.IdProceso));
   Assert.IsFalse(CerrarTransferencia(FConn, R.IdProceso, USUARIO));
   Assert.AreEqual('2', DocCampo(1, 'Archivo'));
+end;
+
+procedure TPruebasTransferenciasDatosBD.CargarEstadosMarcaTransferidoElDocumentoTraspasado;
+var
+  R: TProcesoRef;
+  K: TClaveDocumento;
+  Estados: TIndicadoresEstados;
+  E: TEstadoDoc;
+  Sel: string;
+begin
+  if not Conectar then Exit;
+  R := TransferenciaEnPaso6(2, 1);  // la caja 2 es faltante: su documento se queda
+  RegistrarUbicacionCaja(FConn, R.IdProceso, 1, '01', '02', '3');
+  Assert.IsTrue(CerrarTransferencia(FConn, R.IdProceso, USUARIO));
+  Sel := ' FROM tb_SeriesDatos WHERE Codigodoc = ''PF3-1'' AND titulodoc = ''' + USUARIO + '''';
+  K.IdEstructura := VarToStr(Escalar('SELECT IdEstructura' + Sel));
+  K.Id := Integer(Escalar('SELECT id' + Sel));
+  K.CodSubs := VarToStr(Escalar('SELECT codsubs' + Sel));
+  K.Fecha := EncodeDate(2018, 1, 1);
+  K.Version := '1';
+  K.Codigodoc := 'PF3-1';
+  Estados := CargarEstados(FConn, nil, K.IdEstructura, K.Id, K.CodSubs);
+  try
+    Assert.IsTrue(Estados.TryGetValue(ClaveTexto(K), E), 'el documento aparece');
+    Assert.AreEqual(Ord(edTransferido), Ord(E));
+    K.Codigodoc := 'PF3-2';  // el de la caja faltante sigue en el origen
+    Assert.IsTrue(Estados.TryGetValue(ClaveTexto(K), E));
+    Assert.AreEqual(Ord(edEnArchivo), Ord(E));
+  finally
+    Estados.Free;
+  end;
+  Assert.AreEqual('Transferido', TextoEstadoDoc(edTransferido));
 end;
 
 end.

@@ -136,7 +136,7 @@ implementation
 uses
   System.Generics.Collections, System.Generics.Defaults, System.Variants,
   System.DateUtils, Data.DB, FireDAC.Stan.Intf, FireDAC.Stan.Param,
-  FireDAC.Stan.Error, UErroresCampo, UAlcanceDatos;
+  FireDAC.Stan.Error, UErroresCampo, UAlcanceDatos, UTransferidos;
 
 const
   NODOS_POR_CONSULTA = 200;
@@ -331,6 +331,9 @@ begin
     Motivo := 'Solo se pueden cambiar los documentos de un prestamo solicitado';
     Exit(False);
   end;
+  Motivo := DondeEstaTransferido(Conn, U);
+  if Motivo <> '' then
+    Exit(False);  // ya no esta en este archivo: se dice a donde fue
   Result := AgregarUnidad(Conn, IdProceso, U, Motivo);
 end;
 

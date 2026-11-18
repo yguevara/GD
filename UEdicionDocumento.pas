@@ -56,7 +56,8 @@ function ActualizarDocumentos(Conn: TFDConnection; Alcance: TAlcanceUsuario;
 implementation
 
 uses
-  System.Classes, Data.DB, FireDAC.Stan.Param, UTrazabilidad, UTrazabilidadDatos;
+  System.Classes, Data.DB, FireDAC.Stan.Param, FireDAC.Stan.Error, UTrazabilidad,
+  UTrazabilidadDatos, UCandados, UTransferidos;
 
 function HayCambios(const C: TCambiosDoc): Boolean;
 begin
@@ -300,12 +301,32 @@ begin
   Q.Free;
 end;
 
+{ True si el documento ya paso a un archivo central (solo lectura en el origen).
+  Una base sin las tablas de procesos no tiene documentos transferidos. }
+function DocumentoTransferido(Conn: TFDConnection; const K: TClaveDocumento): Boolean;
+var
+  U: TUnidadDoc;
+begin
+  U.IdEstructura := K.IdEstructura;
+  U.Id := K.Id;
+  U.CodSubs := K.CodSubs;
+  U.CodigoDoc := K.Codigodoc;
+  U.Fecha := K.Fecha;
+  U.Version := K.Version;
+  try
+    Result := EstaTransferido(Conn, U);
+  except
+    on EFDDBEngineException do
+      Result := False;
+  end;
+end;
+
 function ActualizarDocumentos(Conn: TFDConnection; Alcance: TAlcanceUsuario;
   const Origen: TOrigenDocumento; const Claves: TArray<TClaveDocumento>;
   const Cambios, Anteriores: TCambiosDoc): TResultadoEdicion;
 var
   Todos, Aplicar, Previos: TArray<TCampoEdicion>;
-  I, J, N, TopoOmitida, SinPermiso: Integer;
+  I, J, N, TopoOmitida, SinPermiso, Transferidos: Integer;
   Nodo: TClaveNodo;
   K: TClaveDocumento;
   PuedeTopo, Propia: Boolean;
@@ -326,11 +347,18 @@ begin
   Previos := CamposDe(Anteriores);
   TopoOmitida := 0;
   SinPermiso := 0;
+  Transferidos := 0;
   for I := 0 to High(Claves) do
   begin
     K := Claves[I];
     Nodo.IdEstructura := K.IdEstructura;
     Nodo.Id := K.Id;
+    if DocumentoTransferido(Conn, K) then
+    begin
+      Inc(Result.Omitidos);
+      Inc(Transferidos);
+      Continue;
+    end;
     if (Alcance <> nil) and not Alcance.PuedeRealizar(acEditar, Nodo, K.CodSubs) then
     begin
       Inc(Result.Omitidos);
@@ -417,6 +445,9 @@ begin
     end;
   end;
   Result.Mensaje := PrimerError;
+  if Transferidos > 0 then
+    Result.Mensaje := Trim(Result.Mensaje + Format(' %d documento(s) omitido(s) por estar transferido(s) al archivo central.',
+      [Transferidos]));
   if SinPermiso > 0 then
     Result.Mensaje := Trim(Result.Mensaje + Format(' %d documento(s) omitido(s) por falta de permiso.',
       [SinPermiso]));
