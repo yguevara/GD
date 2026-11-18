@@ -42,6 +42,12 @@ function EstaTransferido(Conn: TFDConnection; const U: TUnidadDoc): Boolean;
 function ClavesTransferidas(Conn: TFDConnection;
   const Docs: array of TUnidadDoc): TArray<Boolean>;
 
+{ Lo mismo para cualquier consulta de "documentos marcados": SqlBase es un SELECT con
+  alias U (U.IdEstructura, U.id, U.codsubs, U.Codigodoc, U.fecha, U.version) y un WHERE
+  sin parametros (como SqlTransferidos o UEliminados.SqlEliminados). }
+function ClavesSegunConsulta(Conn: TFDConnection; const SqlBase: string;
+  const Docs: array of TUnidadDoc): TArray<Boolean>;
+
 implementation
 
 uses
@@ -138,8 +144,8 @@ begin
   Result := Trim(Codigo) + '|' + IntToStr(Trunc(Fecha)) + '|' + Trim(Version);
 end;
 
-procedure MarcarGrupo(Conn: TFDConnection; const Docs: array of TUnidadDoc;
-  Indices: TList<Integer>; var Marcas: TArray<Boolean>);
+procedure MarcarGrupo(Conn: TFDConnection; const SqlBase: string;
+  const Docs: array of TUnidadDoc; Indices: TList<Integer>; var Marcas: TArray<Boolean>);
 var
   Q: TFDQuery;
   Hechas: TDictionary<string, Boolean>;
@@ -151,7 +157,7 @@ begin
   Q := TFDQuery.Create(nil);
   try
     Q.Connection := Conn;
-    Q.SQL.Text := SqlTransferidos + ' AND U.IdEstructura = :est AND U.id = :id AND ' +
+    Q.SQL.Text := SqlBase + ' AND U.IdEstructura = :est AND U.id = :id AND ' +
       'U.codsubs = :cs';
     Q.ParamByName('est').AsString := Primera.IdEstructura;
     Q.ParamByName('id').AsInteger := Primera.Id;
@@ -172,7 +178,7 @@ begin
   end;
 end;
 
-function ClavesTransferidas(Conn: TFDConnection;
+function ClavesSegunConsulta(Conn: TFDConnection; const SqlBase: string;
   const Docs: array of TUnidadDoc): TArray<Boolean>;
 var
   Grupos: TObjectDictionary<string, TList<Integer>>;
@@ -200,7 +206,7 @@ begin
     end;
     try
       for Par in Grupos do
-        MarcarGrupo(Conn, Docs, Par.Value, Result);
+        MarcarGrupo(Conn, SqlBase, Docs, Par.Value, Result);
     except
       on EFDDBEngineException do
         if TablasDeProcesosExisten(Conn) then
@@ -212,6 +218,12 @@ begin
   finally
     Grupos.Free;
   end;
+end;
+
+function ClavesTransferidas(Conn: TFDConnection;
+  const Docs: array of TUnidadDoc): TArray<Boolean>;
+begin
+  Result := ClavesSegunConsulta(Conn, SqlTransferidos, Docs);
 end;
 
 end.

@@ -24,6 +24,7 @@ uses
   UProcesosInterruptor in 'UProcesosInterruptor.pas',
   UTransferidos in 'UTransferidos.pas',
   UDepuracionReglas in 'UDepuracionReglas.pas',
+  UEliminados in 'UEliminados.pas',
   UPrestadosSql in 'UPrestadosSql.pas',
   UPrestamosReglas in 'UPrestamosReglas.pas',
   UPrestamosDatos in 'UPrestamosDatos.pas',
