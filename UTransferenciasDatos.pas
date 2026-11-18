@@ -160,6 +160,10 @@ function RegistrarEntregaTransferencia(Conn: TFDConnection; IdProceso: Integer;
   const Usuario, EntregadoPor: string; Fecha: TDateTime): Boolean;
 
 { Archivos (cl_ArchivosGestion) cuyo tipo es Central, ordenados por nombre. }
+{ UPDATE de tb_SeriesDatos con los documentos activos de una caja de la transferencia
+  (:a archivo, :d, :g, :s ubicacion, :p proceso, :k caja). }
+function SqlTraspasoDeCaja: string;
+
 function ListarArchivosCentrales(Conn: TFDConnection): TArray<TArchivoCentral>;
 
 { Cajas de la transferencia por numero, con su estado (NULL = pendiente). }
@@ -1025,6 +1029,16 @@ begin
   end;
 end;
 
+function SqlTraspasoDeCaja: string;
+begin
+  Result := 'UPDATE tb_SeriesDatos SET Archivo = :a, deposito = :d, gaveta = :g, ' +
+    'posicion = :s WHERE EXISTS (SELECT 1 FROM prc_unidad U WHERE U.IdProceso = :p ' +
+    'AND U.Caja = :k AND U.Activa <> 0 AND U.IdEstructura = tb_SeriesDatos.IdEstructura ' +
+    'AND U.id = tb_SeriesDatos.id AND U.codsubs = tb_SeriesDatos.codsubs AND ' +
+    'U.Codigodoc = tb_SeriesDatos.Codigodoc AND U.fecha = tb_SeriesDatos.Fecha AND ' +
+    'U.version = tb_SeriesDatos.Version)';
+end;
+
 function ListarArchivosCentrales(Conn: TFDConnection): TArray<TArchivoCentral>;
 var
   Q: TFDQuery;
@@ -1282,13 +1296,14 @@ function CerrarTransferencia(Conn: TFDConnection; IdProceso: Integer;
   const Usuario: string): Boolean;
 var
   Tipo: TTipoProceso;
-  Paso, I, Recibidas: Integer;
+  Paso, I, J, Recibidas, Filas, Esperadas: Integer;
   Estado, Resumen: string;
   Falta: TCondiciones;
   Errores: TArray<string>;
   Cajas: TArray<TCajaFila>;
+  Centrales: TArray<TArchivoCentral>;
   Destino: Variant;
-  Propia: Boolean;
+  EsCentral, Propia: Boolean;
 begin
   Result := False;
   if not LeerProceso(Conn, IdProceso, Tipo, Paso, Estado) or (Tipo <> tpTransferencia) then
@@ -1299,6 +1314,14 @@ begin
     'WHERE IdProceso = :p', [IdProceso]);
   if VarIsNull(Destino) or VarIsEmpty(Destino) then
     raise EArgumentException.Create('La transferencia no tiene archivo destino.');
+  // el archivo pudo borrarse o dejar de ser central desde la recepcion
+  EsCentral := False;
+  Centrales := ListarArchivosCentrales(Conn);
+  for J := 0 to High(Centrales) do
+    if Centrales[J].Cod = Integer(Destino) then
+      EsCentral := True;
+  if not EsCentral then
+    raise EArgumentException.Create('El archivo destino ya no existe o ya no es un archivo central.');
   Cajas := CajasDeTransferencia(Conn, IdProceso);
   Recibidas := 0;
   Resumen := '';
@@ -1326,15 +1349,20 @@ begin
     end;
     for I := 0 to High(Cajas) do
       if Cajas[I].Estado = ecRecibida then
-        Conn.ExecSQL('UPDATE tb_SeriesDatos SET Archivo = :a, deposito = :d, gaveta = :g, ' +
-          'posicion = :s WHERE EXISTS (SELECT 1 FROM prc_unidad U WHERE U.IdProceso = :p ' +
-          'AND U.Caja = :k AND U.Activa = 1 AND U.IdEstructura = tb_SeriesDatos.IdEstructura ' +
-          'AND U.id = tb_SeriesDatos.id AND U.codsubs = tb_SeriesDatos.codsubs AND ' +
-          'U.Codigodoc = tb_SeriesDatos.Codigodoc AND U.fecha = tb_SeriesDatos.Fecha AND ' +
-          'U.version = tb_SeriesDatos.Version)',
+      begin
+        Filas := Conn.ExecSQL(SqlTraspasoDeCaja,
           [Integer(Destino), Cajas[I].Deposito, Cajas[I].Gaveta, Cajas[I].Posicion,
           IdProceso, Cajas[I].Caja],
           [ftInteger, ftString, ftString, ftString, ftInteger, ftInteger]);
+        // si no cambio cada documento de la caja, no se cierra: nada queda a medias
+        Esperadas := Integer(Conn.ExecSQLScalar('SELECT COUNT(*) FROM prc_unidad WHERE ' +
+          'IdProceso = :p AND Caja = :k AND Activa <> 0', [IdProceso, Cajas[I].Caja],
+          [ftInteger, ftInteger]));
+        if Filas <> Esperadas then
+          raise EArgumentException.Create('Caja ' + IntToStr(Cajas[I].Caja) + ': solo ' +
+            IntToStr(Filas) + ' de ' + IntToStr(Esperadas) + ' documentos se pudieron ' +
+            'trasladar al archivo central; no se cerro la transferencia.');
+      end;
     Conn.ExecSQL('UPDATE prc_transferencia SET Ubicacion = :u WHERE IdProceso = :p',
       [Copy(Resumen, 1, 255), IdProceso], [ftString, ftInteger]);
     ConfirmarTx(Conn, Propia);

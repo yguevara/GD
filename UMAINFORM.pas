@@ -888,7 +888,7 @@ var
 implementation
 
 uses
-  UAparienciaLegacy, UTema, UIconos, UDocumentoVistaDatos, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UAutenticacion, UMensajes, UTiempos, USplash, UCLServidoresForm, UCLArchivosForm, UCLSeriesForm, UClasificadoresInterruptor, UProcesosInterruptor, UPantallaProceso, UPrestamosForm, UPrestamosImpresos, UTransferenciasForm, UTransferenciasImpresos, UCapaDatos, UUserGest, UDocManagement,
+  UAparienciaLegacy, UTema, UIconos, UDocumentoVistaDatos, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UAutenticacion, UMensajes, UTiempos, USplash, UCLServidoresForm, UCLArchivosForm, UCLSeriesForm, UClasificadoresInterruptor, UProcesosInterruptor, UPantallaProceso, UPrestamosForm, UPrestamosImpresos, UTransferenciasForm, UTransferenciasImpresos, UTransferidos, UCandados, UCapaDatos, UUserGest, UDocManagement,
   UPantallaCarga, UCLSeriesDocumentales, UCLFtpServer, UGestEstruct, UMangementArch,
   UManagementFileSeries, UViewFunciones, UVeditor, UExcelExport, UManagementNode,
   USystemMsg, UNodeProperties, UCL_TiposExp, USysConfig, UTransferencias,
@@ -8107,10 +8107,31 @@ var
   Nodo: TClaveNodo;
   Dias: Integer;
   Puede: Boolean;
+  U: TUnidadDoc;
+  Donde: string;
 begin
   if not ListaDocsLocalizar(Clave) then
   begin
     UDM.sms('No se encontro el documento: ya no existe o cambio la lista.', 2);
+    Exit;
+  end;
+  // un documento transferido ya esta en el archivo central: no se borra desde el origen
+  U.IdEstructura := Clave.IdEstructura;
+  U.Id := Clave.Id;
+  U.CodSubs := Clave.CodSubs;
+  U.CodigoDoc := Clave.Codigodoc;
+  U.Fecha := Clave.Fecha;
+  U.Version := Clave.Version;
+  try
+    Donde := DondeEstaTransferido(UDM.Conn, U);
+  except
+    on Exception do
+      Donde := '';  // sin las tablas de procesos no hay documentos transferidos
+  end;
+  if Donde <> '' then
+  begin
+    TMensajes.Advertencia(Donde + '. Ya no se puede eliminar desde el archivo de origen.',
+      'Eliminar documento');
     Exit;
   end;
   // la misma regla que habilita el boton Eliminar del navegador (rol, alcance y dias)

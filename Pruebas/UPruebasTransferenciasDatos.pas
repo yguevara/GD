@@ -21,6 +21,8 @@ type
     [Test]
     procedure ArchivosDeGestionComoLista;
     [Test]
+    procedure TraspasoDeCajaUsaActivaDistintoDeCeroComoElResto;
+    [Test]
     procedure SinArchivosDeGestionNoSeleccionaNada;
     [Test]
     procedure GrupoPorExpedienteSiLoHay;
@@ -106,6 +108,10 @@ type
     [Test]
     procedure CerrarConElPasoCambiadoDevuelveFalse;
     [Test]
+    procedure CerrarConUnDocumentoQueNoSeActualizaLanzaYNoCambiaNada;
+    [Test]
+    procedure CerrarConElDestinoYaNoCentralLanzaYNoCambiaNada;
+    [Test]
     procedure CargarEstadosMarcaTransferidoElDocumentoTraspasado;
   end;
 
@@ -153,6 +159,17 @@ begin
   Assert.IsTrue(Contiene(S, 'X.codsubs = H.codsubs'));
   Assert.IsTrue(Contiene(S, 'X.version = H.version'));
   Assert.IsFalse(Contiene(S, ':'), 'sin parametros');
+end;
+
+procedure TPruebasTransferenciasPuro.TraspasoDeCajaUsaActivaDistintoDeCeroComoElResto;
+var
+  S: string;
+begin
+  S := SqlTraspasoDeCaja;
+  Assert.IsTrue(Contiene(S, 'U.Activa <> 0'), 'Access guarda Si como -1, no como 1');
+  Assert.IsFalse(Contiene(S, 'U.Activa = 1'));
+  Assert.IsTrue(Contiene(S, 'U.Caja = :k'));
+  Assert.IsTrue(Contiene(S, 'U.codsubs = tb_SeriesDatos.codsubs'));
 end;
 
 procedure TPruebasTransferenciasPuro.ArchivosDeGestionComoLista;
@@ -890,6 +907,45 @@ begin
     Estados.Free;
   end;
   Assert.AreEqual('Transferido', TextoEstadoDoc(edTransferido));
+end;
+
+procedure TPruebasTransferenciasDatosBD.CerrarConUnDocumentoQueNoSeActualizaLanzaYNoCambiaNada;
+var
+  R: TProcesoRef;
+begin
+  if not Conectar then Exit;
+  ArchivoDePrueba(9990, 1);
+  R := TransferenciaEnPaso5(1, False);  // unidad suelta: no existe en tb_SeriesDatos
+  MarcarCajaRecibida(FConn, R.IdProceso, 1, '');
+  Assert.IsTrue(RegistrarRecepcionTransferencia(FConn, R.IdProceso, USUARIO, 'Ana', '2026-0001', Date, 9990));
+  RegistrarUbicacionCaja(FConn, R.IdProceso, 1, '01', '02', '3');
+  Assert.WillRaise(
+    procedure
+    begin
+      CerrarTransferencia(FConn, R.IdProceso, USUARIO);
+    end, EArgumentException);
+  Assert.AreEqual(6, Integer(Escalar('SELECT Paso FROM prc_proceso WHERE IdProceso = ' +
+    IntToStr(R.IdProceso))), 'no se cerro');
+  Assert.AreEqual(1, Integer(Escalar('SELECT COUNT(*) FROM prc_bloqueo WHERE IdProceso = ' +
+    IntToStr(R.IdProceso))), 'los candados siguen');
+end;
+
+procedure TPruebasTransferenciasDatosBD.CerrarConElDestinoYaNoCentralLanzaYNoCambiaNada;
+var
+  R: TProcesoRef;
+begin
+  if not Conectar then Exit;
+  R := TransferenciaEnPaso6(1, 0);
+  RegistrarUbicacionCaja(FConn, R.IdProceso, 1, '01', '02', '3');
+  FConn.ExecSQL('UPDATE cl_ArchivosGestion SET Tipo = 2 WHERE Cod = 9990');  // ya no es Central
+  Assert.WillRaise(
+    procedure
+    begin
+      CerrarTransferencia(FConn, R.IdProceso, USUARIO);
+    end, EArgumentException);
+  Assert.AreEqual('2', DocCampo(1, 'Archivo'), 'el documento sigue en el origen');
+  Assert.AreEqual(6, Integer(Escalar('SELECT Paso FROM prc_proceso WHERE IdProceso = ' +
+    IntToStr(R.IdProceso))));
 end;
 
 end.
