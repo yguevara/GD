@@ -199,11 +199,19 @@ function RegistrarRecepcionTransferencia(Conn: TFDConnection; IdProceso: Integer
   const Usuario, RecibidoPor, NumRegistro: string; Fecha: TDateTime;
   IdArchivoDestino: Integer): Boolean;
 
-{ Paso 6 -> finalizada: registra donde quedan las cajas, libera los documentos y
-  cierra la transferencia. Lanza EArgumentException si la ubicacion no es valida.
-  False si ya no esta en el paso 6. }
-function RegistrarUbicacionTransferencia(Conn: TFDConnection; IdProceso: Integer;
-  const Usuario, Ubicacion: string): Boolean;
+{ Paso 6: ubica una caja recibida (Anexo 18). Lanza EArgumentException si la
+  transferencia no esta en el paso 6, la caja no esta recibida o los datos no son
+  validos (ValidarUbicacionCaja). }
+procedure RegistrarUbicacionCaja(Conn: TFDConnection; IdProceso, Caja: Integer;
+  const Deposito, Gaveta, Posicion: string);
+
+{ Paso 6 -> finalizada, en UNA transaccion: cada documento de cada caja recibida pasa
+  al archivo destino con el deposito, gaveta y posicion de su caja; se liberan los
+  candados y la transferencia termina. Lanza EArgumentException si falta el archivo
+  destino o alguna caja recibida sin ubicar (no cambia nada). False si ya no esta en
+  el paso 6. }
+function CerrarTransferencia(Conn: TFDConnection; IdProceso: Integer;
+  const Usuario: string): Boolean;
 
 function ListarTransferencias(Conn: TFDConnection; const Nodos: TArray<TClaveNodo>;
   Anio, Limite: Integer): TArray<TTransferenciaFila>;
@@ -1235,14 +1243,45 @@ begin
   end;
 end;
 
-function RegistrarUbicacionTransferencia(Conn: TFDConnection; IdProceso: Integer;
-  const Usuario, Ubicacion: string): Boolean;
+procedure RegistrarUbicacionCaja(Conn: TFDConnection; IdProceso, Caja: Integer;
+  const Deposito, Gaveta, Posicion: string);
 var
   Tipo: TTipoProceso;
-  Paso: Integer;
+  Paso, I: Integer;
   Estado: string;
+  Errores: TArray<string>;
+  Cajas: TArray<TCajaFila>;
+  Recibida: Boolean;
+begin
+  if not LeerProceso(Conn, IdProceso, Tipo, Paso, Estado) or (Tipo <> tpTransferencia) or
+    (Estado <> 'C') or (Paso <> 6) then
+    raise EArgumentException.Create('La transferencia no est' + #225 + ' en la ubicaci' + #243 + 'n.');
+  Recibida := False;
+  Cajas := CajasDeTransferencia(Conn, IdProceso);
+  for I := 0 to High(Cajas) do
+    if (Cajas[I].Caja = Caja) and (Cajas[I].Estado = ecRecibida) then
+      Recibida := True;
+  if not Recibida then
+    raise EArgumentException.Create('La caja ' + IntToStr(Caja) + ' no est' + #225 +
+      ' recibida: no se puede ubicar.');
+  Errores := ValidarUbicacionCaja(Deposito, Gaveta, Posicion);
+  if Length(Errores) > 0 then
+    raise EArgumentException.Create(Errores[0]);
+  Conn.ExecSQL('UPDATE prc_caja SET Deposito = :d, Gaveta = :g, Posicion = :s ' +
+    'WHERE IdProceso = :p AND Caja = :k', [Trim(Deposito), Trim(Gaveta), Trim(Posicion),
+    IdProceso, Caja], [ftString, ftString, ftString, ftInteger, ftInteger]);
+end;
+
+function CerrarTransferencia(Conn: TFDConnection; IdProceso: Integer;
+  const Usuario: string): Boolean;
+var
+  Tipo: TTipoProceso;
+  Paso, I, Recibidas: Integer;
+  Estado, Resumen: string;
   Falta: TCondiciones;
   Errores: TArray<string>;
+  Cajas: TArray<TCajaFila>;
+  Destino: Variant;
   Propia: Boolean;
 begin
   Result := False;
@@ -1250,9 +1289,27 @@ begin
     Exit;
   if (Estado <> 'C') or (Paso <> 6) then
     Exit;
-  Errores := ValidarUbicacion(Ubicacion);
-  if Length(Errores) > 0 then
-    raise EArgumentException.Create(Errores[0]);
+  Destino := Conn.ExecSQLScalar('SELECT IdArchivoDestino FROM prc_transferencia ' +
+    'WHERE IdProceso = :p', [IdProceso]);
+  if VarIsNull(Destino) or VarIsEmpty(Destino) then
+    raise EArgumentException.Create('La transferencia no tiene archivo destino.');
+  Cajas := CajasDeTransferencia(Conn, IdProceso);
+  Recibidas := 0;
+  Resumen := '';
+  for I := 0 to High(Cajas) do
+    if Cajas[I].Estado = ecRecibida then
+    begin
+      Inc(Recibidas);
+      Errores := ValidarUbicacionCaja(Cajas[I].Deposito, Cajas[I].Gaveta, Cajas[I].Posicion);
+      if Length(Errores) > 0 then
+        raise EArgumentException.Create('Caja ' + IntToStr(Cajas[I].Caja) + ': ' + Errores[0]);
+      if Resumen <> '' then
+        Resumen := Resumen + '; ';
+      Resumen := Resumen + 'caja ' + IntToStr(Cajas[I].Caja) + ': ' + Cajas[I].Deposito +
+        '/' + Cajas[I].Gaveta + '/' + Cajas[I].Posicion;
+    end;
+  if Recibidas = 0 then
+    raise EArgumentException.Create('No hay cajas recibidas que ubicar.');
   Propia := IniciarTx(Conn);
   try
     // el ultimo paso finaliza el proceso y libera los bloqueos (AvanzarPaso)
@@ -1261,8 +1318,19 @@ begin
       DeshacerTx(Conn, Propia);
       Exit;
     end;
+    for I := 0 to High(Cajas) do
+      if Cajas[I].Estado = ecRecibida then
+        Conn.ExecSQL('UPDATE tb_SeriesDatos SET Archivo = :a, deposito = :d, gaveta = :g, ' +
+          'posicion = :s WHERE EXISTS (SELECT 1 FROM prc_unidad U WHERE U.IdProceso = :p ' +
+          'AND U.Caja = :k AND U.Activa = 1 AND U.IdEstructura = tb_SeriesDatos.IdEstructura ' +
+          'AND U.id = tb_SeriesDatos.id AND U.codsubs = tb_SeriesDatos.codsubs AND ' +
+          'U.Codigodoc = tb_SeriesDatos.Codigodoc AND U.fecha = tb_SeriesDatos.Fecha AND ' +
+          'U.version = tb_SeriesDatos.Version)',
+          [Integer(Destino), Cajas[I].Deposito, Cajas[I].Gaveta, Cajas[I].Posicion,
+          IdProceso, Cajas[I].Caja],
+          [ftInteger, ftString, ftString, ftString, ftInteger, ftInteger]);
     Conn.ExecSQL('UPDATE prc_transferencia SET Ubicacion = :u WHERE IdProceso = :p',
-      [Copy(Trim(Ubicacion), 1, 255), IdProceso], [ftString, ftInteger]);
+      [Copy(Resumen, 1, 255), IdProceso], [ftString, ftInteger]);
     ConfirmarTx(Conn, Propia);
     Result := True;
   except

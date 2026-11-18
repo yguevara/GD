@@ -43,8 +43,11 @@ type
     function Conectar: Boolean;
     function Escalar(const Sql: string): Variant;
     procedure Unidad(IdProceso: Integer; const Subs, Cod: string);
-    function TransferenciaEnPaso5(Cajas: Integer): TProcesoRef;
+    function TransferenciaEnPaso5(Cajas: Integer; Reales: Boolean = False): TProcesoRef;
+    function TransferenciaEnPaso6(Cajas, Faltantes: Integer): TProcesoRef;
     procedure ArchivoDePrueba(Cod, Tipo: Integer);
+    procedure UnidadReal(IdProceso, N: Integer);
+    function DocCampo(N: Integer; const Campo: string): string;
   public
     [Setup]
     procedure Preparar;
@@ -86,6 +89,20 @@ type
     procedure RecepcionRechazaDestinoInexistenteCajasPendientesYCuarentena;
     [Test]
     procedure RecepcionConTodoDecididoAvanzaYGuardaDestino;
+    [Test]
+    procedure UbicacionDeCajaInvalidaLanzaYNoCambiaLaCaja;
+    [Test]
+    procedure UbicacionDeCajaFaltanteOFueraDelPasoSeisLanza;
+    [Test]
+    procedure CerrarSinUbicarTodasLasCajasLanzaYNoCambiaNada;
+    [Test]
+    procedure CerrarTraspasaLosDocumentosYFinaliza;
+    [Test]
+    procedure CerrarDosVecesLaSegundaDevuelveFalse;
+    [Test]
+    procedure CerrarSinArchivoDestinoLanzaYNoCambiaNada;
+    [Test]
+    procedure CerrarConElPasoCambiadoDevuelveFalse;
   end;
 
 implementation
@@ -220,6 +237,7 @@ procedure TPruebasTransferenciasDatosBD.Limpiar;
 begin
   if FConn <> nil then
   try
+    FConn.ExecSQL('DELETE FROM tb_SeriesDatos WHERE titulodoc = ''' + USUARIO + '''');
     FConn.ExecSQL('DELETE FROM cl_ArchivosGestion WHERE nombreArchivo = ''' + USUARIO + '''');
     FConn.ExecSQL('DELETE FROM prc_cronograma WHERE Anio BETWEEN 1990 AND 1999');
     FConn.ExecSQL('DELETE FROM prc_proceso WHERE CreadoPor = ''' + USUARIO + '''');
@@ -267,7 +285,8 @@ begin
 end;
 
 { Transferencia con una unidad por caja, entregada: lista para la recepcion (paso 5). }
-function TPruebasTransferenciasDatosBD.TransferenciaEnPaso5(Cajas: Integer): TProcesoRef;
+function TPruebasTransferenciasDatosBD.TransferenciaEnPaso5(Cajas: Integer;
+  Reales: Boolean): TProcesoRef;
 var
   Faltan: TArray<string>;
   A: TAutorizacion;
@@ -276,7 +295,10 @@ var
 begin
   Result := CrearTransferencia(FConn, NodoDePrueba(FConn), USUARIO, 1990, 0);
   for I := 1 to Cajas do
-    Unidad(Result.IdProceso, 'S1', 'D' + IntToStr(I));
+    if Reales then
+      UnidadReal(Result.IdProceso, I)
+    else
+      Unidad(Result.IdProceso, 'S1', 'D' + IntToStr(I));
   AvanzarTransferencia(FConn, Result.IdProceso, 1, USUARIO, Faltan);
   A.Organo := ocCentral;
   A.NumActa := '7';
@@ -289,6 +311,51 @@ begin
     MarcarVerificacion(FConn, Result.IdProceso, V.Codigo, True);
   AvanzarTransferencia(FConn, Result.IdProceso, 3, USUARIO, Faltan);
   RegistrarEntregaTransferencia(FConn, Result.IdProceso, USUARIO, 'R. Perez', Date - 1);
+end;
+
+{ Documento de verdad en tb_SeriesDatos (en la primera subserie del arbol, archivo de
+  gestion 2) retenido por el proceso: PF3-<N>. }
+procedure TPruebasTransferenciasDatosBD.UnidadReal(IdProceso, N: Integer);
+var
+  Cod: string;
+begin
+  Cod := 'PF3-' + IntToStr(N);
+  FConn.ExecSQL('DELETE FROM tb_SeriesDatos WHERE Codigodoc = :c AND titulodoc = :t',
+    [Cod, USUARIO]);
+  FConn.ExecSQL('INSERT INTO tb_SeriesDatos (IdEstructura, id, codsubs, Fecha, Version, ' +
+    'Codigodoc, titulodoc, Archivo) SELECT TOP 1 IdEstructura, id, codsubs, ''2018-01-01'', ' +
+    '''1'', :c, :t, 2 FROM tb_Serietree ORDER BY IdEstructura, id', [Cod, USUARIO],
+    [ftString, ftString]);
+  FConn.ExecSQL('INSERT INTO prc_bloqueo (IdEstructura, id, codsubs, Codigodoc, fecha, ' +
+    'version, IdProceso) SELECT TOP 1 IdEstructura, id, codsubs, :c, ''2018-01-01'', ''1'', :p ' +
+    'FROM tb_Serietree ORDER BY IdEstructura, id', [Cod, IdProceso], [ftString, ftInteger]);
+  FConn.ExecSQL('INSERT INTO prc_unidad (IdProceso, IdEstructura, id, codsubs, Codigodoc, ' +
+    'fecha, version, Activa) SELECT TOP 1 :p, IdEstructura, id, codsubs, :c, ''2018-01-01'', ' +
+    '''1'', 1 FROM tb_Serietree ORDER BY IdEstructura, id', [IdProceso, Cod],
+    [ftInteger, ftString]);
+end;
+
+function TPruebasTransferenciasDatosBD.DocCampo(N: Integer; const Campo: string): string;
+begin
+  Result := Trim(VarToStr(Escalar('SELECT ' + Campo + ' FROM tb_SeriesDatos WHERE Codigodoc = ' +
+    QuotedStr('PF3-' + IntToStr(N)) + ' AND titulodoc = ' + QuotedStr(USUARIO))));
+end;
+
+{ Transferencia con documentos reales ya recibida (paso 6) en el archivo central 9990:
+  las ultimas Faltantes cajas son faltantes y las demas, recibidas. }
+function TPruebasTransferenciasDatosBD.TransferenciaEnPaso6(Cajas,
+  Faltantes: Integer): TProcesoRef;
+var
+  I: Integer;
+begin
+  ArchivoDePrueba(9990, 1);
+  Result := TransferenciaEnPaso5(Cajas, True);
+  for I := 1 to Cajas do
+    if I > Cajas - Faltantes then
+      MarcarCajaFaltante(FConn, Result.IdProceso, I, USUARIO, 'Falta', Date)
+    else
+      MarcarCajaRecibida(FConn, Result.IdProceso, I, '');
+  RegistrarRecepcionTransferencia(FConn, Result.IdProceso, USUARIO, 'Ana', '2026-0001', Date, 9990);
 end;
 
 procedure TPruebasTransferenciasDatosBD.CrearTransferenciaGuardaPrevistaYEnlazaCronograma;
@@ -641,6 +708,128 @@ begin
   Assert.AreEqual('Ana', VarToStr(Escalar('SELECT RecibidoPor FROM prc_transferencia WHERE IdProceso = ' + Id)));
   Assert.IsFalse(RegistrarRecepcionTransferencia(FConn, R.IdProceso, USUARIO, 'Ana', '2026-0001', Date, 9990),
     'recibir dos veces se rechaza');
+end;
+
+procedure TPruebasTransferenciasDatosBD.UbicacionDeCajaInvalidaLanzaYNoCambiaLaCaja;
+var
+  R: TProcesoRef;
+  Cajas: TArray<TCajaFila>;
+begin
+  if not Conectar then Exit;
+  R := TransferenciaEnPaso6(1, 0);
+  Assert.WillRaise(
+    procedure
+    begin
+      RegistrarUbicacionCaja(FConn, R.IdProceso, 1, '01', StringOfChar('g', 21), '3');
+    end, EArgumentException);
+  Cajas := CajasDeTransferencia(FConn, R.IdProceso);
+  Assert.AreEqual('', Cajas[0].Gaveta, 'no se guardo nada');
+end;
+
+procedure TPruebasTransferenciasDatosBD.UbicacionDeCajaFaltanteOFueraDelPasoSeisLanza;
+var
+  R: TProcesoRef;
+begin
+  if not Conectar then Exit;
+  R := TransferenciaEnPaso6(2, 1);  // la caja 2 es faltante
+  Assert.WillRaise(
+    procedure
+    begin
+      RegistrarUbicacionCaja(FConn, R.IdProceso, 2, '01', '02', '3');
+    end, EArgumentException);
+  FConn.ExecSQL('UPDATE prc_proceso SET Paso = 5 WHERE IdProceso = ' + IntToStr(R.IdProceso));
+  Assert.WillRaise(
+    procedure
+    begin
+      RegistrarUbicacionCaja(FConn, R.IdProceso, 1, '01', '02', '3');
+    end, EArgumentException);
+end;
+
+procedure TPruebasTransferenciasDatosBD.CerrarSinUbicarTodasLasCajasLanzaYNoCambiaNada;
+var
+  R: TProcesoRef;
+begin
+  if not Conectar then Exit;
+  R := TransferenciaEnPaso6(2, 0);
+  RegistrarUbicacionCaja(FConn, R.IdProceso, 1, '01', '02', '3');
+  Assert.WillRaise(
+    procedure
+    begin
+      CerrarTransferencia(FConn, R.IdProceso, USUARIO);
+    end, EArgumentException);
+  Assert.AreEqual('2', DocCampo(1, 'Archivo'), 'el documento sigue en el origen');
+  Assert.AreEqual(6, Integer(Escalar('SELECT Paso FROM prc_proceso WHERE IdProceso = ' +
+    IntToStr(R.IdProceso))));
+end;
+
+procedure TPruebasTransferenciasDatosBD.CerrarTraspasaLosDocumentosYFinaliza;
+var
+  R: TProcesoRef;
+  Id: string;
+begin
+  if not Conectar then Exit;
+  R := TransferenciaEnPaso6(3, 1);  // caja 3 faltante
+  Id := IntToStr(R.IdProceso);
+  RegistrarUbicacionCaja(FConn, R.IdProceso, 1, '01', '02', '3');
+  RegistrarUbicacionCaja(FConn, R.IdProceso, 2, '04', '05', '6');
+  Assert.IsTrue(CerrarTransferencia(FConn, R.IdProceso, USUARIO));
+  Assert.AreEqual('9990', DocCampo(1, 'Archivo'));
+  Assert.AreEqual('01', DocCampo(1, 'deposito'));
+  Assert.AreEqual('02', DocCampo(1, 'gaveta'));
+  Assert.AreEqual('3', DocCampo(1, 'posicion'));
+  Assert.AreEqual('9990', DocCampo(2, 'Archivo'));
+  Assert.AreEqual('04', DocCampo(2, 'deposito'));
+  Assert.AreEqual('6', DocCampo(2, 'posicion'));
+  Assert.AreEqual('2', DocCampo(3, 'Archivo'), 'el de la caja faltante sigue en el origen');
+  Assert.AreEqual('', DocCampo(3, 'deposito'));
+  Assert.AreEqual('F', Trim(VarToStr(Escalar('SELECT Estado FROM prc_proceso WHERE IdProceso = ' + Id))));
+  Assert.AreEqual(0, Integer(Escalar('SELECT COUNT(*) FROM prc_bloqueo WHERE IdProceso = ' + Id)));
+  Assert.IsTrue(VarToStr(Escalar('SELECT Ubicacion FROM prc_transferencia WHERE IdProceso = ' + Id)) <> '',
+    'queda un resumen de la ubicacion');
+end;
+
+procedure TPruebasTransferenciasDatosBD.CerrarDosVecesLaSegundaDevuelveFalse;
+var
+  R: TProcesoRef;
+begin
+  if not Conectar then Exit;
+  R := TransferenciaEnPaso6(1, 0);
+  RegistrarUbicacionCaja(FConn, R.IdProceso, 1, '01', '02', '3');
+  Assert.IsTrue(CerrarTransferencia(FConn, R.IdProceso, USUARIO));
+  FConn.ExecSQL('UPDATE tb_SeriesDatos SET deposito = ''ZZ'' WHERE Codigodoc = ''PF3-1'' AND titulodoc = ''' + USUARIO + '''');
+  Assert.IsFalse(CerrarTransferencia(FConn, R.IdProceso, USUARIO));
+  Assert.AreEqual('ZZ', DocCampo(1, 'deposito'), 'la segunda llamada no repite el traspaso');
+end;
+
+procedure TPruebasTransferenciasDatosBD.CerrarSinArchivoDestinoLanzaYNoCambiaNada;
+var
+  R: TProcesoRef;
+begin
+  if not Conectar then Exit;
+  R := TransferenciaEnPaso6(1, 0);
+  RegistrarUbicacionCaja(FConn, R.IdProceso, 1, '01', '02', '3');
+  FConn.ExecSQL('UPDATE prc_transferencia SET IdArchivoDestino = NULL WHERE IdProceso = ' +
+    IntToStr(R.IdProceso));
+  Assert.WillRaise(
+    procedure
+    begin
+      CerrarTransferencia(FConn, R.IdProceso, USUARIO);
+    end, EArgumentException);
+  Assert.AreEqual('2', DocCampo(1, 'Archivo'));
+  Assert.AreEqual(6, Integer(Escalar('SELECT Paso FROM prc_proceso WHERE IdProceso = ' +
+    IntToStr(R.IdProceso))));
+end;
+
+procedure TPruebasTransferenciasDatosBD.CerrarConElPasoCambiadoDevuelveFalse;
+var
+  R: TProcesoRef;
+begin
+  if not Conectar then Exit;
+  R := TransferenciaEnPaso6(1, 0);
+  RegistrarUbicacionCaja(FConn, R.IdProceso, 1, '01', '02', '3');
+  FConn.ExecSQL('UPDATE prc_proceso SET Paso = 5 WHERE IdProceso = ' + IntToStr(R.IdProceso));
+  Assert.IsFalse(CerrarTransferencia(FConn, R.IdProceso, USUARIO));
+  Assert.AreEqual('2', DocCampo(1, 'Archivo'));
 end;
 
 end.

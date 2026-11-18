@@ -33,8 +33,6 @@ type
     [Test]
     procedure RecepcionExigeQuienRecibeYFechaCoherente;
     [Test]
-    procedure UbicacionExigeTextoYNoPasaDelLimite;
-    [Test]
     procedure EntradaCentralExigeDestinoYRegistro;
     [Test]
     procedure CajasDecididasNecesitaCajasYNingunaPendiente;
@@ -214,15 +212,6 @@ procedure TPruebasTransferenciasReglas.ReclamacionVenceTreintaDiasDespues;
 begin
   Assert.AreEqual(30, PLAZO_RECLAMACION_DIAS);
   Assert.AreEqual(EncodeDate(2026, 12, 1), FechaLimiteReclamacion(EncodeDate(2026, 11, 1)), 0.0001);
-end;
-
-procedure TPruebasTransferenciasReglas.UbicacionExigeTextoYNoPasaDelLimite;
-begin
-  Assert.AreEqual(0, Length(ValidarUbicacion('Deposito 2, estante 5')));
-  Assert.AreEqual(1, Length(ValidarUbicacion('')));
-  Assert.AreEqual(1, Length(ValidarUbicacion('    ')));
-  Assert.AreEqual(0, Length(ValidarUbicacion(StringOfChar('x', 255))));
-  Assert.AreEqual(1, Length(ValidarUbicacion(StringOfChar('x', 256))));
 end;
 
 procedure TPruebasTransferenciasReglas.FechaCorteRestaAniosYCeroSinPlazo;

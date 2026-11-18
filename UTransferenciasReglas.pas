@@ -104,10 +104,6 @@ function TextoEstadoTransferencia(Paso: Integer; Estado: TEstadoProceso): string
 function ValidarRecepcion(const RecibidoPor: string; Fecha, FEntrega,
   Hoy: TDateTime): TArray<string>;
 
-{ Errores (vacia si es valida) al registrar donde quedan las cajas: un texto no
-  vacio de hasta 255 caracteres (limite de Access). }
-function ValidarUbicacion(const Ubicacion: string): TArray<string>;
-
 function EstadoCajaDesdeCodigo(const Codigo: string): TEstadoCaja;
 function CodigoDeEstadoCaja(E: TEstadoCaja): string;
 
@@ -291,15 +287,6 @@ begin
   finally
     Lista.Free;
   end;
-end;
-
-function ValidarUbicacion(const Ubicacion: string): TArray<string>;
-begin
-  Result := nil;
-  if Trim(Ubicacion) = '' then
-    Result := ['Indique d' + #243 + 'nde quedan las cajas (dep' + #243 + 'sito, estante...).']
-  else if Length(Trim(Ubicacion)) > 255 then
-    Result := ['La ubicaci' + #243 + 'n es demasiado larga (m' + #225 + 'ximo 255 caracteres).'];
 end;
 
 function EstadoCajaDesdeCodigo(const Codigo: string): TEstadoCaja;

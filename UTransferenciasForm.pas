@@ -1338,29 +1338,10 @@ begin
 end;
 
 procedure TfrmTransferenciasNuevo.btnRegistrarUbicacionClick(Sender: TObject);
-var
-  Errores: TArray<string>;
 begin
-  Errores := ValidarUbicacion(edtUbicacion.Text);
-  if Length(Errores) > 0 then
-  begin
-    lblAviso.Caption := Errores[0];
-    Exit;
-  end;
-  if not TMensajes.Confirmar('Se registra la ubicaci' + #243 + 'n de las cajas y se finaliza la ' +
-    'transferencia: los documentos quedan libres. ' + #191 + 'Continuar?',
-    'Finalizar la transferencia') then
-    Exit;
-  try
-    if not RegistrarUbicacionTransferencia(FConn, FActual.IdProceso, FUsuario,
-      edtUbicacion.Text) then
-      TMensajes.Advertencia('La transferencia ya no est' + #225 + ' en el paso de ubicaci' + #243 +
-        'n.', 'Transferencias');
-  except
-    on E: Exception do
-      TMensajes.Error('No se pudo finalizar la transferencia: ' + E.Message, 'Transferencias');
-  end;
-  Recargar;
+  // provisional hasta la tarea 6 del plan F3: la ubicacion pasa a ser por caja
+  TMensajes.Informacion('La ubicaci' + #243 + 'n por caja se registra en la nueva pantalla ' +
+    '(en construcci' + #243 + 'n).', 'Transferencias');
 end;
 
 procedure TfrmTransferenciasNuevo.btnEliminarTransfClick(Sender: TObject);
