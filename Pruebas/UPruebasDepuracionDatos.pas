@@ -103,6 +103,8 @@ type
     procedure AgregarGrupoUsaElPlazoYElDestinoDeLaBaseNoLosDelGrupo;
     [Test]
     procedure AgregarGrupoRechazaOtroNodoQueElDeLaDepuracion;
+    [Test]
+    procedure ListarDepuracionesTraeElTextoDeLaAutorizacion;
   end;
 
 implementation
@@ -958,6 +960,32 @@ begin
   Assert.AreEqual(0, N);
   Assert.IsTrue(Motivo <> '');
   Assert.AreEqual(0, Integer(Escalar('SELECT COUNT(*) FROM prc_bloqueo WHERE IdProceso = ' + IntToStr(R.IdProceso))));
+end;
+
+procedure TPruebasDepuracionDatosBD.ListarDepuracionesTraeElTextoDeLaAutorizacion;
+var
+  Nodo: TClaveNodo;
+  R: TProcesoRef;
+  A: TAutorizacion;
+  L: TArray<TDepuracionFila>;
+begin
+  if not Conectar then Exit;
+  Nodo := SembrarSerieDepurable(FConn, COD, 5, 1, ArchivoCentralApoyo(FConn));
+  R := CrearDepuracion(FConn, Nodo, USUARIO, 1994);
+  L := ListarDepuraciones(FConn, [Nodo], 1994, 0);
+  Assert.AreEqual(1, Length(L));
+  Assert.AreEqual('', L[0].Autorizacion, 'sin autorizacion');
+  A.Organo := ocProvincial;
+  A.NumActa := '14';
+  A.NumAcuerdo := '9';
+  A.Fecha := Date - 1;
+  GuardarAutorizacion(FConn, R.IdProceso, A, USUARIO);
+  L := ListarDepuraciones(FConn, [Nodo], 1994, 0);
+  Assert.AreEqual('Comisi'#243'n Prov. - Acta 14 - Acuerdo 9', L[0].Autorizacion);
+  A.Organo := ocMunicipal;
+  GuardarAutorizacion(FConn, R.IdProceso, A, USUARIO);
+  L := ListarDepuraciones(FConn, [Nodo], 1994, 0);
+  Assert.AreEqual('Comisi'#243'n Mun. - Acta 14 - Acuerdo 9', L[0].Autorizacion);
 end;
 
 initialization

@@ -36,6 +36,7 @@ type
   TDepuracionFila = record
     IdProceso, Anio, Consecutivo, Paso: Integer;
     Numero, Series, Estado: string;
+    Autorizacion: string;                               // 'Comision Prov. - Acta 14 - Acuerdo 9' o ''
     Unidades: Integer;
     Desde, Hasta, FPrevista, FEjecucion: TDateTime;     // 0 = sin fecha
     Proceso: TEstadoProceso;
@@ -536,6 +537,18 @@ end;
 
 { -------------------------------- listados -------------------------------- }
 
+function OrganoDesdeCodigo(const Codigo: string): TOrganoComision;
+begin
+  if Trim(Codigo) = 'M' then
+    Result := ocMunicipal
+  else if Trim(Codigo) = 'P' then
+    Result := ocProvincial
+  else if Trim(Codigo) = 'N' then
+    Result := ocNacional
+  else
+    Result := ocCentral;
+end;
+
 function GruposDeLaDepuracion(Conn: TFDConnection;
   IdProceso: Integer): TArray<TGrupoDepuracion>;
 var
@@ -615,6 +628,7 @@ var
   Desde, Hasta, Tope: Integer;
   Q: TFDQuery;
   F: TDepuracionFila;
+  Aut: TAutorizacion;
 begin
   if Limite <= 0 then
     Tope := LIMITE_POR_DEFECTO
@@ -639,8 +653,10 @@ begin
           '(SELECT MAX(u.fecha) FROM prc_unidad u WHERE u.IdProceso = p.IdProceso AND u.Activa <> 0) AS Hasta, ' +
           '(SELECT MIN(R.serie) FROM (prc_unidad u2 INNER JOIN cl_subseries C ON ' +
           'C.codsubs = u2.codsubs) INNER JOIN cl_series R ON R.codserie = C.codserie ' +
-          'WHERE u2.IdProceso = p.IdProceso AND u2.Activa <> 0) AS Series ' +
-          'FROM (prc_proceso p INNER JOIN prc_depuracion d ON d.IdProceso = p.IdProceso) ' +
+          'WHERE u2.IdProceso = p.IdProceso AND u2.Activa <> 0) AS Series, ' +
+          'a.Organo, a.NumActa, a.NumAcuerdo ' +
+          'FROM ((prc_proceso p INNER JOIN prc_depuracion d ON d.IdProceso = p.IdProceso) ' +
+          'LEFT JOIN prc_autorizacion a ON a.IdProceso = p.IdProceso) ' +
           'WHERE p.Tipo = ''D'' AND p.Anio = :a AND (' +
           CondicionNodos('p.IdEstructura', 'p.IdNodo', Desde, Hasta) + ') ' +
           'ORDER BY p.Consecutivo DESC';
@@ -654,6 +670,15 @@ begin
           F.Consecutivo := Q.FieldByName('Consecutivo').AsInteger;
           F.Numero := Trim(Q.FieldByName('Numero').AsString);
           F.Series := Q.FieldByName('Series').AsString;
+          F.Autorizacion := '';
+          if not Q.FieldByName('NumActa').IsNull then
+          begin
+            Aut.Organo := OrganoDesdeCodigo(Q.FieldByName('Organo').AsString);
+            Aut.NumActa := Q.FieldByName('NumActa').AsString;
+            Aut.NumAcuerdo := Q.FieldByName('NumAcuerdo').AsString;
+            Aut.Fecha := 0;
+            F.Autorizacion := TextoAutorizacionCorto(Aut);
+          end;
           F.Nodo.IdEstructura := Q.FieldByName('IdEstructura').AsString;
           F.Nodo.Id := Q.FieldByName('IdNodo').AsInteger;
           F.Paso := Q.FieldByName('Paso').AsInteger;
