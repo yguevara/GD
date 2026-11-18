@@ -221,7 +221,7 @@ implementation
 
 uses
   System.Generics.Collections, System.Generics.Defaults, System.Variants, Data.DB,
-  FireDAC.Stan.Intf, FireDAC.Stan.Param, FireDAC.Stan.Error;
+  FireDAC.Stan.Intf, FireDAC.Stan.Param, FireDAC.Stan.Error, UEliminados;
 
 const
   NODOS_POR_CONSULTA = 200;
@@ -415,7 +415,7 @@ var
     Sql := 'SELECT COUNT(*) AS N, MIN(H.Fecha) AS Desde, MAX(H.Fecha) AS Hasta ' +
       'FROM tb_SeriesDatos H WHERE H.IdEstructura = :e AND H.id = :i AND H.codsubs = :s ' +
       'AND ' + SqlArchivosGestion(Gestion) + ' AND ' + SqlCondicionVencido + ' AND ' +
-      SqlNoTransferido;
+      SqlNoTransferido + ' AND ' + SqlNoEliminado;
     if SoloRetenidos then
       Sql := Sql + ' AND EXISTS (SELECT 1 FROM prc_bloqueo B WHERE ' +
         'B.IdEstructura = H.IdEstructura AND B.id = H.id AND B.codsubs = H.codsubs ' +
@@ -580,7 +580,7 @@ begin
   P := IntToStr(IdProceso);
   Filtro := 'H.IdEstructura = :e AND H.id = :i AND H.codsubs = :s AND ' +
     SqlArchivosGestion(Gestion) + ' AND ' + SqlCondicionVencido + ' AND ' +
-    SqlNoTransferido + ' AND NOT EXISTS ' +
+    SqlNoTransferido + ' AND ' + SqlNoEliminado + ' AND NOT EXISTS ' +
     '(SELECT 1 FROM prc_bloqueo B WHERE B.IdEstructura = H.IdEstructura AND ' +
     'B.id = H.id AND B.codsubs = H.codsubs AND B.Codigodoc = H.Codigodoc AND ' +
     'B.fecha = H.fecha AND B.version = H.version)';

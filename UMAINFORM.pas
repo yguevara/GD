@@ -888,7 +888,7 @@ var
 implementation
 
 uses
-  UAparienciaLegacy, UTema, UIconos, UDocumentoVistaDatos, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UAutenticacion, UMensajes, UTiempos, USplash, UCLServidoresForm, UCLArchivosForm, UCLSeriesForm, UClasificadoresInterruptor, UProcesosInterruptor, UPantallaProceso, UPrestamosForm, UPrestamosImpresos, UTransferenciasForm, UTransferenciasImpresos, UTransferidos, UCandados, UCapaDatos, UUserGest, UDocManagement,
+  UAparienciaLegacy, UTema, UIconos, UDocumentoVistaDatos, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UAutenticacion, UMensajes, UTiempos, USplash, UCLServidoresForm, UCLArchivosForm, UCLSeriesForm, UClasificadoresInterruptor, UProcesosInterruptor, UPantallaProceso, UPrestamosForm, UPrestamosImpresos, UTransferenciasForm, UTransferenciasImpresos, UTransferidos, UEliminados, UCandados, UCapaDatos, UUserGest, UDocManagement,
   UPantallaCarga, UCLSeriesDocumentales, UCLFtpServer, UGestEstruct, UMangementArch,
   UManagementFileSeries, UViewFunciones, UVeditor, UExcelExport, UManagementNode,
   USystemMsg, UNodeProperties, UCL_TiposExp, USysConfig, UTransferencias,
@@ -8039,10 +8039,10 @@ begin
   AgregarDocumentosConRutas(nil);
 end;
 
-// '' si el documento no esta transferido; si lo esta, a donde fue. Si no se puede
-// comprobar (error de base) devuelve un texto que bloquea la accion: no se asegura que
-// no este transferido.
-function DondeTransferidoDoc(const Clave: TClaveDocumento): string;
+// '' si el documento esta libre; si ya fue eliminado (depuracion ejecutada) o
+// transferido a un archivo central, dice donde esta. Si no se puede comprobar (error
+// de base) devuelve un texto que bloquea la accion: no se asegura que este libre.
+function DondeBloqueadoDoc(const Clave: TClaveDocumento): string;
 var
   U: TUnidadDoc;
 begin
@@ -8053,10 +8053,12 @@ begin
   U.Fecha := Clave.Fecha;
   U.Version := Clave.Version;
   try
-    Result := DondeEstaTransferido(UDM.Conn, U);
+    Result := DondeEstaEliminado(UDM.Conn, U);
+    if Result = '' then
+      Result := DondeEstaTransferido(UDM.Conn, U);
   except
     on E: Exception do
-      Result := 'No se pudo comprobar si el documento ya fue transferido (' + E.Message + ')';
+      Result := 'No se pudo comprobar si el documento esta eliminado o transferido (' + E.Message + ')';
   end;
 end;
 
@@ -8090,7 +8092,7 @@ begin
       Actual.Fecha := UDM.tb_SeriesDatos.FieldByName('Fecha').AsDateTime;
     Actual.Version := UDM.tb_SeriesDatos.FieldByName('Version').AsString;
     Actual.Codigodoc := UDM.tb_SeriesDatos.FieldByName('Codigodoc').AsString;
-    if DondeTransferidoDoc(Actual) <> '' then
+    if DondeBloqueadoDoc(Actual) <> '' then
       Result := False;
   end;
 end;
@@ -8152,10 +8154,10 @@ begin
     Exit;
   end;
   // un documento transferido ya esta en el archivo central: no se borra desde el origen
-  Donde := DondeTransferidoDoc(Clave);
+  Donde := DondeBloqueadoDoc(Clave);
   if Donde <> '' then
   begin
-    TMensajes.Advertencia(Donde + '. Ya no se puede eliminar desde el archivo de origen.',
+    TMensajes.Advertencia(Donde + '. Ya no se puede eliminar.',
       'Eliminar documento');
     Exit;
   end;
@@ -8211,11 +8213,11 @@ var
 begin
   for I := 0 to High(Claves) do
   begin
-    Donde := DondeTransferidoDoc(Claves[I]);
+    Donde := DondeBloqueadoDoc(Claves[I]);
     if Donde <> '' then
     begin
-      TMensajes.Advertencia(Donde + '. Ya no se puede modificar desde el archivo de origen.',
-        'Documento transferido');
+      TMensajes.Advertencia(Donde + '. Ya no se puede modificar.',
+        'Documento de solo lectura');
       Exit;
     end;
   end;
@@ -8436,11 +8438,11 @@ var
   Prog: TProgresoTransferencia;
   Anterior, Donde: string;
 begin
-  Donde := DondeTransferidoDoc(Clave);
+  Donde := DondeBloqueadoDoc(Clave);
   if Donde <> '' then
   begin
-    TMensajes.Advertencia(Donde + '. Ya no se puede modificar desde el archivo de origen.',
-      'Documento transferido');
+    TMensajes.Advertencia(Donde + '. Ya no se puede modificar.',
+      'Documento de solo lectura');
     Exit;
   end;
   if not ListaDocsPuedeEditar then
@@ -8523,11 +8525,11 @@ var
   HayCarpeta: Boolean;
   Donde: string;
 begin
-  Donde := DondeTransferidoDoc(Clave);
+  Donde := DondeBloqueadoDoc(Clave);
   if Donde <> '' then
   begin
-    TMensajes.Advertencia(Donde + '. Ya no se puede modificar desde el archivo de origen.',
-      'Documento transferido');
+    TMensajes.Advertencia(Donde + '. Ya no se puede modificar.',
+      'Documento de solo lectura');
     Exit;
   end;
   if not ListaDocsPuedeEditar then

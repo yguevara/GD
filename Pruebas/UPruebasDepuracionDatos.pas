@@ -95,6 +95,8 @@ type
     procedure CerrarSoloDesdeElPasoCincoYLiberaLosCandados;
     [Test]
     procedure CancelarHastaElPasoTresLiberaLosCandados;
+    [Test]
+    procedure LaTransferenciaNoProponeNiAgregaLosEliminados;
   end;
 
 implementation
@@ -105,7 +107,7 @@ uses
   FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys,
   FireDAC.Phys.MSSQL, FireDAC.DApt, FireDAC.ConsoleUI.Wait, FireDAC.Stan.Param,
   Data.DB, UCandados, UProceso, UEsquemaProcesos,
-  UAutorizacion, UDepuracionReglas, UEliminados, UPruebasApoyoTransferido,
+  UAutorizacion, UDepuracionReglas, UEliminados, UTransferenciasDatos, UPruebasApoyoTransferido,
   UPruebasApoyoDepuracion;
 
 const
@@ -167,6 +169,7 @@ begin
   if FConn <> nil then
   try
     LimpiarDepuraciones(FConn, USUARIO);
+    FConn.ExecSQL('DELETE FROM prc_proceso WHERE CreadoPor = ''' + USUARIO + ''' AND Tipo = ''T''');
     LimpiarTransferidos(FConn, USUARIO);
     LimpiarSerieDepurable(FConn);
   finally
@@ -845,6 +848,36 @@ begin
   Assert.AreEqual(0, Integer(Escalar('SELECT COUNT(*) FROM prc_bloqueo WHERE IdProceso = ' + Id)));
   R4 := DepuracionListaParaEjecutar(3);
   Assert.IsFalse(CancelarProceso(FConn, R4.IdProceso, USUARIO, 'tarde'), 'en el paso 4 ya no se cancela');
+end;
+
+procedure TPruebasDepuracionDatosBD.LaTransferenciaNoProponeNiAgregaLosEliminados;
+var
+  Nodo: TClaveNodo;
+  Grupos: TArray<TGrupoPropuesto>;
+  G, Elegido: TGrupoPropuesto;
+  T: TProcesoRef;
+  Hay: Boolean;
+  N: Integer;
+  Motivo: string;
+begin
+  if not Conectar then Exit;
+  // serie con plazo en el archivo de gestion vencido (tgestion 5) y documentos en un archivo de gestion
+  Nodo := SembrarSerieDepurable(FConn, COD, 0, 3, ArchivoGestionApoyo(FConn));
+  FConn.ExecSQL('UPDATE cl_subseries SET tgestion = 5, tcentral = 0 WHERE codsubs = ''' + COD + '''');
+  SembrarDepuracion(FConn, DocumentoDeSerie(Nodo, COD, 3), 5, 'C', True, USUARIO);
+  Grupos := ProponerTransferencia(FConn, [Nodo], Date);
+  Hay := False;
+  for G in Grupos do
+    if G.CodSubs = COD then
+    begin
+      Hay := True;
+      Elegido := G;
+    end;
+  Assert.IsTrue(Hay, 'la serie aparece en la propuesta de transferencia');
+  Assert.AreEqual(2, Elegido.Unidades, 'el eliminado no se propone');
+  T := CrearTransferencia(FConn, Nodo, USUARIO, 1992, 0);
+  Assert.IsTrue(AgregarGrupo(FConn, T.IdProceso, Elegido, Date, N, Motivo), Motivo);
+  Assert.AreEqual(2, N, 'tampoco se agrega');
 end;
 
 initialization

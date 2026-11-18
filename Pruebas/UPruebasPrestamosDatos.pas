@@ -43,6 +43,8 @@ type
     [Test]
     procedure AgregarUnDocumentoTransferidoSeRechazaYDiceDonde;
     [Test]
+    procedure AgregarUnDocumentoEliminadoSeRechazaYDiceDonde;
+    [Test]
     procedure EntregaExigeDocumentos;
     [Test]
     procedure EntregaGuardaFechasYPasa;
@@ -76,7 +78,7 @@ uses
   FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys, FireDAC.Phys.MSSQL,
   FireDAC.DApt, FireDAC.ConsoleUI.Wait, FireDAC.Stan.Param, Data.DB, UAlcance,
   UProceso, UCandados, UEsquemaProcesos, UProcesosDatos, UPrestamosReglas,
-  UPrestamosDatos, UPruebasApoyoTransferido;
+  UPrestamosDatos, UPruebasApoyoTransferido, UPruebasApoyoDepuracion;
 
 const
   VAR_BD = 'ARCHIGENIO_TEST_DB';
@@ -178,6 +180,7 @@ begin
   try
     FConn.ExecSQL('DELETE FROM prc_proceso WHERE CreadoPor = ''' + USUARIO + '''');
     LimpiarTransferidos(FConn, USUARIO);
+    LimpiarDepuraciones(FConn, USUARIO);
   finally
     FreeAndNil(FConn);
   end;
@@ -233,6 +236,22 @@ begin
     IntToStr(R.IdProceso))));
   Assert.AreEqual('I', VarToStr(Escalar('SELECT TipoUsuario FROM prc_prestamo WHERE IdProceso = ' +
     IntToStr(R.IdProceso))));
+end;
+
+procedure TPruebasPrestamosDatosBD.AgregarUnDocumentoEliminadoSeRechazaYDiceDonde;
+var
+  R: TProcesoRef;
+  U: TUnidadDoc;
+  Motivo: string;
+begin
+  if not Conectar then Exit;
+  R := CrearSolicitud(FConn, NodoDePrueba(FConn), SolicitudPrueba('Ana'), USUARIO, 1990);
+  U := DocPrueba('ZZ.1', 174, 'S1', 'DX2');
+  SembrarDepuracion(FConn, U, 5, 'C', True, USUARIO);
+  Assert.IsFalse(AgregarDocumento(FConn, R.IdProceso, U, Motivo));
+  Assert.IsTrue(Pos('Eliminado', Motivo) = 1, 'el motivo dice que esta eliminado: ' + Motivo);
+  Assert.AreEqual(0, Integer(Escalar('SELECT COUNT(*) FROM prc_unidad WHERE IdProceso = ' +
+    IntToStr(R.IdProceso))), 'no se agrego');
 end;
 
 procedure TPruebasPrestamosDatosBD.AgregarUnDocumentoTransferidoSeRechazaYDiceDonde;

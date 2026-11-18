@@ -57,7 +57,7 @@ implementation
 
 uses
   System.Classes, Data.DB, FireDAC.Stan.Param, FireDAC.Stan.Error, UTrazabilidad,
-  UTrazabilidadDatos, UCandados, UTransferidos;
+  UTrazabilidadDatos, UCandados, UTransferidos, UEliminados;
 
 function HayCambios(const C: TCambiosDoc): Boolean;
 begin
@@ -301,26 +301,36 @@ begin
   Q.Free;
 end;
 
+function UnidadesDeClaves(const Claves: TArray<TClaveDocumento>): TArray<TUnidadDoc>;
+var
+  I: Integer;
+begin
+  SetLength(Result, Length(Claves));
+  for I := 0 to High(Claves) do
+  begin
+    Result[I].IdEstructura := Claves[I].IdEstructura;
+    Result[I].Id := Claves[I].Id;
+    Result[I].CodSubs := Claves[I].CodSubs;
+    Result[I].CodigoDoc := Claves[I].Codigodoc;
+    Result[I].Fecha := Claves[I].Fecha;
+    Result[I].Version := Claves[I].Version;
+  end;
+end;
+
 { Cuales de las claves ya pasaron a un archivo central (solo lectura en el origen):
   una consulta por subserie. Una base sin las tablas de procesos no tiene documentos
   transferidos; cualquier otro error de base se propaga. }
 function ClavesYaTransferidas(Conn: TFDConnection;
   const Claves: TArray<TClaveDocumento>): TArray<Boolean>;
-var
-  Docs: TArray<TUnidadDoc>;
-  I: Integer;
 begin
-  SetLength(Docs, Length(Claves));
-  for I := 0 to High(Claves) do
-  begin
-    Docs[I].IdEstructura := Claves[I].IdEstructura;
-    Docs[I].Id := Claves[I].Id;
-    Docs[I].CodSubs := Claves[I].CodSubs;
-    Docs[I].CodigoDoc := Claves[I].Codigodoc;
-    Docs[I].Fecha := Claves[I].Fecha;
-    Docs[I].Version := Claves[I].Version;
-  end;
-  Result := ClavesTransferidas(Conn, Docs);
+  Result := ClavesTransferidas(Conn, UnidadesDeClaves(Claves));
+end;
+
+{ Lo mismo para los documentos eliminados por una depuracion ejecutada. }
+function ClavesYaEliminadas(Conn: TFDConnection;
+  const Claves: TArray<TClaveDocumento>): TArray<Boolean>;
+begin
+  Result := ClavesEliminadas(Conn, UnidadesDeClaves(Claves));
 end;
 
 function ActualizarDocumentos(Conn: TFDConnection; Alcance: TAlcanceUsuario;
@@ -328,11 +338,11 @@ function ActualizarDocumentos(Conn: TFDConnection; Alcance: TAlcanceUsuario;
   const Cambios, Anteriores: TCambiosDoc): TResultadoEdicion;
 var
   Todos, Aplicar, Previos: TArray<TCampoEdicion>;
-  I, J, N, TopoOmitida, SinPermiso, Transferidos: Integer;
+  I, J, N, TopoOmitida, SinPermiso, Transferidos, Eliminados: Integer;
   Nodo: TClaveNodo;
   K: TClaveDocumento;
   PuedeTopo, Propia: Boolean;
-  YaTransferido: TArray<Boolean>;
+  YaTransferido, YaEliminado: TArray<Boolean>;
   Q: TFDQuery;
   Sets, Cambiados, PrimerError, Otro: string;
 begin
@@ -351,12 +361,20 @@ begin
   TopoOmitida := 0;
   SinPermiso := 0;
   Transferidos := 0;
+  Eliminados := 0;
   YaTransferido := ClavesYaTransferidas(Conn, Claves);
+  YaEliminado := ClavesYaEliminadas(Conn, Claves);
   for I := 0 to High(Claves) do
   begin
     K := Claves[I];
     Nodo.IdEstructura := K.IdEstructura;
     Nodo.Id := K.Id;
+    if YaEliminado[I] then
+    begin
+      Inc(Result.Omitidos);
+      Inc(Eliminados);
+      Continue;
+    end;
     if YaTransferido[I] then
     begin
       Inc(Result.Omitidos);
@@ -449,6 +467,9 @@ begin
     end;
   end;
   Result.Mensaje := PrimerError;
+  if Eliminados > 0 then
+    Result.Mensaje := Trim(Result.Mensaje + Format(' %d documento(s) omitido(s) por estar eliminado(s).',
+      [Eliminados]));
   if Transferidos > 0 then
     Result.Mensaje := Trim(Result.Mensaje + Format(' %d documento(s) omitido(s) por estar transferido(s) al archivo central.',
       [Transferidos]));
