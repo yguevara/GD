@@ -131,6 +131,8 @@ uses
   UEliminados in '..\UEliminados.pas',
   UPruebasApoyoDepuracion in 'UPruebasApoyoDepuracion.pas',
   UPruebasEliminados in 'UPruebasEliminados.pas',
+  UDepuracionDatos in '..\UDepuracionDatos.pas',
+  UPruebasDepuracionDatos in 'UPruebasDepuracionDatos.pas',
   UTransferenciasDatos in '..\UTransferenciasDatos.pas',
   UPruebasTransferenciasDatos in 'UPruebasTransferenciasDatos.pas',
   UOpcionNodo in '..\UOpcionNodo.pas',

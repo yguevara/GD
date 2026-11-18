@@ -1,0 +1,596 @@
+unit UDepuracionDatos;
+
+{ ---------------------------------------------------------------------------
+  Datos de la depuracion (eliminacion de documentos, F4), sobre la base comun de
+  procesos (UProcesosDatos, tablas prc_*). Sin VCL ni TUDM (RTL + FireDAC).
+
+  Pasos: 1 propuesta, 2 autorizacion, 3 acta, 4 ejecucion, 5 cierre. Los
+  documentos NO se borran: pasan a estar "eliminados" (UEliminados) cuando la
+  depuracion se ejecuta.
+
+  Propuesta: documentos que estan en un archivo Central o Historico, de
+  subseries con destino "Eliminarlo" (cl_destino 3) y plazo vencido en el
+  central (UDepuracionReglas.PlazoCentralVencido). Se retienen en prc_bloqueo
+  al agregarlos (un documento, un proceso).
+  Diseno: docs/superpowers/specs/2026-11-18-depuracion-f4-design.md.
+  --------------------------------------------------------------------------- }
+
+interface
+
+uses
+  System.SysUtils, FireDAC.Comp.Client, UAlcance, UProceso, UProcesosDatos;
+
+type
+  { Documentos de una subserie en un nodo, listos para proponer o ya agregados. }
+  TGrupoDepuracion = record
+    IdEstructura: string;
+    IdNodo: Integer;
+    CodSubs, Serie, Subserie: string;
+    AniosGestion, AniosCentral: Integer;
+    Unidades: Integer;            // disponibles para depurar
+    Retenidos: Integer;           // vencidos pero retenidos por otro proceso o prestamo
+    Desde, Hasta: TDateTime;      // fechas extremas
+  end;
+
+  TDepuracionFila = record
+    IdProceso, Anio, Consecutivo, Paso: Integer;
+    Numero, Series, Estado: string;
+    Unidades: Integer;
+    Desde, Hasta, FPrevista, FEjecucion: TDateTime;     // 0 = sin fecha
+    Proceso: TEstadoProceso;
+    Nodo: TClaveNodo;
+  end;
+
+  TAnioCantidad = record
+    Anio, Unidades: Integer;
+  end;
+
+{ Condicion de plazo vencido en el central (alias H, parametros :corteT y :corteF):
+  con cierre de transferencia finalizada, P.Cerrado <= :corteT; sin cierre, la fecha
+  base (FechaFin si existe y no es anterior a Fecha) <= :corteF. }
+function SqlCondicionVencidoCentral: string;
+
+{ Grupos de documentos depurables del nodo (una subserie cada uno). }
+function ProponerDepuracion(Conn: TFDConnection; const Nodo: TClaveNodo;
+  Hoy: TDateTime): TArray<TGrupoDepuracion>;
+
+{ Crea la depuracion (paso 1) y su fila de datos propios (prc_depuracion). }
+function CrearDepuracion(Conn: TFDConnection; const Nodo: TClaveNodo;
+  const Usuario: string; Anio: Integer): TProcesoRef;
+
+{ Agrega al proceso (en paso 1) los documentos vencidos y libres del grupo y los
+  retiene. False con Motivo si no se agrego ninguno o si otro usuario se los llevo
+  a la vez. }
+function AgregarGrupoDepuracion(Conn: TFDConnection; IdProceso: Integer;
+  const G: TGrupoDepuracion; Hoy: TDateTime; out Agregados: Integer;
+  out Motivo: string): Boolean;
+
+{ Quita del proceso (hasta el paso 3) los documentos de un nodo y subserie y los
+  libera. }
+procedure QuitarGrupoDepuracion(Conn: TFDConnection; IdProceso: Integer;
+  const IdEstructura: string; IdNodo: Integer; const CodSubs: string);
+
+{ Lo agregado a la depuracion por subserie (una consulta). }
+function GruposDeLaDepuracion(Conn: TFDConnection;
+  IdProceso: Integer): TArray<TGrupoDepuracion>;
+
+{ Unidades de la depuracion por ano de la fecha del documento, ascendente. }
+function DesglosePorAnio(Conn: TFDConnection; IdProceso: Integer): TArray<TAnioCantidad>;
+
+{ Depuraciones de los nodos en el ano, la mas reciente primero (Limite <= 0 usa
+  un tope por defecto). }
+function ListarDepuraciones(Conn: TFDConnection; const Nodos: TArray<TClaveNodo>;
+  Anio, Limite: Integer): TArray<TDepuracionFila>;
+
+implementation
+
+uses
+  System.Generics.Collections, System.Generics.Defaults, System.Variants, Data.DB,
+  FireDAC.Stan.Intf, FireDAC.Stan.Param, FireDAC.Stan.Error, UTransferenciasReglas,
+  UTransferenciasDatos, UDepuracionReglas, UEliminados;
+
+const
+  NODOS_POR_CONSULTA = 200;
+  LIMITE_POR_DEFECTO = 500;
+  DESTINO_ELIMINAR = 3;   // cl_destino.IdDestino de "Eliminarlo (E)"
+
+{ ----------------------------- apoyo de consultas ----------------------------- }
+
+function CondicionNodos(const ColEstructura, ColId: string; Desde, Hasta: Integer): string;
+var
+  I: Integer;
+begin
+  Result := '';
+  for I := Desde to Hasta do
+  begin
+    if Result <> '' then
+      Result := Result + ' OR ';
+    Result := Result + '(' + ColEstructura + ' = :qe' + IntToStr(I - Desde) + ' AND ' +
+      ColId + ' = :qi' + IntToStr(I - Desde) + ')';
+  end;
+end;
+
+procedure PonerNodos(Q: TFDQuery; const Nodos: TArray<TClaveNodo>; Desde, Hasta: Integer);
+var
+  I: Integer;
+begin
+  for I := Desde to Hasta do
+  begin
+    Q.ParamByName('qe' + IntToStr(I - Desde)).AsString := Nodos[I].IdEstructura;
+    Q.ParamByName('qi' + IntToStr(I - Desde)).AsInteger := Nodos[I].Id;
+  end;
+end;
+
+function FechaODefecto(Campo: TField): TDateTime;
+begin
+  if Campo.IsNull then
+    Result := 0
+  else
+    Result := Campo.AsDateTime;
+end;
+
+{ Codigos de los archivos (cl_ArchivosGestion) de tipo Central o Historico. }
+function CodigosArchivoCentral(Conn: TFDConnection): TArray<Integer>;
+var
+  Q: TFDQuery;
+  L: TList<Integer>;
+  Tipo: TTipoArchivo;
+begin
+  L := TList<Integer>.Create;
+  Q := TFDQuery.Create(nil);
+  try
+    Q.Connection := Conn;
+    Q.Open('SELECT A.Cod AS Cod, T.tipoarch AS Tipo FROM cl_ArchivosGestion A ' +
+      'INNER JOIN cl_tipoarch T ON T.Idtipoarch = A.Tipo');
+    while not Q.Eof do
+    begin
+      Tipo := TipoArchivoDesdeTexto(Q.FieldByName('Tipo').AsString);
+      if Tipo in [taCentral, taHistorico] then
+        L.Add(Q.FieldByName('Cod').AsInteger);
+      Q.Next;
+    end;
+    Result := L.ToArray;
+  finally
+    Q.Free;
+    L.Free;
+  end;
+end;
+
+{ Documento retenido por otro proceso (prc_bloqueo) o por un prestamo viejo abierto
+  (alias H). }
+function SqlRetenido: string;
+begin
+  Result := '(EXISTS (SELECT 1 FROM prc_bloqueo B WHERE B.IdEstructura = H.IdEstructura ' +
+    'AND B.id = H.id AND B.codsubs = H.codsubs AND B.Codigodoc = H.Codigodoc AND ' +
+    'B.fecha = H.fecha AND B.version = H.version) OR EXISTS (SELECT 1 FROM ' +
+    'TB_PrestamosDocumentos D INNER JOIN TB_Prestamos Pr ON Pr.IdEstructura = ' +
+    'D.IdEstructura AND Pr.id = D.id AND Pr.IdPrestamo = D.IdPrestamo WHERE ' +
+    'Pr.FDevolucion IS NULL AND Pr.FCancelacion IS NULL AND D.IdEstructura = ' +
+    'H.IdEstructura AND D.id = H.id AND D.codsubs = H.codsubs AND D.Codigodoc = ' +
+    'H.Codigodoc AND D.fecha = H.fecha AND D.version = H.version))';
+end;
+
+function SqlCondicionVencidoCentral: string;
+const
+  CLAVE = 'X.IdEstructura = H.IdEstructura AND X.id = H.id AND X.codsubs = H.codsubs ' +
+    'AND X.Codigodoc = H.Codigodoc AND X.fecha = H.fecha AND X.version = H.version';
+  CIERRES = 'SELECT 1 FROM prc_unidad X INNER JOIN prc_proceso P ON P.IdProceso = ' +
+    'X.IdProceso WHERE P.Tipo = ''T'' AND P.Estado = ''F'' AND P.Cerrado IS NOT NULL ' +
+    'AND X.Activa <> 0 AND ' + CLAVE;
+begin
+  Result := '(EXISTS (' + CIERRES + ' AND P.Cerrado <= :corteT) OR (NOT EXISTS (' +
+    CIERRES + ') AND ((H.FechaFin IS NOT NULL AND H.FechaFin >= H.Fecha AND ' +
+    'H.FechaFin <= :corteF) OR ((H.FechaFin IS NULL OR H.FechaFin < H.Fecha) AND ' +
+    'H.Fecha <= :corteF))))';
+end;
+
+procedure PonerCortes(Q: TFDQuery; Hoy: TDateTime; AniosGestion, AniosCentral: Integer);
+begin
+  if AniosGestion < 0 then
+    AniosGestion := 0;
+  Q.ParamByName('corteT').AsDateTime := FechaCorte(Hoy, AniosCentral);
+  Q.ParamByName('corteF').AsDateTime := FechaCorte(Hoy, AniosGestion + AniosCentral);
+end;
+
+{ -------------------------------- propuesta -------------------------------- }
+
+function ProponerDepuracion(Conn: TFDConnection; const Nodo: TClaveNodo;
+  Hoy: TDateTime): TArray<TGrupoDepuracion>;
+var
+  Lista, Subs: TList<TGrupoDepuracion>;
+  Centrales: TArray<Integer>;
+  G: TGrupoDepuracion;
+  Q: TFDQuery;
+  I, Total, Ret: Integer;
+
+  { Cuenta (y fechas extremas) los documentos vencidos del grupo; SoloRetenidos
+    cuenta solo los que ya retiene otro proceso o un prestamo. }
+  procedure Contar(var Gr: TGrupoDepuracion; SoloRetenidos: Boolean; out N: Integer);
+  var
+    Sql: string;
+  begin
+    Sql := 'SELECT COUNT(*) AS N, MIN(H.Fecha) AS Desde, MAX(H.Fecha) AS Hasta ' +
+      'FROM tb_SeriesDatos H WHERE H.IdEstructura = :e AND H.id = :i AND H.codsubs = :s ' +
+      'AND ' + SqlArchivosGestion(Centrales) + ' AND ' + SqlCondicionVencidoCentral +
+      ' AND ' + SqlNoEliminado;
+    if SoloRetenidos then
+      Sql := Sql + ' AND ' + SqlRetenido;
+    Q := TFDQuery.Create(nil);
+    try
+      Q.Connection := Conn;
+      Q.SQL.Text := Sql;
+      Q.ParamByName('e').AsString := Gr.IdEstructura;
+      Q.ParamByName('i').AsInteger := Gr.IdNodo;
+      Q.ParamByName('s').AsString := Gr.CodSubs;
+      PonerCortes(Q, Hoy, Gr.AniosGestion, Gr.AniosCentral);
+      Q.Open;
+      N := Q.FieldByName('N').AsInteger;
+      if not SoloRetenidos then
+      begin
+        Gr.Desde := FechaODefecto(Q.FieldByName('Desde'));
+        Gr.Hasta := FechaODefecto(Q.FieldByName('Hasta'));
+      end;
+    finally
+      Q.Free;
+    end;
+  end;
+
+begin
+  Result := nil;
+  Centrales := CodigosArchivoCentral(Conn);
+  if Length(Centrales) = 0 then
+    Exit;
+  Lista := TList<TGrupoDepuracion>.Create;
+  Subs := TList<TGrupoDepuracion>.Create;
+  try
+    // 1) subseries del nodo con destino "Eliminarlo" y plazo en el central definido
+    Q := TFDQuery.Create(nil);
+    try
+      Q.Connection := Conn;
+      Q.SQL.Text := 'SELECT S.IdEstructura, S.id, S.codsubs, C.subserie, C.tgestion, ' +
+        'C.tcentral, R.serie FROM (tb_Serietree S INNER JOIN cl_subseries C ON ' +
+        'C.codsubs = S.codsubs) INNER JOIN cl_series R ON R.codserie = C.codserie ' +
+        'WHERE S.IdEstructura = :e AND S.id = :i AND C.destino = ' +
+        IntToStr(DESTINO_ELIMINAR) + ' AND C.tcentral > 0 ORDER BY R.serie, C.subserie';
+      Q.ParamByName('e').AsString := Nodo.IdEstructura;
+      Q.ParamByName('i').AsInteger := Nodo.Id;
+      Q.Open;
+      while not Q.Eof do
+      begin
+        G.IdEstructura := Q.FieldByName('IdEstructura').AsString;
+        G.IdNodo := Q.FieldByName('id').AsInteger;
+        G.CodSubs := Q.FieldByName('codsubs').AsString;
+        G.Subserie := Q.FieldByName('subserie').AsString;
+        G.Serie := Q.FieldByName('serie').AsString;
+        G.AniosGestion := Q.FieldByName('tgestion').AsInteger;
+        G.AniosCentral := Q.FieldByName('tcentral').AsInteger;
+        G.Unidades := 0;
+        G.Retenidos := 0;
+        G.Desde := 0;
+        G.Hasta := 0;
+        Subs.Add(G);
+        Q.Next;
+      end;
+    finally
+      Q.Free;
+    end;
+    // 2) por cada una, cuantos documentos vencieron y cuantos estan retenidos
+    for I := 0 to Subs.Count - 1 do
+    begin
+      G := Subs[I];
+      Contar(G, False, Total);
+      if Total = 0 then
+        Continue;
+      Contar(G, True, Ret);
+      G.Retenidos := Ret;
+      G.Unidades := Total - Ret;
+      Lista.Add(G);
+    end;
+    Result := Lista.ToArray;
+  finally
+    Subs.Free;
+    Lista.Free;
+  end;
+end;
+
+{ ------------------------------- escritura ------------------------------- }
+
+function CrearDepuracion(Conn: TFDConnection; const Nodo: TClaveNodo;
+  const Usuario: string; Anio: Integer): TProcesoRef;
+var
+  Intento: Integer;
+  Propia: Boolean;
+begin
+  Result.IdProceso := 0;
+  Result.Numero := '';
+  for Intento := 1 to 3 do
+  begin
+    Propia := IniciarTx(Conn);
+    try
+      Result := CrearProceso(Conn, tpDepuracion, Nodo, Usuario, Anio);
+      Conn.ExecSQL('INSERT INTO prc_depuracion (IdProceso) VALUES (:i)',
+        [Result.IdProceso], [ftInteger]);
+      ConfirmarTx(Conn, Propia);
+      Exit;
+    except
+      on E: EFDDBEngineException do
+      begin
+        DeshacerTx(Conn, Propia);
+        if (Intento >= 3) or (not Propia) or (E.Kind <> ekUKViolated) then
+          raise;
+      end;
+      on Exception do
+      begin
+        DeshacerTx(Conn, Propia);
+        raise;
+      end;
+    end;
+  end;
+end;
+
+function AgregarGrupoDepuracion(Conn: TFDConnection; IdProceso: Integer;
+  const G: TGrupoDepuracion; Hoy: TDateTime; out Agregados: Integer;
+  out Motivo: string): Boolean;
+var
+  Tipo: TTipoProceso;
+  Paso: Integer;
+  Estado: string;
+  Centrales: TArray<Integer>;
+  Propia: Boolean;
+  Filtro, Clave, P: string;
+  Q: TFDQuery;
+begin
+  Agregados := 0;
+  Motivo := '';
+  Result := False;
+  if not LeerProceso(Conn, IdProceso, Tipo, Paso, Estado) or (Tipo <> tpDepuracion) then
+    raise EArgumentException.Create('La depuracion no existe: ' + IntToStr(IdProceso));
+  if (Estado <> 'C') or (Paso <> 1) then
+  begin
+    Motivo := 'Solo se pueden agregar documentos en el paso de propuesta';
+    Exit;
+  end;
+  if G.AniosCentral <= 0 then
+  begin
+    Motivo := 'La subserie no tiene plazo definido en el archivo central';
+    Exit;
+  end;
+  Centrales := CodigosArchivoCentral(Conn);
+  P := IntToStr(IdProceso);
+  Filtro := 'H.IdEstructura = :e AND H.id = :i AND H.codsubs = :s AND ' +
+    SqlArchivosGestion(Centrales) + ' AND ' + SqlCondicionVencidoCentral + ' AND ' +
+    SqlNoEliminado + ' AND NOT ' + SqlRetenido;
+  Clave := 'B.IdProceso = ' + P + ' AND B.IdEstructura = :e AND B.id = :i AND B.codsubs = :s';
+  Propia := IniciarTx(Conn);
+  try
+    try
+      Q := TFDQuery.Create(nil);
+      try
+        Q.Connection := Conn;
+        Q.SQL.Text := 'INSERT INTO prc_bloqueo (IdEstructura, id, codsubs, Codigodoc, ' +
+          'fecha, version, IdProceso) SELECT H.IdEstructura, H.id, H.codsubs, ' +
+          'H.Codigodoc, H.fecha, H.version, ' + P + ' FROM tb_SeriesDatos H WHERE ' + Filtro;
+        Q.ParamByName('e').AsString := G.IdEstructura;
+        Q.ParamByName('i').AsInteger := G.IdNodo;
+        Q.ParamByName('s').AsString := G.CodSubs;
+        PonerCortes(Q, Hoy, G.AniosGestion, G.AniosCentral);
+        Q.ExecSQL;
+        Agregados := Q.RowsAffected;
+      finally
+        Q.Free;
+      end;
+      if Agregados > 0 then
+      begin
+        Conn.ExecSQL('INSERT INTO prc_unidad (IdProceso, IdEstructura, id, codsubs, ' +
+          'Codigodoc, fecha, version) SELECT B.IdProceso, B.IdEstructura, B.id, B.codsubs, ' +
+          'B.Codigodoc, B.fecha, B.version FROM prc_bloqueo B WHERE ' + Clave +
+          ' AND NOT EXISTS (SELECT 1 FROM prc_unidad U WHERE U.IdProceso = B.IdProceso ' +
+          'AND U.IdEstructura = B.IdEstructura AND U.id = B.id AND U.codsubs = B.codsubs ' +
+          'AND U.Codigodoc = B.Codigodoc AND U.fecha = B.fecha AND U.version = B.version)',
+          [G.IdEstructura, G.IdNodo, G.CodSubs]);
+        // Access no tiene valor por defecto en el bit: se marca activa explicitamente
+        Conn.ExecSQL('UPDATE prc_unidad SET Activa = :a WHERE IdProceso = ' + P +
+          ' AND Activa IS NULL', [True], [ftBoolean]);
+      end;
+      ConfirmarTx(Conn, Propia);
+      Result := Agregados > 0;
+      if not Result then
+        Motivo := 'No hay documentos disponibles en este grupo (ya est' + #225 +
+          'n retenidos, prestados o eliminados)';
+    except
+      on E: EFDDBEngineException do
+      begin
+        DeshacerTx(Conn, Propia);
+        Agregados := 0;
+        if E.Kind <> ekUKViolated then
+          raise;
+        Motivo := 'Otro usuario tom' + #243 + ' algunos de estos documentos a la vez; ' +
+          'vuelva a proponer';
+      end;
+      on Exception do
+      begin
+        DeshacerTx(Conn, Propia);
+        raise;
+      end;
+    end;
+  except
+    raise;
+  end;
+end;
+
+procedure QuitarGrupoDepuracion(Conn: TFDConnection; IdProceso: Integer;
+  const IdEstructura: string; IdNodo: Integer; const CodSubs: string);
+var
+  Tipo: TTipoProceso;
+  Paso: Integer;
+  Estado: string;
+  Propia: Boolean;
+begin
+  if not LeerProceso(Conn, IdProceso, Tipo, Paso, Estado) or (Tipo <> tpDepuracion) or
+    (Estado <> 'C') or (Paso > 3) then
+    Exit;
+  Propia := IniciarTx(Conn);
+  try
+    Conn.ExecSQL('DELETE FROM prc_bloqueo WHERE IdProceso = :p AND IdEstructura = :e ' +
+      'AND id = :i AND codsubs = :s', [IdProceso, IdEstructura, IdNodo, CodSubs]);
+    Conn.ExecSQL('DELETE FROM prc_unidad WHERE IdProceso = :p AND IdEstructura = :e ' +
+      'AND id = :i AND codsubs = :s', [IdProceso, IdEstructura, IdNodo, CodSubs]);
+    ConfirmarTx(Conn, Propia);
+  except
+    DeshacerTx(Conn, Propia);
+    raise;
+  end;
+end;
+
+{ -------------------------------- listados -------------------------------- }
+
+function GruposDeLaDepuracion(Conn: TFDConnection;
+  IdProceso: Integer): TArray<TGrupoDepuracion>;
+var
+  Q: TFDQuery;
+  L: TList<TGrupoDepuracion>;
+  G: TGrupoDepuracion;
+begin
+  L := TList<TGrupoDepuracion>.Create;
+  Q := TFDQuery.Create(nil);
+  try
+    Q.Connection := Conn;
+    Q.SQL.Text := 'SELECT u.IdEstructura AS Ie, u.id AS Id, u.codsubs AS Cs, ' +
+      'C.subserie AS Sub, R.serie AS Ser, C.tgestion AS Tg, C.tcentral AS Tc, ' +
+      'COUNT(*) AS N, MIN(u.fecha) AS Desde, MAX(u.fecha) AS Hasta ' +
+      'FROM (prc_unidad u LEFT JOIN cl_subseries C ON C.codsubs = u.codsubs) ' +
+      'LEFT JOIN cl_series R ON R.codserie = C.codserie ' +
+      'WHERE u.IdProceso = :p AND u.Activa <> 0 GROUP BY u.IdEstructura, u.id, ' +
+      'u.codsubs, C.subserie, R.serie, C.tgestion, C.tcentral ORDER BY R.serie, C.subserie';
+    Q.ParamByName('p').AsInteger := IdProceso;
+    Q.Open;
+    while not Q.Eof do
+    begin
+      G.IdEstructura := Q.FieldByName('Ie').AsString;
+      G.IdNodo := Q.FieldByName('Id').AsInteger;
+      G.CodSubs := Q.FieldByName('Cs').AsString;
+      G.Subserie := Q.FieldByName('Sub').AsString;
+      G.Serie := Q.FieldByName('Ser').AsString;
+      G.AniosGestion := Q.FieldByName('Tg').AsInteger;
+      G.AniosCentral := Q.FieldByName('Tc').AsInteger;
+      G.Unidades := Q.FieldByName('N').AsInteger;
+      G.Retenidos := 0;
+      G.Desde := FechaODefecto(Q.FieldByName('Desde'));
+      G.Hasta := FechaODefecto(Q.FieldByName('Hasta'));
+      L.Add(G);
+      Q.Next;
+    end;
+    Result := L.ToArray;
+  finally
+    Q.Free;
+    L.Free;
+  end;
+end;
+
+function DesglosePorAnio(Conn: TFDConnection; IdProceso: Integer): TArray<TAnioCantidad>;
+var
+  Q: TFDQuery;
+  L: TList<TAnioCantidad>;
+  A: TAnioCantidad;
+begin
+  L := TList<TAnioCantidad>.Create;
+  Q := TFDQuery.Create(nil);
+  try
+    Q.Connection := Conn;
+    Q.SQL.Text := 'SELECT YEAR(u.fecha) AS Anio, COUNT(*) AS N FROM prc_unidad u ' +
+      'WHERE u.IdProceso = :p AND u.Activa <> 0 GROUP BY YEAR(u.fecha) ' +
+      'ORDER BY YEAR(u.fecha)';
+    Q.ParamByName('p').AsInteger := IdProceso;
+    Q.Open;
+    while not Q.Eof do
+    begin
+      A.Anio := Q.FieldByName('Anio').AsInteger;
+      A.Unidades := Q.FieldByName('N').AsInteger;
+      L.Add(A);
+      Q.Next;
+    end;
+    Result := L.ToArray;
+  finally
+    Q.Free;
+    L.Free;
+  end;
+end;
+
+function ListarDepuraciones(Conn: TFDConnection; const Nodos: TArray<TClaveNodo>;
+  Anio, Limite: Integer): TArray<TDepuracionFila>;
+var
+  Lista: TList<TDepuracionFila>;
+  Desde, Hasta, Tope: Integer;
+  Q: TFDQuery;
+  F: TDepuracionFila;
+begin
+  if Limite <= 0 then
+    Tope := LIMITE_POR_DEFECTO
+  else
+    Tope := Limite;
+  Lista := TList<TDepuracionFila>.Create;
+  try
+    Desde := 0;
+    while Desde < Length(Nodos) do
+    begin
+      Hasta := Desde + NODOS_POR_CONSULTA - 1;
+      if Hasta > High(Nodos) then
+        Hasta := High(Nodos);
+      Q := TFDQuery.Create(nil);
+      try
+        Q.Connection := Conn;
+        Q.SQL.Text := 'SELECT TOP ' + IntToStr(Tope) + ' p.IdProceso, p.Anio, ' +
+          'p.IdEstructura, p.IdNodo, p.Consecutivo, p.Numero, p.Estado, p.Paso, ' +
+          'd.FPrevista, d.FEjecucion, ' +
+          '(SELECT COUNT(*) FROM prc_unidad u WHERE u.IdProceso = p.IdProceso AND u.Activa <> 0) AS Unidades, ' +
+          '(SELECT MIN(u.fecha) FROM prc_unidad u WHERE u.IdProceso = p.IdProceso AND u.Activa <> 0) AS Desde, ' +
+          '(SELECT MAX(u.fecha) FROM prc_unidad u WHERE u.IdProceso = p.IdProceso AND u.Activa <> 0) AS Hasta, ' +
+          '(SELECT MIN(R.serie) FROM (prc_unidad u2 INNER JOIN cl_subseries C ON ' +
+          'C.codsubs = u2.codsubs) INNER JOIN cl_series R ON R.codserie = C.codserie ' +
+          'WHERE u2.IdProceso = p.IdProceso AND u2.Activa <> 0) AS Series ' +
+          'FROM (prc_proceso p INNER JOIN prc_depuracion d ON d.IdProceso = p.IdProceso) ' +
+          'WHERE p.Tipo = ''D'' AND p.Anio = :a AND (' +
+          CondicionNodos('p.IdEstructura', 'p.IdNodo', Desde, Hasta) + ') ' +
+          'ORDER BY p.Consecutivo DESC';
+        Q.ParamByName('a').AsInteger := Anio;
+        PonerNodos(Q, Nodos, Desde, Hasta);
+        Q.Open;
+        while not Q.Eof do
+        begin
+          F.IdProceso := Q.FieldByName('IdProceso').AsInteger;
+          F.Anio := Q.FieldByName('Anio').AsInteger;
+          F.Consecutivo := Q.FieldByName('Consecutivo').AsInteger;
+          F.Numero := Trim(Q.FieldByName('Numero').AsString);
+          F.Series := Q.FieldByName('Series').AsString;
+          F.Nodo.IdEstructura := Q.FieldByName('IdEstructura').AsString;
+          F.Nodo.Id := Q.FieldByName('IdNodo').AsInteger;
+          F.Paso := Q.FieldByName('Paso').AsInteger;
+          F.Proceso := EstadoDesdeCodigo(Q.FieldByName('Estado').AsString);
+          F.Estado := TextoEstadoDepuracion(F.Paso, F.Proceso);
+          F.Unidades := Q.FieldByName('Unidades').AsInteger;
+          F.Desde := FechaODefecto(Q.FieldByName('Desde'));
+          F.Hasta := FechaODefecto(Q.FieldByName('Hasta'));
+          F.FPrevista := FechaODefecto(Q.FieldByName('FPrevista'));
+          F.FEjecucion := FechaODefecto(Q.FieldByName('FEjecucion'));
+          Lista.Add(F);
+          Q.Next;
+        end;
+      finally
+        Q.Free;
+      end;
+      Desde := Hasta + 1;
+    end;
+    Lista.Sort(TComparer<TDepuracionFila>.Construct(
+      function(const A, B: TDepuracionFila): Integer
+      begin
+        Result := B.Consecutivo - A.Consecutivo;
+      end));
+    if Lista.Count > Tope then
+      Lista.Count := Tope;
+    Result := Lista.ToArray;
+  finally
+    Lista.Free;
+  end;
+end;
+
+end.

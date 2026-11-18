@@ -15,8 +15,8 @@ const
 
 { Crea el archivo central de prueba (llamado como Usuario), una transferencia
   finalizada T-1991-n con destino ese archivo y la unidad activa del documento. }
-procedure SembrarTransferido(Conn: TFDConnection; const U: TUnidadDoc;
-  const Usuario: string);
+function SembrarTransferido(Conn: TFDConnection; const U: TUnidadDoc;
+  const Usuario: string): Integer;
 
 procedure LimpiarTransferidos(Conn: TFDConnection; const Usuario: string);
 
@@ -39,8 +39,8 @@ begin
   Result.Version := '1';
 end;
 
-procedure SembrarTransferido(Conn: TFDConnection; const U: TUnidadDoc;
-  const Usuario: string);
+function SembrarTransferido(Conn: TFDConnection; const U: TUnidadDoc;
+  const Usuario: string): Integer;
 var
   Cons, IdProceso: Integer;
 begin
@@ -63,6 +63,7 @@ begin
     'fecha, version, Activa) VALUES (:p, :e, :i, :s, :c, :f, :v, 1)',
     [IdProceso, U.IdEstructura, U.Id, U.CodSubs, U.CodigoDoc, U.Fecha, U.Version],
     [ftInteger, ftString, ftInteger, ftString, ftString, ftDateTime, ftString]);
+  Result := IdProceso;
 end;
 
 procedure LimpiarTransferidos(Conn: TFDConnection; const Usuario: string);
