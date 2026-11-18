@@ -18,7 +18,8 @@ unit UDepuracionDatos;
 interface
 
 uses
-  System.SysUtils, FireDAC.Comp.Client, UAlcance, UProceso, UProcesosDatos;
+  System.SysUtils, FireDAC.Comp.Client, UAlcance, UProceso, UProcesosDatos,
+  UDepuracionReglas;
 
 type
   { Documentos de una subserie en un nodo, listos para proponer o ya agregados. }
@@ -43,6 +44,21 @@ type
 
   TAnioCantidad = record
     Anio, Unidades: Integer;
+  end;
+
+  { Datos del acta de eliminacion (Anexo 19) que se escriben en el paso 3. }
+  TActaDepuracion = record
+    Lugar: string;
+    Via: TViaEliminacion;
+    FPrevista: TDateTime;
+    MuestraDesc, MuestraDonde: string;
+  end;
+
+  TTestigoFila = record
+    IdTestigo: Integer;
+    Nombre, Cargo: string;
+    Origen: TOrigenTestigo;
+    Firmo: Boolean;
   end;
 
 { Condicion de plazo vencido en el central (alias H, parametros :corteT y :corteF):
@@ -82,12 +98,50 @@ function DesglosePorAnio(Conn: TFDConnection; IdProceso: Integer): TArray<TAnioC
 function ListarDepuraciones(Conn: TFDConnection; const Nodos: TArray<TClaveNodo>;
   Anio, Limite: Integer): TArray<TDepuracionFila>;
 
+{ Guarda el acta (lugar, via, fecha prevista y muestra). Lanza EArgumentException si
+  los datos no son validos (ValidarActaDepuracion, ValidarMuestra) o si la depuracion
+  no esta en curso en los pasos 1 a 3. }
+procedure GuardarActaDepuracion(Conn: TFDConnection; IdProceso: Integer;
+  const A: TActaDepuracion);
+
+{ False si la depuracion no tiene fila de acta. Un acta sin guardar vuelve con los
+  textos vacios y la fecha en 0. }
+function LeerActaDepuracion(Conn: TFDConnection; IdProceso: Integer;
+  out A: TActaDepuracion): Boolean;
+
+{ Agrega un testigo y devuelve su id. Lanza EArgumentException si no es valido
+  (ValidarTestigo) o si la depuracion ya no esta en curso antes de la ejecucion
+  (pasos 1 a 4). }
+function AgregarTestigo(Conn: TFDConnection; IdProceso: Integer;
+  const T: TTestigoDatos): Integer;
+{ Estos dos no hacen nada si la depuracion ya no esta en curso (pasos 1 a 4). }
+procedure QuitarTestigo(Conn: TFDConnection; IdProceso, IdTestigo: Integer);
+procedure MarcarFirma(Conn: TFDConnection; IdProceso, IdTestigo: Integer; Firmo: Boolean);
+function TestigosDeLaDepuracion(Conn: TFDConnection;
+  IdProceso: Integer): TArray<TTestigoFila>;
+
+{ Condiciones que se cumplen hoy; Faltan trae las frases de lo que impide avanzar
+  desde el paso actual (UDepuracionReglas.TextosQueFaltanDepuracion).
+  cdSinBloqueos: hay unidades y todas siguen retenidas por esta depuracion;
+  cdAutorizado: hay acta y acuerdo de la Comision; cdMuestraDefinida: descripcion y
+  donde queda; cdTestigosMinimos: TestigosSuficientes; cdActaCompleta: lugar, via y
+  fecha prevista. cdConfirmacionEscrita no se evalua aqui (lo hace la ejecucion). }
+function CondicionesCumplidasDepuracion(Conn: TFDConnection; IdProceso: Integer;
+  out Faltan: TArray<string>): TCondiciones;
+
+{ Avanza de los pasos 1 a 3 si se cumplen sus condiciones; si no, False y Faltan dice
+  que falta. PasoLeido es el paso que el usuario vio; con otro paso (o un proceso
+  que ya no esta en ese paso) devuelve False sin cambiar nada. Los pasos 4 y 5 no
+  se avanzan con esta funcion. }
+function AvanzarDepuracion(Conn: TFDConnection; IdProceso, PasoLeido: Integer;
+  const Usuario: string; out Faltan: TArray<string>): Boolean;
+
 implementation
 
 uses
   System.Generics.Collections, System.Generics.Defaults, System.Variants, Data.DB,
   FireDAC.Stan.Intf, FireDAC.Stan.Param, FireDAC.Stan.Error, UTransferenciasReglas,
-  UTransferenciasDatos, UDepuracionReglas, UEliminados;
+  UTransferenciasDatos, UAutorizacion, UEliminados;
 
 const
   NODOS_POR_CONSULTA = 200;
@@ -591,6 +645,239 @@ begin
   finally
     Lista.Free;
   end;
+end;
+
+{ ---------------------- acta, testigos y condiciones ---------------------- }
+
+{ Exige una depuracion en curso hasta el paso PasoMax. }
+procedure ExigirEnCurso(Conn: TFDConnection; IdProceso, PasoMax: Integer;
+  const Mensaje: string);
+var
+  Tipo: TTipoProceso;
+  Paso: Integer;
+  Estado: string;
+begin
+  if not LeerProceso(Conn, IdProceso, Tipo, Paso, Estado) or (Tipo <> tpDepuracion) or
+    (Estado <> 'C') or (Paso > PasoMax) then
+    raise EArgumentException.Create(Mensaje);
+end;
+
+function EnCursoHasta(Conn: TFDConnection; IdProceso, PasoMax: Integer): Boolean;
+var
+  Tipo: TTipoProceso;
+  Paso: Integer;
+  Estado: string;
+begin
+  Result := LeerProceso(Conn, IdProceso, Tipo, Paso, Estado) and (Tipo = tpDepuracion) and
+    (Estado = 'C') and (Paso <= PasoMax);
+end;
+
+procedure GuardarActaDepuracion(Conn: TFDConnection; IdProceso: Integer;
+  const A: TActaDepuracion);
+var
+  Errores: TArray<string>;
+begin
+  Errores := ValidarActaDepuracion(A.Lugar, A.FPrevista);
+  if Length(Errores) = 0 then
+    Errores := ValidarMuestra(A.MuestraDesc, A.MuestraDonde);
+  if Length(Errores) > 0 then
+    raise EArgumentException.Create(Errores[0]);
+  ExigirEnCurso(Conn, IdProceso, 3, 'El acta solo se puede cambiar antes de la ' +
+    'ejecuci' + #243 + 'n (pasos 1 a 3).');
+  Conn.ExecSQL('UPDATE prc_depuracion SET Lugar = :l, Via = :v, FPrevista = :f, ' +
+    'MuestraDesc = :d, MuestraDonde = :m WHERE IdProceso = :p',
+    [Trim(A.Lugar), CodigoVia(A.Via), Trunc(A.FPrevista), Trim(A.MuestraDesc),
+    Trim(A.MuestraDonde), IdProceso],
+    [ftString, ftString, ftDateTime, ftString, ftString, ftInteger]);
+end;
+
+function LeerActaDepuracion(Conn: TFDConnection; IdProceso: Integer;
+  out A: TActaDepuracion): Boolean;
+var
+  Q: TFDQuery;
+begin
+  A.Lugar := '';
+  A.Via := veIncineracion;
+  A.FPrevista := 0;
+  A.MuestraDesc := '';
+  A.MuestraDonde := '';
+  Q := TFDQuery.Create(nil);
+  try
+    Q.Connection := Conn;
+    Q.SQL.Text := 'SELECT Lugar, Via, FPrevista, MuestraDesc, MuestraDonde FROM ' +
+      'prc_depuracion WHERE IdProceso = :p';
+    Q.ParamByName('p').AsInteger := IdProceso;
+    Q.Open;
+    Result := not Q.IsEmpty;
+    if not Result then
+      Exit;
+    A.Lugar := Q.FieldByName('Lugar').AsString;
+    if not Q.FieldByName('Via').IsNull then
+      A.Via := ViaDesdeCodigo(Q.FieldByName('Via').AsString);
+    A.FPrevista := FechaODefecto(Q.FieldByName('FPrevista'));
+    A.MuestraDesc := Q.FieldByName('MuestraDesc').AsString;
+    A.MuestraDonde := Q.FieldByName('MuestraDonde').AsString;
+  finally
+    Q.Free;
+  end;
+end;
+
+function AgregarTestigo(Conn: TFDConnection; IdProceso: Integer;
+  const T: TTestigoDatos): Integer;
+var
+  Errores: TArray<string>;
+  Propia: Boolean;
+begin
+  Errores := ValidarTestigo(T);
+  if Length(Errores) > 0 then
+    raise EArgumentException.Create(Errores[0]);
+  ExigirEnCurso(Conn, IdProceso, 4, 'Ya no se pueden agregar testigos: la depuraci' + #243 +
+    'n no est' + #225 + ' en curso antes de la ejecuci' + #243 + 'n.');
+  Propia := IniciarTx(Conn);
+  try
+    Conn.ExecSQL('INSERT INTO prc_testigo (IdProceso, Nombre, Cargo, Origen, Firmo) ' +
+      'VALUES (:p, :n, :c, :o, :f)', [IdProceso, Copy(Trim(T.Nombre), 1, 100),
+      Copy(Trim(T.Cargo), 1, 100), CodigoOrigenTestigo(T.Origen), False],
+      [ftInteger, ftString, ftString, ftString, ftBoolean]);
+    Result := Integer(Conn.ExecSQLScalar('SELECT MAX(IdTestigo) FROM prc_testigo WHERE ' +
+      'IdProceso = :p', [IdProceso]));
+    ConfirmarTx(Conn, Propia);
+  except
+    DeshacerTx(Conn, Propia);
+    raise;
+  end;
+end;
+
+procedure QuitarTestigo(Conn: TFDConnection; IdProceso, IdTestigo: Integer);
+begin
+  if not EnCursoHasta(Conn, IdProceso, 4) then
+    Exit;
+  Conn.ExecSQL('DELETE FROM prc_testigo WHERE IdProceso = :p AND IdTestigo = :t',
+    [IdProceso, IdTestigo], [ftInteger, ftInteger]);
+end;
+
+procedure MarcarFirma(Conn: TFDConnection; IdProceso, IdTestigo: Integer; Firmo: Boolean);
+begin
+  if not EnCursoHasta(Conn, IdProceso, 4) then
+    Exit;
+  Conn.ExecSQL('UPDATE prc_testigo SET Firmo = :f WHERE IdProceso = :p AND IdTestigo = :t',
+    [Firmo, IdProceso, IdTestigo], [ftBoolean, ftInteger, ftInteger]);
+end;
+
+function TestigosDeLaDepuracion(Conn: TFDConnection;
+  IdProceso: Integer): TArray<TTestigoFila>;
+var
+  Q: TFDQuery;
+  L: TList<TTestigoFila>;
+  F: TTestigoFila;
+begin
+  L := TList<TTestigoFila>.Create;
+  Q := TFDQuery.Create(nil);
+  try
+    Q.Connection := Conn;
+    Q.SQL.Text := 'SELECT IdTestigo, Nombre, Cargo, Origen, Firmo FROM prc_testigo ' +
+      'WHERE IdProceso = :p ORDER BY IdTestigo';
+    Q.ParamByName('p').AsInteger := IdProceso;
+    Q.Open;
+    while not Q.Eof do
+    begin
+      F.IdTestigo := Q.FieldByName('IdTestigo').AsInteger;
+      F.Nombre := Q.FieldByName('Nombre').AsString;
+      F.Cargo := Q.FieldByName('Cargo').AsString;
+      F.Origen := OrigenTestigoDesdeCodigo(Q.FieldByName('Origen').AsString);
+      F.Firmo := Q.FieldByName('Firmo').AsBoolean;
+      L.Add(F);
+      Q.Next;
+    end;
+    Result := L.ToArray;
+  finally
+    Q.Free;
+    L.Free;
+  end;
+end;
+
+function CondicionesCumplidasDepuracion(Conn: TFDConnection; IdProceso: Integer;
+  out Faltan: TArray<string>): TCondiciones;
+var
+  Tipo: TTipoProceso;
+  Paso, Total, Retenidas, I: Integer;
+  Estado: string;
+  A: TAutorizacion;
+  Q: TFDQuery;
+  Testigos: TArray<TTestigoFila>;
+  Datos: TArray<TTestigoDatos>;
+  HayViaYFecha: Boolean;
+begin
+  Result := [];
+  Faltan := nil;
+  if not LeerProceso(Conn, IdProceso, Tipo, Paso, Estado) then
+    Exit;
+  // retenidas: todas las unidades activas siguen en prc_bloqueo de esta depuracion
+  Total := Integer(Conn.ExecSQLScalar('SELECT COUNT(*) FROM prc_unidad WHERE ' +
+    'IdProceso = :p AND Activa <> 0', [IdProceso]));
+  Retenidas := Integer(Conn.ExecSQLScalar('SELECT COUNT(*) FROM prc_unidad u WHERE ' +
+    'u.IdProceso = :p AND u.Activa <> 0 AND EXISTS (SELECT 1 FROM prc_bloqueo B WHERE ' +
+    'B.IdProceso = u.IdProceso AND B.IdEstructura = u.IdEstructura AND B.id = u.id AND ' +
+    'B.codsubs = u.codsubs AND B.Codigodoc = u.Codigodoc AND B.fecha = u.fecha AND ' +
+    'B.version = u.version)', [IdProceso]));
+  if (Total > 0) and (Total = Retenidas) then
+    Include(Result, cdSinBloqueos);
+  if LeerAutorizacion(Conn, IdProceso, A) then
+    Include(Result, cdAutorizado);
+  Q := TFDQuery.Create(nil);
+  try
+    Q.Connection := Conn;
+    Q.SQL.Text := 'SELECT Lugar, Via, FPrevista, MuestraDesc, MuestraDonde FROM ' +
+      'prc_depuracion WHERE IdProceso = :p';
+    Q.ParamByName('p').AsInteger := IdProceso;
+    Q.Open;
+    if not Q.IsEmpty then
+    begin
+      if (Trim(Q.FieldByName('MuestraDesc').AsString) <> '') and
+        (Trim(Q.FieldByName('MuestraDonde').AsString) <> '') then
+        Include(Result, cdMuestraDefinida);
+      HayViaYFecha := (not Q.FieldByName('Via').IsNull) and
+        (not Q.FieldByName('FPrevista').IsNull);
+      if (Trim(Q.FieldByName('Lugar').AsString) <> '') and HayViaYFecha then
+        Include(Result, cdActaCompleta);
+    end;
+  finally
+    Q.Free;
+  end;
+  Testigos := TestigosDeLaDepuracion(Conn, IdProceso);
+  SetLength(Datos, Length(Testigos));
+  for I := 0 to High(Testigos) do
+  begin
+    Datos[I].Nombre := Testigos[I].Nombre;
+    Datos[I].Cargo := Testigos[I].Cargo;
+    Datos[I].Origen := Testigos[I].Origen;
+  end;
+  if TestigosSuficientes(Datos) then
+    Include(Result, cdTestigosMinimos);
+  Faltan := TextosQueFaltanDepuracion(CondicionesParaAvanzar(tpDepuracion, Paso) - Result);
+end;
+
+function AvanzarDepuracion(Conn: TFDConnection; IdProceso, PasoLeido: Integer;
+  const Usuario: string; out Faltan: TArray<string>): Boolean;
+var
+  Tipo: TTipoProceso;
+  Paso: Integer;
+  Estado: string;
+  Cumplidas, FaltaCond: TCondiciones;
+begin
+  Result := False;
+  Faltan := nil;
+  if (PasoLeido < 1) or (PasoLeido > 3) then
+    Exit;
+  if not LeerProceso(Conn, IdProceso, Tipo, Paso, Estado) or (Tipo <> tpDepuracion) or
+    (Estado <> 'C') or (Paso <> PasoLeido) then
+    Exit;
+  Cumplidas := CondicionesCumplidasDepuracion(Conn, IdProceso, Faltan);
+  Result := AvanzarPaso(Conn, IdProceso, PasoLeido, Cumplidas, Usuario, FaltaCond);
+  if Result then
+    Faltan := nil
+  else
+    Faltan := TextosQueFaltanDepuracion(FaltaCond);
 end;
 
 end.
