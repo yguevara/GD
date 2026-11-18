@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<TfrxReport Version="2022.3" DotMatrixReport="False" IniFile="\Software\Fast Reports" PreviewOptions.Buttons="167935" PreviewOptions.Zoom="1" PrintOptions.Printer="Default" PrintOptions.PrintOnSheet="0" ReportOptions.CreateDate="46344.5" ReportOptions.Description.Text="Anexo 19 del Manual de procedimientos GD: Acta de eliminación física de los documentos. Los datos los aporta la aplicación." ReportOptions.LastChange="46344.5" ScriptLanguage="PascalScript" ScriptText.Text="&#13;&#10;begin&#13;&#10;&#13;&#10;end.">
+  <Variables>
+    <item Name=" Datos"/>
+    <item Name="Empresa"/>
+    <item Name="Numero"/>
+    <item Name="Cabecera"/>
+    <item Name="Total"/>
+  </Variables>
+  <TfrxDataPage Name="Data" HGuides.Text="" VGuides.Text="" Height="1000" Left="0" Top="0" Width="1000"/>
+    <TfrxReportPage Name="Page1" HGuides.Text="" VGuides.Text="" PaperWidth="210" PaperHeight="297" PaperSize="9" LeftMargin="15" RightMargin="15" TopMargin="15" BottomMargin="15" ColumnWidth="0" ColumnPositions.Text="" Frame.Typ="0" MirrorMode="0">
+    <TfrxReportTitle Name="ReportTitle1" FillType="ftBrush" FillGap.Top="0" FillGap.Left="0" FillGap.Bottom="0" FillGap.Right="0" Frame.Typ="0" Height="130" Left="0" Top="0" Width="680">
+      <TfrxMemoView Name="mTitulo" AllowVectorExport="True" Left="0" Top="0" Width="680" Height="40" Font.Charset="1" Font.Color="0" Font.Height="-17" Font.Name="Arial" Font.Style="1" Frame.Typ="0" HAlign="haCenter" ParentFont="False" VAlign="vaCenter" Text="ACTA DE ELIMINACIÓN FÍSICA DE LOS DOCUMENTOS"/>
+      <TfrxMemoView Name="mEmpresa" AllowVectorExport="True" Left="0" Top="42" Width="680" Height="20" Font.Charset="1" Font.Color="0" Font.Height="-13" Font.Name="Arial" Font.Style="0" Frame.Typ="0" HAlign="haCenter" ParentFont="False" VAlign="vaCenter" Text="[Empresa]"/>
+      <TfrxMemoView Name="mNumero" AllowVectorExport="True" Left="0" Top="64" Width="680" Height="20" Font.Charset="1" Font.Color="0" Font.Height="-13" Font.Name="Arial" Font.Style="1" Frame.Typ="0" HAlign="haCenter" ParentFont="False" VAlign="vaCenter" Text="Depuración N.º [Numero]"/>
+      <TfrxMemoView Name="mCabecera" AllowVectorExport="True" Left="0" Top="90" Width="680" Height="34" StretchMode="smMaxHeight" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="0" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="[Cabecera]"/>
+    </TfrxReportTitle>
+    <TfrxHeader Name="Header1" FillType="ftBrush" FillGap.Top="0" FillGap.Left="0" FillGap.Bottom="0" FillGap.Right="0" Frame.Typ="0" Height="36" Left="0" Top="130" Width="680">
+      <TfrxMemoView Name="hDesc" AllowVectorExport="True" Left="0" Top="0" Width="150" Height="36" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="1" Frame.Typ="15" HAlign="haCenter" ParentFont="False" VAlign="vaCenter" Text="Descripción de lo que se elimina"/>
+      <TfrxMemoView Name="hUni" AllowVectorExport="True" Left="150" Top="0" Width="150" Height="36" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="1" Frame.Typ="15" HAlign="haCenter" ParentFont="False" VAlign="vaCenter" Text="Unidades (números y letras)"/>
+      <TfrxMemoView Name="hFec" AllowVectorExport="True" Left="300" Top="0" Width="90" Height="36" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="1" Frame.Typ="15" HAlign="haCenter" ParentFont="False" VAlign="vaCenter" Text="Fechas extremas"/>
+      <TfrxMemoView Name="hMDesc" AllowVectorExport="True" Left="390" Top="0" Width="145" Height="36" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="1" Frame.Typ="15" HAlign="haCenter" ParentFont="False" VAlign="vaCenter" Text="Muestra: descripción"/>
+      <TfrxMemoView Name="hMDonde" AllowVectorExport="True" Left="535" Top="0" Width="145" Height="36" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="1" Frame.Typ="15" HAlign="haCenter" ParentFont="False" VAlign="vaCenter" Text="Muestra: dónde se conserva"/>
+    </TfrxHeader>
+    <TfrxMasterData Name="MasterData1" FillType="ftBrush" FillGap.Top="0" FillGap.Left="0" FillGap.Bottom="0" FillGap.Right="0" Frame.Typ="0" Height="24" Left="0" Top="166" Width="680" ColumnWidth="0" ColumnGap="0" DataSet="frxLineas" DataSetName="Lineas" RowCount="0" Stretched="True">
+      <TfrxMemoView Name="dDesc" AllowVectorExport="True" Left="0" Top="0" Width="150" Height="24" StretchMode="smMaxHeight" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="0" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="[Lineas.&#34;Descripcion&#34;]"/>
+      <TfrxMemoView Name="dUni" AllowVectorExport="True" Left="150" Top="0" Width="150" Height="24" StretchMode="smMaxHeight" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="0" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="[Lineas.&#34;Unidades&#34;]"/>
+      <TfrxMemoView Name="dFec" AllowVectorExport="True" Left="300" Top="0" Width="90" Height="24" StretchMode="smMaxHeight" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="0" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="[Lineas.&#34;Fechas&#34;]"/>
+      <TfrxMemoView Name="dMDesc" AllowVectorExport="True" Left="390" Top="0" Width="145" Height="24" StretchMode="smMaxHeight" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="0" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="[Lineas.&#34;MuestraDesc&#34;]"/>
+      <TfrxMemoView Name="dMDonde" AllowVectorExport="True" Left="535" Top="0" Width="145" Height="24" StretchMode="smMaxHeight" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="0" Frame.Typ="15" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="[Lineas.&#34;MuestraDonde&#34;]"/>
+    </TfrxMasterData>
+    <TfrxHeader Name="Header2" FillType="ftBrush" FillGap.Top="0" FillGap.Left="0" FillGap.Bottom="0" FillGap.Right="0" Frame.Typ="0" Height="60" Left="0" Top="200" Width="680">
+      <TfrxMemoView Name="hDesgTit" AllowVectorExport="True" Left="0" Top="14" Width="300" Height="20" Font.Charset="1" Font.Color="0" Font.Height="-13" Font.Name="Arial" Font.Style="1" Frame.Typ="0" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="Desglose por año"/>
+      <TfrxMemoView Name="hAnio" AllowVectorExport="True" Left="0" Top="36" Width="100" Height="24" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="1" Frame.Typ="15" HAlign="haCenter" ParentFont="False" VAlign="vaCenter" Text="Año"/>
+      <TfrxMemoView Name="hAnioUni" AllowVectorExport="True" Left="100" Top="36" Width="120" Height="24" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="1" Frame.Typ="15" HAlign="haCenter" ParentFont="False" VAlign="vaCenter" Text="Unidades"/>
+    </TfrxHeader>
+    <TfrxMasterData Name="MasterData2" FillType="ftBrush" FillGap.Top="0" FillGap.Left="0" FillGap.Bottom="0" FillGap.Right="0" Frame.Typ="0" Height="22" Left="0" Top="270" Width="680" ColumnWidth="0" ColumnGap="0" DataSet="frxDesglose" DataSetName="Desglose" RowCount="0">
+      <TfrxMemoView Name="dAnio" AllowVectorExport="True" Left="0" Top="0" Width="100" Height="22" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="0" Frame.Typ="15" HAlign="haCenter" ParentFont="False" VAlign="vaCenter" Text="[Desglose.&#34;Anio&#34;]"/>
+      <TfrxMemoView Name="dAnioUni" AllowVectorExport="True" Left="100" Top="0" Width="120" Height="22" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="0" Frame.Typ="15" HAlign="haRight" ParentFont="False" VAlign="vaCenter" Text="[Desglose.&#34;Unidades&#34;]"/>
+    </TfrxMasterData>
+    <TfrxHeader Name="Header3" FillType="ftBrush" FillGap.Top="0" FillGap.Left="0" FillGap.Bottom="0" FillGap.Right="0" Frame.Typ="0" Height="50" Left="0" Top="302" Width="680">
+      <TfrxMemoView Name="mTotal" AllowVectorExport="True" Left="0" Top="8" Width="680" Height="22" Font.Charset="1" Font.Color="0" Font.Height="-13" Font.Name="Arial" Font.Style="1" Frame.Typ="0" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="Total de unidades que se eliminan: [Total]"/>
+      <TfrxMemoView Name="hFirmas" AllowVectorExport="True" Left="0" Top="30" Width="680" Height="20" Font.Charset="1" Font.Color="0" Font.Height="-13" Font.Name="Arial" Font.Style="1" Frame.Typ="0" HAlign="haLeft" ParentFont="False" VAlign="vaCenter" Text="Testigos y firmas"/>
+    </TfrxHeader>
+    <TfrxMasterData Name="MasterData3" FillType="ftBrush" FillGap.Top="0" FillGap.Left="0" FillGap.Bottom="0" FillGap.Right="0" Frame.Typ="0" Height="76" Left="0" Top="362" Width="680" ColumnWidth="0" ColumnGap="0" DataSet="frxFirmas" DataSetName="Firmas" RowCount="0" KeepTogether="True">
+      <TfrxLineView Name="lFirma" AllowVectorExport="True" Left="190" Top="42" Width="300" Height="0" Frame.Typ="4"/>
+      <TfrxMemoView Name="dFirmaNombre" AllowVectorExport="True" Left="190" Top="44" Width="300" Height="16" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="1" Frame.Typ="0" HAlign="haCenter" ParentFont="False" VAlign="vaTop" Text="[Firmas.&#34;Nombre&#34;]"/>
+      <TfrxMemoView Name="dFirmaCargo" AllowVectorExport="True" Left="190" Top="60" Width="300" Height="16" Font.Charset="1" Font.Color="0" Font.Height="-12" Font.Name="Arial" Font.Style="0" Frame.Typ="0" HAlign="haCenter" ParentFont="False" VAlign="vaTop" Text="[Firmas.&#34;Cargo&#34;]"/>
+    </TfrxMasterData>
+    </TfrxReportPage>
+</TfrxReport>

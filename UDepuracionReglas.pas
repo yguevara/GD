@@ -112,9 +112,9 @@ end;
 function TextoVia(V: TViaEliminacion): string;
 begin
   if V = veTrituracion then
-    Result := 'Trituracion'
+    Result := 'Trituraci' + #243 + 'n'
   else
-    Result := 'Incineracion';
+    Result := 'Incineraci' + #243 + 'n';
 end;
 
 function CodigoOrigenTestigo(O: TOrigenTestigo): string;
@@ -169,8 +169,8 @@ type
 const
   UNIDADES: array[1..29] of string = ('un', 'dos', 'tres', 'cuatro', 'cinco', 'seis',
     'siete', 'ocho', 'nueve', 'diez', 'once', 'doce', 'trece', 'catorce', 'quince',
-    'dieciseis', 'diecisiete', 'dieciocho', 'diecinueve', 'veinte', 'veintiun',
-    'veintidos', 'veintitres', 'veinticuatro', 'veinticinco', 'veintiseis',
+    'diecis'#233'is', 'diecisiete', 'dieciocho', 'diecinueve', 'veinte', 'veinti'#250'n',
+    'veintid'#243's', 'veintitr'#233's', 'veinticuatro', 'veinticinco', 'veintis'#233'is',
     'veintisiete', 'veintiocho', 'veintinueve');
   DECENAS: array[3..9] of string = ('treinta', 'cuarenta', 'cincuenta', 'sesenta',
     'setenta', 'ochenta', 'noventa');
@@ -247,7 +247,7 @@ begin
   Resto := N mod 1000;
   if Millones > 0 then
     if Millones = 1 then
-      Agregar('un millon')
+      Agregar('un mill' + #243 + 'n')
     else
       Agregar(Menos1000(Millones, mlMasculino) + ' millones');
   if Miles > 0 then
@@ -298,11 +298,11 @@ var
   Organo: string;
 begin
   case A.Organo of
-    ocNacional: Organo := 'Comision Nac.';
-    ocProvincial: Organo := 'Comision Prov.';
-    ocMunicipal: Organo := 'Comision Mun.';
+    ocNacional: Organo := 'Comisi' + #243 + 'n Nac.';
+    ocProvincial: Organo := 'Comisi' + #243 + 'n Prov.';
+    ocMunicipal: Organo := 'Comisi' + #243 + 'n Mun.';
   else
-    Organo := 'Comision Central';
+    Organo := 'Comisi' + #243 + 'n Central';
   end;
   Result := Organo + ' - Acta ' + A.NumActa + ' - Acuerdo ' + A.NumAcuerdo;
 end;
@@ -382,7 +382,7 @@ begin
   else
     case Paso of
       1: Result := 'Propuesta';
-      2: Result := 'En autorizacion';
+      2: Result := 'En autorizaci' + #243 + 'n';
       3: Result := 'Acta por firmar';
       4: Result := 'Lista para ejecutar';
     else

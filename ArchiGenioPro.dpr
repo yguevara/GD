@@ -26,6 +26,8 @@ uses
   UDepuracionReglas in 'UDepuracionReglas.pas',
   UEliminados in 'UEliminados.pas',
   UDepuracionDatos in 'UDepuracionDatos.pas',
+  UDepuracionActa in 'UDepuracionActa.pas',
+  UDepuracionImpresos in 'UDepuracionImpresos.pas',
   UPrestadosSql in 'UPrestadosSql.pas',
   UPrestamosReglas in 'UPrestamosReglas.pas',
   UPrestamosDatos in 'UPrestamosDatos.pas',

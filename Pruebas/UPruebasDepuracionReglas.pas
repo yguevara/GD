@@ -110,13 +110,13 @@ end;
 
 procedure TPruebasDepuracionReglas.NumeroEnLetrasBordes;
 begin
-  Assert.AreEqual('veintiun mil', UnidadesEnLetras(21000));
+  Assert.AreEqual('veinti'#250'n mil', UnidadesEnLetras(21000));
   Assert.AreEqual('cien mil', UnidadesEnLetras(100000));
   Assert.AreEqual('doscientas mil', UnidadesEnLetras(200000));
-  Assert.AreEqual('un millon', UnidadesEnLetras(1000000));
+  Assert.AreEqual('un mill'#243'n', UnidadesEnLetras(1000000));
   Assert.AreEqual('dos millones', UnidadesEnLetras(2000000));
-  Assert.AreEqual('un millon doscientas cuarenta', UnidadesEnLetras(1000240));
-  Assert.AreEqual('veintiun millones', UnidadesEnLetras(21000000));
+  Assert.AreEqual('un mill'#243'n doscientas cuarenta', UnidadesEnLetras(1000240));
+  Assert.AreEqual('veinti'#250'n millones', UnidadesEnLetras(21000000));
   Assert.AreEqual('doscientos millones', UnidadesEnLetras(200000000));
   Assert.AreEqual('novecientos noventa y nueve millones novecientas noventa y nueve mil novecientas noventa y nueve',
     UnidadesEnLetras(999999999));
@@ -202,7 +202,7 @@ end;
 procedure TPruebasDepuracionReglas.TextoDelEstadoDeLaDepuracion;
 begin
   Assert.AreEqual('Propuesta', TextoEstadoDepuracion(1, epEnCurso));
-  Assert.AreEqual('En autorizacion', TextoEstadoDepuracion(2, epEnCurso));
+  Assert.AreEqual('En autorizaci'#243'n', TextoEstadoDepuracion(2, epEnCurso));
   Assert.AreEqual('Acta por firmar', TextoEstadoDepuracion(3, epEnCurso));
   Assert.AreEqual('Lista para ejecutar', TextoEstadoDepuracion(4, epEnCurso));
   Assert.AreEqual('Ejecutada', TextoEstadoDepuracion(5, epEnCurso));
@@ -241,8 +241,8 @@ begin
   Assert.AreEqual('C', CodigoOrigenTestigo(otComision));
   Assert.AreEqual('G', CodigoOrigenTestigo(otArchivoGestion));
   Assert.AreEqual('O', CodigoOrigenTestigo(otOtro));
-  Assert.AreEqual('Incineracion', TextoVia(veIncineracion));
-  Assert.AreEqual('Trituracion', TextoVia(veTrituracion));
+  Assert.AreEqual('Incineraci'#243'n', TextoVia(veIncineracion));
+  Assert.AreEqual('Trituraci'#243'n', TextoVia(veTrituracion));
   Assert.WillRaise(
     procedure
     begin
@@ -261,7 +261,7 @@ begin
   Assert.AreEqual('0 (cero)', UnidadesNumerosYLetras(0));
   Assert.AreEqual('1 (una)', UnidadesNumerosYLetras(1));
   Assert.AreEqual('85 (ochenta y cinco)', UnidadesNumerosYLetras(85));
-  Assert.AreEqual('1 000 000 (un millon)', UnidadesNumerosYLetras(1000000));
+  Assert.AreEqual('1 000 000 (un mill'#243'n)', UnidadesNumerosYLetras(1000000));
   Assert.AreEqual('999 (novecientas noventa y nueve)', UnidadesNumerosYLetras(999));
 end;
 
@@ -291,13 +291,13 @@ begin
   A.NumAcuerdo := '9';
   A.Fecha := EncodeDate(2026, 9, 3);
   A.Organo := ocProvincial;
-  Assert.AreEqual('Comision Prov. - Acta 14 - Acuerdo 9', TextoAutorizacionCorto(A));
+  Assert.AreEqual('Comisi'#243'n Prov. - Acta 14 - Acuerdo 9', TextoAutorizacionCorto(A));
   A.Organo := ocMunicipal;
-  Assert.AreEqual('Comision Mun. - Acta 14 - Acuerdo 9', TextoAutorizacionCorto(A));
+  Assert.AreEqual('Comisi'#243'n Mun. - Acta 14 - Acuerdo 9', TextoAutorizacionCorto(A));
   A.Organo := ocNacional;
-  Assert.AreEqual('Comision Nac. - Acta 14 - Acuerdo 9', TextoAutorizacionCorto(A));
+  Assert.AreEqual('Comisi'#243'n Nac. - Acta 14 - Acuerdo 9', TextoAutorizacionCorto(A));
   A.Organo := ocCentral;
-  Assert.AreEqual('Comision Central - Acta 14 - Acuerdo 9', TextoAutorizacionCorto(A));
+  Assert.AreEqual('Comisi'#243'n Central - Acta 14 - Acuerdo 9', TextoAutorizacionCorto(A));
 end;
 
 initialization

@@ -133,6 +133,8 @@ uses
   UPruebasEliminados in 'UPruebasEliminados.pas',
   UDepuracionDatos in '..\UDepuracionDatos.pas',
   UPruebasDepuracionDatos in 'UPruebasDepuracionDatos.pas',
+  UDepuracionActa in '..\UDepuracionActa.pas',
+  UPruebasDepuracionActa in 'UPruebasDepuracionActa.pas',
   UTransferenciasDatos in '..\UTransferenciasDatos.pas',
   UPruebasTransferenciasDatos in 'UPruebasTransferenciasDatos.pas',
   UOpcionNodo in '..\UOpcionNodo.pas',
