@@ -163,3 +163,36 @@ CREATE INDEX IX_prc_prestamo_limite ON prc_prestamo (FLimite);
 
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_prc_unidad_caja' AND object_id = OBJECT_ID('dbo.prc_unidad'))
 CREATE INDEX IX_prc_unidad_caja ON prc_unidad (IdProceso, Caja);
+
+-- Transferencias: recepcion (paso 5) y ubicacion (paso 6), version minima y F3.
+IF COL_LENGTH('prc_transferencia', 'FRecepcion') IS NULL ALTER TABLE prc_transferencia ADD FRecepcion DATETIME NULL;
+IF COL_LENGTH('prc_transferencia', 'RecibidoPor') IS NULL ALTER TABLE prc_transferencia ADD RecibidoPor VARCHAR(100) NULL;
+IF COL_LENGTH('prc_transferencia', 'Ubicacion') IS NULL ALTER TABLE prc_transferencia ADD Ubicacion VARCHAR(255) NULL;
+IF COL_LENGTH('prc_transferencia', 'IdArchivoDestino') IS NULL ALTER TABLE prc_transferencia ADD IdArchivoDestino SMALLINT NULL;
+IF COL_LENGTH('prc_transferencia', 'NumRegistroEntrada') IS NULL ALTER TABLE prc_transferencia ADD NumRegistroEntrada VARCHAR(30) NULL;
+
+-- Cajas: ubicacion y estado (P pendiente, R recibida, Q cuarentena, F faltante; NULL = pendiente).
+IF COL_LENGTH('prc_caja', 'Deposito') IS NULL ALTER TABLE prc_caja ADD Deposito VARCHAR(255) NULL;
+IF COL_LENGTH('prc_caja', 'Gaveta') IS NULL ALTER TABLE prc_caja ADD Gaveta VARCHAR(20) NULL;
+IF COL_LENGTH('prc_caja', 'Posicion') IS NULL ALTER TABLE prc_caja ADD Posicion VARCHAR(10) NULL;
+IF COL_LENGTH('prc_caja', 'Estado') IS NULL ALTER TABLE prc_caja ADD Estado VARCHAR(1) NULL;
+IF COL_LENGTH('prc_caja', 'Conservacion') IS NULL ALTER TABLE prc_caja ADD Conservacion VARCHAR(255) NULL;
+
+IF OBJECT_ID('dbo.prc_incidencia', 'U') IS NULL
+CREATE TABLE prc_incidencia (
+  IdIncidencia INT IDENTITY(1,1) NOT NULL,
+  IdProceso INT NOT NULL,
+  Caja INT NULL,
+  Tipo VARCHAR(20) NOT NULL,
+  Descripcion VARCHAR(255) NULL,
+  FechaLimite DATETIME NULL,
+  Estado VARCHAR(1) NOT NULL,
+  Usuario VARCHAR(100) NULL,
+  Fecha DATETIME NULL,
+  CONSTRAINT PK_prc_incidencia PRIMARY KEY (IdIncidencia),
+  CONSTRAINT FK_prc_incidencia_proceso FOREIGN KEY (IdProceso)
+    REFERENCES prc_proceso(IdProceso) ON DELETE CASCADE
+);
+
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_prc_incidencia_proceso' AND object_id = OBJECT_ID('dbo.prc_incidencia'))
+CREATE INDEX IX_prc_incidencia_proceso ON prc_incidencia (IdProceso);

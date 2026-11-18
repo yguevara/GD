@@ -8,7 +8,7 @@ unit UPruebasTransferenciasDatos;
 interface
 
 uses
-  DUnitX.TestFramework, FireDAC.Comp.Client;
+  DUnitX.TestFramework, FireDAC.Comp.Client, UProcesosDatos;
 
 type
   [TestFixture]
@@ -43,6 +43,8 @@ type
     function Conectar: Boolean;
     function Escalar(const Sql: string): Variant;
     procedure Unidad(IdProceso: Integer; const Subs, Cod: string);
+    function TransferenciaEnPaso5(Cajas: Integer): TProcesoRef;
+    procedure ArchivoDePrueba(Cod, Tipo: Integer);
   public
     [Setup]
     procedure Preparar;
@@ -70,6 +72,20 @@ type
     procedure RelacionTieneUnaLineaPorCaja;
     [Test]
     procedure GruposAgregadosSumanLasUnidades;
+    [Test]
+    procedure ArchivosCentralesSoloDevuelveLosDeTipoCentral;
+    [Test]
+    procedure CajasDeTransferenciaLeeUnidadesYEstadoPendiente;
+    [Test]
+    procedure MarcarCajaRecibidaYCuarentenaYResolver;
+    [Test]
+    procedure MarcarCajaFaltanteCreaIncidenciaYSacaLasUnidades;
+    [Test]
+    procedure MarcarCajaFueraDelPasoCincoLanza;
+    [Test]
+    procedure RecepcionRechazaDestinoInexistenteCajasPendientesYCuarentena;
+    [Test]
+    procedure RecepcionConTodoDecididoAvanzaYGuardaDestino;
   end;
 
 implementation
@@ -79,7 +95,7 @@ uses
   FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf, FireDAC.Stan.Def,
   FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys, FireDAC.Phys.MSSQL,
   FireDAC.DApt, FireDAC.ConsoleUI.Wait, FireDAC.Stan.Param, Data.DB, UAlcance,
-  UProceso, UAutorizacion, UEsquemaProcesos, UProcesosDatos,
+  UProceso, UAutorizacion, UEsquemaProcesos,
   UTransferenciasReglas, UTransferenciasDatos;
 
 const
@@ -204,6 +220,7 @@ procedure TPruebasTransferenciasDatosBD.Limpiar;
 begin
   if FConn <> nil then
   try
+    FConn.ExecSQL('DELETE FROM cl_ArchivosGestion WHERE nombreArchivo = ''' + USUARIO + '''');
     FConn.ExecSQL('DELETE FROM prc_cronograma WHERE Anio BETWEEN 1990 AND 1999');
     FConn.ExecSQL('DELETE FROM prc_proceso WHERE CreadoPor = ''' + USUARIO + '''');
   finally
@@ -240,6 +257,38 @@ begin
     'SELECT TOP 1 IdEstructura FROM tb_tree ORDER BY IdEstructura, id'));
   Result.Id := Integer(Conn.ExecSQLScalar(
     'SELECT TOP 1 id FROM tb_tree ORDER BY IdEstructura, id'));
+end;
+
+procedure TPruebasTransferenciasDatosBD.ArchivoDePrueba(Cod, Tipo: Integer);
+begin
+  FConn.ExecSQL('DELETE FROM cl_ArchivosGestion WHERE Cod = :c', [Cod]);
+  FConn.ExecSQL('INSERT INTO cl_ArchivosGestion (Cod, nombreArchivo, Tipo, Idresp) ' +
+    'VALUES (:c, :n, :t, 1)', [Cod, USUARIO, Tipo]);
+end;
+
+{ Transferencia con una unidad por caja, entregada: lista para la recepcion (paso 5). }
+function TPruebasTransferenciasDatosBD.TransferenciaEnPaso5(Cajas: Integer): TProcesoRef;
+var
+  Faltan: TArray<string>;
+  A: TAutorizacion;
+  V: TVerificacion;
+  I: Integer;
+begin
+  Result := CrearTransferencia(FConn, NodoDePrueba(FConn), USUARIO, 1990, 0);
+  for I := 1 to Cajas do
+    Unidad(Result.IdProceso, 'S1', 'D' + IntToStr(I));
+  AvanzarTransferencia(FConn, Result.IdProceso, 1, USUARIO, Faltan);
+  A.Organo := ocCentral;
+  A.NumActa := '7';
+  A.NumAcuerdo := '3';
+  A.Fecha := Date - 1;
+  GuardarAutorizacion(FConn, Result.IdProceso, A, USUARIO);
+  AvanzarTransferencia(FConn, Result.IdProceso, 2, USUARIO, Faltan);
+  NumerarCajas(FConn, Result.IdProceso, 1);
+  for V in VERIFICACIONES do
+    MarcarVerificacion(FConn, Result.IdProceso, V.Codigo, True);
+  AvanzarTransferencia(FConn, Result.IdProceso, 3, USUARIO, Faltan);
+  RegistrarEntregaTransferencia(FConn, Result.IdProceso, USUARIO, 'R. Perez', Date - 1);
 end;
 
 procedure TPruebasTransferenciasDatosBD.CrearTransferenciaGuardaPrevistaYEnlazaCronograma;
@@ -455,6 +504,143 @@ begin
   for I := 0 to High(G) do
     Inc(Suma, G[I].Unidades);
   Assert.AreEqual(3, Suma);
+end;
+
+procedure TPruebasTransferenciasDatosBD.ArchivosCentralesSoloDevuelveLosDeTipoCentral;
+var
+  L: TArray<TArchivoCentral>;
+  C: TArchivoCentral;
+  HayCentral, HayGestion: Boolean;
+begin
+  if not Conectar then Exit;
+  ArchivoDePrueba(9990, 1);  // Central
+  ArchivoDePrueba(9991, 2);  // Gestion
+  L := ListarArchivosCentrales(FConn);
+  HayCentral := False;
+  HayGestion := False;
+  for C in L do
+  begin
+    if C.Cod = 9990 then HayCentral := True;
+    if C.Cod = 9991 then HayGestion := True;
+  end;
+  Assert.IsTrue(HayCentral, 'falta el archivo central');
+  Assert.IsFalse(HayGestion, 'no debe listar archivos de gestion');
+end;
+
+procedure TPruebasTransferenciasDatosBD.CajasDeTransferenciaLeeUnidadesYEstadoPendiente;
+var
+  R: TProcesoRef;
+  Cajas: TArray<TCajaFila>;
+begin
+  if not Conectar then Exit;
+  R := TransferenciaEnPaso5(2);
+  Cajas := CajasDeTransferencia(FConn, R.IdProceso);
+  Assert.AreEqual(2, Length(Cajas));
+  Assert.AreEqual(1, Cajas[0].Caja);
+  Assert.AreEqual(2, Cajas[1].Caja);
+  Assert.AreEqual(1, Cajas[0].Unidades);
+  Assert.AreEqual(Ord(ecPendiente), Ord(Cajas[0].Estado), 'Estado NULL = pendiente');
+end;
+
+procedure TPruebasTransferenciasDatosBD.MarcarCajaRecibidaYCuarentenaYResolver;
+var
+  R: TProcesoRef;
+  Cajas: TArray<TCajaFila>;
+begin
+  if not Conectar then Exit;
+  R := TransferenciaEnPaso5(2);
+  MarcarCajaRecibida(FConn, R.IdProceso, 1, 'Buen estado');
+  MarcarCajaCuarentena(FConn, R.IdProceso, 2, 'Humedad');
+  Cajas := CajasDeTransferencia(FConn, R.IdProceso);
+  Assert.AreEqual(Ord(ecRecibida), Ord(Cajas[0].Estado));
+  Assert.AreEqual('Buen estado', Cajas[0].Conservacion);
+  Assert.AreEqual(Ord(ecCuarentena), Ord(Cajas[1].Estado));
+  ResolverCuarentena(FConn, R.IdProceso, 2);
+  Cajas := CajasDeTransferencia(FConn, R.IdProceso);
+  Assert.AreEqual(Ord(ecRecibida), Ord(Cajas[1].Estado));
+  // resolver una caja que no esta en cuarentena no la cambia
+  ResolverCuarentena(FConn, R.IdProceso, 1);
+  Cajas := CajasDeTransferencia(FConn, R.IdProceso);
+  Assert.AreEqual(Ord(ecRecibida), Ord(Cajas[0].Estado));
+end;
+
+procedure TPruebasTransferenciasDatosBD.MarcarCajaFaltanteCreaIncidenciaYSacaLasUnidades;
+var
+  R: TProcesoRef;
+  Cajas: TArray<TCajaFila>;
+  Id: string;
+begin
+  if not Conectar then Exit;
+  R := TransferenciaEnPaso5(2);
+  Id := IntToStr(R.IdProceso);
+  MarcarCajaFaltante(FConn, R.IdProceso, 2, USUARIO, 'No llego la caja', EncodeDate(2026, 11, 1));
+  Cajas := CajasDeTransferencia(FConn, R.IdProceso);
+  Assert.AreEqual(Ord(ecFaltante), Ord(Cajas[1].Estado));
+  Assert.AreEqual(1, Integer(Escalar('SELECT COUNT(*) FROM prc_incidencia WHERE IdProceso = ' + Id +
+    ' AND Caja = 2 AND Tipo = ''FALTA'' AND Estado = ''A''')));
+  Assert.AreEqual(EncodeDate(2026, 12, 1), TDateTime(Escalar(
+    'SELECT FechaLimite FROM prc_incidencia WHERE IdProceso = ' + Id)), 0.0001);
+  Assert.AreEqual(0, Integer(Escalar('SELECT COUNT(*) FROM prc_unidad WHERE IdProceso = ' + Id +
+    ' AND Caja = 2 AND Activa = 1')), 'la unidad faltante sale de la transferencia');
+  Assert.AreEqual(1, Integer(Escalar('SELECT COUNT(*) FROM prc_bloqueo WHERE IdProceso = ' + Id)),
+    'solo queda retenida la unidad de la caja 1');
+end;
+
+procedure TPruebasTransferenciasDatosBD.MarcarCajaFueraDelPasoCincoLanza;
+var
+  R: TProcesoRef;
+begin
+  if not Conectar then Exit;
+  R := CrearTransferencia(FConn, NodoDePrueba(FConn), USUARIO, 1990, 0);  // paso 1
+  Assert.WillRaise(
+    procedure begin MarcarCajaRecibida(FConn, R.IdProceso, 1, ''); end,
+    EArgumentException);
+end;
+
+procedure TPruebasTransferenciasDatosBD.RecepcionRechazaDestinoInexistenteCajasPendientesYCuarentena;
+var
+  R: TProcesoRef;
+begin
+  if not Conectar then Exit;
+  ArchivoDePrueba(9990, 1);
+  R := TransferenciaEnPaso5(2);
+  // sin decidir ninguna caja
+  Assert.WillRaise(
+    procedure begin RegistrarRecepcionTransferencia(FConn, R.IdProceso, USUARIO, 'Ana', '2026-0001', Date, 9990); end,
+    EArgumentException);
+  MarcarCajaRecibida(FConn, R.IdProceso, 1, '');
+  MarcarCajaCuarentena(FConn, R.IdProceso, 2, 'Hongo');
+  // una caja en cuarentena
+  Assert.WillRaise(
+    procedure begin RegistrarRecepcionTransferencia(FConn, R.IdProceso, USUARIO, 'Ana', '2026-0001', Date, 9990); end,
+    EArgumentException);
+  ResolverCuarentena(FConn, R.IdProceso, 2);
+  // destino que no es un archivo central
+  Assert.WillRaise(
+    procedure begin RegistrarRecepcionTransferencia(FConn, R.IdProceso, USUARIO, 'Ana', '2026-0001', Date, 9999); end,
+    EArgumentException);
+  Assert.AreEqual(5, Integer(Escalar('SELECT Paso FROM prc_proceso WHERE IdProceso = ' +
+    IntToStr(R.IdProceso))), 'sigue en el paso 5');
+end;
+
+procedure TPruebasTransferenciasDatosBD.RecepcionConTodoDecididoAvanzaYGuardaDestino;
+var
+  R: TProcesoRef;
+  Id: string;
+begin
+  if not Conectar then Exit;
+  ArchivoDePrueba(9990, 1);
+  R := TransferenciaEnPaso5(2);
+  Id := IntToStr(R.IdProceso);
+  MarcarCajaRecibida(FConn, R.IdProceso, 1, '');
+  MarcarCajaFaltante(FConn, R.IdProceso, 2, USUARIO, 'Falta', Date);
+  Assert.IsTrue(RegistrarRecepcionTransferencia(FConn, R.IdProceso, USUARIO, 'Ana', '2026-0001', Date, 9990));
+  Assert.AreEqual(6, Integer(Escalar('SELECT Paso FROM prc_proceso WHERE IdProceso = ' + Id)));
+  Assert.AreEqual(9990, Integer(Escalar('SELECT IdArchivoDestino FROM prc_transferencia WHERE IdProceso = ' + Id)));
+  Assert.AreEqual('2026-0001', VarToStr(Escalar('SELECT NumRegistroEntrada FROM prc_transferencia WHERE IdProceso = ' + Id)));
+  Assert.AreEqual('Ana', VarToStr(Escalar('SELECT RecibidoPor FROM prc_transferencia WHERE IdProceso = ' + Id)));
+  Assert.IsFalse(RegistrarRecepcionTransferencia(FConn, R.IdProceso, USUARIO, 'Ana', '2026-0001', Date, 9990),
+    'recibir dos veces se rechaza');
 end;
 
 end.

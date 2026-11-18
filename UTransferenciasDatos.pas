@@ -82,6 +82,23 @@ type
     Caja, Unidades: Integer;
   end;
 
+  { Archivo central que puede recibir una transferencia (cl_ArchivosGestion). }
+  TArchivoCentral = record
+    Cod: Integer;
+    Nombre: string;
+  end;
+
+  { Una caja de la transferencia con su estado de recepcion y su ubicacion. }
+  TCajaFila = record
+    Caja: Integer;
+    Tipo, Descripcion: string;
+    FDesde, FHasta: TDateTime;
+    Unidades: Integer;
+    Estado: TEstadoCaja;
+    Conservacion: string;
+    Deposito, Gaveta, Posicion: string;
+  end;
+
 { Condicion de fecha de los documentos vencidos (alias H; parametro :corte). }
 function SqlCondicionVencido: string;
 
@@ -153,10 +170,34 @@ function AvanzarTransferencia(Conn: TFDConnection; IdProceso, PasoLeido: Integer
 function RegistrarEntregaTransferencia(Conn: TFDConnection; IdProceso: Integer;
   const Usuario, EntregadoPor: string; Fecha: TDateTime): Boolean;
 
-{ Paso 5 -> 6: registra la recepcion en el archivo central. Lanza EArgumentException
-  si ValidarRecepcion encuentra errores. False si ya no esta en el paso 5. }
+{ Archivos (cl_ArchivosGestion) cuyo tipo es Central, ordenados por nombre. }
+function ListarArchivosCentrales(Conn: TFDConnection): TArray<TArchivoCentral>;
+
+{ Cajas de la transferencia por numero, con su estado (NULL = pendiente). }
+function CajasDeTransferencia(Conn: TFDConnection; IdProceso: Integer): TArray<TCajaFila>;
+
+{ Estado de una caja en la recepcion. Lanzan EArgumentException si la transferencia
+  no esta en el paso 5 o la caja no existe. }
+procedure MarcarCajaRecibida(Conn: TFDConnection; IdProceso, Caja: Integer;
+  const Conservacion: string);
+procedure MarcarCajaCuarentena(Conn: TFDConnection; IdProceso, Caja: Integer;
+  const Conservacion: string);
+{ Q -> R; una caja que no esta en cuarentena no cambia. }
+procedure ResolverCuarentena(Conn: TFDConnection; IdProceso, Caja: Integer);
+{ Caja que no llego: queda F, se abre una incidencia con plazo de reclamacion y sus
+  documentos salen de la transferencia (Activa = 0, sin candado), asi que siguen en
+  el archivo de origen. }
+procedure MarcarCajaFaltante(Conn: TFDConnection; IdProceso, Caja: Integer;
+  const Usuario, Descripcion: string; Hoy: TDateTime);
+
+{ Paso 5 -> 6: registra la recepcion en el archivo central: quien recibe, fecha,
+  registro general de entrada (Anexo 17) y archivo destino. Lanza EArgumentException
+  si los datos no son validos, el destino no es un archivo central, quedan cajas sin
+  decidir o en cuarentena, o ninguna caja esta recibida. False si ya no esta en el
+  paso 5. }
 function RegistrarRecepcionTransferencia(Conn: TFDConnection; IdProceso: Integer;
-  const Usuario, RecibidoPor: string; Fecha: TDateTime): Boolean;
+  const Usuario, RecibidoPor, NumRegistro: string; Fecha: TDateTime;
+  IdArchivoDestino: Integer): Boolean;
 
 { Paso 6 -> finalizada: registra donde quedan las cajas, libera los documentos y
   cierra la transferencia. Lanza EArgumentException si la ubicacion no es valida.
@@ -987,16 +1028,162 @@ begin
   end;
 end;
 
-function RegistrarRecepcionTransferencia(Conn: TFDConnection; IdProceso: Integer;
-  const Usuario, RecibidoPor: string; Fecha: TDateTime): Boolean;
+function ListarArchivosCentrales(Conn: TFDConnection): TArray<TArchivoCentral>;
+var
+  Q: TFDQuery;
+  L: TList<TArchivoCentral>;
+  A: TArchivoCentral;
+begin
+  L := TList<TArchivoCentral>.Create;
+  Q := TFDQuery.Create(nil);
+  try
+    Q.Connection := Conn;
+    Q.Open('SELECT A.Cod AS Cod, A.nombreArchivo AS Nombre, T.tipoarch AS Tipo ' +
+      'FROM cl_ArchivosGestion A INNER JOIN cl_tipoarch T ON T.Idtipoarch = A.Tipo ' +
+      'ORDER BY A.nombreArchivo');
+    while not Q.Eof do
+    begin
+      if TipoArchivoDesdeTexto(Q.FieldByName('Tipo').AsString) = taCentral then
+      begin
+        A.Cod := Q.FieldByName('Cod').AsInteger;
+        A.Nombre := Q.FieldByName('Nombre').AsString;
+        L.Add(A);
+      end;
+      Q.Next;
+    end;
+    Result := L.ToArray;
+  finally
+    Q.Free;
+    L.Free;
+  end;
+end;
+
+function CajasDeTransferencia(Conn: TFDConnection; IdProceso: Integer): TArray<TCajaFila>;
+var
+  Q: TFDQuery;
+  L: TList<TCajaFila>;
+  C: TCajaFila;
+begin
+  L := TList<TCajaFila>.Create;
+  Q := TFDQuery.Create(nil);
+  try
+    Q.Connection := Conn;
+    Q.SQL.Text := 'SELECT Caja, Tipo, Descripcion, FDesde, FHasta, Unidades, Estado, ' +
+      'Conservacion, Deposito, Gaveta, Posicion FROM prc_caja WHERE IdProceso = :p ' +
+      'ORDER BY Caja';
+    Q.ParamByName('p').AsInteger := IdProceso;
+    Q.Open;
+    while not Q.Eof do
+    begin
+      C.Caja := Q.FieldByName('Caja').AsInteger;
+      C.Tipo := Q.FieldByName('Tipo').AsString;
+      C.Descripcion := Q.FieldByName('Descripcion').AsString;
+      C.FDesde := FechaODefecto(Q.FieldByName('FDesde'));
+      C.FHasta := FechaODefecto(Q.FieldByName('FHasta'));
+      C.Unidades := Q.FieldByName('Unidades').AsInteger;
+      C.Estado := EstadoCajaDesdeCodigo(Q.FieldByName('Estado').AsString);
+      C.Conservacion := Q.FieldByName('Conservacion').AsString;
+      C.Deposito := Q.FieldByName('Deposito').AsString;
+      C.Gaveta := Q.FieldByName('Gaveta').AsString;
+      C.Posicion := Q.FieldByName('Posicion').AsString;
+      L.Add(C);
+      Q.Next;
+    end;
+    Result := L.ToArray;
+  finally
+    Q.Free;
+    L.Free;
+  end;
+end;
+
+{ Exige que la transferencia este en la recepcion (paso 5, en curso). }
+procedure ExigirRecepcion(Conn: TFDConnection; IdProceso: Integer);
 var
   Tipo: TTipoProceso;
   Paso: Integer;
   Estado: string;
+begin
+  if not LeerProceso(Conn, IdProceso, Tipo, Paso, Estado) or (Tipo <> tpTransferencia) or
+    (Estado <> 'C') or (Paso <> 5) then
+    raise EArgumentException.Create('La transferencia no est' + #225 + ' en la recepci' + #243 + 'n.');
+end;
+
+procedure CambiarEstadoCaja(Conn: TFDConnection; IdProceso, Caja: Integer;
+  Estado: TEstadoCaja; const Conservacion: string);
+begin
+  ExigirRecepcion(Conn, IdProceso);
+  if Conn.ExecSQL('UPDATE prc_caja SET Estado = :e, Conservacion = :c ' +
+    'WHERE IdProceso = :p AND Caja = :k', [CodigoDeEstadoCaja(Estado),
+    Copy(Trim(Conservacion), 1, 255), IdProceso, Caja],
+    [ftString, ftString, ftInteger, ftInteger]) = 0 then
+    raise EArgumentException.Create('La caja ' + IntToStr(Caja) + ' no existe en la transferencia.');
+end;
+
+procedure MarcarCajaRecibida(Conn: TFDConnection; IdProceso, Caja: Integer;
+  const Conservacion: string);
+begin
+  CambiarEstadoCaja(Conn, IdProceso, Caja, ecRecibida, Conservacion);
+end;
+
+procedure MarcarCajaCuarentena(Conn: TFDConnection; IdProceso, Caja: Integer;
+  const Conservacion: string);
+begin
+  CambiarEstadoCaja(Conn, IdProceso, Caja, ecCuarentena, Conservacion);
+end;
+
+procedure ResolverCuarentena(Conn: TFDConnection; IdProceso, Caja: Integer);
+begin
+  ExigirRecepcion(Conn, IdProceso);
+  Conn.ExecSQL('UPDATE prc_caja SET Estado = ''R'' WHERE IdProceso = :p AND Caja = :k ' +
+    'AND Estado = ''Q''', [IdProceso, Caja], [ftInteger, ftInteger]);
+end;
+
+procedure MarcarCajaFaltante(Conn: TFDConnection; IdProceso, Caja: Integer;
+  const Usuario, Descripcion: string; Hoy: TDateTime);
+var
+  Propia: Boolean;
+begin
+  ExigirRecepcion(Conn, IdProceso);
+  Propia := IniciarTx(Conn);
+  try
+    if Conn.ExecSQL('UPDATE prc_caja SET Estado = ''F'' WHERE IdProceso = :p AND Caja = :k',
+      [IdProceso, Caja], [ftInteger, ftInteger]) = 0 then
+      raise EArgumentException.Create('La caja ' + IntToStr(Caja) + ' no existe en la transferencia.');
+    Conn.ExecSQL('INSERT INTO prc_incidencia (IdProceso, Caja, Tipo, Descripcion, ' +
+      'FechaLimite, Estado, Usuario, Fecha) VALUES (:p, :k, ''FALTA'', :d, :l, ''A'', :u, :f)',
+      [IdProceso, Caja, Copy(Trim(Descripcion), 1, 255), FechaLimiteReclamacion(Hoy),
+      Copy(Usuario, 1, 100), Hoy],
+      [ftInteger, ftInteger, ftString, ftDateTime, ftString, ftDateTime]);
+    // las unidades de la caja dejan de estar retenidas y de formar parte de la transferencia
+    Conn.ExecSQL('DELETE FROM prc_bloqueo WHERE IdProceso = :p AND EXISTS (SELECT 1 FROM ' +
+      'prc_unidad U WHERE U.IdProceso = :p2 AND U.Caja = :k AND ' +
+      'U.IdEstructura = prc_bloqueo.IdEstructura AND U.id = prc_bloqueo.id AND ' +
+      'U.codsubs = prc_bloqueo.codsubs AND U.Codigodoc = prc_bloqueo.Codigodoc AND ' +
+      'U.fecha = prc_bloqueo.fecha AND U.version = prc_bloqueo.version)',
+      [IdProceso, IdProceso, Caja], [ftInteger, ftInteger, ftInteger]);
+    Conn.ExecSQL('UPDATE prc_unidad SET Activa = 0 WHERE IdProceso = :p AND Caja = :k',
+      [IdProceso, Caja], [ftInteger, ftInteger]);
+    ConfirmarTx(Conn, Propia);
+  except
+    DeshacerTx(Conn, Propia);
+    raise;
+  end;
+end;
+
+function RegistrarRecepcionTransferencia(Conn: TFDConnection; IdProceso: Integer;
+  const Usuario, RecibidoPor, NumRegistro: string; Fecha: TDateTime;
+  IdArchivoDestino: Integer): Boolean;
+var
+  Tipo: TTipoProceso;
+  Paso, I: Integer;
+  Estado: string;
   Falta: TCondiciones;
   Errores: TArray<string>;
+  Cajas: TArray<TCajaFila>;
+  Estados: TArray<TEstadoCaja>;
+  Centrales: TArray<TArchivoCentral>;
   FEntrega: TDateTime;
-  Propia: Boolean;
+  EsCentral, Propia: Boolean;
 begin
   Result := False;
   if not LeerProceso(Conn, IdProceso, Tipo, Paso, Estado) or (Tipo <> tpTransferencia) then
@@ -1006,8 +1193,28 @@ begin
   FEntrega := Conn.ExecSQLScalar('SELECT FEntrega FROM prc_transferencia WHERE IdProceso = :p',
     [IdProceso]);
   Errores := ValidarRecepcion(RecibidoPor, Fecha, FEntrega, Now);
+  if Length(Errores) = 0 then
+    Errores := ValidarEntradaCentral(IdArchivoDestino, NumRegistro);
   if Length(Errores) > 0 then
     raise EArgumentException.Create(Errores[0]);
+  EsCentral := False;
+  Centrales := ListarArchivosCentrales(Conn);
+  for I := 0 to High(Centrales) do
+    if Centrales[I].Cod = IdArchivoDestino then
+      EsCentral := True;
+  if not EsCentral then
+    raise EArgumentException.Create('El archivo elegido no es un archivo central.');
+  Cajas := CajasDeTransferencia(Conn, IdProceso);
+  SetLength(Estados, Length(Cajas));
+  for I := 0 to High(Cajas) do
+    Estados[I] := Cajas[I].Estado;
+  if not CajasDecididas(Estados) then
+    raise EArgumentException.Create('Marque cada caja como recibida, en cuarentena o faltante.');
+  for I := 0 to High(Estados) do
+    if Estados[I] = ecCuarentena then
+      raise EArgumentException.Create('Hay cajas en cuarentena: resu' + #233 + 'lvalas antes de seguir.');
+  if not HayCajaRecibida(Estados) then
+    raise EArgumentException.Create('Ninguna caja fue recibida: no hay nada que ubicar.');
   Propia := IniciarTx(Conn);
   try
     if not AvanzarPaso(Conn, IdProceso, 5, [cdRecepcionConfirmada], Usuario, Falta) then
@@ -1015,9 +1222,11 @@ begin
       DeshacerTx(Conn, Propia);
       Exit;
     end;
-    Conn.ExecSQL('UPDATE prc_transferencia SET FRecepcion = :f, RecibidoPor = :r ' +
-      'WHERE IdProceso = :p', [Fecha, Copy(Trim(RecibidoPor), 1, 100), IdProceso],
-      [ftDateTime, ftString, ftInteger]);
+    Conn.ExecSQL('UPDATE prc_transferencia SET FRecepcion = :f, RecibidoPor = :r, ' +
+      'NumRegistroEntrada = :n, IdArchivoDestino = :a WHERE IdProceso = :p',
+      [Fecha, Copy(Trim(RecibidoPor), 1, 100), Copy(Trim(NumRegistro), 1, 30),
+      IdArchivoDestino, IdProceso],
+      [ftDateTime, ftString, ftString, ftInteger, ftInteger]);
     ConfirmarTx(Conn, Propia);
     Result := True;
   except

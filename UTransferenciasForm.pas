@@ -1324,8 +1324,10 @@ begin
     #191 + 'Continuar?', 'Registrar la recepci' + #243 + 'n') then
     Exit;
   try
+    // provisional hasta la tarea 6 del plan F3: destino = primer archivo central y
+    // registro de entrada 'S/N' (la pantalla definitiva los pide)
     if not RegistrarRecepcionTransferencia(FConn, FActual.IdProceso, FUsuario,
-      edtRecibidoPor.Text, Fecha) then
+      edtRecibidoPor.Text, 'S/N', Fecha, ListarArchivosCentrales(FConn)[0].Cod) then
       TMensajes.Advertencia('La transferencia ya no est' + #225 + ' en el paso de recepci' + #243 +
         'n.', 'Transferencias');
   except
