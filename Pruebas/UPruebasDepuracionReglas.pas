@@ -40,12 +40,20 @@ type
     procedure TextosQueFaltanUnoPorCondicion;
     [Test]
     procedure CodigosDeViaYOrigenIdaYVuelta;
+    [Test]
+    procedure UnidadesEnNumerosYLetrasConSeparadorDeMiles;
+    [Test]
+    procedure UnidadesEnNumerosYLetrasNegativoLanza;
+    [Test]
+    procedure RangoMesAnioCasos;
+    [Test]
+    procedure TextoCortoDeLaAutorizacion;
   end;
 
 implementation
 
 uses
-  System.SysUtils, UProceso, UDepuracionReglas;
+  System.SysUtils, UProceso, UAutorizacion, UDepuracionReglas;
 
 function Testigo(const Nombre: string; O: TOrigenTestigo): TTestigoDatos;
 begin
@@ -245,6 +253,51 @@ begin
     begin
       OrigenTestigoDesdeCodigo('');
     end, EArgumentException);
+end;
+
+procedure TPruebasDepuracionReglas.UnidadesEnNumerosYLetrasConSeparadorDeMiles;
+begin
+  Assert.AreEqual('1 240 (mil doscientas cuarenta)', UnidadesNumerosYLetras(1240));
+  Assert.AreEqual('0 (cero)', UnidadesNumerosYLetras(0));
+  Assert.AreEqual('1 (una)', UnidadesNumerosYLetras(1));
+  Assert.AreEqual('85 (ochenta y cinco)', UnidadesNumerosYLetras(85));
+  Assert.AreEqual('1 000 000 (un millon)', UnidadesNumerosYLetras(1000000));
+  Assert.AreEqual('999 (novecientas noventa y nueve)', UnidadesNumerosYLetras(999));
+end;
+
+procedure TPruebasDepuracionReglas.UnidadesEnNumerosYLetrasNegativoLanza;
+begin
+  Assert.WillRaise(
+    procedure
+    begin
+      UnidadesNumerosYLetras(-1);
+    end, EArgumentException);
+end;
+
+procedure TPruebasDepuracionReglas.RangoMesAnioCasos;
+begin
+  Assert.AreEqual('01/2008 - 12/2012', RangoMesAnio(EncodeDate(2008, 1, 15), EncodeDate(2012, 12, 3)));
+  Assert.AreEqual('03/2010', RangoMesAnio(EncodeDate(2010, 3, 1), EncodeDate(2010, 3, 31)));
+  Assert.AreEqual('', RangoMesAnio(0, EncodeDate(2010, 3, 31)));
+  Assert.AreEqual('', RangoMesAnio(0, 0));
+  Assert.AreEqual('03/2010', RangoMesAnio(EncodeDate(2010, 3, 9), 0));
+end;
+
+procedure TPruebasDepuracionReglas.TextoCortoDeLaAutorizacion;
+var
+  A: TAutorizacion;
+begin
+  A.NumActa := '14';
+  A.NumAcuerdo := '9';
+  A.Fecha := EncodeDate(2026, 9, 3);
+  A.Organo := ocProvincial;
+  Assert.AreEqual('Comision Prov. - Acta 14 - Acuerdo 9', TextoAutorizacionCorto(A));
+  A.Organo := ocMunicipal;
+  Assert.AreEqual('Comision Mun. - Acta 14 - Acuerdo 9', TextoAutorizacionCorto(A));
+  A.Organo := ocNacional;
+  Assert.AreEqual('Comision Nac. - Acta 14 - Acuerdo 9', TextoAutorizacionCorto(A));
+  A.Organo := ocCentral;
+  Assert.AreEqual('Comision Central - Acta 14 - Acuerdo 9', TextoAutorizacionCorto(A));
 end;
 
 initialization

@@ -11,7 +11,7 @@ unit UDepuracionReglas;
 interface
 
 uses
-  UProceso;
+  UProceso, UAutorizacion;
 
 type
   { Como se eliminan fisicamente los documentos. Codigos 'I' y 'T'. }
@@ -50,6 +50,17 @@ function PlazoCentralVencido(Hoy: TDateTime; HayCierre: Boolean; Cierre, Fecha,
 { Numero de unidades en letras, en femenino ("mil doscientas cuarenta"). De 0 a
   999 999 999; fuera de rango lanza EArgumentException. Sin acentos. }
 function UnidadesEnLetras(N: Int64): string;
+
+{ "1 240 (mil doscientas cuarenta)": el numero con espacio como separador de miles y
+  sus letras en femenino. Lanza EArgumentException fuera de rango. }
+function UnidadesNumerosYLetras(N: Int64): string;
+
+{ "01/2008 - 12/2012"; un solo mes y ano si coinciden ("03/2010"); Desde = 0 => ''; sin
+  Hasta solo el mes de Desde. }
+function RangoMesAnio(Desde, Hasta: TDateTime): string;
+
+{ "Comision Prov. - Acta 14 - Acuerdo 9" para la columna de autorizacion de la lista. }
+function TextoAutorizacionCorto(const A: TAutorizacion): string;
 
 { Hay al menos MINIMO_TESTIGOS, uno de la Comision y uno de un archivo de
   gestion. }
@@ -246,6 +257,54 @@ begin
       Agregar(Menos1000(Miles, mlApocope) + ' mil');
   if Resto > 0 then
     Agregar(Menos1000(Resto, mlFemenino));
+end;
+
+function UnidadesNumerosYLetras(N: Int64): string;
+var
+  Letras, Digitos: string;
+  I, Cont: Integer;
+begin
+  Letras := UnidadesEnLetras(N);   // lanza si esta fuera de rango
+  Digitos := IntToStr(N);
+  Result := '';
+  Cont := 0;
+  for I := Length(Digitos) downto 1 do
+  begin
+    if (Cont > 0) and (Cont mod 3 = 0) then
+      Result := ' ' + Result;
+    Result := Digitos[I] + Result;
+    Inc(Cont);
+  end;
+  Result := Result + ' (' + Letras + ')';
+end;
+
+function RangoMesAnio(Desde, Hasta: TDateTime): string;
+var
+  A1, M1, D1, A2, M2, D2: Word;
+begin
+  if Desde = 0 then
+    Exit('');
+  DecodeDate(Desde, A1, M1, D1);
+  Result := Format('%.2d/%d', [M1, A1]);
+  if Hasta = 0 then
+    Exit;
+  DecodeDate(Hasta, A2, M2, D2);
+  if (A1 <> A2) or (M1 <> M2) then
+    Result := Result + ' - ' + Format('%.2d/%d', [M2, A2]);
+end;
+
+function TextoAutorizacionCorto(const A: TAutorizacion): string;
+var
+  Organo: string;
+begin
+  case A.Organo of
+    ocNacional: Organo := 'Comision Nac.';
+    ocProvincial: Organo := 'Comision Prov.';
+    ocMunicipal: Organo := 'Comision Mun.';
+  else
+    Organo := 'Comision Central';
+  end;
+  Result := Organo + ' - Acta ' + A.NumActa + ' - Acuerdo ' + A.NumAcuerdo;
 end;
 
 { -------------------------------- validaciones -------------------------------- }
