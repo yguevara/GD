@@ -1116,10 +1116,26 @@ begin
     raise EArgumentException.Create('La transferencia no est' + #225 + ' en la recepci' + #243 + 'n.');
 end;
 
+{ Estado actual de la caja; lanza EArgumentException si no existe y si ya es
+  faltante (sus documentos salieron de la transferencia: no se deshace). }
+procedure ExigirCajaNoFaltante(Conn: TFDConnection; IdProceso, Caja: Integer);
+var
+  V: Variant;
+begin
+  V := Conn.ExecSQLScalar('SELECT Estado FROM prc_caja WHERE IdProceso = :p AND Caja = :k',
+    [IdProceso, Caja], [ftInteger, ftInteger]);
+  if VarIsNull(V) or VarIsEmpty(V) then
+    Exit;  // sin estado todavia: pendiente
+  if EstadoCajaDesdeCodigo(Trim(VarToStr(V))) = ecFaltante then
+    raise EArgumentException.Create('La caja ' + IntToStr(Caja) +
+      ' figura como faltante y ya no forma parte de la transferencia.');
+end;
+
 procedure CambiarEstadoCaja(Conn: TFDConnection; IdProceso, Caja: Integer;
   Estado: TEstadoCaja; const Conservacion: string);
 begin
   ExigirRecepcion(Conn, IdProceso);
+  ExigirCajaNoFaltante(Conn, IdProceso, Caja);
   if Conn.ExecSQL('UPDATE prc_caja SET Estado = :e, Conservacion = :c ' +
     'WHERE IdProceso = :p AND Caja = :k', [CodigoDeEstadoCaja(Estado),
     Copy(Trim(Conservacion), 1, 255), IdProceso, Caja],
@@ -1152,6 +1168,7 @@ var
   Propia: Boolean;
 begin
   ExigirRecepcion(Conn, IdProceso);
+  ExigirCajaNoFaltante(Conn, IdProceso, Caja);
   Propia := IniciarTx(Conn);
   try
     if Conn.ExecSQL('UPDATE prc_caja SET Estado = ''F'' WHERE IdProceso = :p AND Caja = :k',

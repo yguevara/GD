@@ -128,6 +128,13 @@ function ValidarUbicacionCaja(const Deposito, Gaveta,
 { Ultimo dia para reclamar una falta detectada en la recepcion. }
 function FechaLimiteReclamacion(FRecepcion: TDateTime): TDateTime;
 
+{ Pendiente, Recibida, En cuarentena o Faltante. }
+function TextoEstadoCaja(E: TEstadoCaja): string;
+
+{ "Dep. 01 / Gav. 02 / Pos. 3" con lo que haya (vacio y '0' no cuentan); '' si no
+  hay nada. }
+function TextoUbicacionCaja(const Deposito, Gaveta, Posicion: string): string;
+
 implementation
 
 uses
@@ -381,6 +388,35 @@ end;
 function FechaLimiteReclamacion(FRecepcion: TDateTime): TDateTime;
 begin
   Result := Trunc(FRecepcion) + PLAZO_RECLAMACION_DIAS;
+end;
+
+function TextoEstadoCaja(E: TEstadoCaja): string;
+begin
+  case E of
+    ecRecibida: Result := 'Recibida';
+    ecCuarentena: Result := 'En cuarentena';
+    ecFaltante: Result := 'Faltante';
+  else
+    Result := 'Pendiente';
+  end;
+end;
+
+function TextoUbicacionCaja(const Deposito, Gaveta, Posicion: string): string;
+
+  procedure Sumar(const Etiqueta, Valor: string);
+  begin
+    if (Trim(Valor) = '') or (Trim(Valor) = '0') then
+      Exit;
+    if Result <> '' then
+      Result := Result + ' / ';
+    Result := Result + Etiqueta + ' ' + Trim(Valor);
+  end;
+
+begin
+  Result := '';
+  Sumar('Dep.', Deposito);
+  Sumar('Gav.', Gaveta);
+  Sumar('Pos.', Posicion);
 end;
 
 function TextoEstadoTransferencia(Paso: Integer; Estado: TEstadoProceso): string;

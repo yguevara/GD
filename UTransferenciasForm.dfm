@@ -1306,9 +1306,9 @@ object frmTransferenciasNuevo: TfrmTransferenciasNuevo
         Visible = False
         object lblP5: TLabel
           Left = 20
-          Top = 16
+          Top = 8
           Width = 1240
-          Height = 40
+          Height = 36
           AutoSize = False
           WordWrap = True
           Font.Charset = DEFAULT_CHARSET
@@ -1318,97 +1318,336 @@ object frmTransferenciasNuevo: TfrmTransferenciasNuevo
           Font.Style = []
           ParentFont = False
         end
-        object lblRecFecha: TLabel
+        object grdRecep: TcxGrid
           Left = 20
-          Top = 64
-          Width = 3
-          Height = 15
-          Caption = 'Fecha de la recepci'#243'n'
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = 5924725
-          Font.Height = -12
-          Font.Name = 'Segoe UI'
-          Font.Style = []
-          ParentFont = False
-        end
-        object dteRecepcion: TcxDateEdit
-          Left = 20
-          Top = 82
+          Top = 48
+          Width = 1240
+          Height = 190
+          Anchors = [akLeft, akTop, akRight]
+          BorderStyle = cxcbsNone
           TabOrder = 0
-          Width = 180
+          LookAndFeel.Kind = lfUltraFlat
+          LookAndFeel.NativeStyle = False
+          object tvRecep: TcxGridTableView
+            OnCustomDrawColumnHeader = tvCustomDrawColumnHeader
+            OnFocusedRecordChanged = tvRecepFocusedRecordChanged
+            OptionsData.Appending = False
+            OptionsData.Deleting = False
+            OptionsData.Editing = False
+            OptionsData.Inserting = False
+            OptionsCustomize.ColumnSorting = False
+            OptionsSelection.CellSelect = False
+            OptionsView.CellAutoHeight = True
+            OptionsView.ColumnAutoWidth = True
+            OptionsView.DataRowHeight = 28
+            OptionsView.GridLineColor = 13031136
+            OptionsView.GridLines = glHorizontal
+            OptionsView.GroupByBox = False
+            OptionsView.HeaderHeight = 28
+            OptionsView.Indicator = False
+            OptionsView.NoDataToDisplayInfoText = 'Esta transferencia no tiene cajas'
+            Styles.Background = stContenido
+            Styles.Content = stContenido
+            Styles.ContentEven = stContenido
+            Styles.ContentOdd = stContenido
+            Styles.Header = stCabeceraGrid
+            Styles.Inactive = stSeleccion
+            Styles.Selection = stSeleccion
+            object colRecCaja: TcxGridColumn
+              Caption = 'Caja'
+              DataBinding.ValueType = 'String'
+              Width = 60
+            end
+            object colRecDesc: TcxGridColumn
+              Caption = 'Descripci'#243'n'
+              DataBinding.ValueType = 'String'
+              Width = 280
+            end
+            object colRecUnid: TcxGridColumn
+              Caption = 'Docs.'
+              DataBinding.ValueType = 'String'
+              Width = 60
+            end
+            object colRecEstado: TcxGridColumn
+              Caption = 'Estado'
+              DataBinding.ValueType = 'String'
+              Width = 110
+            end
+            object colRecConserv: TcxGridColumn
+              Caption = 'Conservaci'#243'n'
+              DataBinding.ValueType = 'String'
+              Width = 260
+            end
+            object colRecUbic: TcxGridColumn
+              Caption = 'Ubicaci'#243'n'
+              DataBinding.ValueType = 'String'
+              Width = 230
+            end
+          end
+          object lvRecep: TcxGridLevel
+            GridView = tvRecep
+          end
         end
-        object lblRecPor: TLabel
-          Left = 230
-          Top = 64
-          Width = 3
-          Height = 15
-          Caption = 'Recibe (nombre de quien recibe)'
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = 5924725
-          Font.Height = -12
-          Font.Name = 'Segoe UI'
-          Font.Style = []
-          ParentFont = False
-        end
-        object edtRecibidoPor: TcxTextEdit
-          Left = 230
-          Top = 82
+        object pnlRecepcion: TPanel
+          Left = 20
+          Top = 246
+          Width = 1240
+          Height = 150
+          BevelOuter = bvNone
+          Color = 16383487
+          ParentBackground = False
+          ShowCaption = False
           TabOrder = 1
-          Width = 280
+          object lblRecDestino: TLabel
+            Left = 0
+            Top = 0
+            Width = 3
+            Height = 15
+            Caption = 'Archivo central que recibe'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = 5924725
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
+            Font.Style = []
+            ParentFont = False
+          end
+          object cmbDestino: TcxComboBox
+            Left = 0
+            Top = 18
+            Properties.DropDownListStyle = lsFixedList
+            TabOrder = 0
+            Width = 250
+          end
+          object lblRecNum: TLabel
+            Left = 270
+            Top = 0
+            Width = 3
+            Height = 15
+            Caption = 'N.'#186' de registro de entrada (Anexo 17)'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = 5924725
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
+            Font.Style = []
+            ParentFont = False
+          end
+          object edtNumRegistro: TcxTextEdit
+            Left = 270
+            Top = 18
+            Properties.MaxLength = 30
+            TabOrder = 1
+            Width = 220
+          end
+          object lblRecFecha: TLabel
+            Left = 510
+            Top = 0
+            Width = 3
+            Height = 15
+            Caption = 'Fecha de la recepci'#243'n'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = 5924725
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
+            Font.Style = []
+            ParentFont = False
+          end
+          object dteRecepcion: TcxDateEdit
+            Left = 510
+            Top = 18
+            TabOrder = 2
+            Width = 150
+          end
+          object lblRecPor: TLabel
+            Left = 680
+            Top = 0
+            Width = 3
+            Height = 15
+            Caption = 'Recibe (nombre de quien recibe)'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = 5924725
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
+            Font.Style = []
+            ParentFont = False
+          end
+          object edtRecibidoPor: TcxTextEdit
+            Left = 680
+            Top = 18
+            TabOrder = 3
+            Width = 280
+          end
+          object lblConserv: TLabel
+            Left = 0
+            Top = 52
+            Width = 3
+            Height = 15
+            Caption = 'Estado de conservaci'#243'n de la caja marcada'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = 5924725
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
+            Font.Style = []
+            ParentFont = False
+          end
+          object edtConservacion: TcxTextEdit
+            Left = 0
+            Top = 70
+            Properties.MaxLength = 255
+            TabOrder = 4
+            Width = 340
+          end
+          object btnCajaRecibida: TcxButton
+            Left = 360
+            Top = 66
+            Width = 110
+            Height = 32
+            Caption = 'Recibida'
+            TabOrder = 5
+            OnClick = btnCajaRecibidaClick
+          end
+          object btnCajaCuarentena: TcxButton
+            Left = 478
+            Top = 66
+            Width = 110
+            Height = 32
+            Caption = 'Cuarentena'
+            TabOrder = 6
+            OnClick = btnCajaCuarentenaClick
+          end
+          object btnCajaFaltante: TcxButton
+            Left = 596
+            Top = 66
+            Width = 110
+            Height = 32
+            Caption = 'No lleg'#243
+            TabOrder = 7
+            OnClick = btnCajaFaltanteClick
+          end
+          object btnResolverCuarentena: TcxButton
+            Left = 714
+            Top = 66
+            Width = 170
+            Height = 32
+            Caption = 'Resolver cuarentena'
+            TabOrder = 8
+            OnClick = btnResolverCuarentenaClick
+          end
+          object btnRegistrarRecepcion: TcxButton
+            Left = 0
+            Top = 108
+            Width = 260
+            Height = 36
+            Caption = 'Registrar la recepci'#243'n'
+            TabOrder = 9
+            OnClick = btnRegistrarRecepcionClick
+          end
         end
-        object btnRegistrarRecepcion: TcxButton
+        object pnlUbicacion: TPanel
           Left = 20
-          Top = 124
-          Width = 230
-          Height = 38
-          Caption = 'Registrar la recepci'#243'n'
+          Top = 246
+          Width = 1240
+          Height = 150
+          BevelOuter = bvNone
+          Color = 16383487
+          ParentBackground = False
+          ShowCaption = False
           TabOrder = 2
-          OnClick = btnRegistrarRecepcionClick
-        end
-        object lblUbic: TLabel
-          Left = 20
-          Top = 190
-          Width = 3
-          Height = 15
-          Caption = 'Ubicaci'#243'n de las cajas (dep'#243'sito, estante...)'
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = 5924725
-          Font.Height = -12
-          Font.Name = 'Segoe UI'
-          Font.Style = []
-          ParentFont = False
-        end
-        object edtUbicacion: TcxTextEdit
-          Left = 20
-          Top = 208
-          TabOrder = 3
-          Width = 490
-        end
-        object btnRegistrarUbicacion: TcxButton
-          Left = 20
-          Top = 250
-          Width = 290
-          Height = 38
-          Caption = 'Registrar ubicaci'#243'n y finalizar'
-          TabOrder = 4
-          OnClick = btnRegistrarUbicacionClick
+          Visible = False
+          object lblDeposito: TLabel
+            Left = 0
+            Top = 0
+            Width = 3
+            Height = 15
+            Caption = 'Dep'#243'sito de la caja marcada'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = 5924725
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
+            Font.Style = []
+            ParentFont = False
+          end
+          object edtDeposito: TcxTextEdit
+            Left = 0
+            Top = 18
+            Properties.MaxLength = 255
+            TabOrder = 0
+            Width = 260
+          end
+          object lblGaveta: TLabel
+            Left = 280
+            Top = 0
+            Width = 3
+            Height = 15
+            Caption = 'Gaveta'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = 5924725
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
+            Font.Style = []
+            ParentFont = False
+          end
+          object edtGaveta: TcxTextEdit
+            Left = 280
+            Top = 18
+            Properties.MaxLength = 20
+            TabOrder = 1
+            Width = 120
+          end
+          object lblPosicion: TLabel
+            Left = 420
+            Top = 0
+            Width = 3
+            Height = 15
+            Caption = 'Posici'#243'n'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = 5924725
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
+            Font.Style = []
+            ParentFont = False
+          end
+          object edtPosicion: TcxTextEdit
+            Left = 420
+            Top = 18
+            Properties.MaxLength = 10
+            TabOrder = 2
+            Width = 120
+          end
+          object btnGuardarUbicacion: TcxButton
+            Left = 560
+            Top = 14
+            Width = 260
+            Height = 32
+            Caption = 'Guardar la ubicaci'#243'n de la caja'
+            TabOrder = 3
+            OnClick = btnGuardarUbicacionClick
+          end
+          object btnCerrarTransf: TcxButton
+            Left = 0
+            Top = 70
+            Width = 260
+            Height = 38
+            Caption = 'Finalizar la transferencia'
+            TabOrder = 4
+            OnClick = btnCerrarTransfClick
+          end
         end
         object btnRelacion5: TcxButton
           Left = 20
-          Top = 330
+          Top = 404
           Width = 230
           Height = 36
           Caption = 'Imprimir relaci'#243'n de entrega'
-          TabOrder = 5
+          TabOrder = 3
           OnClick = btnRelacionClick
         end
         object btnEtiquetas5: TcxButton
           Left = 264
-          Top = 330
+          Top = 404
           Width = 230
           Height = 36
           Caption = 'Imprimir etiquetas de caja'
-          TabOrder = 6
+          TabOrder = 4
           OnClick = btnEtiquetasClick
         end
       end

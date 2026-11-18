@@ -39,6 +39,9 @@ type
   { Pide imprimir un impreso de una transferencia. }
   TImprimirTransferencia = reference to procedure(IdProceso: Integer);
 
+  { Lo que se hace con la caja marcada en los pasos 5 y 6. }
+  TAccionCaja = (accRecibida, accCuarentena, accFaltante, accResolver, accUbicar);
+
   TfrmTransferenciasNuevo = class(TForm, IPantallaProceso)
     pnlLista: TPanel;
     pnlCabecera: TPanel;
@@ -168,9 +171,35 @@ type
     lblRecPor: TLabel;
     edtRecibidoPor: TcxTextEdit;
     btnRegistrarRecepcion: TcxButton;
-    lblUbic: TLabel;
-    edtUbicacion: TcxTextEdit;
-    btnRegistrarUbicacion: TcxButton;
+    grdRecep: TcxGrid;
+    tvRecep: TcxGridTableView;
+    colRecCaja: TcxGridColumn;
+    colRecDesc: TcxGridColumn;
+    colRecUnid: TcxGridColumn;
+    colRecEstado: TcxGridColumn;
+    colRecConserv: TcxGridColumn;
+    colRecUbic: TcxGridColumn;
+    lvRecep: TcxGridLevel;
+    pnlRecepcion: TPanel;
+    lblRecDestino: TLabel;
+    cmbDestino: TcxComboBox;
+    lblRecNum: TLabel;
+    edtNumRegistro: TcxTextEdit;
+    lblConserv: TLabel;
+    edtConservacion: TcxTextEdit;
+    btnCajaRecibida: TcxButton;
+    btnCajaCuarentena: TcxButton;
+    btnCajaFaltante: TcxButton;
+    btnResolverCuarentena: TcxButton;
+    pnlUbicacion: TPanel;
+    lblDeposito: TLabel;
+    edtDeposito: TcxTextEdit;
+    lblGaveta: TLabel;
+    edtGaveta: TcxTextEdit;
+    lblPosicion: TLabel;
+    edtPosicion: TcxTextEdit;
+    btnGuardarUbicacion: TcxButton;
+    btnCerrarTransf: TcxButton;
     btnRelacion5: TcxButton;
     btnEtiquetas5: TcxButton;
     lblEntInfo: TLabel;
@@ -209,7 +238,15 @@ type
     procedure btnCancelarTransfClick(Sender: TObject);
     procedure btnEliminarTransfClick(Sender: TObject);
     procedure btnRegistrarRecepcionClick(Sender: TObject);
-    procedure btnRegistrarUbicacionClick(Sender: TObject);
+    procedure tvRecepFocusedRecordChanged(Sender: TcxCustomGridTableView;
+      APrevFocusedRecord, AFocusedRecord: TcxCustomGridRecord;
+      ANewItemRecordFocusingChanged: Boolean);
+    procedure btnCajaRecibidaClick(Sender: TObject);
+    procedure btnCajaCuarentenaClick(Sender: TObject);
+    procedure btnCajaFaltanteClick(Sender: TObject);
+    procedure btnResolverCuarentenaClick(Sender: TObject);
+    procedure btnGuardarUbicacionClick(Sender: TObject);
+    procedure btnCerrarTransfClick(Sender: TObject);
     procedure chkAnticipadaPropertiesChange(Sender: TObject);
   private
     FConn: TFDConnection;
@@ -232,6 +269,10 @@ type
     FIdSeleccionado: Integer;
     FNombresPasos: TArray<string>;
     FActualizando: Boolean;
+    FCajasRec: TArray<TCajaFila>;
+    FCentrales: TArray<TArchivoCentral>;
+    FCajaElegida: Integer;     // numero de la caja marcada (para volver a ella)
+    FEnRecepcion, FEnUbicacion: Boolean;
     procedure SetPuedeActuar(Valor: Boolean);
     procedure SetAlImprimirRelacion(const Valor: TImprimirTransferencia);
     procedure SetAlImprimirEtiquetas(const Valor: TImprimirTransferencia);
@@ -246,6 +287,9 @@ type
     function IdDeLaFilaElegida: Integer;
     procedure ActualizarFaltantes;
     procedure MostrarPostEntrega(const Fila: TTransferenciaFila; Edita: Boolean);
+    function CajaElegida(out C: TCajaFila): Boolean;
+    procedure MostrarCajaElegida;
+    procedure ActuarEnCaja(Accion: TAccionCaja);
     procedure PedirSalir;
     procedure AvisarSinPermiso;
     function Casilla(I: Integer): TCheckBox;
@@ -272,6 +316,10 @@ type
     procedure MostrarVerificaciones(const Marcadas: array of string;
       const Faltan: TArray<string>);
     procedure MostrarEntrega(const Fila: TTransferenciaFila);
+    { Pasos 5 y 6: archivos centrales que pueden recibir y cajas con su estado y
+      ubicacion (presentacion sin leer la base). }
+    procedure MostrarArchivosCentrales(const Lista: TArray<TArchivoCentral>);
+    procedure MostrarCajasRecepcion(const Cajas: TArray<TCajaFila>);
     { IPantallaProceso }
     procedure Embeber(Host: TWinControl);
     function PuedeSalir: Boolean;
@@ -885,36 +933,41 @@ end;
 procedure TfrmTransferenciasNuevo.MostrarPostEntrega(const Fila: TTransferenciaFila;
   Edita: Boolean);
 var
-  EnRecepcion, EnUbicacion: Boolean;
+  Estados: TArray<TEstadoCaja>;
+  I: Integer;
 begin
-  EnRecepcion := Edita and (Fila.Paso = 5);
-  EnUbicacion := Edita and (Fila.Paso = 6);
-  lblRecFecha.Enabled := EnRecepcion;
-  dteRecepcion.Enabled := EnRecepcion;
-  lblRecPor.Enabled := EnRecepcion;
-  edtRecibidoPor.Enabled := EnRecepcion;
-  btnRegistrarRecepcion.Visible := EnRecepcion;
-  lblUbic.Enabled := EnUbicacion;
-  edtUbicacion.Enabled := EnUbicacion;
-  btnRegistrarUbicacion.Visible := EnUbicacion;
+  FEnRecepcion := Edita and (Fila.Paso = 5);
+  FEnUbicacion := Edita and (Fila.Paso = 6);
+  pnlRecepcion.Visible := (Fila.Paso = 5);
+  pnlUbicacion.Visible := (Fila.Paso >= 6);
+  lblRecDestino.Enabled := FEnRecepcion;
+  cmbDestino.Enabled := FEnRecepcion;
+  lblRecNum.Enabled := FEnRecepcion;
+  edtNumRegistro.Enabled := FEnRecepcion;
+  lblRecFecha.Enabled := FEnRecepcion;
+  dteRecepcion.Enabled := FEnRecepcion;
+  lblRecPor.Enabled := FEnRecepcion;
+  edtRecibidoPor.Enabled := FEnRecepcion;
+  btnRegistrarRecepcion.Visible := FEnRecepcion;
+  btnCerrarTransf.Visible := FEnUbicacion;
   if Fila.FRecepcion <> 0 then
     dteRecepcion.Date := Fila.FRecepcion;
   if Fila.RecibidoPor <> '' then
     edtRecibidoPor.Text := Fila.RecibidoPor;
-  if Fila.Ubicacion <> '' then
-    edtUbicacion.Text := Fila.Ubicacion;
   if Fila.Proceso = epFinalizado then
     lblP5.Caption := 'Transferencia completada. Entregada' + FechaEntrega(Fila) +
       ', recibida el ' + FechaTexto(Fila.FRecepcion) + ' por ' + Fila.RecibidoPor +
-      '. Cajas ubicadas en: ' + Fila.Ubicacion + '.'
+      '. Los documentos de las cajas recibidas pasaron al archivo central.'
   else if Fila.Paso = 5 then
-    lblP5.Caption := 'La transferencia fue entregada' + FechaEntrega(Fila) + '. Cuando ' +
-      'el archivo central reciba las cajas, registre aqu' + #237 + ' la recepci' + #243 + 'n.'
+    lblP5.Caption := 'La transferencia fue entregada' + FechaEntrega(Fila) + '. Marque cada ' +
+      'caja como recibida, en cuarentena o que no lleg' + #243 + ', elija el archivo central ' +
+      'y registre la recepci' + #243 + 'n.'
   else
     lblP5.Caption := 'Recibida el ' + FechaTexto(Fila.FRecepcion) + ' por ' + Fila.RecibidoPor +
-      '. Falta registrar d' + #243 + 'nde quedan las cajas para finalizar la transferencia.';
+      '. Indique d' + #243 + 'nde queda cada caja recibida y finalice la transferencia: sus ' +
+      'documentos pasar' + #225 + 'n al archivo central.';
+  MostrarCajaElegida;
 end;
-
 procedure TfrmTransferenciasNuevo.pbPasosPaint(Sender: TObject);
 begin
   PintarPasos(pbPasos.Canvas, pbPasos.ClientRect, tpTransferencia, FNombresPasos,
@@ -945,6 +998,11 @@ begin
     Exit;
   try
     case FActual.Paso of
+      5, 6:
+        begin
+          MostrarArchivosCentrales(ListarArchivosCentrales(FConn));
+          MostrarCajasRecepcion(CajasDeTransferencia(FConn, FActual.IdProceso));
+        end;
       1:
         begin
           MostrarAgregados(GruposDeLaTransferencia(FConn, FActual.IdProceso));
@@ -1309,12 +1367,18 @@ procedure TfrmTransferenciasNuevo.btnRegistrarRecepcionClick(Sender: TObject);
 var
   Fecha: TDateTime;
   Errores: TArray<string>;
+  Destino: Integer;
 begin
   if VarIsNull(dteRecepcion.EditValue) then
     Fecha := Date
   else
     Fecha := dteRecepcion.Date;
+  Destino := 0;
+  if (cmbDestino.ItemIndex >= 0) and (cmbDestino.ItemIndex <= High(FCentrales)) then
+    Destino := FCentrales[cmbDestino.ItemIndex].Cod;
   Errores := ValidarRecepcion(edtRecibidoPor.Text, Fecha, FActual.FEntrega, Now);
+  if Length(Errores) = 0 then
+    Errores := ValidarEntradaCentral(Destino, edtNumRegistro.Text);
   if Length(Errores) > 0 then
   begin
     lblAviso.Caption := Errores[0];
@@ -1324,26 +1388,228 @@ begin
     #191 + 'Continuar?', 'Registrar la recepci' + #243 + 'n') then
     Exit;
   try
-    // provisional hasta la tarea 6 del plan F3: destino = primer archivo central y
-    // registro de entrada 'S/N' (la pantalla definitiva los pide)
     if not RegistrarRecepcionTransferencia(FConn, FActual.IdProceso, FUsuario,
-      edtRecibidoPor.Text, 'S/N', Fecha, ListarArchivosCentrales(FConn)[0].Cod) then
+      edtRecibidoPor.Text, edtNumRegistro.Text, Fecha, Destino) then
       TMensajes.Advertencia('La transferencia ya no est' + #225 + ' en el paso de recepci' + #243 +
         'n.', 'Transferencias');
   except
+    on E: EArgumentException do
+    begin
+      lblAviso.Caption := E.Message;
+      Exit;
+    end;
     on E: Exception do
       TMensajes.Error('No se pudo registrar la recepci' + #243 + 'n: ' + E.Message, 'Transferencias');
   end;
+  lblAviso.Caption := '';
+  Recargar;
+end;
+procedure TfrmTransferenciasNuevo.btnCajaRecibidaClick(Sender: TObject);
+begin
+  ActuarEnCaja(accRecibida);
+end;
+
+procedure TfrmTransferenciasNuevo.btnCajaCuarentenaClick(Sender: TObject);
+begin
+  ActuarEnCaja(accCuarentena);
+end;
+
+procedure TfrmTransferenciasNuevo.btnCajaFaltanteClick(Sender: TObject);
+begin
+  ActuarEnCaja(accFaltante);
+end;
+
+procedure TfrmTransferenciasNuevo.btnResolverCuarentenaClick(Sender: TObject);
+begin
+  ActuarEnCaja(accResolver);
+end;
+
+procedure TfrmTransferenciasNuevo.btnGuardarUbicacionClick(Sender: TObject);
+begin
+  ActuarEnCaja(accUbicar);
+end;
+
+procedure TfrmTransferenciasNuevo.btnCerrarTransfClick(Sender: TObject);
+begin
+  if not TMensajes.Confirmar('Se finaliza la transferencia: los documentos de las cajas ' +
+    'recibidas pasan al archivo central y quedan solo de lectura en el archivo de origen. ' +
+    'No se puede deshacer. ' + #191 + 'Continuar?', 'Finalizar la transferencia') then
+    Exit;
+  try
+    if not CerrarTransferencia(FConn, FActual.IdProceso, FUsuario) then
+      TMensajes.Advertencia('La transferencia ya no est' + #225 + ' en el paso de ubicaci' + #243 +
+        'n.', 'Transferencias');
+  except
+    on E: EArgumentException do
+    begin
+      lblAviso.Caption := E.Message;
+      Exit;
+    end;
+    on E: Exception do
+      TMensajes.Error('No se pudo finalizar la transferencia: ' + E.Message, 'Transferencias');
+  end;
+  lblAviso.Caption := '';
   Recargar;
 end;
 
-procedure TfrmTransferenciasNuevo.btnRegistrarUbicacionClick(Sender: TObject);
+procedure TfrmTransferenciasNuevo.tvRecepFocusedRecordChanged(
+  Sender: TcxCustomGridTableView; APrevFocusedRecord, AFocusedRecord: TcxCustomGridRecord;
+  ANewItemRecordFocusingChanged: Boolean);
 begin
-  // provisional hasta la tarea 6 del plan F3: la ubicacion pasa a ser por caja
-  TMensajes.Informacion('La ubicaci' + #243 + 'n por caja se registra en la nueva pantalla ' +
-    '(en construcci' + #243 + 'n).', 'Transferencias');
+  MostrarCajaElegida;
 end;
 
+procedure TfrmTransferenciasNuevo.MostrarArchivosCentrales(
+  const Lista: TArray<TArchivoCentral>);
+var
+  I, Sel: Integer;
+  Previo: Integer;
+begin
+  Previo := 0;
+  if (cmbDestino.ItemIndex >= 0) and (cmbDestino.ItemIndex <= High(FCentrales)) then
+    Previo := FCentrales[cmbDestino.ItemIndex].Cod;
+  FCentrales := Lista;
+  Sel := -1;
+  cmbDestino.Properties.Items.Clear;
+  for I := 0 to High(Lista) do
+  begin
+    cmbDestino.Properties.Items.Add(Lista[I].Nombre);
+    if Lista[I].Cod = Previo then
+      Sel := I;
+  end;
+  if (Sel < 0) and (Length(Lista) = 1) then
+    Sel := 0;
+  cmbDestino.ItemIndex := Sel;
+  if Length(Lista) = 0 then
+    cmbDestino.Properties.Items.Add('(no hay archivos de tipo Central)');
+end;
+
+procedure TfrmTransferenciasNuevo.MostrarCajasRecepcion(const Cajas: TArray<TCajaFila>);
+var
+  I, Sel: Integer;
+  C: TCajaFila;
+  DC: TcxGridDataController;
+begin
+  FCajasRec := Cajas;
+  DC := tvRecep.DataController;
+  tvRecep.BeginUpdate;
+  try
+    DC.RecordCount := Length(Cajas);
+    for I := 0 to High(Cajas) do
+    begin
+      C := Cajas[I];
+      DC.Values[I, colRecCaja.Index] := IntToStr(C.Caja);
+      DC.Values[I, colRecDesc.Index] := C.Descripcion;
+      DC.Values[I, colRecUnid.Index] := IntToStr(C.Unidades);
+      DC.Values[I, colRecEstado.Index] := TextoEstadoCaja(C.Estado);
+      DC.Values[I, colRecConserv.Index] := C.Conservacion;
+      DC.Values[I, colRecUbic.Index] := TextoUbicacionCaja(C.Deposito, C.Gaveta, C.Posicion);
+    end;
+  finally
+    tvRecep.EndUpdate;
+  end;
+  // vuelve a la caja que estaba marcada
+  Sel := 0;
+  for I := 0 to High(Cajas) do
+    if Cajas[I].Caja = FCajaElegida then
+      Sel := I;
+  if Length(Cajas) > 0 then
+    DC.FocusedRecordIndex := Sel;
+  MostrarCajaElegida;
+end;
+
+function TfrmTransferenciasNuevo.CajaElegida(out C: TCajaFila): Boolean;
+var
+  I: Integer;
+begin
+  I := tvRecep.DataController.FocusedRecordIndex;
+  Result := (I >= 0) and (I <= High(FCajasRec));
+  if Result then
+    C := FCajasRec[I];
+end;
+
+{ Pasa a los campos los datos de la caja marcada y deja activo solo lo que se puede
+  hacer con ella en el paso en que esta la transferencia. }
+procedure TfrmTransferenciasNuevo.MostrarCajaElegida;
+var
+  C: TCajaFila;
+  Hay: Boolean;
+begin
+  Hay := CajaElegida(C);
+  if Hay then
+  begin
+    FCajaElegida := C.Caja;
+    edtConservacion.Text := C.Conservacion;
+    edtDeposito.Text := C.Deposito;
+    edtGaveta.Text := C.Gaveta;
+    edtPosicion.Text := C.Posicion;
+  end
+  else
+  begin
+    edtConservacion.Text := '';
+    edtDeposito.Text := '';
+    edtGaveta.Text := '';
+    edtPosicion.Text := '';
+  end;
+  lblConserv.Enabled := FEnRecepcion and Hay;
+  edtConservacion.Enabled := FEnRecepcion and Hay;
+  btnCajaRecibida.Enabled := FEnRecepcion and Hay and (C.Estado <> ecFaltante);
+  btnCajaCuarentena.Enabled := FEnRecepcion and Hay and (C.Estado <> ecFaltante);
+  btnCajaFaltante.Enabled := FEnRecepcion and Hay and (C.Estado <> ecFaltante);
+  btnResolverCuarentena.Enabled := FEnRecepcion and Hay and (C.Estado = ecCuarentena);
+  edtDeposito.Enabled := FEnUbicacion and Hay and (C.Estado = ecRecibida);
+  edtGaveta.Enabled := edtDeposito.Enabled;
+  edtPosicion.Enabled := edtDeposito.Enabled;
+  btnGuardarUbicacion.Enabled := edtDeposito.Enabled;
+  btnGuardarUbicacion.Visible := FEnUbicacion;
+end;
+
+procedure TfrmTransferenciasNuevo.ActuarEnCaja(Accion: TAccionCaja);
+var
+  C: TCajaFila;
+begin
+  if not CajaElegida(C) then
+  begin
+    lblAviso.Caption := 'Marque primero una caja de la lista.';
+    Exit;
+  end;
+  try
+    case Accion of
+      accRecibida:
+        MarcarCajaRecibida(FConn, FActual.IdProceso, C.Caja, edtConservacion.Text);
+      accCuarentena:
+        MarcarCajaCuarentena(FConn, FActual.IdProceso, C.Caja, edtConservacion.Text);
+      accResolver:
+        ResolverCuarentena(FConn, FActual.IdProceso, C.Caja);
+      accUbicar:
+        RegistrarUbicacionCaja(FConn, FActual.IdProceso, C.Caja, edtDeposito.Text,
+          edtGaveta.Text, edtPosicion.Text);
+      accFaltante:
+        begin
+          if not TMensajes.Confirmar('La caja ' + IntToStr(C.Caja) + ' sale de la ' +
+            'transferencia: sus documentos se quedan en el archivo de origen y se abre una ' +
+            'incidencia con plazo de reclamaci' + #243 + 'n. No se puede deshacer. ' + #191 +
+            'Continuar?', 'Caja que no lleg' + #243) then
+            Exit;
+          MarcarCajaFaltante(FConn, FActual.IdProceso, C.Caja, FUsuario,
+            edtConservacion.Text, Date);
+        end;
+    end;
+  except
+    on E: EArgumentException do
+    begin
+      lblAviso.Caption := E.Message;
+      Exit;
+    end;
+    on E: Exception do
+    begin
+      TMensajes.Error('No se pudo registrar: ' + E.Message, 'Transferencias');
+      Exit;
+    end;
+  end;
+  lblAviso.Caption := '';
+  Recargar;
+end;
 procedure TfrmTransferenciasNuevo.btnEliminarTransfClick(Sender: TObject);
 begin
   if not TMensajes.Confirmar(#191 + 'Eliminar la transferencia ' + FActual.Numero +

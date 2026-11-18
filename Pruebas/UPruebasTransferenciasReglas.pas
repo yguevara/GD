@@ -45,6 +45,10 @@ type
     [Test]
     procedure ReclamacionVenceTreintaDiasDespues;
     [Test]
+    procedure TextoDelEstadoDeCajaEsParaPersonas;
+    [Test]
+    procedure TextoDeUbicacionVaciaSinDatosYCompletaConTodos;
+    [Test]
     procedure CronogramaAtrasadaYProgramada;
     [Test]
     procedure CronogramaEnTramiteYRealizada;
@@ -206,6 +210,23 @@ begin
   Assert.AreEqual(Ord(ecCuarentena), Ord(EstadoCajaDesdeCodigo('Q')));
   Assert.AreEqual(Ord(ecPendiente), Ord(EstadoCajaDesdeCodigo('x')));
   Assert.AreEqual(Ord(ecPendiente), Ord(EstadoCajaDesdeCodigo('')));
+end;
+
+procedure TPruebasTransferenciasReglas.TextoDelEstadoDeCajaEsParaPersonas;
+begin
+  Assert.AreEqual('Pendiente', TextoEstadoCaja(ecPendiente));
+  Assert.AreEqual('Recibida', TextoEstadoCaja(ecRecibida));
+  Assert.AreEqual('En cuarentena', TextoEstadoCaja(ecCuarentena));
+  Assert.AreEqual('Faltante', TextoEstadoCaja(ecFaltante));
+end;
+
+procedure TPruebasTransferenciasReglas.TextoDeUbicacionVaciaSinDatosYCompletaConTodos;
+begin
+  Assert.AreEqual('', TextoUbicacionCaja('', '', ''));
+  Assert.AreEqual('', TextoUbicacionCaja(' ', '0', ''));
+  Assert.AreEqual('Dep. 01 / Gav. 02 / Pos. 3', TextoUbicacionCaja('01', '02', '3'));
+  Assert.AreEqual('Dep. 01', TextoUbicacionCaja('01', '', ''), 'solo lo que hay');
+  Assert.AreEqual('Dep. 01 / Pos. 3', TextoUbicacionCaja(' 01 ', '0', '3'));
 end;
 
 procedure TPruebasTransferenciasReglas.ReclamacionVenceTreintaDiasDespues;

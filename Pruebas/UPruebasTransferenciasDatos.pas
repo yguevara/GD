@@ -86,6 +86,8 @@ type
     [Test]
     procedure MarcarCajaFueraDelPasoCincoLanza;
     [Test]
+    procedure UnaCajaFaltanteNoSePuedeRecibirNiMarcarDeNuevo;
+    [Test]
     procedure RecepcionRechazaDestinoInexistenteCajasPendientesYCuarentena;
     [Test]
     procedure RecepcionConTodoDecididoAvanzaYGuardaDestino;
@@ -653,6 +655,30 @@ begin
     ' AND Caja = 2 AND Activa = 1')), 'la unidad faltante sale de la transferencia');
   Assert.AreEqual(1, Integer(Escalar('SELECT COUNT(*) FROM prc_bloqueo WHERE IdProceso = ' + Id)),
     'solo queda retenida la unidad de la caja 1');
+end;
+
+procedure TPruebasTransferenciasDatosBD.UnaCajaFaltanteNoSePuedeRecibirNiMarcarDeNuevo;
+var
+  R: TProcesoRef;
+  Id: string;
+begin
+  if not Conectar then Exit;
+  R := TransferenciaEnPaso5(2, True);
+  Id := IntToStr(R.IdProceso);
+  MarcarCajaFaltante(FConn, R.IdProceso, 2, USUARIO, 'Falta', Date);
+  Assert.WillRaise(
+    procedure
+    begin
+      MarcarCajaRecibida(FConn, R.IdProceso, 2, '');
+    end, EArgumentException);
+  Assert.WillRaise(
+    procedure
+    begin
+      MarcarCajaFaltante(FConn, R.IdProceso, 2, USUARIO, 'Otra vez', Date);
+    end, EArgumentException);
+  Assert.AreEqual(1, Integer(Escalar('SELECT COUNT(*) FROM prc_incidencia WHERE IdProceso = ' + Id)),
+    'una sola incidencia');
+  Assert.AreEqual(Ord(ecFaltante), Ord(CajasDeTransferencia(FConn, R.IdProceso)[1].Estado));
 end;
 
 procedure TPruebasTransferenciasDatosBD.MarcarCajaFueraDelPasoCincoLanza;
