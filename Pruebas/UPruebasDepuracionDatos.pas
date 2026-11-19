@@ -105,6 +105,10 @@ type
     procedure AgregarGrupoRechazaOtroNodoQueElDeLaDepuracion;
     [Test]
     procedure ListarDepuracionesTraeElTextoDeLaAutorizacion;
+    [Test]
+    procedure LaAutorizacionNoSeCambiaFueraDeLosPasosEditables;
+    [Test]
+    procedure ListarDepuracionesIncluyeLasEnCursoDeAniosAnteriores;
   end;
 
 implementation
@@ -497,6 +501,9 @@ begin
   Assert.AreEqual(Nodo.Id, L[0].Nodo.Id);
   L := ListarDepuraciones(FConn, [Nodo], 1992, 1);
   Assert.AreEqual(1, Length(L), 'respeta el limite');
+  // las de otro ano solo se ven si siguen en curso: se cancelan las de 1992
+  Assert.IsTrue(CancelarProceso(FConn, A.IdProceso, USUARIO, 'prueba'));
+  Assert.IsTrue(CancelarProceso(FConn, B.IdProceso, USUARIO, 'prueba'));
   L := ListarDepuraciones(FConn, [Nodo], 1993, 0);
   Assert.AreEqual(1, Length(L));
   Assert.AreEqual(C.IdProceso, L[0].IdProceso);
@@ -986,6 +993,59 @@ begin
   GuardarAutorizacion(FConn, R.IdProceso, A, USUARIO);
   L := ListarDepuraciones(FConn, [Nodo], 1994, 0);
   Assert.AreEqual('Comisi'#243'n Mun. - Acta 14 - Acuerdo 9', L[0].Autorizacion);
+end;
+
+procedure TPruebasDepuracionDatosBD.LaAutorizacionNoSeCambiaFueraDeLosPasosEditables;
+var
+  Nodo: TClaveNodo;
+  R: TProcesoRef;
+  A: TAutorizacion;
+begin
+  if not Conectar then Exit;
+  Nodo := SembrarSerieDepurable(FConn, COD, 5, 1, ArchivoCentralApoyo(FConn));
+  R := CrearDepuracion(FConn, Nodo, USUARIO, 1994);
+  A.Organo := ocProvincial;
+  A.NumActa := '14';
+  A.NumAcuerdo := '9';
+  A.Fecha := Date - 1;
+  GuardarAutorizacion(FConn, R.IdProceso, A, USUARIO);
+  // ya en ejecucion (paso 4): no se reescribe
+  FConn.ExecSQL('UPDATE prc_proceso SET Paso = 4 WHERE IdProceso = :i', [R.IdProceso]);
+  A.NumActa := '99';
+  Assert.WillRaise(
+    procedure
+    begin
+      GuardarAutorizacion(FConn, R.IdProceso, A, USUARIO);
+    end, EAutorizacionInvalida);
+  // cancelada: tampoco
+  FConn.ExecSQL('UPDATE prc_proceso SET Paso = 2 WHERE IdProceso = :i', [R.IdProceso]);
+  Assert.IsTrue(CancelarProceso(FConn, R.IdProceso, USUARIO, 'prueba'));
+  Assert.WillRaise(
+    procedure
+    begin
+      GuardarAutorizacion(FConn, R.IdProceso, A, USUARIO);
+    end, EAutorizacionInvalida);
+  Assert.AreEqual('14', VarToStr(FConn.ExecSQLScalar(
+    'SELECT NumActa FROM prc_autorizacion WHERE IdProceso = :i', [R.IdProceso])));
+end;
+
+procedure TPruebasDepuracionDatosBD.ListarDepuracionesIncluyeLasEnCursoDeAniosAnteriores;
+var
+  Nodo: TClaveNodo;
+  R: TProcesoRef;
+  L: TArray<TDepuracionFila>;
+begin
+  if not Conectar then Exit;
+  Nodo := SembrarSerieDepurable(FConn, COD, 5, 1, ArchivoCentralApoyo(FConn));
+  R := CrearDepuracion(FConn, Nodo, USUARIO, 1993);
+  // se pide otro ano: la que sigue en curso se ve igual (si no, quedaria bloqueada sin salida)
+  L := ListarDepuraciones(FConn, [Nodo], 1994, 0);
+  Assert.AreEqual(1, Length(L));
+  Assert.AreEqual(R.IdProceso, L[0].IdProceso);
+  // cancelada de un ano anterior: ya no
+  Assert.IsTrue(CancelarProceso(FConn, R.IdProceso, USUARIO, 'prueba'));
+  L := ListarDepuraciones(FConn, [Nodo], 1994, 0);
+  Assert.AreEqual(0, Length(L));
 end;
 
 initialization

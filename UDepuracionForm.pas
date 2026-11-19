@@ -246,6 +246,7 @@ type
     FTestigos: TArray<TTestigoFila>;
     FChecksOk: Boolean;
     procedure RefrescarFaltantes;
+    function PuedeActuarAqui: Boolean;
     procedure ActualizarBotonEjecutar;
     procedure SetPuedeActuar(Valor: Boolean);
     procedure SetAlImprimirActa(const Valor: TImprimirDepuracion);
@@ -363,6 +364,15 @@ begin
   FAlcance := Alcance;
   FUsuario := Usuario;
   Recargar;
+end;
+
+{ El EGD actua solo en SU nodo: la ficha abierta debe ser de uno de los nodos de trabajo
+  (ve los de sus descendientes, pero no los cambia). Sin nodos fijados (arnes de capturas),
+  vale el permiso general. }
+function TfrmDepuracionNueva.PuedeActuarAqui: Boolean;
+begin
+  Result := FPuedeActuar and ((Length(FOpciones) = 0) or
+    (IndiceDeNodo(FOpciones, FActual.Nodo) >= 0));
 end;
 
 procedure TfrmDepuracionNueva.SetPuedeActuar(Valor: Boolean);
@@ -932,12 +942,21 @@ begin
     edtActa.Text := A.NumActa;
     edtAcuerdo.Text := A.NumAcuerdo;
     if A.Fecha <> 0 then
-      dteAutorizacion.Date := A.Fecha;
+      dteAutorizacion.Date := A.Fecha
+    else
+      dteAutorizacion.Clear;
     lblAutRegistrada.Caption := 'Autorizaci' + #243 + 'n registrada: ' +
       TextoAutorizacionCorto(A) + ' (' + FormatDateTime('dd/mm/yyyy', A.Fecha) + ').';
   end
   else
+  begin
+    // sin autorizacion: nada de lo que quedo de otra depuracion
     lblAutRegistrada.Caption := '';
+    cboOrgano.ItemIndex := -1;
+    edtActa.Clear;
+    edtAcuerdo.Clear;
+    dteAutorizacion.Clear;
+  end;
 end;
 
 procedure TfrmDepuracionNueva.MostrarFaltan(const Textos: TArray<string>);
@@ -1061,7 +1080,7 @@ procedure TfrmDepuracionNueva.btnGuardarActaClick(Sender: TObject);
 var
   A: TActaDepuracion;
 begin
-  if not FPuedeActuar then
+  if not PuedeActuarAqui then
   begin
     AvisarSinPermiso;
     Exit;
@@ -1111,7 +1130,7 @@ procedure TfrmDepuracionNueva.btnAgregarTestigoClick(Sender: TObject);
 var
   T: TTestigoDatos;
 begin
-  if not FPuedeActuar then
+  if not PuedeActuarAqui then
   begin
     AvisarSinPermiso;
     Exit;
@@ -1149,7 +1168,7 @@ procedure TfrmDepuracionNueva.btnQuitarTestigoClick(Sender: TObject);
 var
   I: Integer;
 begin
-  if not FPuedeActuar then
+  if not PuedeActuarAqui then
   begin
     AvisarSinPermiso;
     Exit;
@@ -1180,7 +1199,7 @@ procedure TfrmDepuracionNueva.btnMarcarFirmaClick(Sender: TObject);
 var
   I: Integer;
 begin
-  if not FPuedeActuar then
+  if not PuedeActuarAqui then
   begin
     AvisarSinPermiso;
     Exit;
@@ -1208,7 +1227,7 @@ var
   I, Idx, Total, Agregados: Integer;
   Motivo, Problemas: string;
 begin
-  if not FPuedeActuar then
+  if not PuedeActuarAqui then
   begin
     AvisarSinPermiso;
     Exit;
@@ -1251,7 +1270,7 @@ var
   I: Integer;
   G: TGrupoDepuracion;
 begin
-  if not FPuedeActuar then
+  if not PuedeActuarAqui then
   begin
     AvisarSinPermiso;
     Exit;
@@ -1279,12 +1298,18 @@ procedure TfrmDepuracionNueva.btnRegistrarAutClick(Sender: TObject);
 var
   A: TAutorizacion;
 begin
-  if not FPuedeActuar then
+  if not PuedeActuarAqui then
   begin
     AvisarSinPermiso;
     Exit;
   end;
   lblAutError.Caption := '';
+  if cboOrgano.ItemIndex < 0 then
+  begin
+    lblAutError.Caption := 'Elija el ' + #243 + 'rgano de la Comisi' + #243 + 'n.';
+    lblAviso.Caption := lblAutError.Caption;
+    Exit;
+  end;
   case cboOrgano.ItemIndex of
     0: A.Organo := ocNacional;
     1: A.Organo := ocProvincial;
@@ -1321,7 +1346,7 @@ procedure TfrmDepuracionNueva.btnAvanzarClick(Sender: TObject);
 var
   Faltan: TArray<string>;
 begin
-  if not FPuedeActuar then
+  if not PuedeActuarAqui then
   begin
     AvisarSinPermiso;
     Exit;
@@ -1402,7 +1427,7 @@ procedure TfrmDepuracionNueva.btnEjecutarClick(Sender: TObject);
 var
   Hecho: Boolean;
 begin
-  if not FPuedeActuar then
+  if not PuedeActuarAqui then
   begin
     AvisarSinPermiso;
     Exit;
@@ -1436,7 +1461,7 @@ end;
 
 procedure TfrmDepuracionNueva.btnCerrarDepClick(Sender: TObject);
 begin
-  if not FPuedeActuar then
+  if not PuedeActuarAqui then
   begin
     AvisarSinPermiso;
     Exit;
@@ -1458,7 +1483,7 @@ end;
 
 procedure TfrmDepuracionNueva.btnCancelarDepClick(Sender: TObject);
 begin
-  if not FPuedeActuar then
+  if not PuedeActuarAqui then
   begin
     AvisarSinPermiso;
     Exit;
@@ -1474,7 +1499,7 @@ end;
 
 procedure TfrmDepuracionNueva.btnEliminarDepClick(Sender: TObject);
 begin
-  if not FPuedeActuar then
+  if not PuedeActuarAqui then
   begin
     AvisarSinPermiso;
     Exit;
@@ -1509,14 +1534,14 @@ begin
   pnlPaso3.Visible := (Fila.Paso = 3);
   pnlPaso4.Visible := (Fila.Paso = 4);
   pnlPaso5.Visible := (Fila.Paso >= 5);
-  Edita := (Fila.Proceso = epEnCurso) and FPuedeActuar;
+  Edita := (Fila.Proceso = epEnCurso) and PuedeActuarAqui;
   btnAvanzar.Visible := Edita and (Fila.Paso <= 3);
   if Fila.Paso = 3 then
     btnAvanzar.Caption := 'Pasar a ejecuci' + #243 + 'n'
   else
     btnAvanzar.Caption := 'Pasar al siguiente paso';
   btnCancelarDep.Visible := Edita and PuedeCancelar(tpDepuracion, Fila.Paso);
-  btnEliminarDep.Visible := FPuedeActuar and PuedeEliminar(tpDepuracion, Fila.Paso,
+  btnEliminarDep.Visible := PuedeActuarAqui and PuedeEliminar(tpDepuracion, Fila.Paso,
     Fila.Proceso);
   lblAviso.Caption := '';
   if Fila.Proceso = epCancelado then

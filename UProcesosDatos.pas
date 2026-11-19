@@ -447,6 +447,10 @@ var
 begin
   if not LeerProceso(Conn, IdProceso, Tipo, Paso, Estado) then
     raise EArgumentException.Create('El proceso no existe: ' + IntToStr(IdProceso));
+  // cancelado, finalizado o (depuracion) ya en ejecucion: la autorizacion queda como esta
+  if (Estado <> 'C') or ((Tipo = tpDepuracion) and (Paso > 3)) then
+    raise EAutorizacionInvalida.Create('La autorizacion ya no se puede cambiar: el proceso ' +
+      'esta cancelado o ya paso de la autorizacion.');
   Errores := ValidarAutorizacion(Tipo, A, Date);
   if Length(Errores) > 0 then
     raise EAutorizacionInvalida.Create(Errores[0].Mensaje);

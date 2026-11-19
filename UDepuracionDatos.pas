@@ -94,7 +94,8 @@ function GruposDeLaDepuracion(Conn: TFDConnection;
 { Unidades de la depuracion por ano de la fecha del documento, ascendente. }
 function DesglosePorAnio(Conn: TFDConnection; IdProceso: Integer): TArray<TAnioCantidad>;
 
-{ Depuraciones de los nodos en el ano, la mas reciente primero (Limite <= 0 usa
+{ Depuraciones de los nodos en el ano (y las que siguen en curso de anos anteriores,
+  para que no queden retenidas sin salida), la mas reciente primero (Limite <= 0 usa
   un tope por defecto). }
 function ListarDepuraciones(Conn: TFDConnection; const Nodos: TArray<TClaveNodo>;
   Anio, Limite: Integer): TArray<TDepuracionFila>;
@@ -657,7 +658,7 @@ begin
           'a.Organo, a.NumActa, a.NumAcuerdo ' +
           'FROM ((prc_proceso p INNER JOIN prc_depuracion d ON d.IdProceso = p.IdProceso) ' +
           'LEFT JOIN prc_autorizacion a ON a.IdProceso = p.IdProceso) ' +
-          'WHERE p.Tipo = ''D'' AND p.Anio = :a AND (' +
+          'WHERE p.Tipo = ''D'' AND (p.Anio = :a OR p.Estado = ''C'') AND (' +
           CondicionNodos('p.IdEstructura', 'p.IdNodo', Desde, Hasta) + ') ' +
           'ORDER BY p.Consecutivo DESC';
         Q.ParamByName('a').AsInteger := Anio;
