@@ -353,6 +353,7 @@ object frmDepuracionNueva: TfrmDepuracionNueva
         Height = 36
         Caption = 'Cancelar depuraci'#243'n'
         TabOrder = 1
+        OnClick = btnCancelarDepClick
       end
       object btnEliminarDep: TcxButton
         Left = 224
@@ -361,6 +362,7 @@ object frmDepuracionNueva: TfrmDepuracionNueva
         Height = 36
         Caption = 'Eliminar depuraci'#243'n'
         TabOrder = 2
+        OnClick = btnEliminarDepClick
       end
     end
     object pnlAviso: TPanel
@@ -1326,19 +1328,133 @@ object frmDepuracionNueva: TfrmDepuracionNueva
         ShowCaption = False
         TabOrder = 3
         Visible = False
-        object lblP4: TLabel
+        object lblE4Titulo: TLabel
           Left = 20
-          Top = 16
-          Width = 1240
-          Height = 40
-          AutoSize = False
-          WordWrap = True
+          Top = 14
+          Width = 3
+          Height = 15
+          Caption = 'SE MARCAR'#193'N COMO ELIMINADOS'
           Font.Charset = DEFAULT_CHARSET
-          Font.Color = 1581355
-          Font.Height = -13
+          Font.Color = 5924725
+          Font.Height = -11
           Font.Name = 'Segoe UI'
           Font.Style = []
           ParentFont = False
+        end
+        object lblE4Resumen: TLabel
+          Left = 20
+          Top = 34
+          Width = 1200
+          Height = 40
+          Caption = ''
+        AutoSize = False
+        WordWrap = True
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = 1581355
+          Font.Height = -14
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = []
+          ParentFont = False
+        end
+        object lblE4ChkT: TLabel
+          Left = 20
+          Top = 90
+          Width = 3
+          Height = 15
+          Caption = 'COMPROBACIONES ANTES DE EJECUTAR'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = 5924725
+          Font.Height = -11
+          Font.Name = 'Segoe UI'
+          Font.Style = []
+          ParentFont = False
+        end
+        object lblChk1: TLabel
+          Left = 20
+          Top = 112
+          Width = 1200
+          Height = 20
+          Caption = ''
+        AutoSize = False
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = 1581355
+          Font.Height = -12
+          Font.Name = 'Segoe UI'
+          Font.Style = []
+          ParentFont = False
+        end
+        object lblChk2: TLabel
+          Left = 20
+          Top = 138
+          Width = 1200
+          Height = 20
+          Caption = ''
+        AutoSize = False
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = 1581355
+          Font.Height = -12
+          Font.Name = 'Segoe UI'
+          Font.Style = []
+          ParentFont = False
+        end
+        object lblChk3: TLabel
+          Left = 20
+          Top = 164
+          Width = 1200
+          Height = 20
+          Caption = ''
+        AutoSize = False
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = 1581355
+          Font.Height = -12
+          Font.Name = 'Segoe UI'
+          Font.Style = []
+          ParentFont = False
+        end
+        object lblChk4: TLabel
+          Left = 20
+          Top = 190
+          Width = 1200
+          Height = 20
+          Caption = ''
+        AutoSize = False
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = 1581355
+          Font.Height = -12
+          Font.Name = 'Segoe UI'
+          Font.Style = []
+          ParentFont = False
+        end
+        object lblE4Advert: TLabel
+          Left = 20
+          Top = 236
+          Width = 700
+          Height = 20
+          Caption = 'Esta acci'#243'n no se puede deshacer. Escriba ELIMINAR para confirmar.'
+        AutoSize = False
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = 1581355
+          Font.Height = -13
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = []
+          ParentFont = False
+        end
+        object edtConfirmacion: TcxTextEdit
+          Left = 20
+          Top = 264
+          Properties.OnChange = edtConfirmacionPropertiesChange
+          TabOrder = 0
+          Width = 240
+        end
+        object btnEjecutar: TcxButton
+          Left = 280
+          Top = 258
+          Width = 256
+          Height = 36
+          Caption = 'Ejecutar eliminaci'#243'n'
+          TabOrder = 1
+          Enabled = False
+          OnClick = btnEjecutarClick
         end
       end
       object pnlPaso5: TPanel
@@ -1353,19 +1469,54 @@ object frmDepuracionNueva: TfrmDepuracionNueva
         ShowCaption = False
         TabOrder = 4
         Visible = False
-        object lblP5: TLabel
+        object lblE5Texto: TLabel
           Left = 20
-          Top = 16
-          Width = 1240
-          Height = 40
-          AutoSize = False
-          WordWrap = True
+          Top = 20
+          Width = 1200
+          Height = 60
+          Caption = ''
+        AutoSize = False
+        WordWrap = True
           Font.Charset = DEFAULT_CHARSET
           Font.Color = 1581355
-          Font.Height = -13
+          Font.Height = -14
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = []
+          ParentFont = False
+        end
+        object lblE5Ayuda: TLabel
+          Left = 20
+          Top = 92
+          Width = 1200
+          Height = 40
+          Caption = ''
+        AutoSize = False
+        WordWrap = True
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = 5924725
+          Font.Height = -12
           Font.Name = 'Segoe UI'
           Font.Style = []
           ParentFont = False
+        end
+        object btnImprimirActa5: TcxButton
+          Left = 20
+          Top = 140
+          Width = 160
+          Height = 36
+          Caption = 'Imprimir acta'
+          TabOrder = 0
+          Visible = False
+          OnClick = btnImprimirActaClick
+        end
+        object btnCerrarDep: TcxButton
+          Left = 200
+          Top = 140
+          Width = 256
+          Height = 36
+          Caption = 'Cerrar la depuraci'#243'n'
+          TabOrder = 1
+          OnClick = btnCerrarDepClick
         end
       end
     end

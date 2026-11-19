@@ -39,6 +39,12 @@ type
   { Pide imprimir el acta de una depuracion. }
   TImprimirDepuracion = reference to procedure(IdProceso: Integer);
 
+  { Una comprobacion del paso de ejecucion y si se cumple. }
+  TCheckEjecucion = record
+    Texto: string;
+    Cumplido: Boolean;
+  end;
+
   TfrmDepuracionNueva = class(TForm, IPantallaProceso)
     pnlLista: TPanel;
     pnlCabecera: TPanel;
@@ -168,9 +174,21 @@ type
     lblA3Req: TLabel;
     lblA3Falta: TLabel;
     pnlPaso4: TPanel;
-    lblP4: TLabel;
+    lblE4Titulo: TLabel;
+    lblE4Resumen: TLabel;
+    lblE4ChkT: TLabel;
+    lblChk1: TLabel;
+    lblChk2: TLabel;
+    lblChk3: TLabel;
+    lblChk4: TLabel;
+    lblE4Advert: TLabel;
+    edtConfirmacion: TcxTextEdit;
+    btnEjecutar: TcxButton;
     pnlPaso5: TPanel;
-    lblP5: TLabel;
+    lblE5Texto: TLabel;
+    lblE5Ayuda: TLabel;
+    btnImprimirActa5: TcxButton;
+    btnCerrarDep: TcxButton;
     strEstilos: TcxStyleRepository;
     stContenido: TcxStyle;
     stContenidoPeq: TcxStyle;
@@ -200,6 +218,11 @@ type
     procedure btnAgregarTestigoClick(Sender: TObject);
     procedure btnQuitarTestigoClick(Sender: TObject);
     procedure btnMarcarFirmaClick(Sender: TObject);
+    procedure edtConfirmacionPropertiesChange(Sender: TObject);
+    procedure btnEjecutarClick(Sender: TObject);
+    procedure btnCerrarDepClick(Sender: TObject);
+    procedure btnCancelarDepClick(Sender: TObject);
+    procedure btnEliminarDepClick(Sender: TObject);
   private
     FConn: TFDConnection;
     FNodos: TArray<TClaveNodo>;
@@ -221,7 +244,9 @@ type
     FPropuesta: TArray<TGrupoDepuracion>;
     FAgregados: TArray<TGrupoDepuracion>;
     FTestigos: TArray<TTestigoFila>;
+    FChecksOk: Boolean;
     procedure RefrescarFaltantes;
+    procedure ActualizarBotonEjecutar;
     procedure SetPuedeActuar(Valor: Boolean);
     procedure SetAlImprimirActa(const Valor: TImprimirDepuracion);
     procedure AplicarTema;
@@ -262,6 +287,10 @@ type
     procedure MostrarActa(const A: TActaDepuracion; const Grupos: TArray<TGrupoDepuracion>;
       const Desglose: TArray<TAnioCantidad>);
     procedure MostrarTestigos(const T: TArray<TTestigoFila>);
+    { Paso 4: el resumen de lo que se elimina y las comprobaciones previas; el boton de
+      ejecutar solo se activa con todo cumplido y la palabra ELIMINAR escrita. }
+    procedure MostrarEjecucion(const Fila: TDepuracionFila;
+      const Checks: TArray<TCheckEjecucion>);
     { IPantallaProceso }
     procedure Embeber(Host: TWinControl);
     function PuedeSalir: Boolean;
@@ -374,6 +403,7 @@ procedure TfrmDepuracionNueva.SetAlImprimirActa(const Valor: TImprimirDepuracion
 begin
   FAlImprimirActa := Valor;
   btnImprimirActa.Visible := Assigned(Valor);
+  btnImprimirActa5.Visible := Assigned(Valor);
 end;
 
 { ---------------------------------- tema --------------------------------- }
@@ -385,6 +415,8 @@ begin
   B.Font.Name := 'Segoe UI';
   B.Font.Height := -12;
   B.Font.Style := [fsBold];
+  B.Colors.Disabled := FTema.Superficie2;
+  B.Colors.DisabledText := FTema.TextoSuave;
   if Primario then
   begin
     B.Colors.Default := FTema.Acento;
@@ -465,7 +497,7 @@ begin
       TcxGridTableView(C).OptionsView.GridLineColor := T.Linea
     else if C is TcxButton then
       ConfigurarBoton(TcxButton(C), (C = btnNueva) or (C = btnAvanzar) or
-        (C = btnAgregar) or (C = btnRegistrarAut) or (C = btnGuardarActa));
+        (C = btnAgregar) or (C = btnRegistrarAut) or (C = btnGuardarActa) or (C = btnEjecutar) or (C = btnCerrarDep));
   end;
   stContenido.Color := T.Superficie;
   stContenido.TextColor := T.Texto;
@@ -747,6 +779,11 @@ var
   Grupos: TArray<TGrupoDepuracion>;
   Motivo: string;
   Acta: TActaDepuracion;
+  Cond: TCondiciones;
+  FaltanAux: TArray<string>;
+  Testigos: TArray<TTestigoFila>;
+  Checks: TArray<TCheckEjecucion>;
+  Firmaron, I: Integer;
 begin
   if FConn = nil then
     Exit;
@@ -782,6 +819,39 @@ begin
             DesglosePorAnio(FConn, FActual.IdProceso));
           MostrarTestigos(TestigosDeLaDepuracion(FConn, FActual.IdProceso));
           RefrescarFaltantes;
+        end;
+      4:
+        begin
+          Cond := CondicionesCumplidasDepuracion(FConn, FActual.IdProceso, FaltanAux);
+          LeerActaDepuracion(FConn, FActual.IdProceso, Acta);
+          Testigos := TestigosDeLaDepuracion(FConn, FActual.IdProceso);
+          Firmaron := 0;
+          for I := 0 to High(Testigos) do
+            if Testigos[I].Firmo then
+              Inc(Firmaron);
+          SetLength(Checks, 4);
+          if FActual.Autorizacion <> '' then
+            Checks[0].Texto := 'Acuerdo de la Comisi' + #243 + 'n: ' + FActual.Autorizacion
+          else
+            Checks[0].Texto := 'Falta el acuerdo de la Comisi' + #243 + 'n';
+          Checks[0].Cumplido := cdAutorizado in Cond;
+          if cdMuestraDefinida in Cond then
+            Checks[1].Texto := 'Muestra definida: ' + Acta.MuestraDesc + ' (' +
+              Acta.MuestraDonde + ')'
+          else
+            Checks[1].Texto := 'Falta definir la muestra que se conserva';
+          Checks[1].Cumplido := cdMuestraDefinida in Cond;
+          Checks[2].Texto := IntToStr(Length(Testigos)) + ' testigos, ' + IntToStr(Firmaron) +
+            ' ya firmaron';
+          Checks[2].Cumplido := cdTestigosMinimos in Cond;
+          if cdSinBloqueos in Cond then
+            Checks[3].Texto := 'Ning' + #250 + 'n documento est' + #225 +
+              ' en pr' + #233 + 'stamo ni en otra transferencia'
+          else
+            Checks[3].Texto := 'Hay documentos retenidos por otro proceso o ya fuera del ' +
+              'archivo';
+          Checks[3].Cumplido := cdSinBloqueos in Cond;
+          MostrarEjecucion(FActual, Checks);
         end;
     end;
   except
@@ -1281,6 +1351,147 @@ begin
   end;
 end;
 
+procedure TfrmDepuracionNueva.ActualizarBotonEjecutar;
+begin
+  btnEjecutar.Enabled := FChecksOk and
+    ConfirmacionEscritaValida(VarToStr(edtConfirmacion.EditingValue));
+end;
+
+procedure TfrmDepuracionNueva.MostrarEjecucion(const Fila: TDepuracionFila;
+  const Checks: TArray<TCheckEjecucion>);
+var
+  Etiquetas: array[0..3] of TLabel;
+  I: Integer;
+begin
+  Etiquetas[0] := lblChk1;
+  Etiquetas[1] := lblChk2;
+  Etiquetas[2] := lblChk3;
+  Etiquetas[3] := lblChk4;
+  lblE4Resumen.Caption := 'Se marcar' + #225 + 'n como eliminados ' + IntToStr(Fila.Unidades) +
+    ' documentos: ' + Fila.Series + ' (' + RangoMesAnio(Fila.Desde, Fila.Hasta) + ')';
+  FChecksOk := Length(Checks) > 0;
+  for I := 0 to High(Etiquetas) do
+  begin
+    if I > High(Checks) then
+    begin
+      Etiquetas[I].Caption := '';
+      Continue;
+    end;
+    if Checks[I].Cumplido then
+    begin
+      Etiquetas[I].Caption := #10003 + '  ' + Checks[I].Texto;
+      Etiquetas[I].Font.Color := ColorOk(FTema);
+    end
+    else
+    begin
+      Etiquetas[I].Caption := #10007 + '  ' + Checks[I].Texto;
+      Etiquetas[I].Font.Color := ColorError(FTema);
+      FChecksOk := False;
+    end;
+  end;
+  edtConfirmacion.Clear;
+  ActualizarBotonEjecutar;
+end;
+
+procedure TfrmDepuracionNueva.edtConfirmacionPropertiesChange(Sender: TObject);
+begin
+  ActualizarBotonEjecutar;
+end;
+
+procedure TfrmDepuracionNueva.btnEjecutarClick(Sender: TObject);
+var
+  Hecho: Boolean;
+begin
+  if not FPuedeActuar then
+  begin
+    AvisarSinPermiso;
+    Exit;
+  end;
+  lblAviso.Caption := '';
+  if not TMensajes.Confirmar('Se eliminan ' + IntToStr(FActual.Unidades) + ' documentos de ' +
+    FActual.Series + '. Esta acci' + #243 + 'n no se puede deshacer. ' + #191 + 'Continuar?',
+    'Ejecutar la eliminaci' + #243 + 'n') then
+    Exit;
+  try
+    Hecho := EjecutarDepuracion(FConn, FActual.IdProceso, FUsuario, edtConfirmacion.Text,
+      Date);
+  except
+    on E: EArgumentException do
+    begin
+      lblAviso.Caption := E.Message;
+      Exit;
+    end;
+    on E: Exception do
+    begin
+      TMensajes.Error('No se pudo ejecutar la eliminaci' + #243 + 'n: ' + E.Message,
+        'Depuraci' + #243 + 'n');
+      Exit;
+    end;
+  end;
+  if not Hecho then
+    TMensajes.Advertencia('La depuraci' + #243 + 'n ya no est' + #225 + ' en este paso. ' +
+      'Se muestra su estado actual.', 'Depuraci' + #243 + 'n');
+  Recargar;
+end;
+
+procedure TfrmDepuracionNueva.btnCerrarDepClick(Sender: TObject);
+begin
+  if not FPuedeActuar then
+  begin
+    AvisarSinPermiso;
+    Exit;
+  end;
+  try
+    if not CerrarDepuracion(FConn, FActual.IdProceso, FUsuario) then
+      TMensajes.Advertencia('La depuraci' + #243 + 'n ya no est' + #225 + ' en este paso. ' +
+        'Se muestra su estado actual.', 'Depuraci' + #243 + 'n');
+  except
+    on E: Exception do
+    begin
+      TMensajes.Error('No se pudo cerrar la depuraci' + #243 + 'n: ' + E.Message,
+        'Depuraci' + #243 + 'n');
+      Exit;
+    end;
+  end;
+  Recargar;
+end;
+
+procedure TfrmDepuracionNueva.btnCancelarDepClick(Sender: TObject);
+begin
+  if not FPuedeActuar then
+  begin
+    AvisarSinPermiso;
+    Exit;
+  end;
+  if not TMensajes.Confirmar(#191 + 'Cancelar la depuraci' + #243 + 'n ' + FActual.Numero +
+    '? Los documentos quedar' + #225 + 'n libres.', 'Cancelar depuraci' + #243 + 'n') then
+    Exit;
+  if not CancelarProceso(FConn, FActual.IdProceso, FUsuario, 'Cancelada por el usuario') then
+    TMensajes.Advertencia('La depuraci' + #243 + 'n ya no se puede cancelar.',
+      'Depuraci' + #243 + 'n');
+  Recargar;
+end;
+
+procedure TfrmDepuracionNueva.btnEliminarDepClick(Sender: TObject);
+begin
+  if not FPuedeActuar then
+  begin
+    AvisarSinPermiso;
+    Exit;
+  end;
+  if not TMensajes.Confirmar(#191 + 'Eliminar la depuraci' + #243 + 'n ' + FActual.Numero +
+    '? Se borra por completo y no se puede deshacer; los documentos quedar' + #225 +
+    'n libres.', 'Eliminar depuraci' + #243 + 'n') then
+    Exit;
+  if not EliminarProceso(FConn, FActual.IdProceso) then
+    TMensajes.Advertencia('La depuraci' + #243 + 'n ya no se puede eliminar.',
+      'Depuraci' + #243 + 'n');
+  FIdSeleccionado := 0;
+  pnlDetalle.Visible := False;
+  pnlLista.Visible := True;
+  Recargar;
+end;
+
 { --------------------------------- ficha --------------------------------- }
 
 procedure TfrmDepuracionNueva.MostrarDetalle(const Fila: TDepuracionFila);
@@ -1308,6 +1519,24 @@ begin
   btnEliminarDep.Visible := FPuedeActuar and PuedeEliminar(tpDepuracion, Fila.Paso,
     Fila.Proceso);
   lblAviso.Caption := '';
+  if Fila.Proceso = epCancelado then
+    lblAviso.Caption := 'Esta depuraci' + #243 + 'n est' + #225 + ' cancelada: se conserva ' +
+      'solo para consulta.';
+  if Fila.Paso >= 5 then
+  begin
+    if Fila.FEjecucion <> 0 then
+      lblE5Texto.Caption := 'Eliminaci' + #243 + 'n ejecutada el ' +
+        FormatDateTime('dd/mm/yyyy', Fila.FEjecucion) + '.'
+    else
+      lblE5Texto.Caption := 'Eliminaci' + #243 + 'n ejecutada.';
+    if Fila.Proceso = epFinalizado then
+      lblE5Ayuda.Caption := 'La depuraci' + #243 + 'n est' + #225 + ' cerrada.'
+    else
+      lblE5Ayuda.Caption := 'Imprima el acta y cierre la depuraci' + #243 +
+        'n. Los documentos ya figuran como eliminados.';
+    btnImprimirActa5.Visible := Assigned(FAlImprimirActa);
+    btnCerrarDep.Visible := Edita;
+  end;
 end;
 
 procedure TfrmDepuracionNueva.pbPasosPaint(Sender: TObject);
