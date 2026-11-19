@@ -119,7 +119,54 @@ type
     lblAutError: TLabel;
     lblAutRegistrada: TLabel;
     pnlPaso3: TPanel;
-    lblP3: TLabel;
+    sbActa: TScrollBox;
+    lblA3AutT: TLabel;
+    lblA3Aut: TLabel;
+    lblA3QueT: TLabel;
+    grdLineas: TcxGrid;
+    tvLineas: TcxGridTableView;
+    colLinSerie: TcxGridColumn;
+    colLinUnidades: TcxGridColumn;
+    colLinFechas: TcxGridColumn;
+    lvLineas: TcxGridLevel;
+    grdDesglose: TcxGrid;
+    tvDesglose: TcxGridTableView;
+    colDesAnio: TcxGridColumn;
+    colDesUnidades: TcxGridColumn;
+    lvDesglose: TcxGridLevel;
+    lblA3MuestraT: TLabel;
+    lblMDescT: TLabel;
+    edtMuestraDesc: TcxTextEdit;
+    lblMDondeT: TLabel;
+    edtMuestraDonde: TcxTextEdit;
+    lblA3EjecT: TLabel;
+    lblLugarT: TLabel;
+    edtLugar: TcxTextEdit;
+    lblViaT: TLabel;
+    cboVia: TcxComboBox;
+    lblFPrevT: TLabel;
+    dteFPrevista: TcxDateEdit;
+    btnGuardarActa: TcxButton;
+    btnImprimirActa: TcxButton;
+    lblA3TestT: TLabel;
+    grdTestigos: TcxGrid;
+    tvTestigos: TcxGridTableView;
+    colTesNombre: TcxGridColumn;
+    colTesCargo: TcxGridColumn;
+    colTesOrigen: TcxGridColumn;
+    colTesFirmo: TcxGridColumn;
+    lvTestigos: TcxGridLevel;
+    btnQuitarTestigo: TcxButton;
+    btnMarcarFirma: TcxButton;
+    lblTNombreT: TLabel;
+    edtTNombre: TcxTextEdit;
+    lblTCargoT: TLabel;
+    edtTCargo: TcxTextEdit;
+    lblTOrigenT: TLabel;
+    cboTOrigen: TcxComboBox;
+    btnAgregarTestigo: TcxButton;
+    lblA3Req: TLabel;
+    lblA3Falta: TLabel;
     pnlPaso4: TPanel;
     lblP4: TLabel;
     pnlPaso5: TPanel;
@@ -148,6 +195,11 @@ type
     procedure btnQuitarClick(Sender: TObject);
     procedure btnRegistrarAutClick(Sender: TObject);
     procedure btnAvanzarClick(Sender: TObject);
+    procedure btnGuardarActaClick(Sender: TObject);
+    procedure btnImprimirActaClick(Sender: TObject);
+    procedure btnAgregarTestigoClick(Sender: TObject);
+    procedure btnQuitarTestigoClick(Sender: TObject);
+    procedure btnMarcarFirmaClick(Sender: TObject);
   private
     FConn: TFDConnection;
     FNodos: TArray<TClaveNodo>;
@@ -168,6 +220,8 @@ type
     FActualizando: Boolean;
     FPropuesta: TArray<TGrupoDepuracion>;
     FAgregados: TArray<TGrupoDepuracion>;
+    FTestigos: TArray<TTestigoFila>;
+    procedure RefrescarFaltantes;
     procedure SetPuedeActuar(Valor: Boolean);
     procedure SetAlImprimirActa(const Valor: TImprimirDepuracion);
     procedure AplicarTema;
@@ -203,6 +257,11 @@ type
     procedure MostrarAutorizacion(Hay: Boolean; const A: TAutorizacion);
     { Lo que falta para avanzar, en el aviso del pie. }
     procedure MostrarFaltan(const Textos: TArray<string>);
+    { Paso 3: el acta guardada, lo que se elimina (en numeros y letras) y su desglose
+      por ano; y los testigos. }
+    procedure MostrarActa(const A: TActaDepuracion; const Grupos: TArray<TGrupoDepuracion>;
+      const Desglose: TArray<TAnioCantidad>);
+    procedure MostrarTestigos(const T: TArray<TTestigoFila>);
     { IPantallaProceso }
     procedure Embeber(Host: TWinControl);
     function PuedeSalir: Boolean;
@@ -261,6 +320,7 @@ begin
     'Cierre'];
   lblNodoTrab.Visible := False;
   cboNodoTrabajo.Visible := False;
+  cboTOrigen.ItemIndex := 0;
   AplicarTema;
 end;
 
@@ -313,6 +373,7 @@ end;
 procedure TfrmDepuracionNueva.SetAlImprimirActa(const Valor: TImprimirDepuracion);
 begin
   FAlImprimirActa := Valor;
+  btnImprimirActa.Visible := Assigned(Valor);
 end;
 
 { ---------------------------------- tema --------------------------------- }
@@ -388,6 +449,11 @@ begin
       else if L.Font.Color = CLARO_OK then
         L.Font.Color := ColorOk(T);
     end
+    else if C is TScrollBox then
+    begin
+      if TScrollBox(C).Color = CLARO_SUP then
+        TScrollBox(C).Color := T.Superficie;
+    end
     else if C is TCheckBox then
       TCheckBox(C).Font.Color := T.Texto
     else if C is TcxCustomEdit then
@@ -399,7 +465,7 @@ begin
       TcxGridTableView(C).OptionsView.GridLineColor := T.Linea
     else if C is TcxButton then
       ConfigurarBoton(TcxButton(C), (C = btnNueva) or (C = btnAvanzar) or
-        (C = btnAgregar) or (C = btnRegistrarAut));
+        (C = btnAgregar) or (C = btnRegistrarAut) or (C = btnGuardarActa));
   end;
   stContenido.Color := T.Superficie;
   stContenido.TextColor := T.Texto;
@@ -680,6 +746,7 @@ var
   Hay: Boolean;
   Grupos: TArray<TGrupoDepuracion>;
   Motivo: string;
+  Acta: TActaDepuracion;
 begin
   if FConn = nil then
     Exit;
@@ -707,6 +774,14 @@ begin
         begin
           Hay := LeerAutorizacion(FConn, FActual.IdProceso, Aut);
           MostrarAutorizacion(Hay, Aut);
+        end;
+      3:
+        begin
+          LeerActaDepuracion(FConn, FActual.IdProceso, Acta);
+          MostrarActa(Acta, GruposDeLaDepuracion(FConn, FActual.IdProceso),
+            DesglosePorAnio(FConn, FActual.IdProceso));
+          MostrarTestigos(TestigosDeLaDepuracion(FConn, FActual.IdProceso));
+          RefrescarFaltantes;
         end;
     end;
   except
@@ -798,6 +873,264 @@ end;
 procedure TfrmDepuracionNueva.MostrarFaltan(const Textos: TArray<string>);
 begin
   lblAviso.Caption := UnirTextos(Textos);
+  if Length(Textos) = 0 then
+  begin
+    lblA3Falta.Font.Color := ColorOk(FTema);
+    lblA3Falta.Caption := 'Todo listo para pasar a Ejecuci' + #243 + 'n.';
+  end
+  else
+  begin
+    lblA3Falta.Font.Color := ColorError(FTema);
+    lblA3Falta.Caption := UnirTextos(Textos);
+  end;
+end;
+
+procedure TfrmDepuracionNueva.RefrescarFaltantes;
+var
+  Faltan: TArray<string>;
+begin
+  CondicionesCumplidasDepuracion(FConn, FActual.IdProceso, Faltan);
+  MostrarFaltan(Faltan);
+end;
+
+function TextoOrigen(O: TOrigenTestigo): string;
+begin
+  case O of
+    otComision: Result := 'Comisi' + #243 + 'n de Valoraci' + #243 + 'n';
+    otArchivoGestion: Result := 'Archivo de gesti' + #243 + 'n';
+  else
+    Result := 'Otro';
+  end;
+end;
+
+procedure TfrmDepuracionNueva.MostrarActa(const A: TActaDepuracion;
+  const Grupos: TArray<TGrupoDepuracion>; const Desglose: TArray<TAnioCantidad>);
+var
+  I: Integer;
+  DC: TcxGridDataController;
+begin
+  if FActual.Autorizacion <> '' then
+    lblA3Aut.Caption := FActual.Autorizacion
+  else
+    lblA3Aut.Caption := 'Sin autorizaci' + #243 + 'n registrada';
+  DC := tvLineas.DataController;
+  tvLineas.BeginUpdate;
+  try
+    DC.RecordCount := Length(Grupos);
+    for I := 0 to High(Grupos) do
+    begin
+      if SameText(Grupos[I].Serie, Grupos[I].Subserie) or (Grupos[I].Subserie = '') then
+        DC.Values[I, colLinSerie.Index] := Grupos[I].Serie
+      else
+        DC.Values[I, colLinSerie.Index] := Grupos[I].Serie + ' / ' + Grupos[I].Subserie;
+      DC.Values[I, colLinUnidades.Index] := UnidadesNumerosYLetras(Grupos[I].Unidades);
+      DC.Values[I, colLinFechas.Index] := RangoMesAnio(Grupos[I].Desde, Grupos[I].Hasta);
+    end;
+  finally
+    tvLineas.EndUpdate;
+  end;
+  DC := tvDesglose.DataController;
+  tvDesglose.BeginUpdate;
+  try
+    DC.RecordCount := Length(Desglose);
+    for I := 0 to High(Desglose) do
+    begin
+      DC.Values[I, colDesAnio.Index] := IntToStr(Desglose[I].Anio);
+      DC.Values[I, colDesUnidades.Index] := IntToStr(Desglose[I].Unidades);
+    end;
+  finally
+    tvDesglose.EndUpdate;
+  end;
+  edtMuestraDesc.Text := A.MuestraDesc;
+  edtMuestraDonde.Text := A.MuestraDonde;
+  edtLugar.Text := A.Lugar;
+  if (A.Lugar = '') and (A.FPrevista = 0) then
+  begin
+    cboVia.ItemIndex := -1;
+    dteFPrevista.Clear;
+  end
+  else
+  begin
+    if A.Via = veTrituracion then
+      cboVia.ItemIndex := 1
+    else
+      cboVia.ItemIndex := 0;
+    if A.FPrevista <> 0 then
+      dteFPrevista.Date := A.FPrevista
+    else
+      dteFPrevista.Clear;
+  end;
+end;
+
+procedure TfrmDepuracionNueva.MostrarTestigos(const T: TArray<TTestigoFila>);
+var
+  I: Integer;
+  DC: TcxGridDataController;
+begin
+  FTestigos := T;
+  DC := tvTestigos.DataController;
+  tvTestigos.BeginUpdate;
+  try
+    DC.RecordCount := Length(T);
+    for I := 0 to High(T) do
+    begin
+      DC.Values[I, colTesNombre.Index] := T[I].Nombre;
+      DC.Values[I, colTesCargo.Index] := T[I].Cargo;
+      DC.Values[I, colTesOrigen.Index] := TextoOrigen(T[I].Origen);
+      if T[I].Firmo then
+        DC.Values[I, colTesFirmo.Index] := 'S' + #237
+      else
+        DC.Values[I, colTesFirmo.Index] := '';
+    end;
+  finally
+    tvTestigos.EndUpdate;
+  end;
+end;
+
+procedure TfrmDepuracionNueva.btnGuardarActaClick(Sender: TObject);
+var
+  A: TActaDepuracion;
+begin
+  if not FPuedeActuar then
+  begin
+    AvisarSinPermiso;
+    Exit;
+  end;
+  lblAviso.Caption := '';
+  if cboVia.ItemIndex < 0 then
+  begin
+    lblAviso.Caption := 'Elija la v' + #237 + 'a de eliminaci' + #243 + 'n.';
+    Exit;
+  end;
+  A := Default(TActaDepuracion);
+  A.Lugar := edtLugar.Text;
+  if cboVia.ItemIndex = 1 then
+    A.Via := veTrituracion
+  else
+    A.Via := veIncineracion;
+  if VarIsNull(dteFPrevista.EditValue) then
+    A.FPrevista := 0
+  else
+    A.FPrevista := dteFPrevista.Date;
+  A.MuestraDesc := edtMuestraDesc.Text;
+  A.MuestraDonde := edtMuestraDonde.Text;
+  try
+    GuardarActaDepuracion(FConn, FActual.IdProceso, A);
+  except
+    on E: EArgumentException do
+    begin
+      lblAviso.Caption := E.Message;
+      Exit;
+    end;
+    on E: Exception do
+    begin
+      TMensajes.Error('No se pudo guardar el acta: ' + E.Message, 'Depuraci' + #243 + 'n');
+      Exit;
+    end;
+  end;
+  RefrescarFaltantes;
+end;
+
+procedure TfrmDepuracionNueva.btnImprimirActaClick(Sender: TObject);
+begin
+  if Assigned(FAlImprimirActa) then
+    FAlImprimirActa(FActual.IdProceso);
+end;
+
+procedure TfrmDepuracionNueva.btnAgregarTestigoClick(Sender: TObject);
+var
+  T: TTestigoDatos;
+begin
+  if not FPuedeActuar then
+  begin
+    AvisarSinPermiso;
+    Exit;
+  end;
+  lblAviso.Caption := '';
+  T.Nombre := edtTNombre.Text;
+  T.Cargo := edtTCargo.Text;
+  case cboTOrigen.ItemIndex of
+    0: T.Origen := otComision;
+    1: T.Origen := otArchivoGestion;
+  else
+    T.Origen := otOtro;
+  end;
+  try
+    AgregarTestigo(FConn, FActual.IdProceso, T);
+  except
+    on E: EArgumentException do
+    begin
+      lblAviso.Caption := E.Message;
+      Exit;
+    end;
+    on E: Exception do
+    begin
+      TMensajes.Error('No se pudo agregar el testigo: ' + E.Message, 'Depuraci' + #243 + 'n');
+      Exit;
+    end;
+  end;
+  edtTNombre.Clear;
+  edtTCargo.Clear;
+  MostrarTestigos(TestigosDeLaDepuracion(FConn, FActual.IdProceso));
+  RefrescarFaltantes;
+end;
+
+procedure TfrmDepuracionNueva.btnQuitarTestigoClick(Sender: TObject);
+var
+  I: Integer;
+begin
+  if not FPuedeActuar then
+  begin
+    AvisarSinPermiso;
+    Exit;
+  end;
+  I := tvTestigos.DataController.FocusedRecordIndex;
+  if (I < 0) or (I > High(FTestigos)) then
+  begin
+    TMensajes.Informacion('Elija el testigo que quiere quitar.', 'Depuraci' + #243 + 'n');
+    Exit;
+  end;
+  if not TMensajes.Confirmar(#191 + 'Quitar a ' + FTestigos[I].Nombre + '?',
+    'Quitar testigo') then
+    Exit;
+  try
+    QuitarTestigo(FConn, FActual.IdProceso, FTestigos[I].IdTestigo);
+  except
+    on E: Exception do
+    begin
+      TMensajes.Error('No se pudo quitar el testigo: ' + E.Message, 'Depuraci' + #243 + 'n');
+      Exit;
+    end;
+  end;
+  MostrarTestigos(TestigosDeLaDepuracion(FConn, FActual.IdProceso));
+  RefrescarFaltantes;
+end;
+
+procedure TfrmDepuracionNueva.btnMarcarFirmaClick(Sender: TObject);
+var
+  I: Integer;
+begin
+  if not FPuedeActuar then
+  begin
+    AvisarSinPermiso;
+    Exit;
+  end;
+  I := tvTestigos.DataController.FocusedRecordIndex;
+  if (I < 0) or (I > High(FTestigos)) then
+  begin
+    TMensajes.Informacion('Elija el testigo que firm' + #243 + '.', 'Depuraci' + #243 + 'n');
+    Exit;
+  end;
+  try
+    MarcarFirma(FConn, FActual.IdProceso, FTestigos[I].IdTestigo, not FTestigos[I].Firmo);
+  except
+    on E: Exception do
+    begin
+      TMensajes.Error('No se pudo guardar la firma: ' + E.Message, 'Depuraci' + #243 + 'n');
+      Exit;
+    end;
+  end;
+  MostrarTestigos(TestigosDeLaDepuracion(FConn, FActual.IdProceso));
 end;
 
 procedure TfrmDepuracionNueva.btnAgregarClick(Sender: TObject);
@@ -967,6 +1300,10 @@ begin
   pnlPaso5.Visible := (Fila.Paso >= 5);
   Edita := (Fila.Proceso = epEnCurso) and FPuedeActuar;
   btnAvanzar.Visible := Edita and (Fila.Paso <= 3);
+  if Fila.Paso = 3 then
+    btnAvanzar.Caption := 'Pasar a ejecuci' + #243 + 'n'
+  else
+    btnAvanzar.Caption := 'Pasar al siguiente paso';
   btnCancelarDep.Visible := Edita and PuedeCancelar(tpDepuracion, Fila.Paso);
   btnEliminarDep.Visible := FPuedeActuar and PuedeEliminar(tpDepuracion, Fila.Paso,
     Fila.Proceso);

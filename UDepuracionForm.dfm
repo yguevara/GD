@@ -833,19 +833,485 @@ object frmDepuracionNueva: TfrmDepuracionNueva
         ShowCaption = False
         TabOrder = 2
         Visible = False
-        object lblP3: TLabel
-          Left = 20
-          Top = 16
-          Width = 1240
-          Height = 40
-          AutoSize = False
-          WordWrap = True
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = 1581355
-          Font.Height = -13
-          Font.Name = 'Segoe UI'
-          Font.Style = []
-          ParentFont = False
+        object sbActa: TScrollBox
+          Left = 0
+          Top = 0
+          Width = 1280
+          Height = 450
+          Align = alClient
+          BorderStyle = bsNone
+          Color = 16383487
+          TabOrder = 0
+          object lblA3AutT: TLabel
+            Left = 20
+            Top = 8
+            Width = 3
+            Height = 15
+            Caption = 'AUTORIZACI'#211'N'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = 5924725
+            Font.Height = -11
+            Font.Name = 'Segoe UI'
+            Font.Style = []
+            ParentFont = False
+          end
+          object lblA3Aut: TLabel
+            Left = 20
+            Top = 26
+            Width = 700
+            Height = 15
+            Caption = ''
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = 1581355
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
+            Font.Style = []
+            ParentFont = False
+          end
+          object lblA3QueT: TLabel
+            Left = 20
+            Top = 66
+            Width = 3
+            Height = 15
+            Caption = 'QU'#201' SE ELIMINA'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = 5924725
+            Font.Height = -11
+            Font.Name = 'Segoe UI'
+            Font.Style = []
+            ParentFont = False
+          end
+          object grdLineas: TcxGrid
+            Left = 20
+            Top = 86
+            Width = 740
+            Height = 150
+            BorderStyle = cxcbsNone
+            TabOrder = 0
+            LookAndFeel.Kind = lfUltraFlat
+            LookAndFeel.NativeStyle = False
+            object tvLineas: TcxGridTableView
+              OnCustomDrawColumnHeader = tvCustomDrawColumnHeader
+              OptionsData.Appending = False
+              OptionsData.Deleting = False
+              OptionsData.Editing = False
+              OptionsData.Inserting = False
+              OptionsCustomize.ColumnSorting = False
+              OptionsSelection.CellSelect = False
+              OptionsView.CellAutoHeight = True
+              OptionsView.ColumnAutoWidth = True
+              OptionsView.DataRowHeight = 30
+              OptionsView.GridLineColor = 13031136
+              OptionsView.GridLines = glHorizontal
+              OptionsView.GroupByBox = False
+              OptionsView.HeaderHeight = 28
+              OptionsView.Indicator = False
+              OptionsView.NoDataToDisplayInfoText = 'Sin documentos agregados'
+              Styles.Background = stContenido
+              Styles.Content = stContenido
+              Styles.ContentEven = stContenido
+              Styles.ContentOdd = stContenido
+              Styles.Header = stCabeceraGrid
+              Styles.Inactive = stSeleccion
+              Styles.Selection = stSeleccion
+              object colLinSerie: TcxGridColumn
+                Caption = 'Serie / subserie'
+                DataBinding.ValueType = 'String'
+                Width = 300
+              end
+              object colLinUnidades: TcxGridColumn
+                Caption = 'Unidades'
+                DataBinding.ValueType = 'String'
+                Width = 260
+              end
+              object colLinFechas: TcxGridColumn
+                Caption = 'Fechas extremas'
+                DataBinding.ValueType = 'String'
+                Width = 140
+              end
+            end
+            object lvLineas: TcxGridLevel
+              GridView = tvLineas
+            end
+          end
+          object grdDesglose: TcxGrid
+            Left = 790
+            Top = 86
+            Width = 300
+            Height = 150
+            BorderStyle = cxcbsNone
+            TabOrder = 0
+            LookAndFeel.Kind = lfUltraFlat
+            LookAndFeel.NativeStyle = False
+            object tvDesglose: TcxGridTableView
+              OnCustomDrawColumnHeader = tvCustomDrawColumnHeader
+              OptionsData.Appending = False
+              OptionsData.Deleting = False
+              OptionsData.Editing = False
+              OptionsData.Inserting = False
+              OptionsCustomize.ColumnSorting = False
+              OptionsSelection.CellSelect = False
+              OptionsView.CellAutoHeight = True
+              OptionsView.ColumnAutoWidth = True
+              OptionsView.DataRowHeight = 30
+              OptionsView.GridLineColor = 13031136
+              OptionsView.GridLines = glHorizontal
+              OptionsView.GroupByBox = False
+              OptionsView.HeaderHeight = 28
+              OptionsView.Indicator = False
+              OptionsView.NoDataToDisplayInfoText = 'Sin datos'
+              Styles.Background = stContenido
+              Styles.Content = stContenido
+              Styles.ContentEven = stContenido
+              Styles.ContentOdd = stContenido
+              Styles.Header = stCabeceraGrid
+              Styles.Inactive = stSeleccion
+              Styles.Selection = stSeleccion
+              object colDesAnio: TcxGridColumn
+                Caption = 'A'#241'o'
+                DataBinding.ValueType = 'String'
+                Width = 100
+              end
+              object colDesUnidades: TcxGridColumn
+                Caption = 'Unidades'
+                DataBinding.ValueType = 'String'
+                Width = 120
+              end
+            end
+            object lvDesglose: TcxGridLevel
+              GridView = tvDesglose
+            end
+          end
+          object lblA3MuestraT: TLabel
+            Left = 20
+            Top = 254
+            Width = 3
+            Height = 15
+            Caption = 'MUESTRA QUE SE CONSERVA (OBLIGATORIA)'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = 5924725
+            Font.Height = -11
+            Font.Name = 'Segoe UI'
+            Font.Style = []
+            ParentFont = False
+          end
+          object lblMDescT: TLabel
+            Left = 20
+            Top = 276
+            Width = 3
+            Height = 15
+            Caption = 'Descripci'#243'n de la muestra'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = 5924725
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
+            Font.Style = []
+            ParentFont = False
+          end
+          object edtMuestraDesc: TcxTextEdit
+            Left = 20
+            Top = 294
+            TabOrder = 0
+            Width = 540
+          end
+          object lblMDondeT: TLabel
+            Left = 580
+            Top = 276
+            Width = 3
+            Height = 15
+            Caption = 'D'#243'nde se conserva'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = 5924725
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
+            Font.Style = []
+            ParentFont = False
+          end
+          object edtMuestraDonde: TcxTextEdit
+            Left = 580
+            Top = 294
+            TabOrder = 1
+            Width = 400
+          end
+          object lblA3EjecT: TLabel
+            Left = 20
+            Top = 334
+            Width = 3
+            Height = 15
+            Caption = 'EJECUCI'#211'N'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = 5924725
+            Font.Height = -11
+            Font.Name = 'Segoe UI'
+            Font.Style = []
+            ParentFont = False
+          end
+          object lblLugarT: TLabel
+            Left = 20
+            Top = 356
+            Width = 3
+            Height = 15
+            Caption = 'Lugar'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = 5924725
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
+            Font.Style = []
+            ParentFont = False
+          end
+          object edtLugar: TcxTextEdit
+            Left = 20
+            Top = 374
+            TabOrder = 2
+            Width = 400
+          end
+          object lblViaT: TLabel
+            Left = 440
+            Top = 356
+            Width = 3
+            Height = 15
+            Caption = 'V'#237'a de eliminaci'#243'n'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = 5924725
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
+            Font.Style = []
+            ParentFont = False
+          end
+          object cboVia: TcxComboBox
+            Left = 440
+            Top = 374
+            Properties.DropDownListStyle = lsFixedList
+            Properties.Items.Strings = (
+              'Incineraci'#243'n'
+              'Trituraci'#243'n')
+            TabOrder = 3
+            Width = 200
+          end
+          object lblFPrevT: TLabel
+            Left = 660
+            Top = 356
+            Width = 3
+            Height = 15
+            Caption = 'Fecha prevista'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = 5924725
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
+            Font.Style = []
+            ParentFont = False
+          end
+          object dteFPrevista: TcxDateEdit
+            Left = 660
+            Top = 374
+            TabOrder = 4
+            Width = 160
+          end
+          object btnGuardarActa: TcxButton
+            Left = 20
+            Top = 420
+            Width = 148
+            Height = 36
+            Caption = 'Guardar acta'
+            TabOrder = 5
+            OnClick = btnGuardarActaClick
+          end
+          object btnImprimirActa: TcxButton
+            Left = 170
+            Top = 420
+            Width = 156
+            Height = 36
+            Caption = 'Imprimir acta'
+            TabOrder = 6
+            Visible = False
+            OnClick = btnImprimirActaClick
+          end
+          object lblA3TestT: TLabel
+            Left = 20
+            Top = 480
+            Width = 3
+            Height = 15
+            Caption = 'TESTIGOS Y FIRMAS'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = 5924725
+            Font.Height = -11
+            Font.Name = 'Segoe UI'
+            Font.Style = []
+            ParentFont = False
+          end
+          object grdTestigos: TcxGrid
+            Left = 20
+            Top = 500
+            Width = 740
+            Height = 130
+            BorderStyle = cxcbsNone
+            TabOrder = 0
+            LookAndFeel.Kind = lfUltraFlat
+            LookAndFeel.NativeStyle = False
+            object tvTestigos: TcxGridTableView
+              OnCustomDrawColumnHeader = tvCustomDrawColumnHeader
+              OptionsData.Appending = False
+              OptionsData.Deleting = False
+              OptionsData.Editing = False
+              OptionsData.Inserting = False
+              OptionsCustomize.ColumnSorting = False
+              OptionsSelection.CellSelect = False
+              OptionsView.CellAutoHeight = True
+              OptionsView.ColumnAutoWidth = True
+              OptionsView.DataRowHeight = 30
+              OptionsView.GridLineColor = 13031136
+              OptionsView.GridLines = glHorizontal
+              OptionsView.GroupByBox = False
+              OptionsView.HeaderHeight = 28
+              OptionsView.Indicator = False
+              OptionsView.NoDataToDisplayInfoText = 'Todav'#237'a no hay testigos'
+              Styles.Background = stContenido
+              Styles.Content = stContenido
+              Styles.ContentEven = stContenido
+              Styles.ContentOdd = stContenido
+              Styles.Header = stCabeceraGrid
+              Styles.Inactive = stSeleccion
+              Styles.Selection = stSeleccion
+              object colTesNombre: TcxGridColumn
+                Caption = 'Nombre'
+                DataBinding.ValueType = 'String'
+                Width = 240
+              end
+              object colTesCargo: TcxGridColumn
+                Caption = 'Cargo'
+                DataBinding.ValueType = 'String'
+                Width = 200
+              end
+              object colTesOrigen: TcxGridColumn
+                Caption = 'Origen'
+                DataBinding.ValueType = 'String'
+                Width = 160
+              end
+              object colTesFirmo: TcxGridColumn
+                Caption = 'Firm'#243''
+                DataBinding.ValueType = 'String'
+                Width = 70
+              end
+            end
+            object lvTestigos: TcxGridLevel
+              GridView = tvTestigos
+            end
+          end
+          object btnQuitarTestigo: TcxButton
+            Left = 790
+            Top = 500
+            Width = 164
+            Height = 32
+            Caption = 'Quitar testigo'
+            TabOrder = 7
+            OnClick = btnQuitarTestigoClick
+          end
+          object btnMarcarFirma: TcxButton
+            Left = 790
+            Top = 540
+            Width = 244
+            Height = 32
+            Caption = 'Marcar o desmarcar firma'
+            TabOrder = 8
+            OnClick = btnMarcarFirmaClick
+          end
+          object lblTNombreT: TLabel
+            Left = 20
+            Top = 642
+            Width = 3
+            Height = 15
+            Caption = 'Nombre'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = 5924725
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
+            Font.Style = []
+            ParentFont = False
+          end
+          object edtTNombre: TcxTextEdit
+            Left = 20
+            Top = 660
+            TabOrder = 9
+            Width = 240
+          end
+          object lblTCargoT: TLabel
+            Left = 280
+            Top = 642
+            Width = 3
+            Height = 15
+            Caption = 'Cargo'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = 5924725
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
+            Font.Style = []
+            ParentFont = False
+          end
+          object edtTCargo: TcxTextEdit
+            Left = 280
+            Top = 660
+            TabOrder = 10
+            Width = 200
+          end
+          object lblTOrigenT: TLabel
+            Left = 500
+            Top = 642
+            Width = 3
+            Height = 15
+            Caption = 'Origen'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = 5924725
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
+            Font.Style = []
+            ParentFont = False
+          end
+          object cboTOrigen: TcxComboBox
+            Left = 500
+            Top = 660
+            Properties.DropDownListStyle = lsFixedList
+            Properties.Items.Strings = (
+              'Comisi'#243'n de Valoraci'#243'n'
+              'Archivo de gesti'#243'n'
+              'Otro')
+            TabOrder = 11
+            Width = 240
+          end
+          object btnAgregarTestigo: TcxButton
+            Left = 760
+            Top = 656
+            Width = 172
+            Height = 34
+            Caption = 'Agregar testigo'
+            TabOrder = 12
+            OnClick = btnAgregarTestigoClick
+          end
+          object lblA3Req: TLabel
+            Left = 20
+            Top = 712
+            Width = 3
+            Height = 15
+            Caption = 'Para pasar a Ejecuci'#243'n hace falta: autorizaci'#243'n cargada, muestra definida y al menos 2 testigos, uno de la Comisi'#243'n y uno de un archivo de gesti'#243'n.'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = 5924725
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
+            Font.Style = []
+            ParentFont = False
+          end
+          object lblA3Falta: TLabel
+            Left = 20
+            Top = 736
+            Width = 1000
+            Height = 15
+            Caption = ''
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = 1581355
+            Font.Height = -12
+            Font.Name = 'Segoe UI Semibold'
+            Font.Style = []
+            ParentFont = False
+          end
         end
       end
       object pnlPaso4: TPanel
