@@ -1526,7 +1526,7 @@ begin
   Edita := (FActual.Proceso = epEnCurso) and PuedeActuarAqui;
   btnRetirar.Visible := Edita and (Pend > 0);
   btnReintentar.Visible := Edita and (Err > 0);
-  btnConfirmarManual.Visible := Edita and (Lect > 0);
+  btnConfirmarManual.Visible := Edita and ((Lect + Err) > 0);
   btnCerrarDep.Enabled := (Pend + Err + Lect) = 0;
 end;
 
@@ -1590,9 +1590,9 @@ begin
     Exit;
   end;
   I := tvFicheros.DataController.FocusedRecordIndex;
-  if (I < 0) or (I > High(FFicheros)) or (FFicheros[I].Estado <> 'L') then
+  if (I < 0) or (I > High(FFicheros)) or ((FFicheros[I].Estado <> 'L') and (FFicheros[I].Estado <> 'E')) then
   begin
-    TMensajes.Informacion('Elija un fichero de solo lectura que ya haya retirado a mano.',
+    TMensajes.Informacion('Elija un fichero de solo lectura o con error que ya haya retirado a mano.',
       'Depuraci' + #243 + 'n');
     Exit;
   end;

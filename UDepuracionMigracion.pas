@@ -10,9 +10,9 @@ unit UDepuracionMigracion;
     - Cada proceso lleva Lugar = 'MIGRADA tb_depuracion <fecha> <estructura>/<nodo>':
       esa marca hace la migracion idempotente.
     - Paso 5, finalizado, sin candados; no hay acta, testigos ni autorizacion.
-    - Un documento que ya es eliminado por otra depuracion se omite y se avisa.
-    - Las filas depuradas con otro destino (conservar, etc.) no se migran: se cuentan
-      en los avisos.
+    - Un documento que ya es eliminado por otra depuracion no se vuelve a marcar (la
+      consulta lo deja fuera, sin aviso).
+    - Las filas depuradas con otro destino (conservar, etc.) no se migran ni se cuentan.
     - tb_depuracion no se modifica ni se borra; sin esa tabla devuelve todo en cero.
     - Cada proceso se migra en su propia transaccion.
   --------------------------------------------------------------------------- }
@@ -109,8 +109,12 @@ begin
     Q.Connection := Conn;
     try
       Q.Open('SELECT IdEstructura, id, codsubs, Codigodoc, fecha, version, fechadepuracion ' +
-        'FROM tb_depuracion WHERE depurado = 1 AND destino = 3 ' +
-        'ORDER BY fechadepuracion, IdEstructura, id');
+        'FROM tb_depuracion d WHERE d.depurado = 1 AND d.destino = 3 AND NOT EXISTS ' +
+        '(SELECT 1 FROM prc_unidad u INNER JOIN prc_proceso p ON p.IdProceso = u.IdProceso ' +
+        'WHERE p.Tipo = ''D'' AND p.Estado <> ''X'' AND p.Paso >= 5 AND u.Activa <> 0 AND ' +
+        'u.IdEstructura = d.IdEstructura AND u.id = d.id AND u.codsubs = d.codsubs AND ' +
+        'u.Codigodoc = d.Codigodoc AND u.fecha = d.fecha AND u.version = d.version) ' +
+        'ORDER BY d.fechadepuracion, d.IdEstructura, d.id');
     except
       Exit;   // sin la tabla vieja: nada que migrar
     end;
@@ -164,26 +168,11 @@ begin
       G := Grupos[K];
       if Hechos.ContainsKey(MarcaDe(G)) then
         Continue;
-      // los que ya son eliminados por otra depuracion no se vuelven a marcar
+      // la consulta ya dejo fuera lo que otra depuracion elimina (una sola consulta,
+      // sin una por documento)
       Utiles.Clear;
+      Utiles.AddRange(G.Docs);
       Otros := 0;
-      for U in G.Docs do
-        if Integer(Conn.ExecSQLScalar('SELECT COUNT(*) FROM prc_unidad u INNER JOIN ' +
-          'prc_proceso p ON p.IdProceso = u.IdProceso WHERE p.Tipo = ''D'' AND ' +
-          'p.Estado <> ''X'' AND p.Paso >= 5 AND u.Activa <> 0 AND u.IdEstructura = :e ' +
-          'AND u.id = :i AND u.codsubs = :s AND u.Codigodoc = :c AND u.fecha = :f AND ' +
-          'u.version = :v', [U.IdEstructura, U.Id, U.CodSubs, U.CodigoDoc, U.Fecha,
-          U.Version])) > 0 then
-        begin
-          Inc(Otros);
-          Aviso(Result, 'El documento ' + U.CodigoDoc + ' ya figura como eliminado por ' +
-            'otra depuracion; se omitio');
-        end
-        else
-          Utiles.Add(U);
-      Inc(Result.DocumentosOmitidos, Otros);
-      if Utiles.Count = 0 then
-        Continue;
       if G.HayFecha then
         Anio := StrToInt(FormatDateTime('yyyy', G.Fecha))
       else
@@ -194,6 +183,14 @@ begin
       end;
       Conn.StartTransaction;
       try
+        // la marca se vuelve a mirar DENTRO de la transaccion y con candado: si otro puesto
+        // arranca a la vez y migra el mismo grupo, el segundo espera y no lo duplica
+        if Integer(Conn.ExecSQLScalar('SELECT COUNT(*) FROM prc_depuracion WITH (UPDLOCK, ' +
+          'HOLDLOCK) WHERE Lugar = :l', [Copy(MarcaDe(G), 1, 255)])) > 0 then
+        begin
+          Conn.Rollback;
+          Continue;
+        end;
         Cons := Integer(Conn.ExecSQLScalar('SELECT COALESCE(MAX(Consecutivo), 0) + 1 FROM ' +
           'prc_proceso WHERE Tipo = ''D'' AND Anio = :a', [Anio]));
         Conn.ExecSQL('INSERT INTO prc_proceso (Tipo, Anio, Consecutivo, Numero, Estado, ' +

@@ -7,7 +7,7 @@ Lo comprobado automaticamente (SQL Server `SGDTEST_ALCANCE`, almacen simulado): 
 1. En el paso 5, la seccion «Ficheros digitales» lista los ficheros de lo eliminado, todos «Pendiente»; *Cerrar la depuracion* esta desactivado.
 2. *Retirar ficheros* (confirmar): con S3 los ficheros pasan a «Retirado» y el objeto desaparece del bucket; uno que ya no existia sale «Ya no existia».
 3. Apagar el servidor S3 y repetir con otro documento: el fichero queda «Error» con el motivo y los demas siguen; volver a encender y *Reintentar los que fallaron*.
-4. Un fichero en servidor FTP queda «Solo lectura»: retirarlo a mano en el servidor, elegirlo y *Confirmar retiro a mano* -> «Retirado a mano».
+4. Todo fichero de un servidor FTP queda «Solo lectura» (no se intenta borrar ni se da por inexistente): retirarlo a mano en el servidor, elegirlo y *Confirmar retiro a mano* -> «Retirado a mano». Lo mismo vale para uno en «Error» que no tiene arreglo (p. ej. el servidor S3 ya no existe).
 5. Con todo resuelto se activa *Cerrar la depuracion*; antes, intentar cerrar (por otra sesion) avisa que quedan ficheros.
 6. Como Administrador (sin ser EGD): ningun boton de ficheros actua.
 7. Una depuracion cuyos documentos no tienen ficheros se cierra sin pasos extra.

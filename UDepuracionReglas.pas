@@ -411,6 +411,7 @@ begin
   if cdConfirmacionEscrita in Faltan then
     Sumar(Result, 'Escriba ' + PALABRA_CONFIRMACION + ' para confirmar.');
   if cdFicherosResueltos in Faltan then
-    Sumar(Result, 'Quedan ficheros digitales por retirar o confirmar.');end;
+    Sumar(Result, 'Quedan ficheros digitales por retirar o confirmar.');
+end;
 
 end.

@@ -158,9 +158,11 @@ begin
   SembrarDepuracion(FConn, DocumentoDeSerie(FNodo, COD, 1), 5, 'F', True, USUARIO);
   Vieja(1, '10/03/2026', 3);
   R := MigrarDepuracionesViejas(FConn);
+  // el documento ya es eliminado por otra depuracion: no se vuelve a marcar
   Assert.AreEqual(0, R.Migrados);
-  Assert.AreEqual(1, R.DocumentosOmitidos);
-  Assert.IsTrue(Length(R.Avisos) >= 1);
+  Assert.AreEqual(1, Integer(FConn.ExecSQLScalar('SELECT COUNT(*) FROM prc_unidad u INNER ' +
+    'JOIN prc_proceso p ON p.IdProceso = u.IdProceso WHERE p.Tipo = ''D'' AND u.codsubs = ''' +
+    COD + '''')), 'una sola depuracion lo elimina');
 end;
 
 initialization

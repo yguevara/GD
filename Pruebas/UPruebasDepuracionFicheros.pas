@@ -19,7 +19,8 @@ type
     function Conectar: Boolean;
     function Fabrica: TFabricaAlmacenRetiro;
     function ProcesoEnCierre(Paso: Integer): Integer;
-    procedure Fichero(N, IdHijo: Integer; const Nombre: string);
+    procedure Fichero(N, IdHijo: Integer; const Nombre: string;
+      const UrlRaiz: string = 's3://1/');
     function EstadoDe(IdProceso: Integer; const Nombre: string): string;
   public
     [SetupFixture]
@@ -38,6 +39,10 @@ type
     procedure ConfirmarRetiroManualSoloPasaLDeSoloLecturaAM;
     [Test]
     procedure NoSeRetiraFueraDelPasoDeCierre;
+    [Test]
+    procedure UnFicheroDeFtpNuncaSeDaPorInexistenteVaASoloLectura;
+    [Test]
+    procedure UnFicheroConErrorSinSolucionSePuedeConfirmarARetiradoAMano;
     [Test]
     procedure CerrarExigeLosFicherosResueltosYSinFicherosCierra;
   end;
@@ -172,16 +177,19 @@ begin
 end;
 
 { Fichero IdHijo del documento N de la serie sembrada. }
-procedure TPruebasDepuracionFicheros.Fichero(N, IdHijo: Integer; const Nombre: string);
+procedure TPruebasDepuracionFicheros.Fichero(N, IdHijo: Integer; const Nombre: string;
+  const UrlRaiz: string);
 var
   U: TUnidadDoc;
 begin
   U := DocumentoDeSerie(FNodo, COD, N);
   FConn.ExecSQL('INSERT INTO tb_ssArchdigital (IdEstructura, id, codsubs, Fecha, Version, ' +
     'Codigodoc, idhijo, nombre, urlraiz, path) VALUES (:e, :i, :s, :f, :v, :c, :h, :n, ' +
-    '''s3://1/'', ''docs/'')',
-    [U.IdEstructura, U.Id, U.CodSubs, U.Fecha, U.Version, U.CodigoDoc, IdHijo, Nombre],
-    [ftString, ftInteger, ftString, ftDateTime, ftString, ftString, ftInteger, ftString]);
+    ':u, ''docs/'')',
+    [U.IdEstructura, U.Id, U.CodSubs, U.Fecha, U.Version, U.CodigoDoc, IdHijo, Nombre,
+     UrlRaiz],
+    [ftString, ftInteger, ftString, ftDateTime, ftString, ftString, ftInteger, ftString,
+     ftString]);
 end;
 
 function TPruebasDepuracionFicheros.EstadoDe(IdProceso: Integer; const Nombre: string): string;
@@ -278,6 +286,38 @@ begin
   Lista := FicherosDelRetiro(FConn, Id);
   Assert.AreEqual(2, Length(Lista));
   Assert.AreEqual(0, FicherosSinResolver(FConn, Id));
+end;
+
+procedure TPruebasDepuracionFicheros.UnFicheroDeFtpNuncaSeDaPorInexistenteVaASoloLectura;
+var
+  Id: Integer;
+begin
+  if not Conectar then Exit;
+  Id := ProcesoEnCierre(5);
+  // el FTP no distingue 'no existe' de un error en Existe: se retira siempre a mano
+  Fichero(1, 900001, 'falta.pdf', '/ftp/');
+  CopiarFicherosAlRetiro(FConn, Id);
+  RetirarFicheros(FConn, Id, Fabrica(), USUARIO);
+  Assert.AreEqual('L', EstadoDe(Id, 'falta.pdf'));
+  Assert.IsFalse(CerrarDepuracion(FConn, Id, USUARIO));
+end;
+
+procedure TPruebasDepuracionFicheros.UnFicheroConErrorSinSolucionSePuedeConfirmarARetiradoAMano;
+var
+  Id: Integer;
+  F: TFicheroRetiro;
+begin
+  if not Conectar then Exit;
+  Id := ProcesoEnCierre(5);
+  Fichero(1, 900001, 'falla.pdf');
+  CopiarFicherosAlRetiro(FConn, Id);
+  RetirarFicheros(FConn, Id, Fabrica(), USUARIO);
+  Assert.AreEqual('E', EstadoDe(Id, 'falla.pdf'));
+  // el servidor ya no existe o no hay forma: se retira a mano y se confirma
+  for F in FicherosDelRetiro(FConn, Id) do
+    Assert.IsTrue(ConfirmarRetiroManual(FConn, Id, F, USUARIO));
+  Assert.AreEqual('M', EstadoDe(Id, 'falla.pdf'));
+  Assert.IsTrue(CerrarDepuracion(FConn, Id, USUARIO));
 end;
 
 procedure TPruebasDepuracionFicheros.NoSeRetiraFueraDelPasoDeCierre;

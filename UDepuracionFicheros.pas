@@ -54,7 +54,8 @@ function FicherosDelRetiro(Conn: TFDConnection; IdProceso: Integer): TArray<TFic
 function RetirarFicheros(Conn: TFDConnection; IdProceso: Integer;
   const Fabrica: TFabricaAlmacenRetiro; const Usuario: string): TResumenRetiro;
 
-{ Pasa un fichero de L a M (retirado a mano). False si no esta en L. }
+{ Pasa un fichero de L (solo lectura) o E (error sin solucion, p. ej. el servidor ya no
+  existe) a M (retirado a mano). False si no esta en uno de esos estados. }
 function ConfirmarRetiroManual(Conn: TFDConnection; IdProceso: Integer;
   const F: TFicheroRetiro; const Usuario: string): Boolean;
 
@@ -130,7 +131,7 @@ procedure GuardarResultado(Conn: TFDConnection; IdProceso: Integer; const F: TFi
   const Estado, Mensaje: string; Hoy: TDateTime);
 begin
   Conn.ExecSQL('UPDATE prc_fichero_retiro SET Estado = :est, Mensaje = :m, ' +
-    'FechaRetiro = :fr WHERE ' + CLAVE_SQL,
+    'FechaRetiro = :fr WHERE Estado IN (''P'', ''E'') AND ' + CLAVE_SQL,
     [Estado, Mensaje, Hoy, IdProceso, F.IdEstructura, F.Id, F.CodSubs, F.CodigoDoc,
      F.Fecha, F.Version, F.IdHijo],
     [ftString, ftString, ftDateTime, ftInteger, ftString, ftInteger, ftString, ftString,
@@ -155,6 +156,7 @@ var
   Almacen: IAlmacenFicheros;
   Clave: string;
   Tamano: Int64;
+  IdServidor: Integer;
 begin
   Result := Default(TResumenRetiro);
   if not EnPasoDeCierre(Conn, IdProceso) then
@@ -165,6 +167,15 @@ begin
   begin
     if (F.Estado <> 'P') and (F.Estado <> 'E') then
       Continue;
+    // el FTP es de solo lectura y su Existe no distingue 'no existe' de un error: nunca
+    // se da por inexistente, se pide retirarlo a mano
+    if not EsUrlRaizS3(F.UrlRaiz, IdServidor) then
+    begin
+      GuardarResultado(Conn, IdProceso, F, 'L', 'Servidor FTP de solo lectura: ' +
+        'retire el fichero a mano.', Now);
+      Inc(Result.SoloLectura);
+      Continue;
+    end;
     try
       Almacen := Fabrica(F.UrlRaiz, F.Path, F.Nombre, Clave);
       if not Almacen.Existe(Clave, Tamano) then
@@ -204,7 +215,7 @@ begin
   if not EnPasoDeCierre(Conn, IdProceso) then
     Exit;
   Result := Conn.ExecSQL('UPDATE prc_fichero_retiro SET Estado = ''M'', ' +
-    'Mensaje = ''Retirado a mano'', FechaRetiro = :fr WHERE Estado = ''L'' AND ' + CLAVE_SQL,
+    'Mensaje = ''Retirado a mano'', FechaRetiro = :fr WHERE Estado IN (''L'', ''E'') AND ' + CLAVE_SQL,
     [Now, IdProceso, F.IdEstructura, F.Id, F.CodSubs, F.CodigoDoc, F.Fecha, F.Version, F.IdHijo],
     [ftDateTime, ftInteger, ftString, ftInteger, ftString, ftString, ftDateTime, ftString,
      ftInteger]) > 0;
