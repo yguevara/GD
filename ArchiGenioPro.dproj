@@ -174,9 +174,6 @@
         <DCCReference Include="USysConfig.pas">
             <Form>frmSysConfig</Form>
         </DCCReference>
-        <DCCReference Include="UTransferencias.pas">
-            <Form>frmTransferencias</Form>
-        </DCCReference>
         <DCCReference Include="UExportImportDocumentSubSeries.pas">
             <Form>frmImportExport</Form>
         </DCCReference>
@@ -207,10 +204,6 @@
         </DCCReference>
         <DCCReference Include="UNodeInfo.pas">
             <Form>frmNodeInfo</Form>
-        </DCCReference>
-        <DCCReference Include="frmTransferencia.pas">
-            <Form>Form1</Form>
-            <FormType>dfm</FormType>
         </DCCReference>
         <DCCReference Include="UPrestamos.pas">
             <Form>fpRESTAMOS</Form>

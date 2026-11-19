@@ -48,9 +48,13 @@ begin
   try
     Q.Connection := Conn;
     try
-      Q.Open('SELECT COUNT(*) AS Total, SUM(CASE WHEN Ejecutada <> 0 THEN 1 ELSE 0 END) ' +
-        'AS Hechas FROM tb_transferencia');
+      // dos conteos simples: CASE no existe en Access (alli seria IIF)
+      Q.Open('SELECT COUNT(*) AS Total FROM tb_transferencia');
       Result.Leidos := Q.FieldByName('Total').AsInteger;
+      Q.Close;
+      if Result.Leidos = 0 then
+        Exit;
+      Q.Open('SELECT COUNT(*) AS Hechas FROM tb_transferencia WHERE Ejecutada <> 0');
       Ejecutadas := Q.FieldByName('Hechas').AsInteger;
       Q.Close;
       if Result.Leidos = 0 then
