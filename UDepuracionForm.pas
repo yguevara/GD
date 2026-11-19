@@ -32,7 +32,7 @@ uses
   cxDataStorage, cxEdit, cxNavigator, dxDateRanges, cxContainer, cxCheckBox, cxTextEdit,
   cxMaskEdit, cxDropDownEdit, cxCalendar, cxSpinEdit, cxButtons, cxGridLevel,
   cxClasses, cxGridCustomView, cxGridCustomTableView, cxGridTableView, cxGrid,
-  FireDAC.Comp.Client, UAlcance, UProceso, UTema, UProcesoPintura, UPantallaProceso,
+  FireDAC.Comp.Client, UAlcance, UProceso, UAutorizacion, UTema, UProcesoPintura, UPantallaProceso,
   UOpcionNodo, UDepuracionDatos;
 
 type
@@ -79,9 +79,45 @@ type
     lblAviso: TLabel;
     pnlContenido: TPanel;
     pnlPaso1: TPanel;
-    lblP1: TLabel;
+    pnlP1Prop: TPanel;
+    pnlP1Top: TPanel;
+    lblP1Ayuda: TLabel;
+    pnlP1TopDer: TPanel;
+    btnAgregar: TcxButton;
+    pnlP1Rej: TPanel;
+    grdPropuesta: TcxGrid;
+    tvPropuesta: TcxGridTableView;
+    colPropSerie: TcxGridColumn;
+    colPropAnios: TcxGridColumn;
+    colPropUnidades: TcxGridColumn;
+    colPropFechas: TcxGridColumn;
+    colPropObs: TcxGridColumn;
+    lvPropuesta: TcxGridLevel;
+    pnlP1Agreg: TPanel;
+    pnlP1AgregTop: TPanel;
+    lblP1Agregados: TLabel;
+    pnlP1AgregDer: TPanel;
+    btnQuitar: TcxButton;
+    pnlP1AgregRej: TPanel;
+    grdAgregados: TcxGrid;
+    tvAgregados: TcxGridTableView;
+    colAgrSerie: TcxGridColumn;
+    colAgrUnidades: TcxGridColumn;
+    colAgrFechas: TcxGridColumn;
+    lvAgregados: TcxGridLevel;
     pnlPaso2: TPanel;
-    lblP2: TLabel;
+    lblP2Ayuda: TLabel;
+    lblP2Organo: TLabel;
+    cboOrgano: TcxComboBox;
+    lblP2Acta: TLabel;
+    edtActa: TcxTextEdit;
+    lblP2Acuerdo: TLabel;
+    edtAcuerdo: TcxTextEdit;
+    lblP2Fecha: TLabel;
+    dteAutorizacion: TcxDateEdit;
+    btnRegistrarAut: TcxButton;
+    lblAutError: TLabel;
+    lblAutRegistrada: TLabel;
     pnlPaso3: TPanel;
     lblP3: TLabel;
     pnlPaso4: TPanel;
@@ -108,6 +144,10 @@ type
     procedure btnNuevaClick(Sender: TObject);
     procedure btnVolverClick(Sender: TObject);
     procedure pbPasosPaint(Sender: TObject);
+    procedure btnAgregarClick(Sender: TObject);
+    procedure btnQuitarClick(Sender: TObject);
+    procedure btnRegistrarAutClick(Sender: TObject);
+    procedure btnAvanzarClick(Sender: TObject);
   private
     FConn: TFDConnection;
     FNodos: TArray<TClaveNodo>;
@@ -126,6 +166,8 @@ type
     FIdSeleccionado: Integer;
     FNombresPasos: TArray<string>;
     FActualizando: Boolean;
+    FPropuesta: TArray<TGrupoDepuracion>;
+    FAgregados: TArray<TGrupoDepuracion>;
     procedure SetPuedeActuar(Valor: Boolean);
     procedure SetAlImprimirActa(const Valor: TImprimirDepuracion);
     procedure AplicarTema;
@@ -134,6 +176,7 @@ type
     procedure AbrirDetalle(const Fila: TDepuracionFila);
     procedure RefrescarDetalle;
     procedure VolverALista;
+    procedure CargarPaso;
     function FilaDeLista(IdProceso: Integer; out Fila: TDepuracionFila): Boolean;
     function IdDeLaFilaElegida: Integer;
     procedure PedirSalir;
@@ -152,6 +195,14 @@ type
       visuales). }
     procedure MostrarLista(const Filas: TArray<TDepuracionFila>);
     procedure MostrarDetalle(const Fila: TDepuracionFila);
+    { Paso 1: lo que se puede proponer (con el motivo si no hay nada) y lo ya agregado. }
+    procedure MostrarPropuesta(const Grupos: TArray<TGrupoDepuracion>;
+      const MotivoVacia: string = '');
+    procedure MostrarAgregados(const Grupos: TArray<TGrupoDepuracion>);
+    { Paso 2: la autorizacion registrada (o los campos vacios). }
+    procedure MostrarAutorizacion(Hay: Boolean; const A: TAutorizacion);
+    { Lo que falta para avanzar, en el aviso del pie. }
+    procedure MostrarFaltan(const Textos: TArray<string>);
     { IPantallaProceso }
     procedure Embeber(Host: TWinControl);
     function PuedeSalir: Boolean;
@@ -173,7 +224,7 @@ implementation
 
 uses
   System.DateUtils, System.Variants, Data.DB, UAparienciaLegacy, UMensajes,
-  UProcesosDatos, UDepuracionReglas;
+  UProcesosDatos, UTransferenciasDatos, UDepuracionReglas;
 
 const
   // Colores base del .dfm (paleta clara); AplicarTema los cambia si el tema es otro.
@@ -347,7 +398,8 @@ begin
     else if C is TcxGridTableView then
       TcxGridTableView(C).OptionsView.GridLineColor := T.Linea
     else if C is TcxButton then
-      ConfigurarBoton(TcxButton(C), (C = btnNueva) or (C = btnAvanzar));
+      ConfigurarBoton(TcxButton(C), (C = btnNueva) or (C = btnAvanzar) or
+        (C = btnAgregar) or (C = btnRegistrarAut));
   end;
   stContenido.Color := T.Superficie;
   stContenido.TextColor := T.Texto;
@@ -582,6 +634,7 @@ begin
   FActual := Fila;
   FIdSeleccionado := Fila.IdProceso;
   MostrarDetalle(Fila);
+  CargarPaso;
 end;
 
 procedure TfrmDepuracionNueva.RefrescarDetalle;
@@ -604,6 +657,295 @@ end;
 procedure TfrmDepuracionNueva.btnVolverClick(Sender: TObject);
 begin
   VolverALista;
+end;
+
+{ ------------------------------ pasos 1 y 2 ------------------------------ }
+
+function UnirTextos(const Textos: TArray<string>): string;
+var
+  S: string;
+begin
+  Result := '';
+  for S in Textos do
+  begin
+    if Result <> '' then
+      Result := Result + '  ';
+    Result := Result + S;
+  end;
+end;
+
+procedure TfrmDepuracionNueva.CargarPaso;
+var
+  Aut: TAutorizacion;
+  Hay: Boolean;
+  Grupos: TArray<TGrupoDepuracion>;
+  Motivo: string;
+begin
+  if FConn = nil then
+    Exit;
+  try
+    case FActual.Paso of
+      1:
+        begin
+          MostrarAgregados(GruposDeLaDepuracion(FConn, FActual.IdProceso));
+          Grupos := ProponerDepuracion(FConn, FActual.Nodo, Now);
+          Motivo := '';
+          if Length(Grupos) = 0 then
+          begin
+            if Length(ListarArchivosCentrales(FConn)) = 0 then
+              Motivo := 'No hay ning' + #250 + 'n archivo de tipo Central. Los documentos ' +
+                'deben estar en un archivo Central o Hist' + #243 + 'rico para depurarse; ' +
+                'cree uno en Clasificadores > Archivos.'
+            else
+              Motivo := 'No hay series con destino final ' + #171 + 'Eliminarlo' + #187 +
+                ' y plazo en el archivo central, o todav' + #237 + 'a no ha vencido ning' +
+                #250 + 'n plazo.';
+          end;
+          MostrarPropuesta(Grupos, Motivo);
+        end;
+      2:
+        begin
+          Hay := LeerAutorizacion(FConn, FActual.IdProceso, Aut);
+          MostrarAutorizacion(Hay, Aut);
+        end;
+    end;
+  except
+    on E: Exception do
+      TMensajes.Error('No se pudieron leer los datos de la depuraci' + #243 + 'n: ' +
+        E.Message, 'Depuraci' + #243 + 'n');
+  end;
+end;
+
+procedure TfrmDepuracionNueva.MostrarPropuesta(const Grupos: TArray<TGrupoDepuracion>;
+  const MotivoVacia: string);
+var
+  I: Integer;
+  G: TGrupoDepuracion;
+  DC: TcxGridDataController;
+  Obs: string;
+begin
+  FPropuesta := Grupos;
+  if MotivoVacia <> '' then
+    tvPropuesta.OptionsView.NoDataToDisplayInfoText := MotivoVacia
+  else
+    tvPropuesta.OptionsView.NoDataToDisplayInfoText := 'No hay series para proponer';
+  DC := tvPropuesta.DataController;
+  tvPropuesta.BeginUpdate;
+  try
+    DC.RecordCount := Length(Grupos);
+    for I := 0 to High(Grupos) do
+    begin
+      G := Grupos[I];
+      Obs := '';
+      if G.Retenidos > 0 then
+        Obs := IntToStr(G.Retenidos) + ' retenidos por otro proceso';
+      DC.Values[I, colPropSerie.Index] := G.Serie + ' ' + #183 + ' ' + G.Subserie;
+      DC.Values[I, colPropAnios.Index] := IntToStr(G.AniosCentral) + ' a' + #241 + 'os';
+      DC.Values[I, colPropUnidades.Index] := IntToStr(G.Unidades);
+      DC.Values[I, colPropFechas.Index] := RangoMesAnio(G.Desde, G.Hasta);
+      DC.Values[I, colPropObs.Index] := Obs;
+    end;
+  finally
+    tvPropuesta.EndUpdate;
+  end;
+end;
+
+procedure TfrmDepuracionNueva.MostrarAgregados(const Grupos: TArray<TGrupoDepuracion>);
+var
+  I: Integer;
+  G: TGrupoDepuracion;
+  DC: TcxGridDataController;
+begin
+  FAgregados := Grupos;
+  DC := tvAgregados.DataController;
+  tvAgregados.BeginUpdate;
+  try
+    DC.RecordCount := Length(Grupos);
+    for I := 0 to High(Grupos) do
+    begin
+      G := Grupos[I];
+      DC.Values[I, colAgrSerie.Index] := G.Serie + ' ' + #183 + ' ' + G.Subserie;
+      DC.Values[I, colAgrUnidades.Index] := IntToStr(G.Unidades);
+      DC.Values[I, colAgrFechas.Index] := RangoMesAnio(G.Desde, G.Hasta);
+    end;
+  finally
+    tvAgregados.EndUpdate;
+  end;
+end;
+
+procedure TfrmDepuracionNueva.MostrarAutorizacion(Hay: Boolean; const A: TAutorizacion);
+begin
+  lblAutError.Caption := '';
+  if Hay then
+  begin
+    case A.Organo of
+      ocNacional: cboOrgano.ItemIndex := 0;
+      ocProvincial: cboOrgano.ItemIndex := 1;
+    else
+      cboOrgano.ItemIndex := 2;
+    end;
+    edtActa.Text := A.NumActa;
+    edtAcuerdo.Text := A.NumAcuerdo;
+    if A.Fecha <> 0 then
+      dteAutorizacion.Date := A.Fecha;
+    lblAutRegistrada.Caption := 'Autorizaci' + #243 + 'n registrada: ' +
+      TextoAutorizacionCorto(A) + ' (' + FormatDateTime('dd/mm/yyyy', A.Fecha) + ').';
+  end
+  else
+    lblAutRegistrada.Caption := '';
+end;
+
+procedure TfrmDepuracionNueva.MostrarFaltan(const Textos: TArray<string>);
+begin
+  lblAviso.Caption := UnirTextos(Textos);
+end;
+
+procedure TfrmDepuracionNueva.btnAgregarClick(Sender: TObject);
+var
+  I, Idx, Total, Agregados: Integer;
+  Motivo, Problemas: string;
+begin
+  if not FPuedeActuar then
+  begin
+    AvisarSinPermiso;
+    Exit;
+  end;
+  if tvPropuesta.Controller.SelectedRecordCount = 0 then
+  begin
+    TMensajes.Informacion('Marque las series que quiere agregar.', 'Depuraci' + #243 + 'n');
+    Exit;
+  end;
+  if not TMensajes.Confirmar('Las series marcadas se agregan a la depuraci' + #243 +
+    'n y sus documentos quedan retenidos hasta que se cierre o se cancele. ' + #191 +
+    'Continuar?', 'Agregar a la depuraci' + #243 + 'n') then
+    Exit;
+  Total := 0;
+  Problemas := '';
+  for I := 0 to tvPropuesta.Controller.SelectedRecordCount - 1 do
+  begin
+    Idx := tvPropuesta.Controller.SelectedRecords[I].RecordIndex;
+    if (Idx < 0) or (Idx > High(FPropuesta)) then
+      Continue;
+    try
+      if AgregarGrupoDepuracion(FConn, FActual.IdProceso, FPropuesta[Idx], Now, Agregados,
+        Motivo) then
+        Inc(Total, Agregados)
+      else
+        Problemas := Problemas + sLineBreak + FPropuesta[Idx].Subserie + ': ' + Motivo;
+    except
+      on E: Exception do
+        Problemas := Problemas + sLineBreak + FPropuesta[Idx].Subserie + ': ' + E.Message;
+    end;
+  end;
+  if Problemas <> '' then
+    TMensajes.Advertencia('Se agregaron ' + IntToStr(Total) + ' documento(s), pero:' +
+      Problemas, 'Depuraci' + #243 + 'n');
+  Recargar;
+end;
+
+procedure TfrmDepuracionNueva.btnQuitarClick(Sender: TObject);
+var
+  I: Integer;
+  G: TGrupoDepuracion;
+begin
+  if not FPuedeActuar then
+  begin
+    AvisarSinPermiso;
+    Exit;
+  end;
+  I := tvAgregados.DataController.FocusedRecordIndex;
+  if (I < 0) or (I > High(FAgregados)) then
+  begin
+    TMensajes.Informacion('Elija la serie que quiere quitar.', 'Depuraci' + #243 + 'n');
+    Exit;
+  end;
+  G := FAgregados[I];
+  if not TMensajes.Confirmar(#191 + 'Quitar ' + IntToStr(G.Unidades) + ' documento(s) de ' +
+    G.Subserie + '? Quedar' + #225 + 'n libres.', 'Quitar de la depuraci' + #243 + 'n') then
+    Exit;
+  try
+    QuitarGrupoDepuracion(FConn, FActual.IdProceso, G.IdEstructura, G.IdNodo, G.CodSubs);
+  except
+    on E: Exception do
+      TMensajes.Error('No se pudo quitar: ' + E.Message, 'Depuraci' + #243 + 'n');
+  end;
+  Recargar;
+end;
+
+procedure TfrmDepuracionNueva.btnRegistrarAutClick(Sender: TObject);
+var
+  A: TAutorizacion;
+begin
+  if not FPuedeActuar then
+  begin
+    AvisarSinPermiso;
+    Exit;
+  end;
+  lblAutError.Caption := '';
+  case cboOrgano.ItemIndex of
+    0: A.Organo := ocNacional;
+    1: A.Organo := ocProvincial;
+  else
+    A.Organo := ocMunicipal;
+  end;
+  A.NumActa := edtActa.Text;
+  A.NumAcuerdo := edtAcuerdo.Text;
+  if VarIsNull(dteAutorizacion.EditValue) then
+    A.Fecha := 0
+  else
+    A.Fecha := dteAutorizacion.Date;
+  try
+    GuardarAutorizacion(FConn, FActual.IdProceso, A, FUsuario);
+  except
+    on E: EAutorizacionInvalida do
+    begin
+      lblAutError.Caption := E.Message;
+      lblAviso.Caption := E.Message;
+      Exit;
+    end;
+    on E: Exception do
+    begin
+      TMensajes.Error('No se pudo registrar la autorizaci' + #243 + 'n: ' + E.Message,
+        'Depuraci' + #243 + 'n');
+      Exit;
+    end;
+  end;
+  MostrarAutorizacion(True, A);
+  lblAviso.Caption := '';
+end;
+
+procedure TfrmDepuracionNueva.btnAvanzarClick(Sender: TObject);
+var
+  Faltan: TArray<string>;
+begin
+  if not FPuedeActuar then
+  begin
+    AvisarSinPermiso;
+    Exit;
+  end;
+  lblAviso.Caption := '';
+  try
+    if AvanzarDepuracion(FConn, FActual.IdProceso, FActual.Paso, FUsuario, Faltan) then
+    begin
+      Recargar;
+      Exit;
+    end;
+  except
+    on E: Exception do
+    begin
+      TMensajes.Error('No se pudo avanzar la depuraci' + #243 + 'n: ' + E.Message,
+        'Depuraci' + #243 + 'n');
+      Exit;
+    end;
+  end;
+  if Length(Faltan) > 0 then
+    MostrarFaltan(Faltan)
+  else
+  begin
+    TMensajes.Advertencia('Otro usuario ya avanz' + #243 + ' o cambi' + #243 +
+      ' esta depuraci' + #243 + 'n. Se muestra su estado actual.', 'Depuraci' + #243 + 'n');
+    Recargar;
+  end;
 end;
 
 { --------------------------------- ficha --------------------------------- }
