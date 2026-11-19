@@ -157,7 +157,7 @@ implementation
 uses
   System.Generics.Collections, System.Generics.Defaults, System.Variants, Data.DB,
   FireDAC.Stan.Intf, FireDAC.Stan.Param, FireDAC.Stan.Error, UTransferenciasReglas,
-  UTransferenciasDatos, UAutorizacion, UEliminados;
+  UTransferenciasDatos, UAutorizacion, UEliminados, UDepuracionFicheros;
 
 const
   NODOS_POR_CONSULTA = 200;
@@ -1020,6 +1020,8 @@ begin
     if LeerAutorizacion(Conn, IdProceso, A) then
       Referencia := ' (acta ' + A.NumActa + ', acuerdo ' + A.NumAcuerdo + ')';
     RegistrarEvento(Conn, IdProceso, Usuario, 'Eliminaci' + #243 + 'n ejecutada' + Referencia);
+    // los ficheros digitales de lo eliminado quedan pendientes de retiro (paso 5)
+    CopiarFicherosAlRetiro(Conn, IdProceso);
     ConfirmarTx(Conn, Propia);
     Result := True;
   except

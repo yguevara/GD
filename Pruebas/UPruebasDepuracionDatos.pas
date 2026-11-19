@@ -109,6 +109,8 @@ type
     procedure LaAutorizacionNoSeCambiaFueraDeLosPasosEditables;
     [Test]
     procedure ListarDepuracionesIncluyeLasEnCursoDeAniosAnteriores;
+    [Test]
+    procedure EjecutarCopiaLosFicherosDeLosDocumentosAlRetiro;
   end;
 
 implementation
@@ -1046,6 +1048,30 @@ begin
   Assert.IsTrue(CancelarProceso(FConn, R.IdProceso, USUARIO, 'prueba'));
   L := ListarDepuraciones(FConn, [Nodo], 1994, 0);
   Assert.AreEqual(0, Length(L));
+end;
+
+procedure TPruebasDepuracionDatosBD.EjecutarCopiaLosFicherosDeLosDocumentosAlRetiro;
+var
+  R: TProcesoRef;
+  U: TUnidadDoc;
+begin
+  if not Conectar then Exit;
+  R := DepuracionListaParaEjecutar(2);
+  U := DocumentoDeSerie(FNodo, COD, 1);
+  FConn.ExecSQL('DELETE FROM tb_ssArchdigital WHERE Codigodoc LIKE ''PD-' + COD + '-%''');
+  FConn.ExecSQL('INSERT INTO tb_ssArchdigital (IdEstructura, id, codsubs, Fecha, Version, ' +
+    'Codigodoc, idhijo, nombre, urlraiz, path) VALUES (:e, :i, :s, :f, :v, :c, 900101, ' +
+    '''uno.pdf'', ''s3://1/'', ''docs/'')',
+    [U.IdEstructura, U.Id, U.CodSubs, U.Fecha, U.Version, U.CodigoDoc],
+    [ftString, ftInteger, ftString, ftDateTime, ftString, ftString]);
+  try
+    Assert.IsTrue(EjecutarDepuracion(FConn, R.IdProceso, USUARIO, 'ELIMINAR', Date));
+    Assert.AreEqual(1, Integer(Escalar('SELECT COUNT(*) FROM prc_fichero_retiro WHERE ' +
+      'IdProceso = ' + IntToStr(R.IdProceso) + ' AND Estado = ''P'' AND Nombre = ''uno.pdf''')));
+    Assert.IsFalse(CerrarDepuracion(FConn, R.IdProceso, USUARIO), 'con el fichero pendiente');
+  finally
+    FConn.ExecSQL('DELETE FROM tb_ssArchdigital WHERE Codigodoc LIKE ''PD-' + COD + '-%''');
+  end;
 end;
 
 initialization
