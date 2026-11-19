@@ -1115,7 +1115,7 @@ implementation
 
 uses
   UTiempos,
-  UEsquemaAlcance, UEsquemaAlmacen, UEsquemaCarga, UEsquemaTrazabilidad, UEsquemaProcesos, UPrestamosMigracion, UDepuracionMigracion, UProcesosInterruptor, UTrazabilidadDatos, UAlcanceDatos, UTopografia,
+  UEsquemaAlcance, UEsquemaAlmacen, UEsquemaCarga, UEsquemaTrazabilidad, UEsquemaProcesos, UPrestamosMigracion, UDepuracionMigracion, UTransferenciasMigracion, UProcesosInterruptor, UTrazabilidadDatos, UAlcanceDatos, UTopografia,
   UAlmacenFicheros, UAlmacenServidor, UProgresoTransferencia;
 
 
@@ -5734,6 +5734,17 @@ begin              //
   except
     on E: Exception do
       RegistrarErrorProceso(PathSys, 'Migracion de depuraciones fallo: ' + E.Message);
+  end;
+  // Transferencias de la pantalla vieja (tb_transferencia): solo informe, no se migra
+  // (ver UTransferenciasMigracion.pas). Nunca escribe y un fallo no impide arrancar.
+  try
+    InformeMig := InformarTransferenciasViejas(Conn);
+    if InformeMig.Leidos > 0 then
+      for LineaMig in InformeMig.Avisos do
+        RegistrarErrorProceso(PathSys, LineaMig);
+  except
+    on E: Exception do
+      RegistrarErrorProceso(PathSys, 'Informe de transferencias viejas fallo: ' + E.Message);
   end;
   if not EsquemaAlmacenCompleto(Conn) then
   begin

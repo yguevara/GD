@@ -30,6 +30,7 @@ uses
   UDepuracionImpresos in 'UDepuracionImpresos.pas',
   UDepuracionFicheros in 'UDepuracionFicheros.pas',
   UDepuracionMigracion in 'UDepuracionMigracion.pas',
+  UTransferenciasMigracion in 'UTransferenciasMigracion.pas',
   UDepuracionForm in 'UDepuracionForm.pas' {frmDepuracionNueva},
   UPrestadosSql in 'UPrestadosSql.pas',
   UPrestamosReglas in 'UPrestamosReglas.pas',
