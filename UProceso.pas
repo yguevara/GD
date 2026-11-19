@@ -33,7 +33,7 @@ type
   { Hechos que la pantalla o los datos verifican antes de dejar avanzar. }
   TCondicion = (cdAutorizado, cdSinBloqueos, cdVerificacionesCompletas,
     cdRecepcionConfirmada, cdUbicacionCompleta, cdMuestraDefinida,
-    cdTestigosMinimos, cdActaCompleta, cdConfirmacionEscrita);
+    cdTestigosMinimos, cdActaCompleta, cdConfirmacionEscrita, cdFicherosResueltos);
   TCondiciones = set of TCondicion;
 
   TTipoArchivo = (taGestion, taCentral, taHistorico, taOtro);
@@ -118,6 +118,7 @@ begin
         2: Result := [cdAutorizado];
         3: Result := [cdMuestraDefinida, cdTestigosMinimos, cdActaCompleta];
         4: Result := [cdConfirmacionEscrita, cdSinBloqueos];
+        5: Result := [cdFicherosResueltos];
       end;
   end;
 end;

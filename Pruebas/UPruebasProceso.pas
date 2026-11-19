@@ -31,6 +31,8 @@ type
     [Test]
     procedure DepuracionPaso4ExigeConfirmacionEscrita;
     [Test]
+    procedure DepuracionPaso5ExigeFicherosResueltos;
+    [Test]
     procedure PasoFueraDeRangoNoAvanza;
     [Test]
     procedure CancelarDepuracionEnEjecucionEsImposible;
@@ -130,6 +132,16 @@ begin
   Assert.IsTrue(Faltan = [cdTestigosMinimos, cdActaCompleta]);
   Assert.IsTrue(PuedeAvanzar(tpDepuracion, 3,
     [cdMuestraDefinida, cdTestigosMinimos, cdActaCompleta], Faltan));
+end;
+
+procedure TPruebasProceso.DepuracionPaso5ExigeFicherosResueltos;
+var
+  Faltan: TCondiciones;
+begin
+  Assert.IsTrue(CondicionesParaAvanzar(tpDepuracion, 5) = [cdFicherosResueltos]);
+  Assert.IsFalse(PuedeAvanzar(tpDepuracion, 5, [], Faltan));
+  Assert.IsTrue(Faltan = [cdFicherosResueltos]);
+  Assert.IsTrue(PuedeAvanzar(tpDepuracion, 5, [cdFicherosResueltos], Faltan));
 end;
 
 procedure TPruebasProceso.DepuracionPaso4ExigeConfirmacionEscrita;

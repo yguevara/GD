@@ -297,6 +297,28 @@ begin
   Indice('IX_prc_evento_proceso', 'prc_evento', 'IdProceso');
   // Para los vencimientos de los prestamos.
   Indice('IX_prc_prestamo_limite', 'prc_prestamo', 'FLimite');
+  // Ficheros digitales de los documentos eliminados (F4c). Estado: P pendiente, R retirado,
+  // N ya no existia, L solo lectura (FTP), M retirado a mano, E error.
+  Tabla('prc_fichero_retiro',
+    'IdProceso INT NOT NULL, ' +
+    'IdEstructura VARCHAR(50) NOT NULL, ' +
+    'id INT NOT NULL, ' +
+    'codsubs VARCHAR(50) NOT NULL, ' +
+    'Codigodoc VARCHAR(20) NOT NULL, ' +
+    'fecha DATETIME NOT NULL, ' +
+    'version VARCHAR(12) NOT NULL, ' +
+    'idhijo INT NOT NULL, ' +
+    'UrlRaiz VARCHAR(50) NULL, ' +
+    'Path VARCHAR(255) NULL, ' +
+    'Nombre VARCHAR(255) NULL, ' +
+    'Estado VARCHAR(1) NOT NULL, ' +
+    'Mensaje VARCHAR(255) NULL, ' +
+    'FechaRetiro DATETIME NULL, ' +
+    'CONSTRAINT PK_prc_fichero_retiro PRIMARY KEY (IdProceso, IdEstructura, id, codsubs, ' +
+    'Codigodoc, fecha, version, idhijo), ' +
+    'CONSTRAINT FK_prc_fichero_retiro_proceso FOREIGN KEY (IdProceso) ' +
+    'REFERENCES prc_proceso(IdProceso) ON DELETE CASCADE');
+
   // Para las incidencias de una transferencia.
   Indice('IX_prc_incidencia_proceso', 'prc_incidencia', 'IdProceso');
   // Para los testigos de una depuracion.

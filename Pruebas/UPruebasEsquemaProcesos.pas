@@ -57,6 +57,8 @@ type
     procedure Depuracion_TablaConClaveYCascada;
     [Test]
     procedure Testigo_TablaConClaveCascadaEIndice;
+    [Test]
+    procedure FicheroRetiro_TablaConClaveCascadaEIndice;
   end;
 
   [TestFixture]
@@ -91,9 +93,10 @@ uses
 
 const
   VAR_BD = 'ARCHIGENIO_TEST_DB';
-  TABLAS: array[0..12] of string = ('prc_proceso', 'prc_unidad', 'prc_evento',
+  TABLAS: array[0..13] of string = ('prc_proceso', 'prc_unidad', 'prc_evento',
     'prc_autorizacion', 'prc_bloqueo', 'prc_prestamo', 'prc_transferencia',
-    'prc_cronograma', 'prc_caja', 'prc_verificacion', 'prc_incidencia', 'prc_depuracion', 'prc_testigo');
+    'prc_cronograma', 'prc_caja', 'prc_verificacion', 'prc_incidencia', 'prc_depuracion', 'prc_testigo',
+    'prc_fichero_retiro');
 
 { TPruebasEsquemaProcesosSql }
 
@@ -293,6 +296,22 @@ begin
   Assert.IsTrue(Pos('CONSTRAINT FK_prc_testigo_proceso FOREIGN KEY (IdProceso) ' +
     'REFERENCES prc_proceso(IdProceso) ON DELETE CASCADE', Todo(True)) > 0);
   Assert.IsTrue(Pos('CREATE INDEX IX_prc_testigo_proceso ON prc_testigo (IdProceso)', Todo(True)) > 0);
+end;
+
+procedure TPruebasEsquemaProcesosSql.FicheroRetiro_TablaConClaveCascadaEIndice;
+var
+  C: string;
+begin
+  for C in TArray<string>.Create('CREATE TABLE prc_fichero_retiro (',
+    'CONSTRAINT PK_prc_fichero_retiro PRIMARY KEY (IdProceso, IdEstructura, id, codsubs, ' +
+    'Codigodoc, fecha, version, idhijo)', 'Estado VARCHAR(1) NOT NULL',
+    'Mensaje VARCHAR(255) NULL', 'UrlRaiz VARCHAR(50) NULL') do
+  begin
+    Assert.IsTrue(Pos(C, Todo(True)) > 0, 'SQL Server ' + C);
+    Assert.IsTrue(Pos(C, Todo(False)) > 0, 'Access ' + C);
+  end;
+  Assert.IsTrue(Pos('CONSTRAINT FK_prc_fichero_retiro_proceso FOREIGN KEY (IdProceso) ' +
+    'REFERENCES prc_proceso(IdProceso) ON DELETE CASCADE', Todo(True)) > 0);
 end;
 
 procedure TPruebasEsquemaProcesosSql.Incidencia_TablaConCascadaEIndice;

@@ -225,6 +225,9 @@ begin
       Assert.AreNotEqual(T[I], T[J], 'frases distintas');
   end;
   Assert.AreEqual(0, Length(TextosQueFaltanDepuracion([])));
+  T := TextosQueFaltanDepuracion([cdFicherosResueltos]);
+  Assert.AreEqual(1, Length(T));
+  Assert.IsTrue(Pos('ficheros', T[0]) > 0);
 end;
 
 procedure TPruebasDepuracionReglas.CodigosDeViaYOrigenIdaYVuelta;

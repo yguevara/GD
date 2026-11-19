@@ -918,6 +918,10 @@ begin
   end;
   if TestigosSuficientes(Datos) then
     Include(Result, cdTestigosMinimos);
+  // ficheros digitales: resuelto = ninguno en P (pendiente), E (error) ni L (solo lectura)
+  if Integer(Conn.ExecSQLScalar('SELECT COUNT(*) FROM prc_fichero_retiro WHERE ' +
+    'IdProceso = :p AND Estado NOT IN (''R'', ''N'', ''M'')', [IdProceso])) = 0 then
+    Include(Result, cdFicherosResueltos);
   Faltan := TextosQueFaltanDepuracion(CondicionesParaAvanzar(tpDepuracion, Paso) - Result);
 end;
 
@@ -1031,14 +1035,18 @@ var
   Paso: Integer;
   Estado: string;
   Falta: TCondiciones;
+  Cumplidas: TCondiciones;
+  Textos: TArray<string>;
 begin
   Result := False;
   if not LeerProceso(Conn, IdProceso, Tipo, Paso, Estado) or (Tipo <> tpDepuracion) then
     Exit;
   if (Estado <> 'C') or (Paso <> 5) then
     Exit;
+  // los ficheros digitales deben estar resueltos (no queda ninguno pendiente ni con error)
+  Cumplidas := CondicionesCumplidasDepuracion(Conn, IdProceso, Textos);
   // el ultimo paso finaliza el proceso y libera los candados
-  Result := AvanzarPaso(Conn, IdProceso, 5, [], Usuario, Falta);
+  Result := AvanzarPaso(Conn, IdProceso, 5, Cumplidas, Usuario, Falta);
 end;
 
 end.

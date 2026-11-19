@@ -410,6 +410,7 @@ begin
       'eliminaci' + #243 + 'n.');
   if cdConfirmacionEscrita in Faltan then
     Sumar(Result, 'Escriba ' + PALABRA_CONFIRMACION + ' para confirmar.');
-end;
+  if cdFicherosResueltos in Faltan then
+    Sumar(Result, 'Quedan ficheros digitales por retirar o confirmar.');end;
 
 end.

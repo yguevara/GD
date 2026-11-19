@@ -227,3 +227,27 @@ CREATE TABLE prc_testigo (
 
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_prc_testigo_proceso' AND object_id = OBJECT_ID('dbo.prc_testigo'))
 CREATE INDEX IX_prc_testigo_proceso ON prc_testigo (IdProceso);
+
+
+-- F4c: ficheros digitales de los documentos eliminados (Estado: P pendiente, R retirado, N ya no existia,
+-- L solo lectura/FTP, M retirado a mano, E error).
+IF OBJECT_ID('dbo.prc_fichero_retiro', 'U') IS NULL
+CREATE TABLE prc_fichero_retiro (
+  IdProceso INT NOT NULL,
+  IdEstructura VARCHAR(50) NOT NULL,
+  id INT NOT NULL,
+  codsubs VARCHAR(50) NOT NULL,
+  Codigodoc VARCHAR(20) NOT NULL,
+  fecha DATETIME NOT NULL,
+  version VARCHAR(12) NOT NULL,
+  idhijo INT NOT NULL,
+  UrlRaiz VARCHAR(50) NULL,
+  Path VARCHAR(255) NULL,
+  Nombre VARCHAR(255) NULL,
+  Estado VARCHAR(1) NOT NULL,
+  Mensaje VARCHAR(255) NULL,
+  FechaRetiro DATETIME NULL,
+  CONSTRAINT PK_prc_fichero_retiro PRIMARY KEY (IdProceso, IdEstructura, id, codsubs, Codigodoc, fecha, version, idhijo),
+  CONSTRAINT FK_prc_fichero_retiro_proceso FOREIGN KEY (IdProceso)
+    REFERENCES prc_proceso(IdProceso) ON DELETE CASCADE
+);
