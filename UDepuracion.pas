@@ -431,7 +431,6 @@ type
     { Public declarations }
     procedure ReloadDocumentDepurar;
     procedure CargaReporte(report: TfrxReport; pathreport, nameempresa, empresa, nameimagen, pathimagen: string);
-    procedure InsertConnection(report: TfrxReport; connection: string);
     function LocalizaConsulta(consulta_nombre: string): Boolean;
   end;
 
@@ -477,27 +476,6 @@ procedure TfrmDepuracion.btnCloseClick(Sender: TObject);
 begin
   close;
 
-end;
-
-procedure TfrmDepuracion.InsertConnection(report: TfrxReport; connection: string);
-begin
-  TfrxADODatabase(report.FindComponent('conn')).Connected := false;
-   if TBD = 'A' then
-    TfrxADODatabase(report.FindComponent('conn')).DatabaseName := 'Provider=Microsoft.Jet.OLEDB.4.0;Data Source=' + connection + ';Persist Security Info=False'
-  else
-    TfrxADODatabase(report.FindComponent('conn')).DatabaseName := 'Provider=SQLOLEDB.1;Password=geoconn;Persist Security Info=True;User ID=geoconn;Initial Catalog=SDbd;Data Source=' + UDM.tb_sysconfig.FieldByName('ipservidorbd').AsString;
-      TfrxADODatabase(report.FindComponent('conn')).Connected := True;
-  for var i := 0 to report.ComponentCount - 1 do
-  begin
-    if report.Components[i] is TfrxADOQuery then
-    begin
-      if TfrxADOQuery(report.Components[i]).Params.Count = 0 then
-      begin
-        TfrxADOQuery(report.Components[i]).Active := True;
-      end;
-
-    end;
-  end;
 end;
 
 procedure TfrmDepuracion.JvTransparentButton1Click(Sender: TObject);
