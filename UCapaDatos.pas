@@ -1115,7 +1115,7 @@ implementation
 
 uses
   UTiempos,
-  UEsquemaAlcance, UEsquemaAlmacen, UEsquemaCarga, UEsquemaTrazabilidad, UEsquemaProcesos, UPrestamosMigracion, UProcesosInterruptor, UTrazabilidadDatos, UAlcanceDatos, UTopografia,
+  UEsquemaAlcance, UEsquemaAlmacen, UEsquemaCarga, UEsquemaTrazabilidad, UEsquemaProcesos, UPrestamosMigracion, UDepuracionMigracion, UProcesosInterruptor, UTrazabilidadDatos, UAlcanceDatos, UTopografia,
   UAlmacenFicheros, UAlmacenServidor, UProgresoTransferencia;
 
 
@@ -5717,6 +5717,23 @@ begin              //
   except
     on E: Exception do
       RegistrarErrorProceso(PathSys, 'Migracion de prestamos fallo: ' + E.Message);
+  end;
+  // Depuraciones de la pantalla vieja (tb_depuracion, destino Eliminarlo) -> procesos
+  // finalizados (ver UDepuracionMigracion.pas). Idempotente; no toca la tabla vieja.
+  if TBD = 'S' then
+  try
+    InformeMig := MigrarDepuracionesViejas(Conn);
+    if (InformeMig.Migrados > 0) or (Length(InformeMig.Avisos) > 0) then
+    begin
+      RegistrarErrorProceso(PathSys, 'Migracion de depuraciones: documentos ' +
+        IntToStr(InformeMig.Leidos) + ', procesos creados ' + IntToStr(InformeMig.Migrados) +
+        ', documentos omitidos ' + IntToStr(InformeMig.DocumentosOmitidos));
+      for LineaMig in InformeMig.Avisos do
+        RegistrarErrorProceso(PathSys, '  ' + LineaMig);
+    end;
+  except
+    on E: Exception do
+      RegistrarErrorProceso(PathSys, 'Migracion de depuraciones fallo: ' + E.Message);
   end;
   if not EsquemaAlmacenCompleto(Conn) then
   begin
