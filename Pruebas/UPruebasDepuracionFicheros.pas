@@ -40,6 +40,8 @@ type
     [Test]
     procedure NoSeRetiraFueraDelPasoDeCierre;
     [Test]
+    procedure RetiroRealContraUnServidorS3;
+    [Test]
     procedure UnFicheroDeFtpNuncaSeDaPorInexistenteVaASoloLectura;
     [Test]
     procedure UnFicheroConErrorSinSolucionSePuedeConfirmarARetiradoAMano;
@@ -53,8 +55,8 @@ uses
   System.SysUtils, System.Variants, FireDAC.Stan.Intf, FireDAC.Stan.Option,
   FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf, FireDAC.Stan.Def,
   FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys, FireDAC.Phys.MSSQL, FireDAC.DApt,
-  FireDAC.ConsoleUI.Wait, FireDAC.Stan.Param, Data.DB, UCandados, UEsquemaProcesos,
-  UDepuracionDatos, UPruebasApoyoDepuracion;
+  FireDAC.ConsoleUI.Wait, FireDAC.Stan.Param, Data.DB, System.Classes, System.IOUtils, UCandados, UEsquemaProcesos,
+  UDepuracionDatos, UPruebasApoyoDepuracion, UAlmacenS3, UAlmacenServidor;
 
 const
   VAR_BD = 'ARCHIGENIO_TEST_DB';
@@ -318,6 +320,87 @@ begin
     Assert.IsTrue(ConfirmarRetiroManual(FConn, Id, F, USUARIO));
   Assert.AreEqual('M', EstadoDe(Id, 'falla.pdf'));
   Assert.IsTrue(CerrarDepuracion(FConn, Id, USUARIO));
+end;
+
+{ Contra un servidor S3 real (ARCHIGENIO_TEST_S3 = host:puerto|usuario|secreto): sube
+  ficheros, los retira con RetirarFicheros y comprueba que desaparecen del bucket. }
+procedure TPruebasDepuracionFicheros.RetiroRealContraUnServidorS3;
+var
+  V: TArray<string>;
+  H: TArray<string>;
+  D: TDatosServidorS3;
+  IdSrv, Id, I: Integer;
+  S3: TAlmacenS3;
+  Ref: IAlmacenFicheros;
+  Local, Raiz: string;
+  Tam: Int64;
+  Fab: TFabricaAlmacenRetiro;
+begin
+  if not Conectar then Exit;
+  V := GetEnvironmentVariable('ARCHIGENIO_TEST_S3').Split(['|']);
+  if Length(V) <> 3 then
+  begin
+    Assert.Pass('omitida: falta ARCHIGENIO_TEST_S3');
+    Exit;
+  end;
+  H := V[0].Split([':']);
+  D := Default(TDatosServidorS3);
+  D.Etiqueta := '__prueba__';
+  D.Endpoint := H[0];
+  D.Puerto := StrToInt(H[1]);
+  D.Bucket := 'archigenio-prueba';
+  D.ClaveAcceso := V[1];
+  D.Secreto := V[2];
+  IdSrv := GuardarServidorS3(FConn, D);
+  S3 := TAlmacenS3.Create(V[0], 'archigenio-prueba', V[1], V[2], '', False);
+  Ref := S3;
+  Local := ChangeFileExt(ParamStr(0), '.tmp');
+  try
+    S3.AsegurarBucket;
+    with TStringList.Create do
+    try
+      Add('contenido de prueba');
+      SaveToFile(Local);
+    finally
+      Free;
+    end;
+    Raiz := 's3://' + IntToStr(IdSrv) + '/';
+    S3.Subir(Local, 'docs-f4c/real1.pdf', nil);
+    S3.Subir(Local, 'docs-f4c/real2.pdf', nil);
+    Assert.IsTrue(S3.Existe('docs-f4c/real1.pdf', Tam), 'subido');
+    Id := ProcesoEnCierre(5);
+    Fichero(1, 900001, 'real1.pdf', Raiz);
+    Fichero(1, 900002, 'real2.pdf', Raiz);
+    Fichero(1, 900003, 'ausente.pdf', Raiz);                 // nunca se subio
+    Fichero(1, 900004, 'servidor-inexistente.pdf', 's3://999999/');
+    FConn.ExecSQL('UPDATE tb_ssArchdigital SET path = ''docs-f4c/'' WHERE Codigodoc LIKE ' +
+      '''PD-' + COD + '-%''');
+    CopiarFicherosAlRetiro(FConn, Id);
+    Fab := function(const UrlRaiz, Path, Nombre: string; out Clave: string): IAlmacenFicheros
+      begin
+        Result := AlmacenParaFichero(FConn, UrlRaiz, 0, Clave, Path, Nombre);
+      end;
+    RetirarFicheros(FConn, Id, Fab, USUARIO);
+    Assert.AreEqual('R', EstadoDe(Id, 'real1.pdf'));
+    Assert.AreEqual('R', EstadoDe(Id, 'real2.pdf'));
+    Assert.AreEqual('N', EstadoDe(Id, 'ausente.pdf'));
+    Assert.AreEqual('E', EstadoDe(Id, 'servidor-inexistente.pdf'));
+    Assert.IsFalse(S3.Existe('docs-f4c/real1.pdf', Tam), 'real1 ya no esta en el bucket');
+    Assert.IsFalse(S3.Existe('docs-f4c/real2.pdf', Tam), 'real2 ya no esta en el bucket');
+    Assert.IsFalse(CerrarDepuracion(FConn, Id, USUARIO), 'el error bloquea el cierre');
+    // reintentar no cambia nada (el servidor sigue sin existir) y no toca los resueltos
+    RetirarFicheros(FConn, Id, Fab, USUARIO);
+    Assert.AreEqual('E', EstadoDe(Id, 'servidor-inexistente.pdf'));
+    // salida: confirmar a mano
+    for I := 0 to High(FicherosDelRetiro(FConn, Id)) do
+      ConfirmarRetiroManual(FConn, Id, FicherosDelRetiro(FConn, Id)[I], USUARIO);
+    Assert.AreEqual('M', EstadoDe(Id, 'servidor-inexistente.pdf'));
+    Assert.IsTrue(CerrarDepuracion(FConn, Id, USUARIO));
+  finally
+    if TFile.Exists(Local) then
+      TFile.Delete(Local);
+    FConn.ExecSQL('DELETE FROM cl_ftp_Server WHERE Idservidor = :i', [IdSrv]);
+  end;
 end;
 
 procedure TPruebasDepuracionFicheros.NoSeRetiraFueraDelPasoDeCierre;

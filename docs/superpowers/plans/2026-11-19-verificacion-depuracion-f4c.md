@@ -1,6 +1,6 @@
 # Verificacion de Depuracion F4c (retiro de ficheros, migracion, contrasena)
 
-Lo comprobado automaticamente (SQL Server `SGDTEST_ALCANCE`, almacen simulado): copia de los ficheros al ejecutar, retiro por fichero con resultado y reintento, solo lectura -> confirmacion manual, cierre bloqueado con ficheros sin resolver, migracion de `tb_depuracion` idempotente. **No se ha probado contra un servidor S3 ni FTP real, ni con la pantalla sobre la base real** (solo capturas con datos de ejemplo, 100 % y 125 %, tema claro).
+Lo comprobado automaticamente (SQL Server `SGDTEST_ALCANCE`, almacen simulado): copia de los ficheros al ejecutar, retiro por fichero con resultado y reintento, solo lectura -> confirmacion manual, cierre bloqueado con ficheros sin resolver, migracion de `tb_depuracion` idempotente. **El retiro se probo contra un MinIO real (prueba `RetiroRealContraUnServidorS3`, con `ARCHIGENIO_TEST_S3`): los ficheros salen del bucket, uno ausente da «ya no existia» y un servidor inexistente da error, bloquea el cierre y se resuelve confirmando a mano. No se ha probado contra un FTP real ni con la pantalla sobre la base real** (solo capturas con datos de ejemplo, 100 % y 125 %, tema claro).
 
 ## A mano (antes: una depuracion ejecutada, en el paso 5, con documentos que tengan ficheros digitales)
 
