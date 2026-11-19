@@ -19,7 +19,7 @@ unit UDepuracionFicheros;
 interface
 
 uses
-  System.SysUtils, FireDAC.Comp.Client, UAlmacenFicheros;
+  System.SysUtils, FireDAC.Comp.Client, UAlmacenFicheros, UAgregarFicheros;
 
 type
   { Un fichero digital de un documento eliminado. }
@@ -37,8 +37,7 @@ type
 
   { Almacen donde esta un fichero segun su raiz, carpeta y nombre; devuelve tambien
     la clave del objeto en ese almacen (igual que TFabricaAlmacen). }
-  TFabricaAlmacenRetiro = reference to function(const UrlRaiz, Path, Nombre: string;
-    out Clave: string): IAlmacenFicheros;
+  TFabricaAlmacenRetiro = TFabricaAlmacen;
 
   TResumenRetiro = record
     Retirados, YaNoExistian, SoloLectura, Errores: Integer;

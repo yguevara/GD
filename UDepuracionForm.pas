@@ -33,7 +33,7 @@ uses
   cxMaskEdit, cxDropDownEdit, cxCalendar, cxSpinEdit, cxButtons, cxGridLevel,
   cxClasses, cxGridCustomView, cxGridCustomTableView, cxGridTableView, cxGrid,
   FireDAC.Comp.Client, UAlcance, UProceso, UAutorizacion, UTema, UProcesoPintura, UPantallaProceso,
-  UOpcionNodo, UDepuracionDatos;
+  UOpcionNodo, UDepuracionDatos, UDepuracionFicheros;
 
 type
   { Pide imprimir el acta de una depuracion. }
@@ -189,6 +189,17 @@ type
     lblE5Ayuda: TLabel;
     btnImprimirActa5: TcxButton;
     btnCerrarDep: TcxButton;
+    lblE5FicherosT: TLabel;
+    grdFicheros: TcxGrid;
+    tvFicheros: TcxGridTableView;
+    colFicNombre: TcxGridColumn;
+    colFicEstado: TcxGridColumn;
+    colFicMensaje: TcxGridColumn;
+    lvFicheros: TcxGridLevel;
+    lblE5Resumen: TLabel;
+    btnRetirar: TcxButton;
+    btnReintentar: TcxButton;
+    btnConfirmarManual: TcxButton;
     strEstilos: TcxStyleRepository;
     stContenido: TcxStyle;
     stContenidoPeq: TcxStyle;
@@ -223,6 +234,9 @@ type
     procedure btnCerrarDepClick(Sender: TObject);
     procedure btnCancelarDepClick(Sender: TObject);
     procedure btnEliminarDepClick(Sender: TObject);
+    procedure btnRetirarClick(Sender: TObject);
+    procedure btnReintentarClick(Sender: TObject);
+    procedure btnConfirmarManualClick(Sender: TObject);
   private
     FConn: TFDConnection;
     FNodos: TArray<TClaveNodo>;
@@ -245,6 +259,9 @@ type
     FAgregados: TArray<TGrupoDepuracion>;
     FTestigos: TArray<TTestigoFila>;
     FChecksOk: Boolean;
+    FFicheros: TArray<TFicheroRetiro>;
+    FFabricaRetiro: TFabricaAlmacenRetiro;
+    procedure RetirarLosFicheros(Confirmar: Boolean);
     procedure RefrescarFaltantes;
     function PuedeActuarAqui: Boolean;
     procedure ActualizarBotonEjecutar;
@@ -292,6 +309,9 @@ type
       ejecutar solo se activa con todo cumplido y la palabra ELIMINAR escrita. }
     procedure MostrarEjecucion(const Fila: TDepuracionFila;
       const Checks: TArray<TCheckEjecucion>);
+    { Paso 5: los ficheros digitales de lo eliminado y su estado. El cierre solo se
+      permite con todos resueltos. }
+    procedure MostrarFicheros(const F: TArray<TFicheroRetiro>);
     { IPantallaProceso }
     procedure Embeber(Host: TWinControl);
     function PuedeSalir: Boolean;
@@ -301,6 +321,8 @@ type
     property PuedeActuar: Boolean read FPuedeActuar write SetPuedeActuar;
     property AlImprimirActa: TImprimirDepuracion read FAlImprimirActa
       write SetAlImprimirActa;
+    { Almacen de cada fichero (lo arma la ventana principal); sin el, no se retira. }
+    property FabricaRetiro: TFabricaAlmacenRetiro read FFabricaRetiro write FFabricaRetiro;
   end;
 
 function CrearPantallaDepuracion(Conn: TFDConnection; const Nodos: TArray<TClaveNodo>;
@@ -507,7 +529,7 @@ begin
       TcxGridTableView(C).OptionsView.GridLineColor := T.Linea
     else if C is TcxButton then
       ConfigurarBoton(TcxButton(C), (C = btnNueva) or (C = btnAvanzar) or
-        (C = btnAgregar) or (C = btnRegistrarAut) or (C = btnGuardarActa) or (C = btnEjecutar) or (C = btnCerrarDep));
+        (C = btnAgregar) or (C = btnRegistrarAut) or (C = btnGuardarActa) or (C = btnEjecutar) or (C = btnCerrarDep) or (C = btnRetirar));
   end;
   stContenido.Color := T.Superficie;
   stContenido.TextColor := T.Texto;
@@ -863,6 +885,8 @@ begin
           Checks[3].Cumplido := cdSinBloqueos in Cond;
           MostrarEjecucion(FActual, Checks);
         end;
+      5:
+        MostrarFicheros(FicherosDelRetiro(FConn, FActual.IdProceso));
     end;
   except
     on E: Exception do
@@ -1459,6 +1483,134 @@ begin
   Recargar;
 end;
 
+procedure TfrmDepuracionNueva.MostrarFicheros(const F: TArray<TFicheroRetiro>);
+var
+  I, Pend, Err, Ret, Lect: Integer;
+  DC: TcxGridDataController;
+  Edita: Boolean;
+begin
+  FFicheros := F;
+  Pend := 0;
+  Err := 0;
+  Ret := 0;
+  Lect := 0;
+  DC := tvFicheros.DataController;
+  tvFicheros.BeginUpdate;
+  try
+    DC.RecordCount := Length(F);
+    for I := 0 to High(F) do
+    begin
+      DC.Values[I, colFicNombre.Index] := F[I].Nombre;
+      DC.Values[I, colFicEstado.Index] := TextoEstadoFichero(F[I].Estado);
+      DC.Values[I, colFicMensaje.Index] := F[I].Mensaje;
+      if F[I].Estado = 'P' then
+        Inc(Pend)
+      else if F[I].Estado = 'E' then
+        Inc(Err)
+      else if F[I].Estado = 'L' then
+        Inc(Lect)
+      else
+        Inc(Ret);
+    end;
+  finally
+    tvFicheros.EndUpdate;
+  end;
+  if Length(F) = 0 then
+    lblE5Resumen.Caption := ''
+  else
+    lblE5Resumen.Caption := IntToStr(Ret) + ' resueltos, ' + IntToStr(Pend) + ' pendientes, ' +
+      IntToStr(Err) + ' con error, ' + IntToStr(Lect) + ' de solo lectura.';
+  if Lect > 0 then
+    lblE5Resumen.Caption := lblE5Resumen.Caption + ' Ret' + #237 + 'relos a mano en el servidor y ' +
+      'conf' + #237 + 'rmelo.';
+  Edita := (FActual.Proceso = epEnCurso) and PuedeActuarAqui;
+  btnRetirar.Visible := Edita and (Pend > 0);
+  btnReintentar.Visible := Edita and (Err > 0);
+  btnConfirmarManual.Visible := Edita and (Lect > 0);
+  btnCerrarDep.Enabled := (Pend + Err + Lect) = 0;
+end;
+
+{ Retira los pendientes y reintenta los que fallaron (es la misma operacion). }
+procedure TfrmDepuracionNueva.RetirarLosFicheros(Confirmar: Boolean);
+var
+  R: TResumenRetiro;
+begin
+  if not PuedeActuarAqui then
+  begin
+    AvisarSinPermiso;
+    Exit;
+  end;
+  if not Assigned(FFabricaRetiro) then
+  begin
+    TMensajes.Error('No hay un almac' + #233 + 'n de ficheros configurado.', 'Depuraci' + #243 + 'n');
+    Exit;
+  end;
+  if Confirmar and not TMensajes.Confirmar('Se retiran del almac' + #233 + 'n los ficheros ' +
+    'digitales de los documentos eliminados. Esta acci' + #243 + 'n no se puede deshacer. ' +
+    #191 + 'Continuar?', 'Retirar ficheros') then
+    Exit;
+  lblAviso.Caption := '';
+  try
+    R := RetirarFicheros(FConn, FActual.IdProceso, FFabricaRetiro, FUsuario);
+  except
+    on E: EArgumentException do
+    begin
+      lblAviso.Caption := E.Message;
+      Exit;
+    end;
+    on E: Exception do
+    begin
+      TMensajes.Error('No se pudieron retirar los ficheros: ' + E.Message, 'Depuraci' + #243 + 'n');
+      Exit;
+    end;
+  end;
+  CargarPaso;
+  lblAviso.Caption := IntToStr(R.Retirados) + ' retirados, ' + IntToStr(R.YaNoExistian) +
+    ' ya no exist' + #237 + 'an, ' + IntToStr(R.SoloLectura) + ' de solo lectura, ' +
+    IntToStr(R.Errores) + ' con error.';
+end;
+
+procedure TfrmDepuracionNueva.btnRetirarClick(Sender: TObject);
+begin
+  RetirarLosFicheros(True);
+end;
+
+procedure TfrmDepuracionNueva.btnReintentarClick(Sender: TObject);
+begin
+  RetirarLosFicheros(False);
+end;
+
+procedure TfrmDepuracionNueva.btnConfirmarManualClick(Sender: TObject);
+var
+  I: Integer;
+begin
+  if not PuedeActuarAqui then
+  begin
+    AvisarSinPermiso;
+    Exit;
+  end;
+  I := tvFicheros.DataController.FocusedRecordIndex;
+  if (I < 0) or (I > High(FFicheros)) or (FFicheros[I].Estado <> 'L') then
+  begin
+    TMensajes.Informacion('Elija un fichero de solo lectura que ya haya retirado a mano.',
+      'Depuraci' + #243 + 'n');
+    Exit;
+  end;
+  if not TMensajes.Confirmar(#191 + 'Confirma que ' + FFicheros[I].Nombre + ' ya se retir' + #243 +
+    ' a mano del servidor?', 'Confirmar retiro a mano') then
+    Exit;
+  try
+    ConfirmarRetiroManual(FConn, FActual.IdProceso, FFicheros[I], FUsuario);
+  except
+    on E: Exception do
+    begin
+      TMensajes.Error('No se pudo confirmar: ' + E.Message, 'Depuraci' + #243 + 'n');
+      Exit;
+    end;
+  end;
+  CargarPaso;
+end;
+
 procedure TfrmDepuracionNueva.btnCerrarDepClick(Sender: TObject);
 begin
   if not PuedeActuarAqui then
@@ -1468,8 +1620,14 @@ begin
   end;
   try
     if not CerrarDepuracion(FConn, FActual.IdProceso, FUsuario) then
-      TMensajes.Advertencia('La depuraci' + #243 + 'n ya no est' + #225 + ' en este paso. ' +
-        'Se muestra su estado actual.', 'Depuraci' + #243 + 'n');
+    begin
+      if FicherosSinResolver(FConn, FActual.IdProceso) > 0 then
+        TMensajes.Advertencia('Todav' + #237 + 'a quedan ficheros digitales por retirar o ' +
+          'confirmar: ret' + #237 + 'relos antes de cerrar.', 'Depuraci' + #243 + 'n')
+      else
+        TMensajes.Advertencia('La depuraci' + #243 + 'n ya no est' + #225 + ' en este paso. ' +
+          'Se muestra su estado actual.', 'Depuraci' + #243 + 'n');
+    end;
   except
     on E: Exception do
     begin

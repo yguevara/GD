@@ -1471,12 +1471,11 @@ object frmDepuracionNueva: TfrmDepuracionNueva
         Visible = False
         object lblE5Texto: TLabel
           Left = 20
-          Top = 20
+          Top = 14
           Width = 1200
-          Height = 60
+          Height = 24
           Caption = ''
         AutoSize = False
-        WordWrap = True
           Font.Charset = DEFAULT_CHARSET
           Font.Color = 1581355
           Font.Height = -14
@@ -1486,12 +1485,11 @@ object frmDepuracionNueva: TfrmDepuracionNueva
         end
         object lblE5Ayuda: TLabel
           Left = 20
-          Top = 92
+          Top = 44
           Width = 1200
-          Height = 40
+          Height = 20
           Caption = ''
         AutoSize = False
-        WordWrap = True
           Font.Charset = DEFAULT_CHARSET
           Font.Color = 5924725
           Font.Height = -12
@@ -1501,7 +1499,7 @@ object frmDepuracionNueva: TfrmDepuracionNueva
         end
         object btnImprimirActa5: TcxButton
           Left = 20
-          Top = 140
+          Top = 72
           Width = 160
           Height = 36
           Caption = 'Imprimir acta'
@@ -1511,12 +1509,121 @@ object frmDepuracionNueva: TfrmDepuracionNueva
         end
         object btnCerrarDep: TcxButton
           Left = 200
-          Top = 140
+          Top = 72
           Width = 256
           Height = 36
           Caption = 'Cerrar la depuraci'#243'n'
           TabOrder = 1
           OnClick = btnCerrarDepClick
+        end
+        object lblE5FicherosT: TLabel
+          Left = 20
+          Top = 126
+          Width = 3
+          Height = 15
+          Caption = 'FICHEROS DIGITALES DE LOS DOCUMENTOS ELIMINADOS'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = 5924725
+          Font.Height = -11
+          Font.Name = 'Segoe UI'
+          Font.Style = []
+          ParentFont = False
+        end
+        object grdFicheros: TcxGrid
+          Left = 20
+          Top = 146
+          Width = 1000
+          Height = 190
+          BorderStyle = cxcbsNone
+          TabOrder = 0
+          LookAndFeel.Kind = lfUltraFlat
+          LookAndFeel.NativeStyle = False
+          object tvFicheros: TcxGridTableView
+            OnCustomDrawColumnHeader = tvCustomDrawColumnHeader
+            OptionsData.Appending = False
+            OptionsData.Deleting = False
+            OptionsData.Editing = False
+            OptionsData.Inserting = False
+            OptionsCustomize.ColumnSorting = False
+            OptionsSelection.CellSelect = False
+            OptionsView.CellAutoHeight = True
+            OptionsView.ColumnAutoWidth = True
+            OptionsView.DataRowHeight = 28
+            OptionsView.GridLineColor = 13031136
+            OptionsView.GridLines = glHorizontal
+            OptionsView.GroupByBox = False
+            OptionsView.HeaderHeight = 28
+            OptionsView.Indicator = False
+            OptionsView.NoDataToDisplayInfoText = 'Los documentos eliminados no tienen ficheros digitales'
+            Styles.Background = stContenido
+            Styles.Content = stContenido
+            Styles.ContentEven = stContenido
+            Styles.ContentOdd = stContenido
+            Styles.Header = stCabeceraGrid
+            Styles.Inactive = stSeleccion
+            Styles.Selection = stSeleccion
+            object colFicNombre: TcxGridColumn
+              Caption = 'Fichero'
+              DataBinding.ValueType = 'String'
+              Width = 360
+            end
+            object colFicEstado: TcxGridColumn
+              Caption = 'Estado'
+              DataBinding.ValueType = 'String'
+              Width = 200
+            end
+            object colFicMensaje: TcxGridColumn
+              Caption = 'Detalle'
+              DataBinding.ValueType = 'String'
+              Width = 400
+            end
+          end
+          object lvFicheros: TcxGridLevel
+            GridView = tvFicheros
+          end
+        end
+        object lblE5Resumen: TLabel
+          Left = 20
+          Top = 344
+          Width = 1000
+          Height = 20
+          Caption = ''
+        AutoSize = False
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = 1581355
+          Font.Height = -12
+          Font.Name = 'Segoe UI'
+          Font.Style = []
+          ParentFont = False
+        end
+        object btnRetirar: TcxButton
+          Left = 20
+          Top = 372
+          Width = 184
+          Height = 36
+          Caption = 'Retirar ficheros'
+          TabOrder = 2
+          OnClick = btnRetirarClick
+        end
+        object btnReintentar: TcxButton
+          Left = 200
+          Top = 372
+          Width = 272
+          Height = 36
+          Caption = 'Reintentar los que fallaron'
+          TabOrder = 3
+          Visible = False
+          OnClick = btnReintentarClick
+        end
+        object btnConfirmarManual: TcxButton
+          Left = 490
+          Top = 372
+          Width = 240
+          Height = 36
+          Caption = 'Confirmar retiro a mano'
+          TabOrder = 4
+          Visible = False
+          OnClick = btnConfirmarManualClick
         end
       end
     end

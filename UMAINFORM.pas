@@ -10350,6 +10350,7 @@ begin
     Pantalla.FijarNodosDeTrabajo(NodosDondeActua(acDepurar), Nodos[0]);
     // Acta de eliminacion fisica (Anexo 19); el .fr3 esta en la carpeta Report
     Carpeta := ExtractFilePath(Application.ExeName) + 'Report';
+    Pantalla.FabricaRetiro := FabricaDeAlmacenes();
     Pantalla.AlImprimirActa :=
       procedure(IdProceso: Integer)
       begin
