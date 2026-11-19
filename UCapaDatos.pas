@@ -433,8 +433,6 @@ type
     frxADOComponents1: TfrxADOComponents;
     dstb_accionlog: TDataSource;
     tb_accionlog: TFDQuery;
-    dstb_transferencia: TDataSource;
-    tb_transferencia: TFDQuery;
     dsCodExpediente: TDataSource;
     CodExpediente: TFDQuery;
     FDPhysMSSQLDriverLink1: TFDPhysMSSQLDriverLink;
@@ -4481,7 +4479,6 @@ begin
     tb_seriesdatos.FetchAll();
     tb_ssArchdigital.FetchAll();
     tb_DocCoord.FetchAll();
-    tb_transferencia.FetchAll();
     qryAnexosDig.FetchAll();
     qryFuentesDig.FetchAll();
   except
@@ -4977,7 +4974,6 @@ begin
   CL_Nodos.Active := aValue;
   cl_nodopadre.Active := aValue;
   tb_arbol.Active := aValue;
-  tb_transferencia.Active := aValue;
   tb_ext.Active := aValue;
   tb_EstructDisp.Active := aValue;
   tb_tree.Active := aValue;

@@ -892,9 +892,9 @@ uses
   UAparienciaLegacy, UTema, UIconos, UDocumentoVistaDatos, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UAutenticacion, UMensajes, UTiempos, USplash, UCLServidoresForm, UCLArchivosForm, UCLSeriesForm, UClasificadoresInterruptor, UProcesosInterruptor, UPantallaProceso, UPrestamosForm, UPrestamosImpresos, UTransferenciasForm, UTransferenciasImpresos, UDepuracionForm, UDepuracionImpresos, UTransferidos, UEliminados, UCandados, UCapaDatos, UUserGest, UDocManagement,
   UPantallaCarga, UCLSeriesDocumentales, UCLFtpServer, UGestEstruct, UMangementArch,
   UManagementFileSeries, UViewFunciones, UVeditor, UExcelExport, UManagementNode,
-  USystemMsg, UNodeProperties, UCL_TiposExp, USysConfig, UTransferencias,
+  USystemMsg, UNodeProperties, UCL_TiposExp, USysConfig,
   UExportImportDocumentSubSeries, UManagementIndex, UAdminLog, UManagementTrans,
-  UDepuracion, UTopoDocActual, UREditor, UNodeInfo, frmTransferencia, UPrestamos,
+  UDepuracion, UTopoDocActual, UREditor, UNodeInfo, UPrestamos,
   UShellPrincipal, System.Diagnostics, System.IOUtils, System.Hash,
   UCargaModelo;
 
@@ -3186,13 +3186,7 @@ end;
 
 procedure TMAIN.btnTransferClick(Sender: TObject);
 begin
-  //ExportTrans;
-  with TfrmTransferencias.Create(nil) do
-  try
-    ShowModal;
-  finally
-    Free;
-  end;
+  AbrirTransferencias;
 end;
 
 procedure TMAIN.btnusercontrolClick(Sender: TObject);
@@ -9163,12 +9157,7 @@ end;
 
 procedure TMAIN.I4Click(Sender: TObject);
 begin
-  with TfrmTransferencias.Create(nil) do
-  try
-    ShowModal;
-  finally
-    Free;
-  end;
+  AbrirTransferencias;
 end;
 
 procedure TMAIN.InsertConnection(report: TfrxReport; connection: string);
@@ -10262,20 +10251,18 @@ begin
   end;
 end;
 
-// Transferencias: pantalla nueva (UTransferenciasForm) DENTRO de la ventana principal.
-// Con procesos_clasico.flag, sin ventana principal nueva o si la pantalla nueva falla
-// al abrirse, se usa la antigua (btnTransfer).
+// Transferencias: pantalla de UTransferenciasForm DENTRO de la ventana principal; con
+// procesos_clasico.flag o sin ventana principal nueva, como ventana modal. Ya no hay
+// pantalla vieja de respaldo: si falla al abrirse se registra y se muestra el error.
 procedure TMAIN.AbrirTransferencias;
 var
   Nodos: TArray<TClaveNodo>;
   Pantalla: TfrmTransferenciasNuevo;
   Carpeta: string;
+  Modal: Boolean;
 begin
-  if ProcesosClasicos(PathSys) or not ShellActivo then
-  begin
-    btnTransfer.Click;
-    Exit;
-  end;
+  Modal := ProcesosClasicos(PathSys) or not ShellActivo;
+  Pantalla := nil;
   try
     Nodos := NodosDelArbolElegido;
     if Length(Nodos) = 0 then
@@ -10316,12 +10303,23 @@ begin
             TMensajes.Error('No se pudo imprimir el registro topografico: ' + E.Message, 'Transferencias');
         end;
       end;
-    AbrirPantallaProceso(Pantalla, 'Transferencias', 'Transferencias');
+    if Modal then
+    begin
+      try
+        Pantalla.ShowModal;
+      finally
+        FreeAndNil(Pantalla);
+      end;
+    end
+    else
+      AbrirPantallaProceso(Pantalla, 'Transferencias', 'Transferencias');
   except
     on E: Exception do
     begin
       RegistrarErrorProceso(PathSys, 'Transferencias: ' + E.ClassName + ': ' + E.Message);
-      btnTransfer.Click;
+      if Modal and (Pantalla <> nil) then
+        FreeAndNil(Pantalla);
+      TMensajes.Error('No se pudo abrir Transferencias: ' + E.Message, 'Transferencias');
     end;
   end;
 end;

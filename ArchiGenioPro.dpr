@@ -133,7 +133,6 @@ uses
   UMAINFORM in 'UMAINFORM.pas' {MAIN},
   uiapp in 'uiapp.pas',
   USysConfig in 'USysConfig.pas' {frmSysConfig},
-  UTransferencias in 'UTransferencias.pas' {frmTransferencias},
   UExportImportDocumentSubSeries in 'UExportImportDocumentSubSeries.pas' {frmImportExport},
   UManagementIndex in 'UManagementIndex.pas' {frmIEIndex},
   UNewNodefrm in 'UNewNodefrm.pas' {frmNewNodeform},
@@ -145,7 +144,6 @@ uses
   UTopoDocActual in 'UTopoDocActual.pas' {frmUbicaDocActual},
   UREditor in 'UREditor.pas' {frmREditor},
   UNodeInfo in 'UNodeInfo.pas' {frmNodeInfo},
-  frmTransferencia in 'frmTransferencia.pas' {Form1},
   UPrestamos in 'UPrestamos.pas' {fpRESTAMOS};
 
 {$R *.res}

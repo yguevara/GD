@@ -31746,20 +31746,6 @@ object UDM: TUDM
     Left = 440
     Top = 336
   end
-  object dstb_transferencia: TDataSource
-    DataSet = tb_transferencia
-    Left = 928
-    Top = 272
-  end
-  object tb_transferencia: TFDQuery
-    AfterPost = tb_treeAfterPost
-    AggregatesActive = True
-    Connection = Conn
-    SQL.Strings = (
-      'select * from tb_transferencia')
-    Left = 928
-    Top = 224
-  end
   object CodExpediente: TFDQuery
     OnPostError = cl_expedientePostError
     Connection = Conn
