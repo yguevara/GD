@@ -519,6 +519,7 @@ type
     function NodosDelArbolElegido: TArray<TClaveNodo>;
     function NodosDondeActua(Accion: TAccion): TArray<TOpcionNodo>;
     procedure AbrirTransferencias;
+    procedure AbrirDepuracion;
     procedure pmtvResetClick(Sender: TObject);
     procedure S1Click(Sender: TObject);
     procedure S2Click(Sender: TObject);
@@ -888,7 +889,7 @@ var
 implementation
 
 uses
-  UAparienciaLegacy, UTema, UIconos, UDocumentoVistaDatos, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UAutenticacion, UMensajes, UTiempos, USplash, UCLServidoresForm, UCLArchivosForm, UCLSeriesForm, UClasificadoresInterruptor, UProcesosInterruptor, UPantallaProceso, UPrestamosForm, UPrestamosImpresos, UTransferenciasForm, UTransferenciasImpresos, UTransferidos, UEliminados, UCandados, UCapaDatos, UUserGest, UDocManagement,
+  UAparienciaLegacy, UTema, UIconos, UDocumentoVistaDatos, UTopografia, UBusquedaDocumentos, UHistory, UAbout, UAutentica, UAutenticacion, UMensajes, UTiempos, USplash, UCLServidoresForm, UCLArchivosForm, UCLSeriesForm, UClasificadoresInterruptor, UProcesosInterruptor, UPantallaProceso, UPrestamosForm, UPrestamosImpresos, UTransferenciasForm, UTransferenciasImpresos, UDepuracionForm, UDepuracionImpresos, UTransferidos, UEliminados, UCandados, UCapaDatos, UUserGest, UDocManagement,
   UPantallaCarga, UCLSeriesDocumentales, UCLFtpServer, UGestEstruct, UMangementArch,
   UManagementFileSeries, UViewFunciones, UVeditor, UExcelExport, UManagementNode,
   USystemMsg, UNodeProperties, UCL_TiposExp, USysConfig, UTransferencias,
@@ -8826,7 +8827,7 @@ begin
   else if Nombre = SECCION_PRESTAMOS then
     AbrirPrestamos
   else if Nombre = SECCION_DEPURACION then
-    D3.Click
+    AbrirDepuracion
   else if Nombre = SECCION_INDICES then
     I2.Click
   else if Nombre = SECCION_CUADRO then
@@ -10321,6 +10322,50 @@ begin
     begin
       RegistrarErrorProceso(PathSys, 'Transferencias: ' + E.ClassName + ': ' + E.Message);
       btnTransfer.Click;
+    end;
+  end;
+end;
+
+// Depuracion: pantalla nueva (UDepuracionForm) DENTRO de la ventana principal.
+// Con procesos_clasico.flag, sin ventana principal nueva o si la pantalla nueva falla
+// al abrirse, se usa la antigua (D3).
+procedure TMAIN.AbrirDepuracion;
+var
+  Nodos: TArray<TClaveNodo>;
+  Pantalla: TfrmDepuracionNueva;
+  Carpeta: string;
+begin
+  if ProcesosClasicos(PathSys) or not ShellActivo then
+  begin
+    D3.Click;
+    Exit;
+  end;
+  try
+    Nodos := NodosDelArbolElegido;
+    if Length(Nodos) = 0 then
+      raise Exception.Create('No hay nodos en el arbol.');
+    Pantalla := CrearPantallaDepuracion(UDM.Conn, Nodos, Nodos[0], UDM.Alcance,
+      UDM.UserName);
+    // solo el especialista de gestion documental depura, y solo en sus nodos
+    Pantalla.FijarNodosDeTrabajo(NodosDondeActua(acDepurar), Nodos[0]);
+    // Acta de eliminacion fisica (Anexo 19); el .fr3 esta en la carpeta Report
+    Carpeta := ExtractFilePath(Application.ExeName) + 'Report';
+    Pantalla.AlImprimirActa :=
+      procedure(IdProceso: Integer)
+      begin
+        try
+          ImprimirActaDepuracion(UDM.Conn, IdProceso, Carpeta);
+        except
+          on E: Exception do
+            TMensajes.Error('No se pudo imprimir el acta de eliminacion: ' + E.Message, 'Depuraci' + #243 + 'n');
+        end;
+      end;
+    AbrirPantallaProceso(Pantalla, 'Depuraci' + #243 + 'n', 'Depuracion');
+  except
+    on E: Exception do
+    begin
+      RegistrarErrorProceso(PathSys, 'Depuracion: ' + E.ClassName + ': ' + E.Message);
+      D3.Click;
     end;
   end;
 end;
